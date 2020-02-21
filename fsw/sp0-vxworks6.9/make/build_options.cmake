@@ -32,8 +32,7 @@ set(ENDIAN_DEFS "-D_EB -DENDIAN=_EB -DSOFTWARE_BIG_BIT_ORDER")
 ##
 set(COMPILE_FLAGS "-mcpu=8548 -te500v2 -mstrict-align -fno-builtin -fvolatile -mhard-float -fno-implicit-fp -mfloat-gprs=double -mspe=yes -mabi=spe -mlongcall")
 
-set(OSAL_C_FLAGS "${OSAL_C_FLAGS} ${COMPILE_FLAGS} ${ENDIAN_DEFS} ${ARCH_OPTS} ${TARGET_DEFS}")
-set(OSAL_CXX_FLAGS "${OSAL_CXX_FLAGS} ${COMPILE_FLAGS} ${ENDIAN_DEFS} ${ARCH_OPTS} ${TARGET_DEFS}")
+add_definitions("${COMPILE_FLAGS} ${ENDIAN_DEFS} ${ARCH_OPTS} ${TARGET_DEFS}")
 
 include_directories($ENV{WIND_BASE}/target/h/wrn/coreip)
 include_directories($ENV{WIND_BASE}/target/3rdparty/aitech/sp0)
