@@ -1,21 +1,7 @@
-set(CMAKE_SHARED_LIBRARY_C_FLAGS "")
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")
-set(CMAKE_SHARED_MODULE_C_FLAGS "")
-set(CMAKE_SHARED_MODULE_CXX_FLAGS "")
-set(CMAKE_SHARED_MODULE_SUFFIX ".o")
-
-set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
-
-#Ensures no -fPIC option for shared libs
-set(CMAKE_C_COMPILE_OPTIONS_PIC "")
-set(CMAKE_CXX_COMPILE_OPTIONS_PIC "")
-set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "-r")
-set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "-r")
-
 # This indicates where to install target binaries created during the build
 set(INSTALL_SUBDIR "cf")
 
-message("WIND_BASE IS $ENV{WIND_BASE}")
+message(STATUS "WIND_BASE IS $ENV{WIND_BASE}")
 
 ##
 ## Target Defines for the OS, Hardware Arch, etc..
