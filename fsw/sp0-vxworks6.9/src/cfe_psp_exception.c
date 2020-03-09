@@ -70,6 +70,7 @@ STATUS edrErrorPolicyHookRemove(void);
 /*
 ** Global variables
 */
+#include <target_config.h>
 
 BOOL overRideDefaultedrPolicyHandlerHook = FALSE;
 BOOL overRideCFEProcessCoreException = TRUE;
@@ -180,9 +181,13 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
     */
     if (overRideCFEProcessCoreException == FALSE)
     {
-        CFE_ES_ProcessCoreException((uint32 )pInfo->taskId,
-                                    (const char*)CFE_PSP_ExceptionReasonString,
-                                    (uint32 *)&CFE_PSP_ExceptionContext,
+        /*
+         ** Call the Generic cFE routine to finish processing the exception and
+         ** restart the cFE
+         */
+         CFE_ES_EXCEPTION_FUNCTION((uint32 )pInfo->taskId,
+                                   (const char*)CFE_PSP_ExceptionReasonString,
+                                   (uint32 *)&CFE_PSP_ExceptionContext,
                                     sizeof(CFE_PSP_ExceptionContext_t));
     }
     
