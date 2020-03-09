@@ -18,6 +18,7 @@
 **  Include Files
 */
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "vxWorks.h"
@@ -39,6 +40,7 @@
 
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
+#include "target_config.h"
 
 
 /*
@@ -47,12 +49,13 @@
 #define CFE_PSP_TASK_PRIORITY    (30)
 #define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
 
+#define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
+#define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
+
 
 /*
 **  External Function Prototypes
 */
-extern void CFE_ES_Main(uint32 StartType, uint32 StartSubtype, uint32 ModeId,
-                        const char *StartFilePath);
 extern void CFE_PSP_InitLocalTime(void);
 extern void CFE_PSP_Init1HzTimer(void);
 
@@ -65,14 +68,10 @@ extern void  CFE_PSP_WatchdogInit(void);
 /*
 **  Local Function Prototypes
 */
-static void CFE_PSP_Start(uint32 ModeId, char *StartupFilePath);
-static void CFE_PSP_SysInit(uint32* psp_reset_type, uint32* psp_reset_subtype,
-                            uint32 last_bsp_reset_type);
 static void SetSysTasksPrio(void);
 static void ResetSysTasksPrio(void);
 static void SetTaskPrio(char* tName, const int32 tgtPrio);
-
-void CFE_PSP_Main(uint32 ModeId, char *StartupFilePath);
+static void CFE_PSP_Start(void);
 uint32 CFE_PSP_GetRestartType(uint32 *restartSubType);
 
 
@@ -81,7 +80,6 @@ uint32 CFE_PSP_GetRestartType(uint32 *restartSubType);
 */
 static uint32 ResetType = 0;
 static uint32 ResetSubtype = 0;
-
 
 /******************************************************************************
 **  Function:  CFE_PSP_Main()
@@ -96,35 +94,31 @@ static uint32 ResetSubtype = 0;
 **  Return:
 **    None
 ******************************************************************************/
-void CFE_PSP_Main(uint32 modeId, char *startupFilePath)
+void CFE_PSP_Main(void)
 {
     int32 root_task_id = 0;
 
-    if (startupFilePath != NULL)
+    /* Need to add VX_FP_TASK (all tasks should just be created with it...
+    ** to deal with an "SPE unknown exception" error as soon as this task
+    ** would start on the SP0/PPC8548.
+    */
+
+    /* Note: When using e500vx_gnu tool chain, including VX_FP_TASK implicitly
+    ** includes VX_SPE_TASK, which is needed when starting tasks that might
+    ** use floating point on this processor.
+    */
+
+    root_task_id = taskSpawn("PSP_START", CFE_PSP_TASK_PRIORITY,
+                             VX_FP_TASK, CFE_PSP_TASK_STACK_SIZE,
+                             (FUNCPTR) (void *)CFE_PSP_Start, 0,
+                             0,0,0,0,0,0,0,0,0);
+
+    if (root_task_id == ERROR)
     {
-        /* Need to add VX_FP_TASK (all tasks should just be created with it...
-        ** to deal with an "SPE unknown exception" error as soon as this task
-        ** would start on the SP0/PPC8548.
-        */
-
-        /* Note: When using e500vx_gnu tool chain, including VX_FP_TASK implicitly
-        ** includes VX_SPE_TASK, which is needed when starting tasks that might
-        ** use floating point on this processor.
-        */
-
-        root_task_id = taskSpawn("PSP_START", CFE_PSP_TASK_PRIORITY,
-                                 VX_FP_TASK, CFE_PSP_TASK_STACK_SIZE,
-                                 (FUNCPTR) (void *)CFE_PSP_Start, modeId,
-                                 (int)startupFilePath, 0,0,0,0,0,0,0,0);
-
-        if (root_task_id == ERROR)
-        {
-            logMsg("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!",
-                   0,0,0,0,0,0);
-        }
+        logMsg("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!",
+               0,0,0,0,0,0);
     }
 }
-
 
 /******************************************************************************
 **  Function:  CFE_PSP_SysInit()
@@ -161,34 +155,24 @@ static void CFE_PSP_SysInit(uint32* psp_reset_type, uint32* psp_reset_subtype,
     }
 }
 
-
 /******************************************************************************
 **  Function:  CFE_PSP_Start()
 **
 **  Purpose:
-**    Initialize the PSP and start cFE
+**    vxWorks/BSP Application entry point.
 **
 **  Arguments:
-**    Input - modeId - Used to indicate which bank of non-volatile memory
-**                     was used to boot.  If the bank used to boot this time
-**                     is different from the previous boot, then we re-initialize
-**                     reserved memory.
-**    Input - startupFilePath - path to cFE startup file to use
+**    None
 **
 **  Return:
 **    None
 ******************************************************************************/
-static void CFE_PSP_Start(uint32 modeId, char *startupFilePath)
+static void CFE_PSP_Start(void)
 {
     int32 status = 0;
     uint32 reset_type = 0;
     uint32 reset_subtype = 0;
     uint32 reserve_memory_size = 0;
-
-    if (startupFilePath == NULL)
-    {
-        goto CFE_PSP_Start_Exit_Tag;
-    }
 
     /* Initialize the hardware timer for the local time source */
     
@@ -209,6 +193,7 @@ static void CFE_PSP_Start(uint32 modeId, char *startupFilePath)
     {
         logMsg("CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
                (unsigned int)status, 0,0,0,0,0);
+        goto CFE_PSP_Main_Exit_Tag;
     }
 
     /*
@@ -225,7 +210,7 @@ static void CFE_PSP_Start(uint32 modeId, char *startupFilePath)
     {
             logMsg("CFE_PSP_Main() - VxWorks Reserved Memory size smaller than CFE_PSP_ReserveMemory\n",
                    0,0,0,0,0,0); 
-            goto CFE_PSP_Start_Exit_Tag;
+            goto CFE_PSP_Main_Exit_Tag;
     }
     /* PSP System Initialization */
     CFE_PSP_SysInit(&reset_type, &reset_subtype,
@@ -244,7 +229,7 @@ static void CFE_PSP_Start(uint32 modeId, char *startupFilePath)
     SetSysTasksPrio();
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
-    CFE_ES_Main(reset_type, reset_subtype, modeId, (char *)startupFilePath);
+    CFE_PSP_MAIN_FUNCTION(reset_type, reset_subtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
     /*
     ** Initializing the 1Hz timer connects the cFE 1Hz ISR for providing the
@@ -260,7 +245,7 @@ static void CFE_PSP_Start(uint32 modeId, char *startupFilePath)
 
     logMsg("CFE_PSP_Start done, exiting.\n", 0,0,0,0,0,0);
 
-CFE_PSP_Start_Exit_Tag:
+CFE_PSP_Main_Exit_Tag:
     return;
 }
 
@@ -392,7 +377,6 @@ static void SetSysTasksPrio(void)
     SetTaskPrio("ipcom_telnetd", 204);
 }
 
-
 /******************************************************************************
 **  Function:  vxFpscrGet()
 **
@@ -453,5 +437,4 @@ void vxFpscrSet(unsigned int x)
 {
     logMsg("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__, 0,0,0);
 }
-
 

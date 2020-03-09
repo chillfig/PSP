@@ -27,11 +27,5 @@
 /*
 ** Macro Definitions
 */
-#ifndef _ENHANCED_BUILD_
-#define CFE_PSP_MAJOR_VERSION          CFE_PSP_IMPL_MAJOR_VERSION  
-#define CFE_PSP_MINOR_VERSION          CFE_PSP_IMPL_MINOR_VERSION
-#define CFE_PSP_REVISION               CFE_PSP_IMPL_REVISION
-#define CFE_PSP_MISSION_REV            CFE_PSP_IMPL_MISSION_REV
-#endif
 #endif  /* _psp_version_ */
 
