@@ -22,3 +22,4 @@ add_definitions("-mcpu=8548 -te500v2 -mstrict-align -fno-builtin -fvolatile -mha
 
 include_directories($ENV{WIND_BASE}/target/h/wrn/coreip)
 include_directories($ENV{WIND_BASE}/target/3rdparty/aitech/sp0)
+include_directories($ENV{WIND_BASE}/target/config/sp0)

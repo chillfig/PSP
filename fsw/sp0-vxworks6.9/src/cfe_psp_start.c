@@ -2,8 +2,8 @@
 **
 ** File:  cfe_psp_start.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
@@ -17,30 +17,17 @@
 /*
 **  Include Files
 */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "vxWorks.h"
-#include "sysLib.h"
-#include "taskLib.h"
-#include "ramDrv.h"
-#include "dosFsLib.h"
-#include "xbdBlkDev.h"
-#include "errnoLib.h"
-#include "usrLib.h"
-#include "cacheLib.h"
+#include <vxWorks.h>
+#include <taskLib.h>
 #include "userReservedMem.h"
-
-#include "common_types.h"
 #include "osapi.h"
 #include "cfe.h"
-#include "cfe_es.h"            /* For reset types */
 #include "cfe_platform_cfg.h"  /* for processor ID */
-
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
 #include "target_config.h"
+#include "scratchRegMap.h"
+
 
 
 /*
@@ -49,21 +36,18 @@
 #define CFE_PSP_TASK_PRIORITY    (30)
 #define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
 
-#define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
-#define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
-
-
 /*
 **  External Function Prototypes
 */
-extern void CFE_PSP_InitLocalTime(void);
-extern void CFE_PSP_Init1HzTimer(void);
 
-extern CFE_PSP_ReservedMemory_t* CFE_PSP_ReservedMemoryPtr;
+/*
+ * The preferred way to obtain the CFE tunable values at runtime is via
+ * the dynamically generated configuration object.  This allows a single build
+ * of the PSP to be completely CFE-independent.
+ */
 
-extern int32 CFE_PSP_InitProcessorReservedMemory(uint32 RestartType);
-extern void  CFE_PSP_WatchdogInit(void);
-
+#define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
+#define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
 
 /*
 **  Local Function Prototypes
@@ -71,15 +55,15 @@ extern void  CFE_PSP_WatchdogInit(void);
 static void SetSysTasksPrio(void);
 static void ResetSysTasksPrio(void);
 static void SetTaskPrio(char* tName, const int32 tgtPrio);
-static void CFE_PSP_Start(void);
-uint32 CFE_PSP_GetRestartType(uint32 *restartSubType);
-
+void CFE_PSP_Start(void);
 
 /*
 **  Local Global Variables
 */
 static uint32 ResetType = 0;
 static uint32 ResetSubtype = 0;
+static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
+
 
 /******************************************************************************
 **  Function:  CFE_PSP_Main()
@@ -88,9 +72,7 @@ static uint32 ResetSubtype = 0;
 **    vxWorks/PSP Application entry point
 **
 **  Arguments:
-**    Input - modeId - Mode ID (not currently used)
-**    Input - startupFilePath - Path to cFE startup file
-**
+**    None
 **  Return:
 **    None
 ******************************************************************************/
@@ -107,7 +89,7 @@ void CFE_PSP_Main(void)
     ** includes VX_SPE_TASK, which is needed when starting tasks that might
     ** use floating point on this processor.
     */
-
+    OS_printf_enable();
     root_task_id = taskSpawn("PSP_START", CFE_PSP_TASK_PRIORITY,
                              VX_FP_TASK, CFE_PSP_TASK_STACK_SIZE,
                              (FUNCPTR) (void *)CFE_PSP_Start, 0,
@@ -115,85 +97,182 @@ void CFE_PSP_Main(void)
 
     if (root_task_id == ERROR)
     {
-        logMsg("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!",
-               0,0,0,0,0,0);
+        OS_printf("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!");
     }
+}
+/******************************************************************************
+**  Function:  CFE_PSP_ProcessResetType()
+**
+**  Purpose:
+**     Determines the reset type and logs off nominal resets.
+**
+**  Arguments:
+**    None
+**
+**  Return:
+**    rest_type - Reset type
+******************************************************************************/
+static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
+{
+    int32 status = 0;
+    RESET_SRC_REG_ENUM resetSrc = 0;
+    uint32 talkative = 1;
+
+    memset(&safeModeUserData, 0, sizeof(safeModeUserData));
+
+    status  = ReadResetSourceReg(&resetSrc,talkative);
+    if (status == OS_SUCCESS )
+    {
+        OS_printf("CFE_PSP: Reset Register = %02X\n",resetSrc);
+        switch (resetSrc)
+        {
+            case RESET_SRC_POR:
+            {
+                OS_printf("CFE_PSP: POWERON Reset: Power Switch ON.\n");
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_POWER_CYCLE;
+            }
+            break;
+            case RESET_SRC_WDT:
+            {
+                OS_printf("CFE_PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
+                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
+            }
+            break;
+            case RESET_SRC_FWDT:
+            {
+                OS_printf("CFE_PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
+                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
+            }
+            break;
+            case RESET_SRC_CPCI:
+            {
+                OS_printf("CFE_PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
+                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+            }
+            break;
+            case RESET_SRC_SWR:
+            {
+
+                /*
+                ** For a Software hard reset, we want to look at the special
+                ** BSP reset variable to determine if we wanted a
+                ** Power ON or a Processor reset. Because the vxWorks sysToMonitor and
+                ** reboot functions use this reset type, we want to use this for a software
+                ** commanded processor or Power on reset.
+                */
+                if ( CFE_PSP_ReservedMemoryPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON)
+                {
+                    OS_printf("CFE_PSP: POWERON Reset: Software Hard Reset.\n");
+                    ResetType = CFE_PSP_RST_TYPE_POWERON;
+                    ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+                }
+                else
+                {
+                    OS_printf("CFE_PSP: PROCESSOR Reset: Software Hard Reset.\n");
+                    ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                    ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+                }
+                if(ReadSafeModeUserData(&safeModeUserData, talkative)!= OK)
+                {
+                    OS_printf("CFE_PSP: PROCESSOR Reset: failed to read safemode data.\n");
+                }
+            }
+            break;
+            default:
+            {
+                OS_printf("CFE_PSP: POWERON Reset: UNKNOWN Reset.\n");
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
+            }
+            break;
+        }
+    }
+    else
+    {
+        OS_printf("CFE_PSP: POWERON Reset: UNKNOWN Reset. Reset source read failed.\n");
+        ResetType = CFE_PSP_RST_TYPE_POWERON;
+        ResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
+    }
+
+    if (ResetType == 0)
+    {
+        ResetType = CFE_PSP_ReservedMemoryPtr->bsp_reset_type;
+    }
+
+    return resetSrc;
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_SysInit()
+**  Function:  CFE_PSP_LogSoftwareResetType()
 **
 **  Purpose:
-**    Initializes core PSP functionality.  This is called by both the primary
-**    CFE_PSP_Main() startup, as well as the alternative initialization in the
-**    Startup Manager (SM) component.  The SM uses the PSP and OSAL but does
-**    not start cFE or initialize all components of the PSP.
+**     Determines if started in safe mode and logs off nominal resets.
 **
 **  Arguments:
-**    Output - psp_reset_type - Reset type
-**    Output - psp_reset_subtype - Reset sub-type
-**    Input  - last_bsp_reset_type - Last reset type  //TODO: Do we need to keep this?
+**    None
 **
 **  Return:
-**    None
+**    rest_type - Reset type
 ******************************************************************************/
-static void CFE_PSP_SysInit(uint32* psp_reset_type, uint32* psp_reset_subtype,
-                            uint32 last_bsp_reset_type)
+
+void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
-    if ((psp_reset_type != NULL) && (psp_reset_subtype != NULL))
+
+    if (resetSrc == RESET_SRC_SWR)
     {
-        /* Delay for one second */
-        taskDelay((int32)sysClkRateGet());
 
-        /* Assign the reset cause - for now always start up in a power on reset */
-        *psp_reset_type = CFE_PSP_RST_TYPE_POWERON;
-        *psp_reset_subtype = CFE_PSP_RST_SUBTYPE_POWER_CYCLE;
-
-        /* Update the reset types */
-        ResetType = *psp_reset_type;
-        ResetSubtype = *psp_reset_subtype;
+        CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR Reset: Safe mode = %d, sbc = %s, reset reason = %d, MCHK cause = 0x%08x\n",
+                  (unsigned int)safeModeUserData.safeMode,
+                  (safeModeUserData.sbc == SM_LOCAL_SBC)? (unsigned int)"LOCAL":(unsigned int)"REMOTE",
+                  (unsigned int)safeModeUserData.reason,
+                  (unsigned int)safeModeUserData.mckCause);
+        if (safeModeUserData.mckCause != 0)
+        {
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
+        }
     }
 }
-
 /******************************************************************************
 **  Function:  CFE_PSP_Start()
 **
 **  Purpose:
-**    vxWorks/BSP Application entry point.
+**    Application startup entry point from OSAL BSP.
 **
 **  Arguments:
-**    None
+**    (none)
 **
 **  Return:
-**    None
-******************************************************************************/
-static void CFE_PSP_Start(void)
+**    (none)
+*/
+void CFE_PSP_Start(void)
 {
     int32 status = 0;
-    uint32 reset_type = 0;
-    uint32 reset_subtype = 0;
     uint32 reserve_memory_size = 0;
+    RESET_SRC_REG_ENUM resetSrc = 0;
 
     /* Initialize the hardware timer for the local time source */
-    
-    /* 
-    ** On VxWorks, the default config sets the SysClk to 200Hz (default 60Hz).
-    **
-    ** OS_API_Init() calls OS_TimerAPIInit(), which gets the clock resolution
-    ** of the realtime clock, which is based on the SysClk, and determines
-    ** the clock accuracy, which is used by the scheduler timer later.
-    **
-    ** SysClk needs to be at least 200Hz for a 100Hz minor frame rate.
-    */
     CFE_PSP_InitLocalTime();
 
     /* Initialize the OS API data structures */
     status = OS_API_Init();
     if (status != OS_SUCCESS)
     {
-        logMsg("CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
-               (unsigned int)status, 0,0,0,0,0);
-        goto CFE_PSP_Main_Exit_Tag;
+        OS_printf("CFE_PSP: CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
+               (unsigned int)status);
+        goto CFE_PSP_Start_Exit_Tag;
     }
 
     /*
@@ -201,26 +280,26 @@ static void CFE_PSP_Start(void)
     ** This must be done before any of the reset variables are used.
     */
     userReservedGet((char**)&CFE_PSP_ReservedMemoryPtr, &reserve_memory_size);
-  
 
-    logMsg("CFE_PSP_Main() - Reserved Memory address=0x%08X, CFE_PSP_ReserveMemory size=%d vxWoks ReservedMemory Size %d\n",
-           (uint32)CFE_PSP_ReservedMemoryPtr, sizeof(CFE_PSP_ReservedMemory_t), reserve_memory_size,
-            0,0,0);
+
+    OS_printf("CFE_PSP: - Reserved Mem addr=0x%08X, CFE_PSP_ReserveMem size=0x%x vxWoks ReservedMem Size=0x%x\n",
+           (uint32)CFE_PSP_ReservedMemoryPtr, sizeof(CFE_PSP_ReservedMemory_t), reserve_memory_size);
     if (reserve_memory_size < sizeof(CFE_PSP_ReservedMemory_t))
     {
-            logMsg("CFE_PSP_Main() - VxWorks Reserved Memory size smaller than CFE_PSP_ReserveMemory\n",
-                   0,0,0,0,0,0); 
-            goto CFE_PSP_Main_Exit_Tag;
+            OS_printf("CFE_PSP: CFE_PSP_Start() - VxWorks Reserved Memory size smaller than CFE_PSP_ReserveMemory\n");
+            goto CFE_PSP_Start_Exit_Tag;
     }
-    /* PSP System Initialization */
-    CFE_PSP_SysInit(&reset_type, &reset_subtype,
-                    CFE_PSP_ReservedMemoryPtr->bsp_reset_type);
 
     /* Initialize the watchdog, it's left disabled */
     CFE_PSP_WatchdogInit();
 
+    /* PSP Determine the reset type */
+    resetSrc = CFE_PSP_ProcessResetType();
+    /*TODO remove when new CFE exception code is picked up*/
+    ResetSubtype = 0;
+    ResetType = 0;
     /* Initialize the reserved memory */
-    CFE_PSP_InitProcessorReservedMemory(reset_type);
+    CFE_PSP_InitProcessorReservedMemory(ResetType);
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are
@@ -229,23 +308,27 @@ static void CFE_PSP_Start(void)
     SetSysTasksPrio();
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
-    CFE_PSP_MAIN_FUNCTION(reset_type, reset_subtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
+    CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
+
+
+    /*Now that the system is initialized log software reset type to syslog*/
+    CFE_PSP_LogSoftwareResetType(resetSrc);
 
     /*
     ** Initializing the 1Hz timer connects the cFE 1Hz ISR for providing the
     ** CFS 1Hz time sync, sync the scheduler's 1Hz major frame start to the
-    ** 1Hz timer. 
+    ** 1Hz timer.
     */
 
-    /* 
+    /*
     ** This call can only occur after CFE_ES_Main() because the 1Hz ISR uses
     ** a semaphore that is created when timer services are initialized.
     */
     CFE_PSP_Init1HzTimer();
 
-    logMsg("CFE_PSP_Start done, exiting.\n", 0,0,0,0,0,0);
+    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done, exiting.\n");
 
-CFE_PSP_Main_Exit_Tag:
+CFE_PSP_Start_Exit_Tag:
     return;
 }
 
@@ -309,8 +392,8 @@ static void SetTaskPrio(char* tName, const int32 tgtPrio)
         {
             if (taskPriorityGet(tid, (int *)&curPrio) != ERROR)
             {
-                logMsg("SetTaskPrio() - Setting %s priority from %d to %d\n",
-                       (uint32)tName, curPrio, newPrio, 0,0,0);
+                OS_printf("SetTaskPrio() - Setting %s priority from %d to %d\n",
+                       (uint32)tName, curPrio, newPrio);
 
                 taskPrioritySet(tid, newPrio);
             }
@@ -333,7 +416,7 @@ static void SetTaskPrio(char* tName, const int32 tgtPrio)
 ******************************************************************************/
 static void ResetSysTasksPrio(void)
 {
-    logMsg("\nResetting system tasks' priority to default\n", 0,0,0,0,0,0);
+    CFE_ES_WriteToSysLog("\nResetting system tasks' priority to default\n");
 
     SetTaskPrio("tLogTask", 0);
     SetTaskPrio("tShell0", 1);
@@ -365,7 +448,7 @@ static void ResetSysTasksPrio(void)
 ******************************************************************************/
 static void SetSysTasksPrio(void)
 {
-    logMsg("\nSetting system tasks' priorities\n", 0,0,0,0,0,0);
+    OS_printf("\nSetting system tasks' priorities\n");
 
     SetTaskPrio("tLogTask", 0);
     SetTaskPrio("tShell0", 201);
@@ -377,6 +460,9 @@ static void SetSysTasksPrio(void)
     SetTaskPrio("ipcom_telnetd", 204);
 }
 
+/*TODO have osal add conditional compile when SPE preset instead of FPU
+ * Once that has occurred we can remove vxFpscrGet and vxFpscrSet
+ * */
 /******************************************************************************
 **  Function:  vxFpscrGet()
 **
@@ -403,7 +489,7 @@ static void SetSysTasksPrio(void)
 *******************************************************************************/
 unsigned int vxFpscrGet(void)
 {
-    logMsg("%s->%s<stub>:%d:\n", (uint32)__FILE__, (uint32)__func__, __LINE__, 0,0,0);
+    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", (uint32)__FILE__, (uint32)__func__, __LINE__);
 
     return (0);
 }
@@ -435,6 +521,6 @@ unsigned int vxFpscrGet(void)
 *******************************************************************************/
 void vxFpscrSet(unsigned int x)
 {
-    logMsg("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__, 0,0,0);
+    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
 }
 

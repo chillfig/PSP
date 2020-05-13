@@ -1,8 +1,8 @@
 /******************************************************************************
 ** File:  cfe_psp_memory.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
@@ -11,9 +11,9 @@
 ** Purpose:
 **   cFE PSP Memory related functions
 **
-**   This is the implementation of the cFE memory areas that have to be  
+**   This is the implementation of the cFE memory areas that have to be
 **   preserved, and the API that is designed to allow access to them.
-**   It also contains memory related routines to return the address of the 
+**   It also contains memory related routines to return the address of the
 **   kernel code used in the cFE checksum.
 **
 ******************************************************************************/
@@ -185,7 +185,7 @@ int32 CFE_PSP_ReadFromCDS(void *ptrToOutputBuffer, uint32 cdsOffset, uint32 numB
 **    CFE_PSP_SUCCESS
 **    CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_GetResetArea(cpuaddr *ptrToResetArea, 
+int32 CFE_PSP_GetResetArea(cpuaddr *ptrToResetArea,
                            uint32  *pSizeOfResetArea)
 {
     int32 retCode = CFE_PSP_ERROR;
@@ -221,7 +221,7 @@ int32 CFE_PSP_GetResetArea(cpuaddr *ptrToResetArea,
 **    CFE_PSP_SUCCESS
 **    CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_GetUserReservedArea(cpuaddr *ptrToUserArea, 
+int32 CFE_PSP_GetUserReservedArea(cpuaddr *ptrToUserArea,
                                   uint32  *pSizeOfUserArea)
 {
     int32 retCode = CFE_PSP_ERROR;
@@ -257,7 +257,7 @@ int32 CFE_PSP_GetUserReservedArea(cpuaddr *ptrToUserArea,
 **    CFE_PSP_SUCCESS
 **    CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *ptrToVolDisk, 
+int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *ptrToVolDisk,
                                  uint32  *pSizeOfVolDisk)
 {
     int32 retCode = CFE_PSP_ERROR;
@@ -294,12 +294,12 @@ int32 CFE_PSP_InitProcessorReservedMemory(uint32 restartType)
 {
     if (restartType != CFE_ES_PROCESSOR_RESET)
     {
-        logMsg("CFE_PSP: Clearing Processor Reserved Memory.\n", 0,0,0,0,0,0);
-        memset((void *)CFE_PSP_ReservedMemoryPtr, 0, 
+        OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n", 0,0,0,0,0,0);
+        memset((void *)CFE_PSP_ReservedMemoryPtr, 0,
                sizeof(CFE_PSP_ReservedMemory_t));
     }
 
-    CFE_PSP_ReservedMemoryPtr->bsp_last_reset_type = 
+    CFE_PSP_ReservedMemoryPtr->bsp_last_reset_type =
         CFE_PSP_ReservedMemoryPtr->bsp_reset_type;
     CFE_PSP_ReservedMemoryPtr->bsp_reset_type = CFE_ES_PROCESSOR_RESET;
 
@@ -326,7 +326,7 @@ int32 CFE_PSP_InitProcessorReservedMemory(uint32 restartType)
 **    CFE_PSP_SUCCESS
 **    CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *ptrToKernelSegment, 
+int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *ptrToKernelSegment,
                                        uint32  *pSizeOfKernelSegment)
 {
     int32 retCode = CFE_PSP_ERROR;
@@ -365,7 +365,7 @@ int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *ptrToKernelSegment,
 **    CFE_PSP_SUCCESS
 **    CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *ptrToCFESegment, 
+int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *ptrToCFESegment,
                                     uint32  *pSizeOfCFESegment)
 {
     int32 retCode = CFE_PSP_ERROR;

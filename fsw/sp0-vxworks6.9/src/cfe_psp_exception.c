@@ -2,8 +2,8 @@
 **
 ** File:  cfe_psp_exception.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
@@ -24,10 +24,10 @@
 **     Do not confuse the hardware floating-point provided by the FPU with that
 **     provided by the SPE (see 6.3.10 Signal Processing Engine Support, p.190).
 **     If using the e500v2diab or e500v2gnu toolchains, you must use the speSave()
-**     speSave() and speRestore() routines to save and restore floating-point 
+**     speSave() and speRestore() routines to save and restore floating-point
 **     context.
 **
-**     The e500 core's SPE is a hardware double precision unit capable of both 
+**     The e500 core's SPE is a hardware double precision unit capable of both
 **     scalar and vector(SIMD) computation.
 **
 ******************************************************************************/
@@ -90,14 +90,14 @@ static uint8 CFE_PSP_ExceptionReasonString[EXCEPTION_STRING_SIZE];
 **  Purpose:
 **    Makes the proper call to CFE_ES_ProcessCoreException
 **
-**    Notes: When speSave() is called, it captures the last floating point 
-**           context, which may not be valid. If a floating point exception 
-**           occurs you can be almost 100% sure that this will reflect the 
-**           proper context. But if another type of exception occurred then 
-**           this has the possibility of not being valid. Specifically if a 
-**           task that is not enabled for floating point causes a non-floating 
+**    Notes: When speSave() is called, it captures the last floating point
+**           context, which may not be valid. If a floating point exception
+**           occurs you can be almost 100% sure that this will reflect the
+**           proper context. But if another type of exception occurred then
+**           this has the possibility of not being valid. Specifically if a
+**           task that is not enabled for floating point causes a non-floating
 **           point exception, then the meaning of the floating point context
-**           will not be valid.  If the task is enabled for floating point, 
+**           will not be valid.  If the task is enabled for floating point,
 **           then it will be valid.
 **
 **  Arguments:
@@ -109,33 +109,33 @@ static uint8 CFE_PSP_ExceptionReasonString[EXCEPTION_STRING_SIZE];
               EDR_FACILITY_REBOOT 	- system restart events
               EDR_FACILITY_RTP 	- RTP system events
               EDR_FACILITY_USER 	- user generated events
-**    Input - pInfo - 
-**            A pointer to an architecture-specific EXC_INFO structure, 
+**    Input - pInfo -
+**            A pointer to an architecture-specific EXC_INFO structure,
 **            in case of exceptions, with CPU exception information. The exception
-**            information is saved by the default VxWorks exception handler. 
+**            information is saved by the default VxWorks exception handler.
 **            The structure is defined for each architecture in one of these
 **            files:  target/h/arch/arch/excArchLib.h For example:  target/h/arch/ppc/excPpcLib.h
-**    Input - falseParam - 
-**            This flag indicates whether the ED&R system is in debug (also known as lab) mode, 
-**            or in field (or deployed) mode. 
-**            
+**    Input - falseParam -
+**            This flag indicates whether the ED&R system is in debug (also known as lab) mode,
+**            or in field (or deployed) mode.
+**
 **
 **  Return:
 **        TRUE  - Do not stop offending task
 **        FALSE - Stop offending task
-**    
+**
 ******************************************************************************/
 BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL falseParam)
 {
     char *TaskName;
-    
+
     BOOL returnStatus = FALSE;
 
     /*
     ** Get the vxWorks task name
     */
     TaskName = taskName(pInfo->taskId);
-    
+
     if (overRideDefaultedrPolicyHandlerHook == FALSE)
     {
         if (currentedrPolicyHandlerHook != NULL)
@@ -167,17 +167,17 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
     speSave(&CFE_PSP_ExceptionContext.fp);
 
     /*
-    ** Call the Generic cFE routine to finish processing the exception if 
+    ** Call the Generic cFE routine to finish processing the exception if
     ** over Ride not set TRUE
-    ** 
+    **
     ** The CFE_ES_ProcessCoreException function will execute the action
     ** specified for the applications in the cFE startup script (*.scr file).
-    ** 
-    ** If the Exception Action from the startup script is zero the application is 
+    **
+    ** If the Exception Action from the startup script is zero the application is
     ** restarted otherwise CFE_PSP_Restart is called which reboots the system.
-    ** 
+    **
     ** If the task that caused the exception is not managed by CFE the default
-    ** behavior is to call CFE_PSP_Restart which reboots the system. 
+    ** behavior is to call CFE_PSP_Restart which reboots the system.
     */
     if (overRideCFEProcessCoreException == FALSE)
     {
@@ -190,7 +190,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
                                    (uint32 *)&CFE_PSP_ExceptionContext,
                                     sizeof(CFE_PSP_ExceptionContext_t));
     }
-    
+
     return returnStatus;
 }
 
@@ -199,11 +199,11 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
 **  Function: CFE_PSP_AttachExceptions
 **
 **  Purpose:
-**    This function Initializes the VxWorks EDR Ploicy handling. The handler 
+**    This function Initializes the VxWorks EDR Ploicy handling. The handler
 **    is called for every exception that other handlers do not handle.
 **
-**    Notes: The floating point exceptions are handled by the default floating 
-**           point exception handler, which does a graceful recovery from 
+**    Notes: The floating point exceptions are handled by the default floating
+**           point exception handler, which does a graceful recovery from
 **           floating point exceptions in the file speExcLib.c.
 **
 **  Arguments:
@@ -222,12 +222,12 @@ void CFE_PSP_AttachExceptions(void)
 
     if (edrPolicyHandlerHookAdd((EDR_POLICY_HANDLER_HOOK)CFE_PSP_edrPolicyHandlerHook) == ERROR)
     {
-        logMsg("CFE_PSP_AttachException() - edrPolicyHandlerHookAdd() failed "
+        OS_printf("CFE_PSP_AttachException() - edrPolicyHandlerHookAdd() failed "
                "for CFE_PSP_edrPolicyHandlerHook()", 0,0,0,0,0,0);
     }
     else
     {
-        logMsg("CFE_PSP_AttacheException() - Attached cFE Exception Handler, "
+        OS_printf("CFE_PSP_AttacheException() - Attached cFE Exception Handler, "
                "contextSize=%d bytes.\n", (int)CFE_PSP_CPU_CONTEXT_SIZE, 0,0,0,0,0);
     }
 }
