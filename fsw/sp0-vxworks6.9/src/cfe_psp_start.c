@@ -233,14 +233,14 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
         if (safeModeUserData.mckCause != 0)
         {
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error error: reset\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error error: reset\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error\n");
+            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error: reset\n");
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
