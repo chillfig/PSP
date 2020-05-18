@@ -17,9 +17,10 @@
 /*
 **  Include Files
 */
+#include <stdio.h>
+#include <string.h>
 #include <vxWorks.h>
 #include <taskLib.h>
-#include "userReservedMem.h"
 #include "osapi.h"
 #include "cfe.h"
 #include "cfe_platform_cfg.h"  /* for processor ID */
@@ -27,6 +28,7 @@
 #include "cfe_psp_memory.h"
 #include "target_config.h"
 #include "scratchRegMap.h"
+#include <target_config.h>
 
 
 
@@ -35,6 +37,14 @@
 */
 #define CFE_PSP_TASK_PRIORITY    (30)
 #define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
+
+/* CFE_PSP_TIMER_PRINT_DBG
+**
+**   Debug flag
+*/
+#define CFE_PSP_TIMER_PRINT_DBG  TRUE
+
+#define PSP_1HZ_INTERVAL 1000000
 
 /*
 **  External Function Prototypes
@@ -48,12 +58,12 @@
 
 #define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
 #define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
+#define CFE_PSP_1HZ_FUNCTION         (*GLOBAL_CONFIGDATA.CfeConfig->System1HzISR)
 
 /*
 **  Local Function Prototypes
 */
 static void SetSysTasksPrio(void);
-static void ResetSysTasksPrio(void);
 static void SetTaskPrio(char* tName, const int32 tgtPrio);
 void CFE_PSP_Start(void);
 
@@ -63,6 +73,8 @@ void CFE_PSP_Start(void);
 static uint32 ResetType = 0;
 static uint32 ResetSubtype = 0;
 static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
+static uint32 PSP_1Hz_TimerId = 0;
+static uint32 PSP_1Hz_ClockAccuracy = 0;
 
 
 /******************************************************************************
@@ -164,7 +176,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
                 ** reboot functions use this reset type, we want to use this for a software
                 ** commanded processor or Power on reset.
                 */
-                if ( CFE_PSP_ReservedMemoryPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON)
+                if ( CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON)
                 {
                     OS_printf("CFE_PSP: POWERON Reset: Software Hard Reset.\n");
                     ResetType = CFE_PSP_RST_TYPE_POWERON;
@@ -200,7 +212,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 
     if (ResetType == 0)
     {
-        ResetType = CFE_PSP_ReservedMemoryPtr->bsp_reset_type;
+        ResetType = CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type;
     }
 
     return resetSrc;
@@ -226,10 +238,10 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     {
 
         CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR Reset: Safe mode = %d, sbc = %s, reset reason = %d, MCHK cause = 0x%08x\n",
-                  (unsigned int)safeModeUserData.safeMode,
-                  (safeModeUserData.sbc == SM_LOCAL_SBC)? (unsigned int)"LOCAL":(unsigned int)"REMOTE",
-                  (unsigned int)safeModeUserData.reason,
-                  (unsigned int)safeModeUserData.mckCause);
+                  safeModeUserData.safeMode,
+                  (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
+                  safeModeUserData.reason,
+                  safeModeUserData.mckCause);
         if (safeModeUserData.mckCause != 0)
         {
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
@@ -260,46 +272,32 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 void CFE_PSP_Start(void)
 {
     int32 status = 0;
-    uint32 reserve_memory_size = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
-
-    /* Initialize the hardware timer for the local time source */
-    CFE_PSP_InitLocalTime();
 
     /* Initialize the OS API data structures */
     status = OS_API_Init();
     if (status != OS_SUCCESS)
     {
         OS_printf("CFE_PSP: CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
-               (unsigned int)status);
+               status);
         goto CFE_PSP_Start_Exit_Tag;
     }
 
-    /*
-    ** Setup the pointer to the reserved area in vxWorks.
-    ** This must be done before any of the reset variables are used.
-    */
-    userReservedGet((char**)&CFE_PSP_ReservedMemoryPtr, &reserve_memory_size);
-
-
-    OS_printf("CFE_PSP: - Reserved Mem addr=0x%08X, CFE_PSP_ReserveMem size=0x%x vxWoks ReservedMem Size=0x%x\n",
-           (uint32)CFE_PSP_ReservedMemoryPtr, sizeof(CFE_PSP_ReservedMemory_t), reserve_memory_size);
-    if (reserve_memory_size < sizeof(CFE_PSP_ReservedMemory_t))
-    {
-            OS_printf("CFE_PSP: CFE_PSP_Start() - VxWorks Reserved Memory size smaller than CFE_PSP_ReserveMemory\n");
-            goto CFE_PSP_Start_Exit_Tag;
-    }
+    CFE_PSP_SetupReservedMemoryMap();
 
     /* Initialize the watchdog, it's left disabled */
     CFE_PSP_WatchdogInit();
 
     /* PSP Determine the reset type */
     resetSrc = CFE_PSP_ProcessResetType();
-    /*TODO remove when new CFE exception code is picked up*/
-    ResetSubtype = 0;
-    ResetType = 0;
+
     /* Initialize the reserved memory */
-    CFE_PSP_InitProcessorReservedMemory(ResetType);
+    if (CFE_PSP_InitProcessorReservedMemory(ResetType) != OS_SUCCESS)
+    {
+        OS_printf("CFE_PSP: CFE_PSP_Start() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
+                  status);
+        goto CFE_PSP_Start_Exit_Tag;
+    }
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are
@@ -314,19 +312,9 @@ void CFE_PSP_Start(void)
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
 
-    /*
-    ** Initializing the 1Hz timer connects the cFE 1Hz ISR for providing the
-    ** CFS 1Hz time sync, sync the scheduler's 1Hz major frame start to the
-    ** 1Hz timer.
-    */
+    OS_Application_Run();
 
-    /*
-    ** This call can only occur after CFE_ES_Main() because the 1Hz ISR uses
-    ** a semaphore that is created when timer services are initialized.
-    */
-    CFE_PSP_Init1HzTimer();
-
-    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done, exiting.\n");
+    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done.\n");
 
 CFE_PSP_Start_Exit_Tag:
     return;
@@ -393,39 +381,12 @@ static void SetTaskPrio(char* tName, const int32 tgtPrio)
             if (taskPriorityGet(tid, (int *)&curPrio) != ERROR)
             {
                 OS_printf("SetTaskPrio() - Setting %s priority from %d to %d\n",
-                       (uint32)tName, curPrio, newPrio);
+                       tName, curPrio, newPrio);
 
                 taskPrioritySet(tid, newPrio);
             }
         }
     }
-}
-
-
-/******************************************************************************
-**  Function:  ResetSysTasksPrio()
-**
-**  Purpose:
-**    Resets changed task priorities back to defaults
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    None
-******************************************************************************/
-static void ResetSysTasksPrio(void)
-{
-    CFE_ES_WriteToSysLog("\nResetting system tasks' priority to default\n");
-
-    SetTaskPrio("tLogTask", 0);
-    SetTaskPrio("tShell0", 1);
-    SetTaskPrio("tWdbTask", 3);
-    SetTaskPrio("tVxdbgTask", 25);
-    SetTaskPrio("tNet0", 50);
-    SetTaskPrio("ipftps", 50);
-    SetTaskPrio("ipcom_syslogd", 50);
-    SetTaskPrio("ipcom_telnetd", 50);
 }
 
 
@@ -460,6 +421,68 @@ static void SetSysTasksPrio(void)
     SetTaskPrio("ipcom_telnetd", 204);
 }
 
+
+/******************************************************************************
+**  Function:  PSP_1HzLocalCallback()
+**
+**  Purpose:
+**    The 1Hz call back handler calls the cfe 1Hz routine
+**
+**  Arguments:
+**    Input TimerId - Id for 1Hz timer
+**
+**  Return:
+**    (none)
+*/
+void PSP_1HzLocalCallback(uint32 TimerId)
+{
+#if CFE_PSP_TIMER_PRINT_DBG == TRUE
+      OS_time_t LocalTime;
+      CFE_PSP_GetTime(&LocalTime);
+#endif
+      CFE_PSP_1HZ_FUNCTION();
+#if CFE_PSP_TIMER_PRINT_DBG == TRUE
+
+      OS_printf("CFE_PSP_AuxClkHandler: PSP Local Time: %d.%d\n", LocalTime.seconds,LocalTime.microsecs);
+#endif
+}
+/******************************************************************************
+**  Function:  OS_Application_Run()
+**
+**  Purpose:
+**    Initializes the 1Hz timer connects the cFE 1Hz ISR for providing the
+**    CFS 1Hz time sync, sync the scheduler's 1Hz major frame start to the
+**    1Hz timer.
+**
+**  Arguments:
+**    (none)
+**
+**  Return:
+**    (none)
+*/
+void OS_Application_Run(void)
+{
+   int32  Status    = CFE_SUCCESS;
+
+   Status = OS_TimerCreate(&PSP_1Hz_TimerId,
+                            "PSP_1HZ_TIMER",
+                            &PSP_1Hz_ClockAccuracy,
+                            PSP_1HzLocalCallback);
+   if (Status != CFE_SUCCESS)
+   {
+       CFE_ES_WriteToSysLog("Failed to create OS_Timer for 1Hz local time.\n");
+   }
+   else
+   {
+       Status = OS_TimerSet(PSP_1Hz_TimerId, PSP_1HZ_INTERVAL, PSP_1HZ_INTERVAL);
+       if (Status != CFE_SUCCESS)
+       {
+           CFE_ES_WriteToSysLog("Failed to set OS_Timer for 1Hz local time.\n");
+       }
+   }
+
+}
+
 /*TODO have osal add conditional compile when SPE preset instead of FPU
  * Once that has occurred we can remove vxFpscrGet and vxFpscrSet
  * */
@@ -489,7 +512,7 @@ static void SetSysTasksPrio(void)
 *******************************************************************************/
 unsigned int vxFpscrGet(void)
 {
-    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", (uint32)__FILE__, (uint32)__func__, __LINE__);
+    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
 
     return (0);
 }
