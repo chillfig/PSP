@@ -443,7 +443,7 @@ void PSP_1HzLocalCallback(uint32 TimerId)
       CFE_PSP_1HZ_FUNCTION();
 #if CFE_PSP_TIMER_PRINT_DBG == TRUE
 
-      OS_printf("CFE_PSP_AuxClkHandler: PSP Local Time: %d.%d\n", LocalTime.seconds,LocalTime.microsecs);
+      OS_printf("PSP_1HzLocalCallback: PSP Local Time: %d.%d\n", LocalTime.seconds,LocalTime.microsecs);
 #endif
 }
 /******************************************************************************

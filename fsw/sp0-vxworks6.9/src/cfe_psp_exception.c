@@ -166,13 +166,11 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
             }
         }
     }
-#if 0
     if (GLOBAL_CFE_CONFIGDATA.SystemNotify != NULL)
     {
         /* notify the CFE of the event */
         GLOBAL_CFE_CONFIGDATA.SystemNotify();
     }
-#endif
     return returnStatus;
 }
 
