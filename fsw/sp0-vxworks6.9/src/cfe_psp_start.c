@@ -168,26 +168,10 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
             break;
             case RESET_SRC_SWR:
             {
+                OS_printf("CFE_PSP: POWERON Reset: Software Hard Reset.\n");
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
+                ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
 
-                /*
-                ** For a Software hard reset, we want to look at the special
-                ** BSP reset variable to determine if we wanted a
-                ** Power ON or a Processor reset. Because the vxWorks sysToMonitor and
-                ** reboot functions use this reset type, we want to use this for a software
-                ** commanded processor or Power on reset.
-                */
-                if ( CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON)
-                {
-                    OS_printf("CFE_PSP: POWERON Reset: Software Hard Reset.\n");
-                    ResetType = CFE_PSP_RST_TYPE_POWERON;
-                    ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
-                }
-                else
-                {
-                    OS_printf("CFE_PSP: PROCESSOR Reset: Software Hard Reset.\n");
-                    ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
-                    ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
-                }
                 if(ReadSafeModeUserData(&safeModeUserData, talkative)!= OK)
                 {
                     OS_printf("CFE_PSP: PROCESSOR Reset: failed to read safemode data.\n");
