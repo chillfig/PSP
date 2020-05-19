@@ -2,17 +2,17 @@
 **
 ** File:  cfe_psp_support.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
 **      distributed and modified only pursuant to the terms of that agreement.
 **
 ** Purpose:
-**   This file contains glue routines between the cFE and the OS Board Support 
-**   Package (BSP). The functions here allow the cFE to interface functions 
-**   that are board and OS specific and usually dont fit well in the OS 
+**   This file contains glue routines between the cFE and the OS Board Support
+**   Package (BSP). The functions here allow the cFE to interface functions
+**   that are board and OS specific and usually dont fit well in the OS
 **   abstraction layer.
 **
 ******************************************************************************/
@@ -24,14 +24,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "vxWorks.h"
-#include "sysLib.h"
-#include "taskLib.h"
-#include "ramDrv.h"
-#include "dosFsLib.h"
-#include "errnoLib.h"
-#include "usrLib.h"
-#include "cacheLib.h"
-#include "drv/hdisk/ataDrv.h"
 #include "cacheLib.h"
 #include "rebootLib.h"
 
@@ -100,7 +92,7 @@ void CFE_PSP_Panic(int32 errorCode)
 {
     logMsg("CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n",
            (unsigned int)errorCode, 0,0,0,0,0);
-   
+
     exit(-1);   /* TODO: Need to improve this */
 }
 

@@ -2,8 +2,8 @@
 **
 ** File: cfe_psp_watchdog.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
@@ -22,15 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vxWorks.h"
-#include "sysLib.h"
-#include "vxLib.h"
-#include "taskLib.h"
-#include "ramDrv.h"
-#include "dosFsLib.h"
-#include "errnoLib.h"
-#include "usrLib.h"
-#include "cacheLib.h"
 
 #include "common_types.h"
 #include "osapi.h"
@@ -70,9 +61,9 @@ void CFE_PSP_WatchdogInit(void)
 **
 **  Purpose:
 **    Enable the watchdog timer
-** 
+**
 **    If the processor BSP is set to define "ENABLE_STARTUP_WATCHDOG" in config.h or
-**    using the kernel config tool, this function will be called in sysHwInit2() 
+**    using the kernel config tool, this function will be called in sysHwInit2()
 **    in sysLib.c. The watchdog timer is disabled by default in startup firmware.
 **    The defalut value for the WATCH DOG timer is defined by "STARTUP_WATCHDOG_TIMEOUT".
 **
@@ -120,9 +111,9 @@ void CFE_PSP_WatchdogDisable(void)
 ******************************************************************************/
 void CFE_PSP_WatchdogService(void)
 {
-	/* 
-     * This function toggles the watchdog timer and it must be called at least 
-     * once every watchdog timer period if the watchdog timer is enabled.  
+	/*
+     * This function toggles the watchdog timer and it must be called at least
+     * once every watchdog timer period if the watchdog timer is enabled.
      * Otherwise, the board will perform a reset once the timer expires.
      */
 	sysPulseFpgaWdt();
@@ -136,7 +127,7 @@ void CFE_PSP_WatchdogService(void)
 **    Get the current watchdog value
 **
 **  Arguments:
-**    None 
+**    None
 **
 **  Return:
 **    The current watchdog value in msecs
@@ -164,7 +155,7 @@ void CFE_PSP_WatchdogSet(uint32 watchDogValue)
     float rate = 0.0;
 
     CFE_PSP_WatchdogValue = watchDogValue/1000;  /* in msecs */
-    
+
     /*Rate is in seconds*/
     rate = (((float)watchDogValue)*0.001);
     sysSetFpgaWdt(rate);

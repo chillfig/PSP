@@ -42,7 +42,7 @@
 **
 **   Debug flag
 */
-#define CFE_PSP_TIMER_PRINT_DBG  TRUE
+#define CFE_PSP_TIMER_PRINT_DBG  FALSE
 
 #define PSP_1HZ_INTERVAL 1000000
 
@@ -448,6 +448,7 @@ void OS_Application_Run(void)
 {
    int32  Status    = CFE_SUCCESS;
 
+   /*Create the 1Hz timer for synchronizing the major frame*/
    Status = OS_TimerCreate(&PSP_1Hz_TimerId,
                             "PSP_1HZ_TIMER",
                             &PSP_1Hz_ClockAccuracy,
@@ -458,6 +459,7 @@ void OS_Application_Run(void)
    }
    else
    {
+       /*Set the interval to one second in microseconds.*/
        Status = OS_TimerSet(PSP_1Hz_TimerId, PSP_1HZ_INTERVAL, PSP_1HZ_INTERVAL);
        if (Status != CFE_SUCCESS)
        {

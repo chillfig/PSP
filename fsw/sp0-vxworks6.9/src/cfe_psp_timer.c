@@ -2,8 +2,8 @@
 **
 ** File: cfe_psp_timer.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
@@ -11,7 +11,7 @@
 **
 ** Purpose:
 **   This file contains glue routines between the cFE and the OS Board Support Package (BSP).
-**   The functions here allow the cFE to interface functions that are board and OS specific 
+**   The functions here allow the cFE to interface functions that are board and OS specific
 **   and usually dont fit well in the OS abstraction layer.
 **
 *************************************************************************************************/
@@ -79,13 +79,13 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
 
     if (pLocalTime != NULL)
     {
-     
+
     	vxTimeBaseGet((UINT32 *)&tbu, (UINT32 *)&tbl);
 
         /* Re-assemble the 64-bit count */
         tb = ((unsigned long long)tbu << 32) | (unsigned long long)tbl;
-        /*if the ticks per second is zero inatialize it.
-         * The SP0 value is 333MHz and the SP0-S value is 400MHz
+        /*if the ticks per second is zero initialize it.
+         * The SP0 value is 41666666 and the SP0-S value is 49999999
          */
         if (tickPerSecond == 0)
         {
@@ -128,7 +128,7 @@ uint32 CFE_PSP_Get_Timer_Tick(void)
 **    None
 **
 **  Return:
-**    Value of CFE_PSP_TIMER_TICKS_PER_SECOND macro constant
+**    Value of ticks per second  returned by sysTimestampFreq
 ******************************************************************************/
 uint32 CFE_PSP_GetTimerTicksPerSecond(void)
 {
