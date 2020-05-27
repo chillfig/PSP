@@ -23,7 +23,6 @@
 #include <taskLib.h>
 #include "osapi.h"
 #include "cfe.h"
-#include "cfe_platform_cfg.h"  /* for processor ID */
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
 #include "target_config.h"

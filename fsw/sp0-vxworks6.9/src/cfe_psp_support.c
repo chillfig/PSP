@@ -29,9 +29,7 @@
 
 #include "common_types.h"
 #include "osapi.h"
-#include "cfe_es.h"            /* For reset types */
-#include "cfe_platform_cfg.h"  /* for processor ID */
-#include "cfe_mission_cfg.h"   /* for spacecraft ID */
+#include "cfe_es.h"           
 
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
@@ -60,9 +58,9 @@ extern CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
 ******************************************************************************/
 void CFE_PSP_Restart(uint32 reset_type)
 {
-    if (reset_type == CFE_ES_POWERON_RESET)
+    if (reset_type == CFE_PSP_RST_TYPE_POWERON)
     {
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_ES_POWERON_RESET;
+        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_POWERON;
         /*Normally the cache would be flushed but the reserved memory is not cached
          * so the flush is not needed.
          */
@@ -70,7 +68,7 @@ void CFE_PSP_Restart(uint32 reset_type)
     }
     else
     {
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_ES_PROCESSOR_RESET;
+        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
         /*Normally the cache would be flushed but the reserved memory is not cached
          * so the flush is not needed.
          */

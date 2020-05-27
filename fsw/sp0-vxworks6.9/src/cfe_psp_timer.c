@@ -24,7 +24,6 @@
 #include <vxLib.h>
 #include "osapi.h"
 #include "cfe.h"
-#include "cfe_platform_cfg.h"  /* for processor ID */
 #include "cfe_psp.h"
 #include "cfe_time.h"
 #include "target_config.h"
