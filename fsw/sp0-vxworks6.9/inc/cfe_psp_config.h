@@ -1,12 +1,12 @@
 /*
 ** cfe_psp_config.h
 **
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
+**      Copyright (c) 2004-2011, United States Government as represented by
+**      Administrator for The National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
 **      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement. 
+**      distributed and modified only pursuant to the terms of that agreement.
 **
 */
 
@@ -92,6 +92,15 @@ typedef struct
  * such that the blocks will be cached more efficiently.
  */
 #define CFE_PSP_MEMALIGN_MASK  ((cpuaddr)0x1F)
+
+/* The task and task priority for existing VxWorks task.
+ */
+typedef struct
+{
+    const char * VxWorksTaskName;
+    int32        VxWorksTaskPriority;
+} CFE_PSP_OS_Task_and_priority_t;
+
 
 #endif  /* _cfe_psp_config_ */
 

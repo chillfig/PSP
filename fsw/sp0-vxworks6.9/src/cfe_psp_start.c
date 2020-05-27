@@ -63,8 +63,8 @@
 /*
 **  Local Function Prototypes
 */
-static void SetSysTasksPrio(void);
-static void SetTaskPrio(char* tName, const int32 tgtPrio);
+static int32 SetSysTasksPrio(void);
+static int32 SetTaskPrio(const char* tName, int32 tgtPrio);
 void CFE_PSP_Start(void);
 
 /*
@@ -76,6 +76,22 @@ static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
 static uint32 PSP_1Hz_TimerId = 0;
 static uint32 PSP_1Hz_ClockAccuracy = 0;
 
+/*
+ * The list of VxWorks task to change the task priority
+ * to before finishing initialization.
+ */
+
+CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
+{
+    {"tLogTask", 0},
+    {"tShell0", 201},
+    {"tWdbTask", 203},
+    {"tVxdbgTask", 200},
+    {"tNet0", 25},         /* Should be set right below CI/TO */
+    {"ipftps", 202},
+    {"ipcom_syslogd", 205},
+    {"ipcom_telnetd", 204}
+};
 
 /******************************************************************************
 **  Function:  CFE_PSP_Main()
@@ -255,7 +271,8 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 */
 void CFE_PSP_Start(void)
 {
-    int32 status = 0;
+    int32 status = OS_SUCCESS;
+    int32 taskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
 
     /* Initialize the OS API data structures */
@@ -287,7 +304,7 @@ void CFE_PSP_Start(void)
     ** Adjust system task priorities so that tasks such as the shell are
     ** at a lower priority that the CFS apps
     */
-    SetSysTasksPrio();
+    taskSetStatus = SetSysTasksPrio();
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
@@ -297,6 +314,11 @@ void CFE_PSP_Start(void)
     CFE_PSP_LogSoftwareResetType(resetSrc);
 
     OS_Application_Run();
+
+    if (taskSetStatus != OS_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() At least one vxWorks task priority set failed. System may have degraded performance.\n");
+    }
 
     CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done.\n");
 
@@ -341,13 +363,14 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 **  Return:
 **     None
 ******************************************************************************/
-static void SetTaskPrio(char* tName, const int32 tgtPrio)
+static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 {
     int32 tid = 0;
     int32 curPrio = 0;
     int32 newPrio = 0;
+    int32 status = OS_SUCCESS;
 
-    if ((tName != NULL) && (strlen((const char*) tName) > 0))
+    if ((tName != NULL) && (strlen(tName) > 0))
     {
         newPrio = tgtPrio;
         if (newPrio < 0)
@@ -359,18 +382,26 @@ static void SetTaskPrio(char* tName, const int32 tgtPrio)
             newPrio = 255;
         }
 
-        tid = taskNameToId(tName);
+        tid = taskNameToId((char*)tName);
         if (tid != ERROR)
         {
             if (taskPriorityGet(tid, (int *)&curPrio) != ERROR)
             {
-                OS_printf("SetTaskPrio() - Setting %s priority from %d to %d\n",
+                OS_printf("PSP: SetTaskPrio() - Setting %s priority from %d to %d\n",
                        tName, curPrio, newPrio);
 
-                taskPrioritySet(tid, newPrio);
+                if (taskPrioritySet(tid, newPrio) == ERROR)
+                {
+                        OS_printf("PSP: taskPrioritySet() - Failed for %s priority from %d to %d\n",
+                                  tName, curPrio, newPrio);
+                        status = OS_ERROR;
+                }
+
             }
         }
     }
+
+    return status;
 }
 
 
@@ -391,18 +422,24 @@ static void SetTaskPrio(char* tName, const int32 tgtPrio)
 **  Return:
 **    None
 ******************************************************************************/
-static void SetSysTasksPrio(void)
+static int32 SetSysTasksPrio(void)
 {
-    OS_printf("\nSetting system tasks' priorities\n");
+    int32 status = OS_SUCCESS;
+    int32 index = 0;
 
-    SetTaskPrio("tLogTask", 0);
-    SetTaskPrio("tShell0", 201);
-    SetTaskPrio("tWdbTask", 203);
-    SetTaskPrio("tVxdbgTask", 200);
-    SetTaskPrio("tNet0", 25);           /* Should be set right below CI/TO */
-    SetTaskPrio("ipftps", 202);
-    SetTaskPrio("ipcom_syslogd", 205);
-    SetTaskPrio("ipcom_telnetd", 204);
+    int32 numberOfTask = sizeof(VxWorksTaskList)/sizeof(CFE_PSP_OS_Task_and_priority_t);
+
+    OS_printf("\nSetting system tasks' priorities for %d tasks.\n", numberOfTask);
+
+    for (index = 0; index < numberOfTask; index++)
+    {
+        if (SetTaskPrio(VxWorksTaskList[index].VxWorksTaskName, VxWorksTaskList[index].VxWorksTaskPriority) != OS_SUCCESS)
+        {
+            status = OS_ERROR;
+        }
+    }
+
+    return status;
 }
 
 

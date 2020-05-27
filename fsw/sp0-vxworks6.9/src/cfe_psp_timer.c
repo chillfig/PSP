@@ -76,6 +76,7 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
     uint32 tbu = 0;
     uint32 tbl = 0;
     unsigned long long tb = 0;
+    static uint32 errorCount = 0;
 
     if (pLocalTime != NULL)
     {
@@ -91,9 +92,22 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
         {
             tickPerSecond = sysTimestampFreq();
         }
-        /* Convert to seconds and microseconds using only integer computations */
-        pLocalTime->seconds   = (tb / tickPerSecond);
-        pLocalTime->microsecs = ((tb % tickPerSecond) * 1000000 )/(tickPerSecond);
+        if (tickPerSecond != 0)
+        {
+                /* Convert to seconds and microseconds using only integer computations.
+                 * The max seconds value is 442721864852  for the SP0 and 36893488221 for
+                 * the SP0-S. The conversion below will cause a loss of data which is just
+                 * a roll over of the clock for the local time defined in osal.
+                 */
+                pLocalTime->seconds   = (tb / tickPerSecond);
+                pLocalTime->microsecs = ((tb % tickPerSecond) * 1000000 )/(tickPerSecond);
+
+        }
+        else if (errorCount < 2)
+        {
+            OS_printf("CFE_PSP: CFE_PSP_GetTime() - tickPerSecond equals zero.\n");
+            errorCount++;
+        }
     }
 
 }

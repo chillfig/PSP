@@ -63,13 +63,17 @@ void CFE_PSP_Restart(uint32 reset_type)
     if (reset_type == CFE_ES_POWERON_RESET)
     {
         CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_ES_POWERON_RESET;
-        CFE_PSP_FlushCaches(1, PSP_ReservedMemBlock.BlockPtr, PSP_ReservedMemBlock.BlockSize);
+        /*Normally the cache would be flushed but the reserved memory is not cached
+         * so the flush is not needed.
+         */
         reboot(BOOT_CLEAR);
     }
     else
     {
         CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_ES_PROCESSOR_RESET;
-        CFE_PSP_FlushCaches(1, PSP_ReservedMemBlock.BlockPtr, PSP_ReservedMemBlock.BlockSize);
+        /*Normally the cache would be flushed but the reserved memory is not cached
+         * so the flush is not needed.
+         */
         reboot(BOOT_NORMAL);
     }
 }
@@ -115,10 +119,8 @@ void CFE_PSP_Panic(int32 errorCode)
 ******************************************************************************/
 void CFE_PSP_FlushCaches(uint32 type, void* address, uint32 size)
 {
-    if (type == 1)
-    {
-        cacheTextUpdate((void *)address, size);
-    }
+    /*The cache is managed by the SP0 BSP/VxWorks OS.
+     */
 }
 
 

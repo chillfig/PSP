@@ -36,6 +36,7 @@
 **  Include Files
 */
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <vxWorks.h>
 #include <sysLib.h>
@@ -78,6 +79,10 @@ STATUS edrErrorPolicyHookRemove(void);
 #include <target_config.h>
 
 BOOL overRideDefaultedrPolicyHandlerHook = FALSE;
+
+/* The EDR_POLICY_HANDLER_HOOK is a function pointer defined
+ * in the header file edrLibP.h.
+ */
 LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
 
 
@@ -103,7 +108,7 @@ LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
 **           then it will be valid.
 **
 **  Arguments:
-**    Input - facility -
+**    Input - type -
 **            EDR_FACILITY_KERNEL 	- VxWorks kernel events
               EDR_FACILITY_INTERRUPT 	- interrupt handler events
               EDR_FACILITY_INIT 	- system startup events
@@ -111,13 +116,13 @@ LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
               EDR_FACILITY_REBOOT 	- system restart events
               EDR_FACILITY_RTP 	- RTP system events
               EDR_FACILITY_USER 	- user generated events
-**    Input - pInfo -
+**    Input - pInfo_param -
 **            A pointer to an architecture-specific EXC_INFO structure,
 **            in case of exceptions, with CPU exception information. The exception
 **            information is saved by the default VxWorks exception handler.
 **            The structure is defined for each architecture in one of these
 **            files:  target/h/arch/arch/excArchLib.h For example:  target/h/arch/ppc/excPpcLib.h
-**    Input - falseParam -
+**    Input - debug -
 **            This flag indicates whether the ED&R system is in debug (also known as lab) mode,
 **            or in field (or deployed) mode.
 **
@@ -127,10 +132,11 @@ LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
 **        FALSE - Stop offending task
 **
 ******************************************************************************/
-BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL falseParam)
+BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
     CFE_PSP_Exception_LogData_t* Buffer;
     BOOL returnStatus = FALSE;
+    EDR_TASK_INFO* pInfo = (EDR_TASK_INFO*)pInfo_param;
 
     Buffer = CFE_PSP_Exception_GetNextContextBuffer();
     if (Buffer != NULL)
@@ -162,7 +168,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int facility, EDR_TASK_INFO *pInfo, BOOL false
         {
             if (currentedrPolicyHandlerHook != NULL)
             {
-                returnStatus = currentedrPolicyHandlerHook(facility, pInfo, falseParam);
+                returnStatus = currentedrPolicyHandlerHook(type, pInfo, debug);
             }
         }
     }
@@ -197,10 +203,19 @@ void CFE_PSP_AttachExceptions(void)
 	currentedrPolicyHandlerHook = edrPolicyHandlerHookGet();
     if (currentedrPolicyHandlerHook != NULL)
     {
-        edrErrorPolicyHookRemove();
+        /* The call to edrErrorPolicyHookRemove will return ERROR if the handler
+         * is NULL otherwise it set the handler to NULL. No action was required but
+         * ignoring an error is a bad practice.
+         */
+        if (edrErrorPolicyHookRemove() == ERROR)
+        {
+                OS_printf("CFE_PSP_AttachException() - edrErrorPolicyHookRemove() failed for address 0x%x ", currentedrPolicyHandlerHook);
+                currentedrPolicyHandlerHook = NULL;
+        }
+
     }
 
-    if (edrPolicyHandlerHookAdd((EDR_POLICY_HANDLER_HOOK)CFE_PSP_edrPolicyHandlerHook) == ERROR)
+    if (edrPolicyHandlerHookAdd(CFE_PSP_edrPolicyHandlerHook) == ERROR)
     {
         OS_printf("CFE_PSP_AttachException() - edrPolicyHandlerHookAdd() failed "
                "for CFE_PSP_edrPolicyHandlerHook()");
