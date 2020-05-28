@@ -163,21 +163,33 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
             case RESET_SRC_WDT:
             {
                 OS_printf("CFE_PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
-                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                 * the SP0 FPGA resets the reserved memory. The ResetType
+                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                 */
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
                 ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
             }
             break;
             case RESET_SRC_FWDT:
             {
                 OS_printf("CFE_PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
-                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                 * the SP0 FPGA resets the reserved memory. The ResetType
+                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                 */
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
                 ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
             }
             break;
             case RESET_SRC_CPCI:
             {
                 OS_printf("CFE_PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
-                ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                 * the SP0 FPGA resets the reserved memory. The ResetType
+                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                 */
+                ResetType = CFE_PSP_RST_TYPE_POWERON;
                 ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
             }
             break;
@@ -232,15 +244,50 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
+    const char* resetSrcString = NULL;
+    switch (resetSrc)
+    {
+        case RESET_SRC_POR:
+        {
+            resetSrcString = "RESET_SRC_POR";
+        }
+        break;
+        case RESET_SRC_WDT:
+        {
+            resetSrcString = "RESET_SRC_WDT";
+        }
+        break;
+        case RESET_SRC_FWDT:
+        {
+            resetSrcString = "RESET_SRC_FWDT";
+        }
+        break;
+        case RESET_SRC_CPCI:
+        {
+            resetSrcString = "RESET_SRC_CPCI";
+        }
+        break;
+        case RESET_SRC_SWR:
+        {
+            resetSrcString = "RESET_SRC_SWR";
+        }
+        break;
+        default:
+        {
+            resetSrcString = "RESET_SRC_POR";
+        }
+        break;
+    }
+    CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR Reset Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reset reason = %d, MCHK cause = 0x%08x\n",
+              resetSrc,
+              resetSrcString,
+              safeModeUserData.safeMode,
+              (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
+              safeModeUserData.reason,
+              safeModeUserData.mckCause);
 
     if (resetSrc == RESET_SRC_SWR)
     {
-
-        CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR Reset: Safe mode = %d, sbc = %s, reset reason = %d, MCHK cause = 0x%08x\n",
-                  safeModeUserData.safeMode,
-                  (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-                  safeModeUserData.reason,
-                  safeModeUserData.mckCause);
         if (safeModeUserData.mckCause != 0)
         {
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");

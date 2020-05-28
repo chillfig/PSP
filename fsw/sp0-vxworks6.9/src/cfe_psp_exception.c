@@ -200,6 +200,10 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 ******************************************************************************/
 void CFE_PSP_AttachExceptions(void)
 {
+    /* The old PSP used excHookAdd instead of the EDR&R facility for handling
+     * exceptions. The excHookAdd was replace with EDR&R because using the
+     * exception hook interferes with the debugger. (breakpoints)
+     */
 	currentedrPolicyHandlerHook = edrPolicyHandlerHookGet();
     if (currentedrPolicyHandlerHook != NULL)
     {
