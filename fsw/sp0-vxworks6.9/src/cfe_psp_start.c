@@ -28,6 +28,7 @@
 #include "target_config.h"
 #include "scratchRegMap.h"
 #include <target_config.h>
+#include "aimonUtil.h"
 
 
 
@@ -125,6 +126,57 @@ void CFE_PSP_Main(void)
     if (root_task_id == ERROR)
     {
         OS_printf("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!");
+    }
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_ProcessPOSTResults()
+**
+**  Purpose:
+**    The Power on Self Test results are logged to the system log.
+**
+**  Arguments:
+**    None
+**
+**  Return:
+**    None
+******************************************************************************/
+void CFE_PSP_ProcessPOSTResults(void)
+{
+    uint64 bitExecuted = 0ULL;
+    uint64 bitResult   = 0ULL;
+    uint32 i = 0;
+
+    if ((aimonGetBITExecuted(&bitExecuted, 0) == OK) &&
+        (aimonGetBITResults(&bitResult, 0) == OK))
+    {
+        /* Only log Power on Self Test that are valid*/
+        for (i=0; i < FWCH_TMR; i++)
+        {
+            if (bitExecuted & (1ULL << i))
+            {
+                if (bitResult & (1ULL << i))
+                {
+                    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
+                            AimonCompletionBlockTestIDStrings[i]);
+                }
+                else
+                {
+                    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
+                            AimonCompletionBlockTestIDStrings[i]);
+                }
+            }
+            else
+            {
+
+                CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
+                        AimonCompletionBlockTestIDStrings[i]);
+            }
+        }
+    }
+    else
+    {
+        CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.");
     }
 }
 /******************************************************************************
@@ -302,6 +354,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
             CFE_ES_WriteToSysLog("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
+    CFE_PSP_ProcessPOSTResults();
 }
 /******************************************************************************
 **  Function:  CFE_PSP_Start()
