@@ -6,7 +6,6 @@ message(STATUS "WIND_BASE IS $ENV{WIND_BASE}")
 ##
 ## Target Defines for the OS, Hardware Arch, etc..
 ##
-add_definitions("-DVOLTAB_PATH=\"/ram0/cf\"")
 add_definitions("-D_VXWORKS_OS_ -D_HAVE_STDINT_ -D_PPC_ -D__PPC__ -D_EMBED_ -DTOOL_FAMILY=gnu -DTOOL=e500v2gnu -D_WRS_KERNEL -DCPU=PPC85XX -DCPU_VARIANT=_ppc85xx_e500v2 \"-D_VSB_CONFIG_FILE=<../lib/h/config/vsbConfig.h>\"")
 
 
