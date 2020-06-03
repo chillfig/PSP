@@ -373,6 +373,7 @@ void CFE_PSP_Start(void)
     int32 status = OS_SUCCESS;
     int32 taskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
+    uint32 fs_id;
 
     /* Initialize the OS API data structures */
     status = OS_API_Init();
@@ -381,6 +382,18 @@ void CFE_PSP_Start(void)
         OS_printf("CFE_PSP: CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
                status);
         goto CFE_PSP_Start_Exit_Tag;
+    }
+
+    /*
+    ** Set up the virtual FS mapping for the "/cf" directory
+    ** On this platform it is will use the /ram0/cf physical device.
+    */
+    status = OS_FileSysAddFixedMap(&fs_id, "/ram0/cf", "/cf");
+    if (status != OS_SUCCESS)
+    {
+        /* Print for informational purposes --
+         * startup can continue, but loads may fail later, depending on config. */
+        OS_printf("CFE_PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
     }
 
     CFE_PSP_SetupReservedMemoryMap();
