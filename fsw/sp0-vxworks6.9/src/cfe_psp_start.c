@@ -106,28 +106,11 @@ CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
 ******************************************************************************/
 void CFE_PSP_Main(void)
 {
-    int32 root_task_id = 0;
-
-    /* Need to add VX_FP_TASK (all tasks should just be created with it...
-    ** to deal with an "SPE unknown exception" error as soon as this task
-    ** would start on the SP0/PPC8548.
-    */
-
-    /* Note: When using e500vx_gnu tool chain, including VX_FP_TASK implicitly
-    ** includes VX_SPE_TASK, which is needed when starting tasks that might
-    ** use floating point on this processor.
-    */
-    OS_printf_enable();
-    root_task_id = taskSpawn("PSP_START", CFE_PSP_TASK_PRIORITY,
-                             VX_FP_TASK, CFE_PSP_TASK_STACK_SIZE,
-                             (FUNCPTR) (void *)CFE_PSP_Start, 0,
-                             0,0,0,0,0,0,0,0,0);
-
-    if (root_task_id == ERROR)
-    {
-        OS_printf("CFE_PSP_Main() - ERROR - Unable to spawn PSP_START task!");
-    }
+    int32 status = 0;
+    status = OS_BSPMain();
+    OS_printf("PSP: CFE_PSP_Main() - OS_BSPMain application status %d \n",status);
 }
+
 
 /******************************************************************************
 **  Function:  CFE_PSP_ProcessPOSTResults()
@@ -330,7 +313,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
         }
         break;
     }
-    CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR Reset Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reset reason = %d, MCHK cause = 0x%08x\n",
+    CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
               resetSrc,
               resetSrcString,
               safeModeUserData.safeMode,
@@ -357,7 +340,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     CFE_PSP_ProcessPOSTResults();
 }
 /******************************************************************************
-**  Function:  CFE_PSP_Start()
+**  Function:  OS_Application_Startup()
 **
 **  Purpose:
 **    Application startup entry point from OSAL BSP.
@@ -368,20 +351,22 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 **  Return:
 **    (none)
 */
-void CFE_PSP_Start(void)
+void OS_Application_Startup(void)
 {
     int32 status = OS_SUCCESS;
     int32 taskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
     uint32 fs_id;
 
+    OS_printf_enable();
+
     /* Initialize the OS API data structures */
     status = OS_API_Init();
     if (status != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: CFE_PSP_Start() - OS_API_Init() failed (0x%X)\n",
+        OS_printf("CFE_PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n",
                status);
-        goto CFE_PSP_Start_Exit_Tag;
+        goto OS_Application_Startup_Exit_Tag;
     }
 
     /*
@@ -407,9 +392,9 @@ void CFE_PSP_Start(void)
     /* Initialize the reserved memory */
     if (CFE_PSP_InitProcessorReservedMemory(ResetType) != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: CFE_PSP_Start() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
+        OS_printf("CFE_PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
                   status);
-        goto CFE_PSP_Start_Exit_Tag;
+        goto OS_Application_Startup_Exit_Tag;
     }
 
     /*
@@ -425,7 +410,6 @@ void CFE_PSP_Start(void)
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
 
-    OS_Application_Run();
 
     if (taskSetStatus != OS_SUCCESS)
     {
@@ -434,7 +418,7 @@ void CFE_PSP_Start(void)
 
     CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done.\n");
 
-CFE_PSP_Start_Exit_Tag:
+    OS_Application_Startup_Exit_Tag:
     return;
 }
 
