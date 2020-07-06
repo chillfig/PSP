@@ -64,11 +64,12 @@ typedef TASK_ID CFE_PSP_Exception_SysTaskId_t;
 */
 typedef struct
 {
-    UINT32      timebase_upper; /* Upper 32 bits of timebase as sampled by hook */
-    UINT32      timebase_lower; /* Lower 32 bits of timebase as sampled by hook */
-    int         vector;         /* vector number */
-    ESFPPC      esf;            /* Exception stack frame */
-    SPEREG_SET  fp;             /* floating point registers */
+    UINT32          timebase_upper; /* Upper 32 bits of timebase as sampled by hook */
+    UINT32          timebase_lower; /* Lower 32 bits of timebase as sampled by hook */
+    int             vector;         /* vector number */
+    ESFPPC          esf;            /* Exception stack frame */
+    UINT64          force64BitAlign;/* Force the spe register to 64 bit alignment*/
+    SPE_CONTEXT     fp;             /* floating point registers */
 
 } CFE_PSP_Exception_ContextDataEntry_t;
 
