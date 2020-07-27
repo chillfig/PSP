@@ -8,6 +8,11 @@ This is a collection of APIs abstracting platform specific functionality to be l
 
 ## Version History
 
+### Development Build: 1.4.14
+
+- Changes the PSP reference to be compatible with the change in nasa/osal#449 making the BSP modules more generic and changes the name.
+- See <https://github.com/nasa/PSP/pull/175>
+
 ### Development Build: 1.4.13
 
 - Changes the PSP reference to be compatible with the change in nasa/osal#449 making the BSP modules more generic and changes the name.
@@ -69,7 +74,7 @@ This is a collection of APIs abstracting platform specific functionality to be l
 
 - Minor updates (see <https://github.com/nasa/PSP/pull/115>)
 
-### **_1.4.0 OFFICIAL RELEASE_**
+### **_1.4.0 OFFICIAL RELEASE - Aquila_**
 
 - This is a point release from an internal repository
 - Changes are detailed in [cFS repo](https://github.com/nasa/cFS) release documentation
