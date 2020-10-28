@@ -58,7 +58,7 @@ Target_ConfigData GLOBAL_CONFIGDATA =
         .User = "MissionBuildUser",
         .Default_CpuName = "UnitTestCpu",
         .Default_CpuId = 1,
-        .Default_SpacecraftId = 42,
+        .Default_SpacecraftId = 0x42,
         .CfeConfig = &GLOBAL_CFE_CONFIGDATA,
         .PspConfig = &GLOBAL_PSP_CONFIGDATA
 };
@@ -141,6 +141,37 @@ uint32 CFE_PSP_GetSpacecraftId(void)
     status = UT_DEFAULT_IMPL(CFE_PSP_GetSpacecraftId);
 
     return status;
+}
+
+/*****************************************************************************/
+/**
+** \brief CFE_PSP_GetProcessorName stub function
+**
+** \par Description
+**        This function is used as a placeholder for the PSP function
+**        CFE_PSP_GetProcessorName.  It is set to return a fixed value for the
+**        unit tests.
+**
+** \par Assumptions, External Events, and Notes:
+**        None
+**
+** \returns
+**        Returns Default_CpuName or passed in address from buffer
+**
+******************************************************************************/
+const char *CFE_PSP_GetProcessorName(void)
+{
+    int32      status;
+    const char *ptr = GLOBAL_CONFIGDATA.Default_CpuName;
+
+    status = UT_DEFAULT_IMPL(CFE_PSP_GetProcessorName);
+
+    if (status >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_GetProcessorName), &ptr, sizeof(ptr));
+    }
+
+    return ptr;
 }
 
 /*****************************************************************************/
@@ -668,17 +699,17 @@ uint32 CFE_PSP_Exception_GetCount(void)
      return status;
 }
 
-int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, uint32 *TaskId, char *ReasonBuf, uint32 ReasonSize)
+int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize)
 {
     int32 status;
 
     *ContextLogId = 0;
-    *TaskId = 0;
+    *TaskId = OS_OBJECT_ID_UNDEFINED;
     *ReasonBuf = 0;
 
     /* allow the testcase to easily set the taskID output, anything more involved needs a hook */
     status = UT_DEFAULT_IMPL_ARGS(CFE_PSP_Exception_GetSummary, ContextLogId, TaskId, ReasonBuf, ReasonSize);
-    if (status == 0 && *TaskId == 0)
+    if (status == 0 && !OS_ObjectIdDefined(*TaskId))
     {
         UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_Exception_GetSummary), TaskId, sizeof(*TaskId));
     }
