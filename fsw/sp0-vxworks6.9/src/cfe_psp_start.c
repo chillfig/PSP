@@ -356,7 +356,7 @@ void OS_Application_Startup(void)
     int32 status = OS_SUCCESS;
     int32 taskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    uint32 fs_id;
+    osal_id_t fs_id;
 
     OS_printf_enable();
 
