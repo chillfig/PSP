@@ -8,6 +8,40 @@ This is a collection of APIs abstracting platform specific functionality to be l
 
 ## Version History
 
+### Development Build: 1.5.0-rc1+dev24
+
+- Improves the module ID lookup when getting the CFE core text segment info. VxWorks PSP should use the real module name, not assume cfe-core.o when getting text segment info
+- See <https://github.com/nasa/PSP/pull/209>
+
+### Development Build: 1.5.0-rc1+dev19
+
+- Use the osal_id_t typedef whenever dealing with an OSAL ID value.
+- Resolves build error regarding redefinition of PPC macros in the coverage test, when building on the actual ppc/vxworks target.
+- See <https://github.com/nasa/PSP/pull/206>
+
+### Development Build: 1.5.0-rc1+dev14
+
+- Sets the stub config data spacecraft id to historical value 0x42, was 42.
+- Installs unit test to target directories.
+- See <https://github.com/nasa/PSP/pull/196>
+
+### Development Build: 1.5.0-rc1+dev6
+
+- Adds CFE_PSP_GetProcessorName
+- Removes classic make artifacts
+- See <https://github.com/nasa/PSP/pull/190>
+
+### Development Build: 1.4.0+dev76
+
+- Provide a new framework and perform PSP coverage tests. New coverage test executable is built and several files within PSP are targeted.
+- See <https://github.com/nasa/PSP/pull/184>
+
+### Development Build: 1.4.0+dev71
+
+- Restructure code to make more amicable for rebuilding in a unit test environment. No major changes, primarily just shifting code between locations/headers to support unit testing.
+-  Adds a char element `Version` to `CFE_PSP_VersionInfo_t` containing the version number expressed as a string. Defines new macros for the Build Number and the Build Baseline.
+- See <https://github.com/nasa/PSP/pull/176>
+
 ### Development Build: 1.4.14
 
 - Changes the PSP reference to be compatible with the change in nasa/osal#449 making the BSP modules more generic and changes the name.
@@ -21,7 +55,7 @@ This is a collection of APIs abstracting platform specific functionality to be l
 ### Development Build: 1.4.12
 
 - Replace 'OS_VolumeTable' with OS_FileSysAddFixedMap() in all PSPs.
-- See <https://github.com/nasa/PSP/pull/166> 
+- See <https://github.com/nasa/PSP/pull/166>
 
 ### Development Build: 1.4.11
 
@@ -29,7 +63,7 @@ This is a collection of APIs abstracting platform specific functionality to be l
 - Exception handling is now implemented on POSIX. There is no longer a separate handler for SIGINT - it is now treated as an exception and goes through the normal process which ends up "restarting" CFE. On pc-linux causes the process to exit normally. There is now a mechanism to capture the CTRL+C exception code and use it during normal test cycles.
 - See <https://github.com/nasa/PSP/pull/160>
 
-#### Development Build: 1.4.10
+### Development Build: 1.4.10
 
 - Implements full-precision microsecond conversion
 - See <https://github.com/nasa/PSP/pull/155>

@@ -96,7 +96,7 @@ void OS_Application_Startup(void)
    int    TicksPerSecond;
    uint32 reset_type;
    uint32 reset_subtype;
-   uint32 fs_id;
+   osal_id_t fs_id;
    char   reset_register;
    int32  Status;
 
@@ -111,6 +111,13 @@ void OS_Application_Startup(void)
        /* note: use printf here, as OS_printf may not work */
        printf("CFE_PSP: OS_API_Init() failure\n");
        CFE_PSP_Panic(Status);
+
+       /*
+        * normally CFE_PSP_Panic() does not return, except
+        * during unit testing.  This return avoids executing
+        * the rest of this function in that case.
+        */
+       return;
    }
 
    /*

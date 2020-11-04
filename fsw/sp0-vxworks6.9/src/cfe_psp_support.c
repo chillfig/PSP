@@ -36,6 +36,7 @@
 #include "target_config.h"
 
 #define CFE_PSP_CPU_ID               (GLOBAL_CONFIGDATA.Default_CpuId)
+#define CFE_PSP_CPU_NAME             (GLOBAL_CONFIGDATA.Default_CpuName)
 #define CFE_PSP_SPACECRAFT_ID        (GLOBAL_CONFIGDATA.Default_SpacecraftId)
 
 /*
@@ -157,6 +158,26 @@ uint32 CFE_PSP_GetSpacecraftId(void)
    return CFE_PSP_SPACECRAFT_ID;
 }
 
+
+/*
+** Name: CFE_PSP_GetProcessorName
+**
+** Purpose:
+**         return the processor name.
+**
+** Parameters:
+**
+** Global Inputs: None
+**
+** Global Outputs: None
+**
+**
+** Return Values: Processor name
+*/
+const char *CFE_PSP_GetProcessorName   (void)
+{
+   return CFE_PSP_CPU_NAME;
+}
 
 
 

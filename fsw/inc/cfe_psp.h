@@ -137,11 +137,13 @@
 #define CFE_PSP_RST_SUBTYPE_MAX                   10  /**< \brief  Placeholder to indicate 1+ the maximum value that the PSP will ever use. */
 /** \} */
 
+
 /* Implement the "version" macros */
 #define CFE_PSP_MAJOR_VERSION          (GLOBAL_PSP_CONFIGDATA.PSP_VersionInfo.MajorVersion)
 #define CFE_PSP_MINOR_VERSION          (GLOBAL_PSP_CONFIGDATA.PSP_VersionInfo.MinorVersion)
 #define CFE_PSP_REVISION               (GLOBAL_PSP_CONFIGDATA.PSP_VersionInfo.Revision)
 #define CFE_PSP_MISSION_REV            (GLOBAL_PSP_CONFIGDATA.PSP_VersionInfo.MissionRev)
+#define CFE_PSP_VERSION                (GLOBAL_PSP_CONFIGDATA.PSP_VersionInfo.Version)
 
 /*
 ** Type Definitions
@@ -214,6 +216,10 @@ extern uint32        CFE_PSP_GetSpacecraftId ( void );
 ** CFE_PSP_GetSpacecraftId retuns the Spacecraft ID (if any )
 */
 
+extern const char *  CFE_PSP_GetProcessorName(void);
+/*
+** CFE_PSP_GetProcessorName returns the processor name
+*/
 
 extern uint32 CFE_PSP_Get_Timer_Tick(void);
 /*
@@ -360,7 +366,7 @@ extern void CFE_PSP_SetDefaultExceptionEnvironment(void);
 
 
 extern uint32 CFE_PSP_Exception_GetCount(void);
-extern int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, uint32 *TaskId, char *ReasonBuf, uint32 ReasonSize);
+extern int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize);
 extern int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize);
 
 /*

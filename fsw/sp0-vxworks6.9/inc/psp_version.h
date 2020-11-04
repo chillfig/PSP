@@ -1,5 +1,5 @@
 /*
-**  $Id: psp_version.h 1.1.1.1 2009/08/10 17:11:07BST bmedina Exp  $
+**  GSC-18128-1, "Core Flight Executive Version 6.7"
 **
 **
 **      Copyright (c) 2004-2011, United States Government as represented by 
@@ -16,18 +16,46 @@
 **
 */
 
+/*! @file mcp750-vxworks/inc/psp_version.h
+ *  @brief Purpose: 
+ *  @details Provide version identifiers for the cFE Platform Support Packages (PSP).   
+ *  See @ref cfsversions for version and build number and description
+ */
 #ifndef _psp_version_
 #define _psp_version_
 
-
-#define CFE_PSP_IMPL_MAJOR_VERSION          1
-#define CFE_PSP_IMPL_MINOR_VERSION          4
-#define CFE_PSP_IMPL_REVISION               13
-#define CFE_PSP_IMPL_MISSION_REV            0
-
+/*
+ * Development Build Macro Definitions 
+ */
+#define CFE_PSP_IMPL_BUILD_NUMBER 24
+#define CFE_PSP_IMPL_BUILD_BASELINE "v1.5.0-rc1"
 
 /*
-** Macro Definitions
-*/
-#endif  /* _psp_version_ */
+ * Version Macro Definitions
+ */
+#define CFE_PSP_IMPL_MAJOR_VERSION 1 /*!< @brief ONLY APPLY for OFFICIAL releases. Major version number. */
+#define CFE_PSP_IMPL_MINOR_VERSION 4 /*!< @brief ONLY APPLY for OFFICIAL releases. Minor version number. */
+#define CFE_PSP_IMPL_REVISION      14 /*!< @brief ONLY APPLY for OFFICIAL releases. Revision number. */
+#define CFE_PSP_IMPL_MISSION_REV   0 /*!< @brief ONLY USED by MISSION Implementations. Mission revision */
 
+/*
+ * Tools to construct version string
+ */ 
+#define CFE_PSP_IMPL_STR_HELPER(x) #x /*!< @brief Helper function to concatenate strings from integer */ 
+#define CFE_PSP_IMPL_STR(x)        CFE_PSP_IMPL_STR_HELPER(x) /*!< @brief Helper function to concatenate strings from integer */
+
+/*! @brief Development Build Version Number. 
+ *  @details Baseline git tag + Number of commits since baseline. @n
+ *  See @ref cfsversions for format differences between development and release versions.
+ */
+#define CFE_PSP_IMPL_VERSION CFE_PSP_IMPL_BUILD_BASELINE CFE_PSP_IMPL_STR(CFE_PSP_IMPL_BUILD_NUMBER)
+
+/*! @brief Development Build Version String.
+ *  @details Reports the current development build's baseline, number, and name. Also includes a note about the latest official version. @n
+ *  See @ref cfsversions for format differences between development and release versions. 
+ */     
+#define CFE_PSP_IMPL_VERSION_STRING                                                                      \
+    " PSP Development Build " CFE_PSP_IMPL_VERSION                /* Codename for current development */ \
+    ", Last Official Release: psp v1.4.0"                        /* For full support please use this version */
+
+#endif  /* _psp_version_ */
