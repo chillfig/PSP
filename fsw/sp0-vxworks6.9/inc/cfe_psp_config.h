@@ -102,6 +102,24 @@ typedef struct
     int32        VxWorksTaskPriority;
 } CFE_PSP_OS_Task_and_priority_t;
 
+/*
+** Default reading CDS method. Assume the reserved CDS memory is 
+** always correct(Don't need CRC or alway read from Flash)
+*/
+#define CFE_PSP_CDS_READ_METHOD_DEFAULT     0
+
+/*
+** CRC reading CDS method. This will verify the CRC everytime reading
+** CDS. The CRC also gets update on every CDS writing
+*/
+#define CFE_PSP_CDS_READ_METHOD_CRC         1
+
+/*
+** Flash reading CDS method. This will always read from Flash for every
+** CDS reading.
+*/
+#define CFE_PSP_CDS_READ_METHOD_FLASH       2
+
 
 #endif  /* _cfe_psp_config_ */
 
