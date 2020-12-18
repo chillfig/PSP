@@ -49,6 +49,7 @@
 /*
 **  External Function Prototypes
 */
+int OS_BSPMain(void);
 
 /*
  * The preferred way to obtain the CFE tunable values at runtime is via
