@@ -24,3 +24,7 @@ add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_timer.c
     src/cfe_psp_watchdog.c)
 
+# Add unit test, if enabled
+if (ENABLE_UNIT_TESTS)
+    add_subdirectory(unit_test)
+endif (ENABLE_UNIT_TESTS)

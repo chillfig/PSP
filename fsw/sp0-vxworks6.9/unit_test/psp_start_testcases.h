@@ -1,0 +1,50 @@
+/*=======================================================================================
+**
+** File:  psp_start_testcases.h
+**
+** Purpose:
+**    This file contains function declarations of test cases for the cfe_psp_start.c.
+**
+** Modification History:
+**    Date       | Author           | Description
+**    ---------- | ---------------- | ----------------------------------------------------
+**    2020-12-18 | Minh Luong       | Initial revision
+**=======================================================================================*/
+
+#ifndef ut_psp_start_testcases_h
+#define ut_psp_start_testcases_h
+
+/*=======================================================================================
+** Includes
+**=======================================================================================*/
+
+#include <errno.h>
+
+#include "utassert.h"
+
+/*=======================================================================================
+** External Global Variable Declarations
+**=======================================================================================*/
+
+/*=======================================================================================
+** Function Declarations
+**=======================================================================================*/
+
+void Ut_CFE_PSP_ProcessPOSTResults(void);
+void Ut_CFE_PSP_ProcessResetType(void);
+void Ut_CFE_PSP_GetRestartType(void);
+void Ut_CFE_PSP_LogSoftwareResetType(void);
+void Ut_OS_Application_Startup(void);
+void Ut_CFE_PSP_LogSoftwareResetType(void);
+void Ut_SetTaskPrio(void);
+void Ut_SetSysTasksPrio(void);
+void Ut_PSP_1HzLocalCallback(void);
+void Ut_OS_Application_Run(void);
+void Ut_vxFpscrGet(void);
+void Ut_vxFpscrSet(void);
+
+#endif  /* ut_psp_start_testcases_h */
+
+/*=======================================================================================
+** End of file psp_start_testcases.h
+**=======================================================================================*/
