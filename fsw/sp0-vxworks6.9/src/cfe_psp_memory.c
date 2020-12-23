@@ -283,8 +283,9 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ******************************************************************************/
 int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
-  int32   iCDSFd;
+  int32   iCDSFd = 0;
   int32   iReturnCode = CFE_PSP_SUCCESS;
+  ssize_t readBytes = 0;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -310,18 +311,25 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
         OS_printf("CFE_PSP: Time before read (Second: %d, microSecond: %d)\n", 
                   localTime.seconds, localTime.microsecs);
       #endif
-      *puiReadBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+      readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
       #if defined(PRINT_DEBUG)
         CFE_PSP_GetTime(&localTime);
         OS_printf("CFE_PSP: Time after read (Second: %d, microSecond: %d)\n", 
                   localTime.seconds, localTime.microsecs);
       #endif
-      if(*puiReadBytes < 0)
+      if(readBytes < 0)
       {
         OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
+
+        /* Set the output parameter to 0 for read failed */
+        *puiReadBytes = 0;
         /* Return error if read failed */
         iReturnCode = CFE_PSP_ERROR;
+      }
+      else
+      {
+        *puiReadBytes = readBytes;
       }
       /* Close the CDS file after opened and read */
       close(iCDSFd);
@@ -347,8 +355,9 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 ******************************************************************************/
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
-  int32   iCDSFd;
+  int32   iCDSFd = 0;
   int32   iReturnCode = CFE_PSP_SUCCESS;
+  ssize_t wroteBytes = 0;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -374,7 +383,7 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
         OS_printf("CFE_PSP: Time before write (Second: %d, microSecond: %d)\n", 
                   localTime.seconds, localTime.microsecs);
       #endif
-      *puiWroteBytes = write(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+      wroteBytes = write(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                          CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
       #if defined(PRINT_DEBUG)
         CFE_PSP_GetTime(&localTime);
@@ -384,8 +393,15 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
       if(*puiWroteBytes < 0)
       {
         OS_printf("CFE_PSP: Failed to write the CDS data to Flash.\n");
+
+        /* Set the output parameter to 0 for write failed */
+        *puiWroteBytes = 0;
         /* Return error if write failed */
         iReturnCode = CFE_PSP_ERROR;
+      }
+      else
+      {
+        *puiWroteBytes = wroteBytes;
       }
       /* Close the CDS file after opened and write */
       close(iCDSFd);
@@ -676,24 +692,24 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
 ******************************************************************************/
 int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 {
-   cpuaddr start_addr;
-   uint32 reserve_memory_size = 0;
-   int32 return_code = CFE_PSP_SUCCESS;
-   int32  iCDSFd = -1;
-   uint32 uiReadBytes = 0;  
+    cpuaddr start_addr;
+    uint32 reserve_memory_size = 0;
+    int32 return_code = CFE_PSP_SUCCESS;
+    int32  iCDSFd = -1;
+    uint32 uiReadBytes = 0;  
 
-   userReservedGet((char**)&start_addr, &reserve_memory_size);
+    userReservedGet((char**)&start_addr, &reserve_memory_size);
 
-   if(PSP_ReservedMemBlock.BlockSize > reserve_memory_size)
-   {
-       OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, Total Size = 0x%lx, VxWorks Reserved Size=0x%lx\n",
+    if(PSP_ReservedMemBlock.BlockSize > reserve_memory_size)
+    {
+      OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, Total Size = 0x%lx, VxWorks Reserved Size=0x%lx\n",
                (unsigned long)PSP_ReservedMemBlock.BlockSize,
                (unsigned long)reserve_memory_size);
-       return_code = OS_ERROR;
+      return_code = OS_ERROR;
 
-   }
-   else if ( RestartType != CFE_PSP_RST_TYPE_PROCESSOR )
-   {
+    }
+    else if ( RestartType != CFE_PSP_RST_TYPE_PROCESSOR )
+    {
       OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
       memset(PSP_ReservedMemBlock.BlockPtr, 0, PSP_ReservedMemBlock.BlockSize);
 
@@ -702,46 +718,49 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
       */
       CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
 
-   }
+    }
 
-   /* Make sure the CDS file was created */
-   iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
-   if(iCDSFd < 0)
-   {
-      /* Create the CDS file afer failed to open it */
-      if(creat(g_cCDSFilename, S_IRWXU) < 0)
+    if(return_code == CFE_PSP_SUCCESS)
+    {
+      /* Make sure the CDS file was created */
+      iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
+      if(iCDSFd < 0)
       {
-        OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
-                   g_cCDSFilename);
-        return_code = OS_ERROR;
+        /* Create the CDS file afer failed to open it */
+        if(creat(g_cCDSFilename, S_IRWXU) < 0)
+        {
+          OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
+                     g_cCDSFilename);
+          return_code = OS_ERROR;
+        }
+        else
+        {
+          OS_printf("CFE_PSP: Created the CDS file.\n");
+          /* Close the CDS file after created */
+          close(iCDSFd);
+        }
       }
       else
       {
-        OS_printf("CFE_PSP: Created the CDS file.\n");
-        /* Close the CDS file after created */
+        uiReadBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+        if(uiReadBytes >= 0)
+        {
+          OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiReadBytes);  
+          /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
+          sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+        }
+        else
+        {
+          OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
+          /* Return error if read failed */
+          return_code = OS_ERROR;
+        }
+        /* Close the CDS file after opened and read */
         close(iCDSFd);
       }
-   }
-   else
-   {
-      uiReadBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                      CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-      if(uiReadBytes >= 0)
-      {
-        OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiReadBytes);  
-        /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
-        sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                           CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-      }
-      else
-      {
-        OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
-        /* Return error if read failed */
-        return_code = OS_ERROR;
-      }
-      /* Close the CDS file after opened and read */
-      close(iCDSFd);
-   }
+    }
 
    return(return_code);
 }
