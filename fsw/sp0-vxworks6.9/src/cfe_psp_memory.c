@@ -390,7 +390,7 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
         OS_printf("CFE_PSP: Time after write (Second: %d, microSecond: %d)\n", 
                   localTime.seconds, localTime.microsecs);
       #endif
-      if(*puiWroteBytes < 0)
+      if(wroteBytes < 0)
       {
         OS_printf("CFE_PSP: Failed to write the CDS data to Flash.\n");
 
