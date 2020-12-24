@@ -87,3 +87,4 @@ int32 taskPrioritySet(int32 iTid, int32 iNewPrio)
 
     return iStatus;
 }
+

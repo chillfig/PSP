@@ -37,7 +37,15 @@ void Ut_CFE_PSP_GetStaticCRC(void);
 void Ut_CFE_PSP_CalculateCRC(void);
 void Ut_CFE_PSP_ReadCDSFromFlash(void);
 void Ut_CFE_PSP_WriteCDSToFlash(void);
-
+void Ut_CFE_PSP_WriteToCDS(void);
+void Ut_CFE_PSP_ReadFromCDS(void);
+void Ut_CFE_PSP_GetResetArea(void);
+void Ut_CFE_PSP_GetUserReservedArea(void);
+void Ut_CFE_PSP_GetVolatileDiskMem(void);
+void Ut_CFE_PSP_InitProcessorReservedMemory(void);
+void Ut_CFE_PSP_SetupReservedMemoryMap(void);
+void Ut_CFE_PSP_DeleteProcessorReservedMemory(void);
+void Ut_CFE_PSP_GetKernelTextSegmentInfo(void);
 
 #endif  /* ut_psp_memory_testcases_h */
 

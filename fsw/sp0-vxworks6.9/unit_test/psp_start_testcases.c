@@ -156,7 +156,7 @@ void Ut_CFE_PSP_ProcessResetType(void)
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_GetRestartType() test cases
+** Ut_CFE_PSP_LogSoftwareResetType() test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_LogSoftwareResetType(void)
 {
@@ -257,7 +257,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
                                 "_OS_Application_Startup - 5/7:Nominal - No check for safeModeUserData.mckCause");
 
-    /* ----- Test case #1 - Nominal RESET_SRC_SWR. Check for safeModeUserData.mckCause ----- */
+    /* ----- Test case #6 - Nominal RESET_SRC_SWR. Check for safeModeUserData.mckCause ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_ES_WriteToSysLog_Setup();

@@ -7,7 +7,6 @@
 #include "osapi.h"
 
 #define OS_BUFFER_SIZE 172
-#define MAX_RDWR_SIZE       0x01000000  /* 16MB */
 #define MAX_OS_PRINTF_MESSAGES      50
 
 /* Global array for OS_printf messages */
@@ -89,35 +88,12 @@ int close (int fd)
     return Status;
 }
 
-int read(int fd, void * buf, size_t n)
+
+int read (int fd, void * buf, size_t n)
 {
     int32 Status;
-    uint32 CopySize;
 
-    Status = UT_DEFAULT_IMPL_RC(read, MAX_RDWR_SIZE);
-
-    if (Status > 0)
-    {
-        if (Status > n)
-        {
-            CopySize = n;
-        }
-        else
-        {
-            CopySize = Status;
-        }
-
-        CopySize = UT_Stub_CopyToLocal(UT_KEY(read), buf, CopySize);
-
-        if (CopySize != 0)
-        {
-            Status = CopySize;
-        }
-        else
-        {
-            Status = 0;
-        }
-    }
+    Status = UT_DEFAULT_IMPL(read);
 
     return Status;
 }
@@ -125,32 +101,8 @@ int read(int fd, void * buf, size_t n)
 int write(int fd, const void * buf, size_t n)
 {
     int32 Status;
-    uint32 CopySize;
 
-    Status = UT_DEFAULT_IMPL_RC(write, MAX_RDWR_SIZE);
-
-    if (Status > 0)
-    {
-        if (Status > n)
-        {
-            CopySize = n;
-        }
-        else
-        {
-            CopySize = Status;
-        }
-
-        CopySize = UT_Stub_CopyFromLocal(UT_KEY(write), buf, CopySize);
-
-        if (CopySize != 0)
-        {
-            Status = CopySize;
-        }
-        else if (Status > n)
-        {
-            Status = n;
-        }
-    }
+    Status = UT_DEFAULT_IMPL(write);
 
     return Status;
 }

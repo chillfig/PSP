@@ -108,6 +108,46 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_WriteCDSToFlash,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_WriteCDSToFlash");
+
+    UtTest_Add(Ut_CFE_PSP_WriteToCDS,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WriteToCDS");
+
+    UtTest_Add(Ut_CFE_PSP_ReadFromCDS,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ReadFromCDS");
+
+    UtTest_Add(Ut_CFE_PSP_GetResetArea,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetResetArea");
+
+    UtTest_Add(Ut_CFE_PSP_GetUserReservedArea,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetUserReservedArea");
+
+    UtTest_Add(Ut_CFE_PSP_GetVolatileDiskMem,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetVolatileDiskMem");
+    
+    UtTest_Add(Ut_CFE_PSP_InitProcessorReservedMemory,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_InitProcessorReservedMemory");
+
+    UtTest_Add(Ut_CFE_PSP_SetupReservedMemoryMap,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetupReservedMemoryMap");
+
+    UtTest_Add(Ut_CFE_PSP_DeleteProcessorReservedMemory,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_DeleteProcessorReservedMemory");
+
+    UtTest_Add(Ut_CFE_PSP_GetKernelTextSegmentInfo,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetKernelTextSegmentInfo");
+
+    UtTest_Add(Ut_CFE_PSP_DeleteProcessorReservedMemory,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_DeleteProcessorReservedMemory");
 } 
 
 /*=======================================================================================

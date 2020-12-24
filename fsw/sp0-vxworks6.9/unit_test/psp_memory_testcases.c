@@ -257,403 +257,442 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
     UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 4/4: Failed to write the CDS file");
     UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteCDSToFlash() - 4/4: Failed case for write()");
 }
-// /*=======================================================================================
-// ** Ut_CFE_PSP_GetRestartType() test cases
-// **=======================================================================================*/
-// void Ut_CFE_PSP_LogSoftwareResetType(void)
-// {
-//     char cMsg[256] = {};
-//     RESET_SRC_REG_ENUM resetSrc = RESET_SRC_POR;
 
-//     /* ----- Test case #1 - Nominal RESET_SRC_POR. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     Ut_ES_WriteToSysLog_Setup();
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 1/7:Nominal - RESET_SRC_POR");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 1/7:Nominal - No check for safeModeUserData.mckCause");
 
-//     /* ----- Test case #2 - Nominal RESET_SRC_WDT. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = RESET_SRC_WDT;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_WDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 2/7:Nominal - RESET_SRC_WDT");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 2/7:Nominal - No check for safeModeUserData.mckCause");
+/*=======================================================================================
+** Ut_CFE_PSP_WriteToCDS() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_WriteToCDS(void)
+{
+    int32 iRetCode = 0;
+    char cMsg[256] = {};
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiCDSOffset = 0;
+    uint32  uiNumBytes = 100;
 
-//     /* ----- Test case #3 - Nominal RESET_SRC_FWDT. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = RESET_SRC_FWDT;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_FWDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 3/7:Nominal - RESET_SRC_FWDT");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 3/7:Nominal - No check for safeModeUserData.mckCause");
+    /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 1/5: Nominal No changed since the data buffer unchanged");
 
-//     /* ----- Test case #4 - Nominal RESET_SRC_CPCI. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = RESET_SRC_CPCI;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_CPCI) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 4/7:Nominal - RESET_SRC_CPCI");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 4/7:Nominal - No check for safeModeUserData.mckCause");
+    // /* ----- Test case #2 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 100);
+    pucData = uiBuffer;
+    uiBuffer[10] = uiBuffer[10] + 1;
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(write), 1, uiNumBytes);
+    sprintf(cMsg, "CFE_PSP: Wrote %d to CDS file.\n", uiNumBytes); 
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToCDS() - 2/5: Nominal Write data to Flash");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 2/5: Nominal");
 
-//     /* ----- Test case #5 - Nominal RESET_SRC_SWR. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = RESET_SRC_SWR;
-//     safeModeUserData.mckCause = 0;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 5/7:Nominal - RESET_SRC_SWR");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 5/7:Nominal - No check for safeModeUserData.mckCause");
+    /* ----- Test case #3 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 3/5: Input argument is NULL");
 
-//     /* ----- Test case #1 - Nominal RESET_SRC_SWR. Check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = RESET_SRC_SWR;
-//     safeModeUserData.mckCause = 1;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 6/7:Nominal - RESET_SRC_SWR");
-//     UtAssert_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                               "_OS_Application_Startup - 6/7:Nominal - Check for safeModeUserData.mckCause");
+    /* ----- Test case #4 - Dara offset is larger than CDSMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+    uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 4/5: Failed data offset is larger than CDSMemory block size");
 
-//     /* ----- Test case #7 - Nominal default to RESET_SRC_POR. No check for safeModeUserData.mckCause ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     resetSrc = 1;
-//     sprintf(cMsg, 
-//             "CFE_PSP: PROCESSOR rst Source = 0x%x = (RESET_SRC_POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-//             resetSrc,
-//             safeModeUserData.safeMode,
-//             (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-//             safeModeUserData.reason,
-//             safeModeUserData.mckCause);
-//     /* Execute test */
-//     CFE_PSP_LogSoftwareResetType(resetSrc);
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 7/7:Nominal - Default RESET_SRC_POR");
-//     UtAssert_NoES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
-//                                 "_OS_Application_Startup - 7/7:Nominal - No check for safeModeUserData.mckCause");
-// }
+    /* ----- Test case #5 - Date offset plus number of changed bytes is larger than CDSMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+    uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize - 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 5/5: Failed data offset plus number of changed bytes is larger than CDSMemory block size");
+}
 
-// /*=======================================================================================
-// ** Ut_OS_Application_Startup() test cases
-// ** Since there is a multiple definition issue for "OS_Application_Run()". This function
-// ** will be renamed to "UT_OS_Application_Run()" in compiling time. The rename section
-// ** was located in unit_test/CMakeLists.txt
-// **=======================================================================================*/
-// void Ut_OS_Application_Startup(void)
-// {
-//     char cMsg[256] = {};
+/*=======================================================================================
+** Ut_CFE_PSP_ReadFromCDS() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_ReadFromCDS(void)
+{
+    int32 iRetCode = 0;
+    char cMsg[256] = {};
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiCDSOffset = 0;
+    uint32  uiNumBytes = 100;
+    uint32  uiTempCrc = 0;
+    uint8   ucIdx = 0;
 
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs */
-//     Ut_ES_WriteToSysLog_Setup();
-//     sprintf(cMsg, "CFE_PSP: CFE_PSP_Start() done.\n");
-//     /* Execute test */
-//     UT_OS_Application_Startup();
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 1/5:Nominal");
-    
-//     /* ----- Test case #2 - Initialize the OS API data structures failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_OS_printf_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(OS_API_Init), 1, OS_ERROR);
-//     sprintf(cMsg, "CFE_PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n", OS_ERROR);
-//     /* Execute test */
-//     UT_OS_Application_Startup();
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_OS_Application_Startup - 2/5: Initialize the OS API data structures failed");
+    /* ----- Test case #1 - Nominal Using CRC check mode ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    pucData = uiBuffer;
+    g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_CRC;
+    sg_uiCDSCrc = 0;
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes);
+    /* Modify first 100 bytes from CDSMomory for testing */
+    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
+    /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
+    uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
+    sprintf(cMsg, "CFE_PSP: CRC mismatched (uiTempCrc = 0x%08X, sg_uiCDSCrc = 0x%08X)\n", uiTempCrc, sg_uiCDSCrc); 
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 1/5: Nominal Read the data from Flash");
+    UtAssert_True(sg_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 1/5: Nominal New CRC codes was updated");
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_ReadFromCDS() - 1/5: Nominal Read data is matched with CDSMemory data");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 1/5: Nominal");
 
-//     /* ----- Test case #3 - Setup FS mapping \"/cf\" directorys failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_OS_printf_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(OS_FileSysAddFixedMap), 1, OS_ERROR);
-//     sprintf(cMsg, "CFE_PSP: OS_FileSysAddFixedMap() failure: %d\n", OS_ERROR);
-//     /* Execute test */
-//     UT_OS_Application_Startup();
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/5: Setup FS mapping \"/cf\" directorys failed");
+    /* ----- Test case #2 - Nominal Always read from Flash ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = uiBuffer;
+    g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_FLASH;
+    sg_uiCDSCrc = 0;
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes);
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_ReadFromCDS() - 2/5: Nominal Read data is matched with CDSMemory data");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 2/5: Nominal");
 
-//     /* ----- Test case #4 - CFE_PSP_InitProcessorReservedMemory() failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_OS_printf_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
-//     UT_SetDeferredRetcode(UT_KEY(creat), 1, OS_ERROR);
-//     sprintf(cMsg, "CFE_PSP: Failed to create the CDS file(/ffx0/CDS) on Flash.\n");
-//     /* Execute test */
-//     UT_OS_Application_Startup();
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/5: CFE_PSP_InitProcessorReservedMemory() failed");
+    /* ----- Test case #3 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 3/5: Input argument is NULL");
 
-//     /* ----- Test case #5 - vxWorks task priority set failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, OS_ERROR);
-//     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, OS_ERROR);
-//     sprintf(cMsg, "CFE_PSP: CFE_PSP_Start() At least one vxWorks task priority set failed. System may have degraded performance.\n");
-//     /* Execute test */
-//     UT_OS_Application_Startup();
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Startup - 5/5: vxWorks task priority set failed");
-// }
+    /* ----- Test case #4 - Dara offset is larger than CDSMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+    uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 4/5: Failed data offset is larger than CDSMemory block size");
 
-// /*=======================================================================================
-// ** Ut_CFE_PSP_GetRestartType() test cases
-// **=======================================================================================*/
-// void Ut_CFE_PSP_GetRestartType(void)
-// {
-//     uint32 uiResetSubType = 1;
-//     uint32 *pResetSubType = NULL;
-//     uint32 uiRetCode = 0;
-    
-//     /* ----- Test case #1 - Nominal pResetSubType is NULL ----- */
-//     /* Setup additional inputs */
-//     /* Execute test */
-//     uiRetCode = CFE_PSP_GetRestartType(pResetSubType);
-//     /* Verify outputs */
-//     UtAssert_True(pResetSubType == NULL, "_GetRestartType() - 1/2:pResetSubType is NULL");
-//     UtAssert_True(uiRetCode == ResetType, "_GetRestartType() - 1/2:Nominal");
-    
-//     /* ----- Test case #2 - Nominal pResetSubType was set value ----- */
-//     /* Setup additional inputs */
-//     pResetSubType = &uiResetSubType;
-//     /* Execute test */
-//     uiRetCode = CFE_PSP_GetRestartType(pResetSubType);
-//     /* Verify outputs */
-//     UtAssert_True(*pResetSubType == ResetSubtype, "_GetRestartType() - 2/2:pResetSubType was set value");
-//     UtAssert_True(uiRetCode == ResetType, "_GetRestartType() - 2/2:Nominal");
-// }
+    /* ----- Test case #5 - Date offset plus number of changed bytes is larger than CDSMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+    uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize - 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 5/5: Failed data offset plus number of changed bytes is larger than CDSMemory block size");
+}
 
-// /*=======================================================================================
-// ** Ut_SetTaskPrio() test cases
-// **=======================================================================================*/
-// void Ut_SetTaskPrio(void)
-// {
-//     char cMsg[256] = {};
-//     int32 iNewPrio = 0;
-//     int32 iCurPrio = 10;
-    
-//     /* ----- Test case #1 - Nominal Priority set to 0 for task name "tLogTask" ----- */
-//     /* Setup additional inputs */
-//     Ut_OS_printf_Setup();
-//     sprintf(cMsg, "PSP: SetTaskPrio() - Setting tLogTask priority from %d to %d\n", iCurPrio, iNewPrio);
-//     UT_SetDataBuffer(UT_KEY(taskPriorityGet), &iCurPrio, sizeof(iCurPrio), true);
-//     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, OS_SUCCESS);
-//     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, OS_ERROR);
-//     /* Execute test */
-//     /* Test for task name "tLogTask". New priority will change from -1 to 0 */
-//     SetTaskPrio("tLogTask", -1);
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_SetTaskPrio - 1/3:Nominal - Priority set to 0");
-    
-//     /* ----- Test case #2 - Nominal Priority set to 255 for task name "tLogTask" ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_OS_printf_Setup();
-//     iNewPrio = 255;
-//     sprintf(cMsg, "PSP: SetTaskPrio() - Setting tLogTask priority from %d to %d\n", iCurPrio, iNewPrio);
-//     UT_SetDataBuffer(UT_KEY(taskPriorityGet), &iCurPrio, sizeof(iCurPrio), true);
-//     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, OS_SUCCESS);
-//     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, OS_ERROR);
-//     /* Execute test */
-//     /* Test for task name "tLogTask". New priority will change from 260 to 255 */
-//     SetTaskPrio("tLogTask", 260);
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_SetTaskPrio - 2/3:Nominal - Priority set to 255");
+/*=======================================================================================
+** Ut_CFE_PSP_GetResetArea() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_GetResetArea(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiBlockAddress = 0;
+    uint32  uiBlockSize = 0;
+    uint32  *puiBlockAddress = NULL;
+    uint32  *puiBlockSize = NULL;
 
-//     /* ----- Test case #3 - Failed to set priority to 25 for task name "tLogTask" ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_OS_printf_Setup();
-//     iNewPrio = 25;
-//     sprintf(cMsg, "PSP: taskPrioritySet() - Failed for tLogTask priority from %d to %d\n", iCurPrio, iNewPrio);
-//     UT_SetDataBuffer(UT_KEY(taskPriorityGet), &iCurPrio, sizeof(iCurPrio), true);
-//     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, OS_SUCCESS);
-//     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, OS_ERROR);
-//     /* Execute test */
-//     /* Test for task name "tLogTask" */
-//     SetTaskPrio("tLogTask", iNewPrio);
-//     /* Verify outputs */
-//     UtAssert_OS_print(cMsg, "_SetTaskPrio - 3/3:Failed - Failed to set priority to 25");
-// }
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = &uiBlockAddress;
+    puiBlockSize = &uiBlockSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_IntegerCmpAbs(uiBlockAddress, (uint32)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 0, 
+                           "_CFE_PSP_GetResetArea - 1/3:Nominal ResetMemory block address is matched");
+    UtAssert_IntegerCmpAbs(uiBlockSize, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 0, 
+                           "_CFE_PSP_GetResetArea - 1/3:Nominal ResetMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetResetArea - 1/3:Nominal");
 
-// /*=======================================================================================
-// ** Ut_SetSysTasksPrio() test cases
-// **=======================================================================================*/
-// void Ut_SetSysTasksPrio(void)
-// {
-//     uint32 uiRetCode = 0;
+    /* ----- Test case #2 - Block address pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = NULL;
+    puiBlockSize = &uiBlockSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetResetArea - 2/3: Failed block address pointer is NULL");
 
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs - None */
-//     /* Execute test */
-//     uiRetCode = SetSysTasksPrio();
-//     /* Verify outputs */
-//     UtAssert_True(uiRetCode == OS_SUCCESS, "_SetSysTasksPrio - 1/2:Nominal");
+    /* ----- Test case #3 - Block size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = &uiBlockAddress;
+    puiBlockSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetResetArea - 3/3: Failed block size pointer is NULL");
+}
 
-//     /* ----- Test case #2 - Failed to set priority for a task ----- */
-//     /* Setup additional inputs */
-//     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, OS_SUCCESS);
-//     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, OS_ERROR);
-//     /* Execute test */
-//     uiRetCode = SetSysTasksPrio();
-//     /* Verify outputs */
-//     UtAssert_True(uiRetCode == OS_ERROR, "_SetSysTasksPrio - 2/2: Set priority for a task failed");
-// }
+/*=======================================================================================
+** Ut_CFE_PSP_GetUserReservedArea() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_GetUserReservedArea(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiUserArea = 0;
+    uint32  uiUserAreaSize = 0;
+    uint32  *puiUserArea = NULL;
+    uint32  *puiUserAreaSize = NULL;
 
-// /*=======================================================================================
-// ** Ut_PSP_1HzLocalCallback() test cases
-// **=======================================================================================*/
-// void Ut_PSP_1HzLocalCallback(void)
-// {
-//     /* No useful content to test */
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs - None */
-//     /* Execute test */
-//     PSP_1HzLocalCallback(100);
-//     /* Verify outputs */
-//     UtAssert_True(TRUE, "_PSP_1HzLocalCallback - 1/1:Nominal");
-// }
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiUserArea = &uiUserArea;
+    puiUserAreaSize = &uiUserAreaSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetUserReservedArea(puiUserArea, puiUserAreaSize);
+    /* Verify outputs */
+    UtAssert_IntegerCmpAbs(uiUserArea, (uint32)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0, 
+                           "_CFE_PSP_GetUserReservedArea - 1/3:Nominal UserReservedMemory block address is matched");
+    UtAssert_IntegerCmpAbs(uiUserAreaSize, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, 0, 
+                           "_CFE_PSP_GetUserReservedArea - 1/3:Nominal UserReservedMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3:Nominal");
 
-// /*=======================================================================================
-// ** Ut_OS_Application_Run() test cases
-// ** Since there is a multiple definition issue for "OS_Application_Run()". This function
-// ** will be renamed to "UT_OS_Application_Run()" in compiling time. The rename section
-// ** was located in unit_test/CMakeLists.txt
-// **=======================================================================================*/
-// void Ut_OS_Application_Run(void)
-// {
-//     char cMsg[256] = {};
+    /* ----- Test case #2 - UserArea address pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiUserArea = NULL;
+    puiUserAreaSize = &uiUserAreaSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetUserReservedArea(puiUserArea, puiUserAreaSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetUserReservedArea - 2/3: Failed block address pointer is NULL");
 
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs */
-//     Ut_ES_WriteToSysLog_Setup();
-//     /* Execute test */
-//     UT_OS_Application_Run();
-//     /* Verify outputs */
-//     sprintf(cMsg, "Failed to create OS_Timer for 1Hz local time.\n");
-//     UtAssert_NoES_WriteToSysLog(cMsg, "_OS_Application_Run - 1/3:Nominal - OS_TimerCreate successed");
-//     sprintf(cMsg, "Failed to set OS_Timer for 1Hz local time.\n");
-//     UtAssert_NoES_WriteToSysLog(cMsg, "_OS_Application_Run - 1/3:Nominal - OS_TimerSet successed");
-    
-//     /* ----- Test case #2 - OS_TimerCreate failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(OS_TimerCreate), 1, OS_ERROR);
-//     sprintf(cMsg, "Failed to create OS_Timer for 1Hz local time.\n");
-//     /* Execute test */
-//     UT_OS_Application_Run();
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Run - 2/3: OS_TimerCreate failed");
+    /* ----- Test case #3 - UserArea size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiUserArea = &uiUserArea;
+    puiUserAreaSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetUserReservedArea(puiUserArea, puiUserAreaSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetUserReservedArea - 3/3: Failed block size pointer is NULL");
+}
 
-//     /* ----- Test case #3 - OS_TimerSet failed ----- */
-//     /* Setup additional inputs */
-//     UT_ResetState(0);
-//     Ut_ES_WriteToSysLog_Setup();
-//     UT_SetDeferredRetcode(UT_KEY(OS_TimerSet), 1, OS_ERROR);
-//     sprintf(cMsg, "Failed to set OS_Timer for 1Hz local time.\n");
-//     /* Execute test */
-//     UT_OS_Application_Run();
-//     /* Verify outputs */
-//     UtAssert_ES_WriteToSysLog(cMsg, "_OS_Application_Run - 3/3: OS_TimerSet failed");
-// }
+/*=======================================================================================
+** Ut_CFE_PSP_GetVolatileDiskMem() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_GetVolatileDiskMem(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiVolDisk = 0;
+    uint32  uiVolDiskSize = 0;
+    uint32  *puiVolDisk = NULL;
+    uint32  *puiVolDiskSize = NULL;
 
-// /*=======================================================================================
-// ** Ut_vxFpscrGet() test cases
-// **=======================================================================================*/
-// void Ut_vxFpscrGet(void)
-// {
-//     /* No useful content to test */
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs - None */
-//     /* Execute test */
-//     vxFpscrGet();
-//     /* Verify outputs */
-//     UtAssert_True(TRUE, "_vxFpscrGet - 1/1:Nominal");
-// }
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiVolDisk = &uiVolDisk;
+    puiVolDiskSize = &uiVolDiskSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
+    /* Verify outputs */
+    UtAssert_IntegerCmpAbs(uiVolDisk, (uint32)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0, 
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3:Nominal VolatileDiskMemory block address is matched");
+    UtAssert_IntegerCmpAbs(uiVolDiskSize, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, 0, 
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3:Nominal VolatileDiskMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3:Nominal");
 
-// /*=======================================================================================
-// ** Ut_vxFpscrSet() test cases
-// **=======================================================================================*/
-// void Ut_vxFpscrSet(void)
-// {
-//     /* No useful content to test */
-//     /* ----- Test case #1 - Nominal ----- */
-//     /* Setup additional inputs - None */
-//     /* Execute test */
-//     vxFpscrSet(0);
-//     /* Verify outputs */
-//     UtAssert_True(TRUE, "_vxFpscrSet - 1/1:Nominal");
-// }
+    /* ----- Test case #2 - Block address pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiVolDisk = NULL;
+    puiVolDiskSize = &uiVolDiskSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetVolatileDiskMem - 2/3: Failed block address pointer is NULL");
+
+    /* ----- Test case #3 - Block size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiVolDisk = &uiVolDisk;
+    puiVolDiskSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetVolatileDiskMem - 3/3: Failed block size pointer is NULL");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_InitProcessorReservedMemory() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_InitProcessorReservedMemory(void)
+{
+    uint32  uiRetCode = 0;
+    char cMsg[256] = {};
+    uint32 uiRestartType = CFE_PSP_RST_TYPE_POWERON;
+    uint32 uiNumBytes = 100;
+
+    /* ----- Test case #1 - Nominal Read the exist CDS file ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes); 
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Cleared processor reserved memory");
+    sprintf(cMsg, "CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiNumBytes);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Read from existed CDS file");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Nominal ");
+
+    /* ----- Test case #2 - Nominal Create new CDS file ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(creat), 1, CFE_PSP_SUCCESS); 
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Cleared processor reserved memory");
+    sprintf(cMsg, "CFE_PSP: Created the CDS file.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Created new CDS file");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Nominal ");
+
+    /* ----- Test case #3 - Failed Read the exist CDS file ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, OS_ERROR); 
+    uiRestartType = CFE_PSP_RST_TYPE_PROCESSOR;
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/5: No clear processor reserved memory");
+    sprintf(cMsg, "CFE_PSP: Failed to read the CDS data on Flash.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/5: Failed to read from existed CDS file");
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 3/5: Return error code");
+
+    /* ----- Test case #4 - Nominal Create new CDS file ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(creat), 1, OS_ERROR); 
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/5: No clear processor reserved memory");
+    sprintf(cMsg, "CFE_PSP: Failed to create the CDS file(/ffx0/CDS) on Flash.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/5: Failed to create new CDS file");
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 4/5: Return error code");
+
+    /* ----- Test case #5 - Failed Reserved block size is greater than the reserved memory ----- */
+    /* Setup additional inputs */
+    /* Set BlockSize to 16MB, which 1MB larger than the reserved size to force to failure case */
+    PSP_ReservedMemBlock.BlockSize = 16777216; 
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 5/5: Failed Reserved block size is greater than reserved memory");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_SetupReservedMemoryMap() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SetupReservedMemoryMap(void)
+{
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs - None */
+    /* Execute test */
+    uiRetCode = CFE_PSP_SetupReservedMemoryMap();
+    /* Verify outputs */
+    UtAssert_True(TRUE, "_CFE_PSP_SetupReservedMemoryMap - 1/1:Nominal");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_DeleteProcessorReservedMemory() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_DeleteProcessorReservedMemory(void)
+{
+    /* Nothing to test */
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_GetKernelTextSegmentInfo() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiKernelSegment = 0;
+    uint32  uiKernelSegmentSize = 0;
+    uint32  *puiKernelSegment = NULL;
+    uint32  *puiKernelSegmentSize = NULL;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiKernelSegment = &uiKernelSegment;
+    puiKernelSegmentSize = &uiKernelSegmentSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/2:Nominal");
+
+    /* ----- Test case #2 - Kernel segement size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiKernelSegment = &uiKernelSegment;
+    puiKernelSegmentSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 2/2: Failed Kernel segement size pointer is NULL");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_GetCFETextSegmentInfo() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiKernelSegment = 0;
+    uint32  uiKernelSegmentSize = 0;
+    uint32  *puiKernelSegment = NULL;
+    uint32  *puiKernelSegmentSize = NULL;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiKernelSegment = &uiKernelSegment;
+    puiKernelSegmentSize = &uiKernelSegmentSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/3:Nominal");
+
+    /* ----- Test case #3 - Kernel segement size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiKernelSegment = &uiKernelSegment;
+    puiKernelSegmentSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 3/3: Failed Kernel segement size pointer is NULL");
+}
+
 
 /*=======================================================================================
 ** End of file psp_memory_testcases.c
