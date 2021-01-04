@@ -11,8 +11,8 @@
 **    2020-12-18 | Minh Luong       | Initial revision
 **=======================================================================================*/
 
-#ifndef ut_psp_memory_testcases_h
-#define ut_psp_memory_testcases_h
+#ifndef UT_PSP_MEMORY_TESTCASES_H
+#define UT_PSP_MEMORY_TESTCASES_H
 
 /*=======================================================================================
 ** Includes
@@ -46,8 +46,9 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void);
 void Ut_CFE_PSP_SetupReservedMemoryMap(void);
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void);
 void Ut_CFE_PSP_GetKernelTextSegmentInfo(void);
+void Ut_CFE_PSP_GetCFETextSegmentInfo(void);
 
-#endif  /* ut_psp_memory_testcases_h */
+#endif  /* UT_PSP_MEMORY_TESTCASES_H */
 
 /*=======================================================================================
 ** End of file psp_memory_testcases.h

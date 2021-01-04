@@ -164,3 +164,4 @@ bool Ut_OS_printfHistoryWithText(const char *cText)
 
     return bResult;
 }
+

@@ -939,7 +939,7 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
          status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
          if ( status != ERROR )
          {
-            *PtrToCFESegment = (cpuaddr) (cFEModuleInfo.segInfo.textAddr);
+            *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
             *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
             return_code = CFE_PSP_SUCCESS;
          }

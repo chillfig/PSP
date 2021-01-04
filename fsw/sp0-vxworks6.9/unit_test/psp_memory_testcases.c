@@ -620,7 +620,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs - None */
     /* Execute test */
-    uiRetCode = CFE_PSP_SetupReservedMemoryMap();
+    CFE_PSP_SetupReservedMemoryMap();
     /* Verify outputs */
     UtAssert_True(TRUE, "_CFE_PSP_SetupReservedMemoryMap - 1/1:Nominal");
 }
@@ -669,28 +669,54 @@ void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
 void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
 {
     uint32  uiRetCode = 0;
-    uint32  uiKernelSegment = 0;
-    uint32  uiKernelSegmentSize = 0;
-    uint32  *puiKernelSegment = NULL;
-    uint32  *puiKernelSegmentSize = NULL;
+    cpuaddr CFESegment = 0;
+    cpuaddr *pCFESegment = NULL;
+    uint32  uiSizeOfCFESegment = 0;
+    uint32  *puiSizeOfCFESegment = NULL;
+    MODULE_ID  moduleID;
+    MODULE_INFO moduleInfo;
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    puiKernelSegment = &uiKernelSegment;
-    puiKernelSegmentSize = &uiKernelSegmentSize;
+    pCFESegment = &CFESegment;
+    puiSizeOfCFESegment = &uiSizeOfCFESegment;
+    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, (uint32)&moduleID);
+    UT_SetDeferredRetcode(UT_KEY(moduleInfoGet), 1, OS_SUCCESS);
     /* Execute test */
-    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/3:Nominal");
+    UtAssert_True(CFESegment != 0, "_CFE_PSP_GetCFETextSegmentInfo - 1/4:CFESegment was changed");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/4:Nominal");
 
-    /* ----- Test case #3 - Kernel segement size pointer is NULL ----- */
+    /* ----- Test case #2 - Nominal moduleInfoGet return error ----- */
     /* Setup additional inputs */
-    puiKernelSegment = &uiKernelSegment;
-    puiKernelSegmentSize = NULL;
+    CFESegment = 0;
+    pCFESegment = &CFESegment;
+    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, (uint32)&moduleID);
+    UT_SetDeferredRetcode(UT_KEY(moduleInfoGet), 1, OS_ERROR);
     /* Execute test */
-    uiRetCode = CFE_PSP_GetResetArea(puiKernelSegment, puiKernelSegmentSize);
+    uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 3/3: Failed Kernel segement size pointer is NULL");
+    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "CFESegment was not changed");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 2/4: Nominal moduleInfoGet returned error");
+
+    /* ----- Test case #3 - CFE Segement size pointer is NULL ----- */
+    /* Setup additional inputs */
+    pCFESegment = &CFESegment;
+    puiSizeOfCFESegment = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/4: Failed because CFE Segement size pointer is NULL");
+
+    /* ----- Test case #4 - moduleFindByName return NULL pointer ----- */
+    /* Setup additional inputs */
+    pCFESegment = &CFESegment;
+    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, 0);
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/4: Failed because moduleFindByName returned NULL");
 }
 
 

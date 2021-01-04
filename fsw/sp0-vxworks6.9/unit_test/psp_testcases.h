@@ -11,8 +11,8 @@
 **    2020-12-18 | Minh Luong       | Initial revision
 **=======================================================================================*/
 
-#ifndef ut_psp_testcases_h
-#define ut_psp_testcases_h
+#ifndef UT_PSP_TESTCASES_H
+#define UT_PSP_TESTCASES_H
 
 /*=======================================================================================
 ** Includes
@@ -35,7 +35,7 @@ void Ut_CFE_PSP_Setup(void);
 void Ut_CFE_PSP_Teardown(void);
 void Ut_CFE_PSP_InitEvent(void);
 
-#endif  /* ut_psp_testcases_h */
+#endif  /* UT_PSP_TESTCASES_H */
 
 /*=======================================================================================
 ** End of file psp_testcases.h

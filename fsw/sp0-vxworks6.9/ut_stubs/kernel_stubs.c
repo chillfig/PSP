@@ -73,7 +73,7 @@ int32 taskPriorityGet(int32 iTid, int32 *piCurPrio)
 
     if (iStatus >= 0)
     {
-        UT_Stub_CopyToLocal(UT_KEY(taskPriorityGet), (uint64 *)piCurPrio, sizeof(*piCurPrio));
+        UT_Stub_CopyToLocal(UT_KEY(taskPriorityGet), (uint32 *)piCurPrio, sizeof(*piCurPrio));
     }
     
     return iStatus;

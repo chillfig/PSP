@@ -11,8 +11,8 @@
 **    2020-12-18 | Minh Luong       | Initial revision
 **=======================================================================================*/
 
-#ifndef ut_psp_start_testcases_h
-#define ut_psp_start_testcases_h
+#ifndef UT_PSP_START_TESTCASES_H
+#define UT_PSP_START_TESTCASES_H
 
 /*=======================================================================================
 ** Includes
@@ -43,7 +43,7 @@ void Ut_OS_Application_Run(void);
 void Ut_vxFpscrGet(void);
 void Ut_vxFpscrSet(void);
 
-#endif  /* ut_psp_start_testcases_h */
+#endif  /* UT_PSP_START_TESTCASES_H */
 
 /*=======================================================================================
 ** End of file psp_start_testcases.h

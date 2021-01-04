@@ -145,9 +145,9 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetKernelTextSegmentInfo");
 
-    UtTest_Add(Ut_CFE_PSP_DeleteProcessorReservedMemory,
+    UtTest_Add(Ut_CFE_PSP_GetCFETextSegmentInfo,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_DeleteProcessorReservedMemory");
+               "Ut_CFE_PSP_GetCFETextSegmentInfo");
 } 
 
 /*=======================================================================================
