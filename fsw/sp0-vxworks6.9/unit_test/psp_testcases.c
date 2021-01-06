@@ -9,6 +9,9 @@
 **    Date       | Author           | Description
 **    ---------- | ---------------- | ----------------------------------------------------
 **    2020-12-16 | Minh Luong       | Initial revision
+**    2021-01-05 | Minh Luong       | Added test cases for psp_exception_testcase.c, 
+**               |                  | psp_support_testcases.c, psp_timer_testcase.c, 
+**               |                  | and psp_watchdog_testcases.c
 **=======================================================================================*/
 
 #include <unistd.h>
@@ -148,6 +151,98 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_GetCFETextSegmentInfo,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCFETextSegmentInfo");
+
+    /* cfe_psp_exception.c test cases area */
+    UtTest_Add(Ut_CFE_PSP_edrPolicyHandlerHook,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_edrPolicyHandlerHook");
+
+    UtTest_Add(Ut_CFE_PSP_AttachExceptions,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_AttachExceptions");
+
+    UtTest_Add(Ut_CFE_PSP_SetDefaultExceptionEnvironment,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetDefaultExceptionEnvironment");
+
+    UtTest_Add(Ut_CFE_PSP_ExceptionGetSummary_Impl,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ExceptionGetSummary_Impl");
+
+    /* cfe_psp_support.c test cases area */
+    UtTest_Add(Ut_CFE_PSP_Restart,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Restart");
+
+    UtTest_Add(Ut_CFE_PSP_Panic,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Panic");
+
+    UtTest_Add(Ut_CFE_PSP_FlushCaches,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_FlushCaches");
+
+    UtTest_Add(Ut_CFE_PSP_GetProcessorId,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetProcessorId");
+
+    UtTest_Add(Ut_CFE_PSP_GetSpacecraftId,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetSpacecraftId");
+
+    UtTest_Add(Ut_CFE_PSP_GetProcessorName,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetProcessorName");
+
+    /* cfe_psp_timer.c test cases area */
+    UtTest_Add(Ut_CFE_PSP_GetTime,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetTime");
+
+    UtTest_Add(Ut_CFE_PSP_Get_Timer_Tick,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Get_Timer_Tick");
+
+    UtTest_Add(Ut_CFE_PSP_GetTimerTicksPerSecond,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetTimerTicksPerSecond");
+
+    UtTest_Add(Ut_CFE_PSP_GetTimerLow32Rollover,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetTimerLow32Rollover");
+
+    UtTest_Add(Ut_CFE_PSP_Get_Timebase,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Get_Timebase");
+
+    UtTest_Add(Ut_CFE_PSP_Get_Dec,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Get_Dec");
+
+    /* cfe_psp_watchdog.c test cases area */
+    UtTest_Add(Ut_CFE_PSP_WatchdogInit,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogInit");
+
+    UtTest_Add(Ut_CFE_PSP_WatchdogEnable,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogEnable");
+
+    UtTest_Add(Ut_CFE_PSP_WatchdogDisable,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogDisable");
+
+    UtTest_Add(Ut_CFE_PSP_WatchdogService,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogService");
+
+    UtTest_Add(Ut_CFE_PSP_WatchdogGet,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogGet");
+
+    UtTest_Add(Ut_CFE_PSP_WatchdogSet,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogSet");
 } 
 
 /*=======================================================================================

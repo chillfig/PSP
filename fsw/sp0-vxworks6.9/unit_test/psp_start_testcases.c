@@ -26,8 +26,6 @@
 
 #include "psp_start_testcases.h"
 #include "../src/cfe_psp_start.c"
-#include "../src/cfe_psp_watchdog.c"
-#include "../src/cfe_psp_timer.c"
 
 /*=======================================================================================
 ** External Global Variable Declarations

@@ -36,6 +36,10 @@
                 UtAssert(Ut_ES_WriteToSysLogWithText(cText), Description, __FILE__, __LINE__)
 #define     UtAssert_NoES_WriteToSysLog(cText, Description) \
                 UtAssert(Ut_ES_WriteToSysLogWithText(cText) == false, Description, __FILE__, __LINE__)
+#define     UtAssert_logMsg(cText, Description) \
+                UtAssert(Ut_logMsgHistoryWithText(cText), Description, __FILE__, __LINE__)
+#define     UtAssert_NologMsg(cText, Description) \
+                UtAssert(Ut_logMsgHistoryWithText(cText) == false, Description, __FILE__, __LINE__)
 
 /*=======================================================================================
 ** Data Structures
@@ -54,8 +58,10 @@ int32   Ut_ES_WriteToSysLog_Hook(void *UserObj, int32 StubRetcode,
                                  uint32 CallCount, const UT_StubContext_t *Context, va_list va);
 void    Ut_ES_WriteToSysLog_Setup(void);
 bool    Ut_ES_WriteToSysLogWithText(const char *cText);
-
-
+int32   Ut_logMsg_hook(void *UserObj, int32 StubRetcode,
+                       uint32 CallCount, const UT_StubContext_t *Context, va_list va);
+void    Ut_logMsg_Setup(void);
+bool    Ut_logMsgHistoryWithText(const char *cText);
 
 #endif  /* _UT_PSP_UTILS_H_ */
 
