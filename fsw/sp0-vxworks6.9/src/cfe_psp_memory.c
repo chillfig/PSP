@@ -451,7 +451,7 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
         return_code = CFE_PSP_SUCCESS;
       } 
       else
-      {            
+      {      
         memcpy(CopyPtr, (char *)PtrToDataToWrite, NumBytes);
 
         /* Write whole CDS memory to Flash */
@@ -696,7 +696,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     uint32 reserve_memory_size = 0;
     int32 return_code = CFE_PSP_SUCCESS;
     int32  iCDSFd = -1;
-    uint32 uiReadBytes = 0;  
+    ssize_t readBytes = 0;  
 
     userReservedGet((char**)&start_addr, &reserve_memory_size);
 
@@ -742,18 +742,18 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
       }
       else
       {
-        uiReadBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+        readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                         CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-        if(uiReadBytes >= 0)
+        if(readBytes >= 0)
         {
-          OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiReadBytes);  
+          OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", readBytes);  
           /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
           sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                              CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
         }
         else
         {
-          OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
+          OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n"); 
           /* Return error if read failed */
           return_code = OS_ERROR;
         }
@@ -939,7 +939,7 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
          status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
          if ( status != ERROR )
          {
-            *PtrToCFESegment = (cpuaddr) (cFEModuleInfo.segInfo.textAddr);
+            *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
             *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
             return_code = CFE_PSP_SUCCESS;
          }
