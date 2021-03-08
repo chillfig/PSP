@@ -29,13 +29,22 @@
 #include "target_config.h"
 #include "sp0.h"
 
+/* For supporting REALTIME clock */
+#include <timers.h>
+/* For supporting SetTime and SetSTCF */
+#include "cfe_time_utils.h"
+#include "osapi-os-core.h"
+#include "psp_time_sync.h"
+
 /*
 ** External Function Prototypes
 */
 
+
 /*
 ** Function Prototypes
 */
+
 
 /*
 ** Macro Definitions
@@ -54,9 +63,7 @@
 */
 #define CFE_PSP_TIMER_LOW32_ROLLOVER  0
 
-
 static uint32 tickPerSecond = 0;
-
 
 /******************************************************************************
 **  Function:  CFE_PSP_GetTime()
@@ -84,7 +91,7 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
 
         /* Re-assemble the 64-bit count */
         tb = ((unsigned long long)tbu << 32) | (unsigned long long)tbl;
-        /*if the ticks per second is zero initialize it.
+        /* If the ticks per second is default zero, then initialize it.
          * The SP0 value is 41666666 and the SP0-S value is 49999999
          */
         if (tickPerSecond == 0)
@@ -108,7 +115,167 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
             errorCount++;
         }
     }
+}
 
+/******************************************************************************
+**  Function:  CFE_PSP_TIME_Init()
+**
+**  Purpose:
+**    Initialize the CFE PSP Time Task synchronizing with the NTP server
+**
+**  Arguments:
+**    timer_frequency_sec is the update frequency in seconds
+**
+**  Return:
+**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+******************************************************************************/
+int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
+{
+    
+    /* Initialize */
+    int32       Status;
+    int32       return_status = CFE_SUCCESS;
+    uint32      PSP_NTP_TimerId = 0;
+    uint32      PSP_NTP_ClockAccuracy = 0;
+    uint32      PSP_1HZ_INTERVAL = 1000000;
+    uint32      timer_interval_msec = timer_frequency_sec * PSP_1HZ_INTERVAL;
+
+    /*Create the 1Hz timer for synchronizing the major frame*/
+    Status = OS_TimerCreate(&PSP_NTP_TimerId,
+                            "PSPNTPSync",
+                            &PSP_NTP_ClockAccuracy,
+                            CFE_PSP_SetTime_From_VxWorks);
+    if (Status != CFE_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("Failed to create PSP_NTP_Sync task.\n");
+        return_status = CFE_PSP_ERROR;
+    }
+    else
+    {
+        /*Set the interval to one second in microseconds for the first time call, then every timer_frequency_sec.*/
+        Status = OS_TimerSet(PSP_NTP_TimerId, PSP_1HZ_INTERVAL, timer_interval_msec);
+        if (Status != CFE_SUCCESS)
+        {
+            CFE_ES_WriteToSysLog("Failed to set PSP_NTP_Sync task.\n");
+            return_status = CFE_PSP_ERROR;
+        }
+        else
+        {
+            CFE_ES_WriteToSysLog("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",timer_frequency_sec);
+        }
+    }
+    return return_status;
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_SetTime_Enable(bool)
+**
+**  Purpose:
+**    Enable or Disable CFE_PSP_SetTime_From_VxWorks
+**
+**  Arguments:
+**    bool - When True, CFE_PSP_SetTime_From_VxWorks will be called to synchronize time
+**
+**  Return:
+**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+******************************************************************************/
+int32 CFE_PSP_SetTime_Enable(bool enable)
+{
+    
+    if (enable)
+    {
+        CFE_ES_WriteToSysLog("Sync with VxWorks is enabled\n");
+    }
+    else
+    {
+        CFE_ES_WriteToSysLog("Sync with VxWorks is disabled\n");
+    }
+    /* Set flag */
+    setTime_From_VxWorks = enable;
+
+    return CFE_PSP_SUCCESS;
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_Update_Sync_Frequency(uint16_t)
+**
+**  Purpose:
+**    Changes the synchronication frequency
+**
+**  Arguments:
+**    uint16 - seconds between updates. If zero, returns the current value
+**
+**  Return:
+**    int - CFE_PSP_SUCCESS or the current PSP_VXWORKS_TIME_SYNC_SEC value
+******************************************************************************/
+int32 CFE_PSP_Update_Sync_Frequency(uint16 new_frequency_sec)
+{
+    
+    int32 return_value = CFE_PSP_SUCCESS;
+
+    if (new_frequency_sec == 0)
+    {
+        return_value = (int32)PSP_VXWORKS_TIME_SYNC_SEC;
+    }
+    else
+    {
+        PSP_VXWORKS_TIME_SYNC_SEC = new_frequency_sec;
+    }
+    return return_value;
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_SetTime_From_VxWorks()
+**
+**  Purpose:
+**    Syncronize CFE Time Service with VxWorks local time. VxWorks time is 
+**    automatically syncronized to NTP server
+**
+**    IMPORTANT: Function declaration is dictated by OS_TimerCreate function.
+**
+**  Arguments:
+**    timer_id
+**
+**  Return:
+**    None
+******************************************************************************/
+void CFE_PSP_SetTime_From_VxWorks(uint32 timer_id)
+{
+    struct timespec     unixTime;
+    uint32              tv_sec = 0;
+    uint32              tv_msec = 0;
+    CFE_TIME_SysTime_t  myT;
+    int                 ret;
+
+    /* If the flag is enabled */
+    if (setTime_From_VxWorks)
+    {
+        /* CFE_ES_WriteToSysLog("CFE_PSP: Syncing Time with VxWorks\n"); */
+        /* Get real time clock from VxWorks OS */
+        ret = clock_gettime(CLOCK_REALTIME, &unixTime);
+        /* If there are no errors, save the time in CFE Time Service using CFE_TIME_SetTime() */
+        if (ret == OK)
+        {
+            /* CFE_ES_WriteToSysLog("NTP Real Time Clock: {tv_sec: %ld}, {tv_nsec: %ld}\n",unixTime.tv_sec,unixTime.tv_nsec); */
+            /* If the unix time has synchronzed with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
+            if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
+            {
+                myT.Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
+                tv_msec = (uint32)unixTime.tv_nsec / 1000;
+                myT.Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                CFE_TIME_SetTime(myT);
+            }
+            else
+            {
+                /* VxWorks has not sync with NTP server yet. */
+                CFE_ES_WriteToSysLog("CFE_PSP: VxWorks OS has not sync with NTP server yet, trying again later.\n");
+            }
+        }
+        else
+        {
+            CFE_ES_WriteToSysLog("clock_gettime function failed\n");
+        }
+    }
 }
 
 /******************************************************************************
@@ -127,7 +294,7 @@ void CFE_PSP_GetTime(OS_time_t *pLocalTime)
 ******************************************************************************/
 uint32 CFE_PSP_Get_Timer_Tick(void)
 {
-   return ((uint32)sysClkRateGet());
+    return ((uint32)sysClkRateGet());
 }
 
 
@@ -205,7 +372,7 @@ void CFE_PSP_Get_Timebase(uint32 *tbu, uint32* tbl)
 ******************************************************************************/
 uint32 CFE_PSP_Get_Dec(void)
 {
-   return ((uint32)vxDecGet());
+    return ((uint32)vxDecGet());
 }
 
 
