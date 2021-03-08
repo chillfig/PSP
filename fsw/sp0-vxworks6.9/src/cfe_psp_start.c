@@ -29,7 +29,7 @@
 #include "scratchRegMap.h"
 #include <target_config.h>
 #include "aimonUtil.h"
-
+#include "psp_time_sync.h"
 
 
 /*
@@ -37,12 +37,6 @@
 */
 #define CFE_PSP_TASK_PRIORITY    (30)
 #define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
-
-/* CFE_PSP_TIMER_PRINT_DBG
-**
-**   Debug flag
-*/
-#define CFE_PSP_TIMER_PRINT_DBG  FALSE
 
 #define PSP_1HZ_INTERVAL 1000000
 
@@ -407,6 +401,9 @@ void OS_Application_Startup(void)
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
+    /* Initialize task to sync VxWorks time with CFE Time Service */
+    /* Update every PSP_VXWORKS_TIME_SYNC_SEC seconds */
+    CFE_PSP_TIME_Init(PSP_VXWORKS_TIME_SYNC_SEC);
 
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
@@ -554,15 +551,7 @@ static int32 SetSysTasksPrio(void)
 */
 void PSP_1HzLocalCallback(uint32 TimerId)
 {
-#if CFE_PSP_TIMER_PRINT_DBG == TRUE
-      OS_time_t LocalTime;
-      CFE_PSP_GetTime(&LocalTime);
-#endif
-      CFE_PSP_1HZ_FUNCTION();
-#if CFE_PSP_TIMER_PRINT_DBG == TRUE
-
-      OS_printf("PSP_1HzLocalCallback: PSP Local Time: %d.%d\n", LocalTime.seconds,LocalTime.microsecs);
-#endif
+    CFE_PSP_1HZ_FUNCTION();
 }
 /******************************************************************************
 **  Function:  OS_Application_Run()

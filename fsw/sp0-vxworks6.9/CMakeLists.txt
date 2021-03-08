@@ -13,6 +13,7 @@
 # the same source code is used with multiple targets.
 
 include_directories(inc)
+include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
 
 # Build the sp0-vxworks implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
