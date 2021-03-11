@@ -15,6 +15,12 @@
 include_directories(inc)
 include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
 
+# To support the starting and killing of NTP daemon process
+include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/include)
+include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
+include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
+include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
+
 # Build the sp0-vxworks implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c

@@ -29,6 +29,11 @@
 #include "target_config.h"
 #include "sp0.h"
 
+/* VxWorks IPCOM for Starting/Stopping NTP Daemon */
+#define IP_PORT_VXWORKS 69
+#include "ipcom_err.h"
+#include "taskLib.h"
+
 /* For supporting REALTIME clock */
 #include <timers.h>
 /* For supporting SetTime and SetSTCF */
@@ -39,6 +44,9 @@
 /*
 ** External Function Prototypes
 */
+extern TASK_ID taskNameToId (char * name);
+extern IP_PUBLIC Ip_err ipcom_ipd_kill (const char *name );
+extern IP_PUBLIC Ip_err ipcom_ipd_start (const char *name );  
 
 
 /*
@@ -144,7 +152,7 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
     Status = OS_TimerCreate(&PSP_NTP_TimerId,
                             "PSPNTPSync",
                             &PSP_NTP_ClockAccuracy,
-                            CFE_PSP_SetTime_From_VxWorks);
+                            CFE_PSP_GetTime_VxWorks);
     if (Status != CFE_SUCCESS)
     {
         CFE_ES_WriteToSysLog("Failed to create PSP_NTP_Sync task.\n");
@@ -225,7 +233,48 @@ int32 CFE_PSP_Update_Sync_Frequency(uint16 new_frequency_sec)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_SetTime_From_VxWorks()
+**  Function:  CFE_PSP_SetTime_VxWorks()
+**
+**  Purpose:
+**    Set the VxWorks CLOCK_REALTIME to a specified timestamp
+**    IMPORTANT: If NTP daemon is enabled and it is capable of contacting an
+**               NTP server, setting time does not work.
+**
+**  Arguments:
+**    uint32 ts_sec - Seconds since Epoch 1/1/1970
+**    uint32 ts_nsec - NanoSecond timestamp
+**
+**  Return:
+**    None
+******************************************************************************/
+void CFE_PSP_SetTime_VxWorks(const uint32 ts_sec, const uint32 ts_nsec)
+{
+    struct timespec     unixTime;
+    int                 ret;
+
+    if (ts_sec > 0 && ts_nsec >=0)
+    {
+        unixTime.tv_sec = ts_sec;
+        unixTime.tv_nsec = ts_nsec;
+
+        ret = clock_settime(CLOCK_REALTIME, &unixTime);
+        if (ret == OK)
+        {
+            CFE_ES_WriteToSysLog("Clock set");
+        }
+        else
+        {
+            CFE_ES_WriteToSysLog("ERROR Clock not set");
+        }
+    }
+    else
+    {
+        CFE_ES_WriteToSysLog("ERROR: Invalid timestamp");
+    }
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_GetTime_VxWorks()
 **
 **  Purpose:
 **    Syncronize CFE Time Service with VxWorks local time. VxWorks time is 
@@ -239,7 +288,7 @@ int32 CFE_PSP_Update_Sync_Frequency(uint16 new_frequency_sec)
 **  Return:
 **    None
 ******************************************************************************/
-void CFE_PSP_SetTime_From_VxWorks(uint32 timer_id)
+void CFE_PSP_GetTime_VxWorks(uint32 timer_id)
 {
     struct timespec     unixTime;
     uint32              tv_sec = 0;
@@ -276,6 +325,115 @@ void CFE_PSP_SetTime_From_VxWorks(uint32 timer_id)
             CFE_ES_WriteToSysLog("clock_gettime function failed\n");
         }
     }
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_StartNTPDaemon()
+**
+**  Purpose:
+**    Start the NTP daemon on VxWorks OS that sync with NTP server
+**
+**  Arguments:
+**    none
+**
+**  Return:
+**    int32 - Task ID or CFE_PSP_ERROR
+******************************************************************************/
+int32 CFE_PSP_StartNTPDaemon(void)
+{
+    int32       return_code = 0;
+    int32       ret;
+    
+    ret = ipcom_ipd_start("ipntp");
+    if (ret == IPCOM_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("NTP Daemon Started Successfully");
+        return_code = taskNameToId("ipntpd");
+    }
+    else
+    {
+        if (ret == IPCOM_ERR_ALREADY_STARTED)
+        {
+            CFE_ES_WriteToSysLog("NTP Daemon already started");
+            return_code = taskNameToId("ipntpd");
+        }
+        else
+        {
+            CFE_ES_WriteToSysLog("ERROR NTP Daemon did not Start (ip_err = %d)",ret);
+            return_code = CFE_PSP_ERROR;
+        }
+    }
+    return return_code;
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_StopNTPDaemon()
+**
+**  Purpose:
+**    Stop the NTP daemon on VxWorks OS that sync with NTP server
+**
+**  Arguments:
+**    none
+**
+**  Return:
+**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+**            Note: NTP task already stopped, return CFE_PSP_ERROR
+******************************************************************************/
+int32 CFE_PSP_StopNTPDaemon(void)
+{
+    int32       return_code = CFE_PSP_SUCCESS;
+    int32       ret;
+
+    ret = ipcom_ipd_kill("ipntp");
+    if (ret == IPCOM_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("NTP Daemon Stopped Successfully");
+    }
+    else
+    {
+        /* Although the name, VxWorks user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
+        if (ret == IPCOM_ERR_NOT_STARTED)
+        {
+            CFE_ES_WriteToSysLog("NTP Daemon already stopped");
+        }
+        else
+        {
+            CFE_ES_WriteToSysLog("ERROR NTP Daemon did not stop (ip_err = %d)",ret);
+        }
+        return_code = CFE_PSP_ERROR;
+    }
+
+    return return_code;
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_SetNTP_VxWorks_Daemon(bool)
+**
+**  Purpose:
+**    Enable or Disable VxWorks NTP dameon process
+**
+**  Arguments:
+**    bool - When True starts NTP daemon, else stop process
+**
+**  Return:
+**    int32 - Task ID or CFE_PSP_SUCCESS or CFE_PSP_ERROR
+**            Task ID is returned when successfully starting NTP process
+**            CFE_PSP_SUCCESS is returned when successfully stopping NTP process
+******************************************************************************/
+int32 CFE_PSP_SetNTP_VxWorks_Daemon(bool enable)
+{
+    int32   return_code = CFE_PSP_SUCCESS;
+
+    if (enable)
+    {
+        return_code = CFE_PSP_StartNTPDaemon();
+    }
+    else
+    {
+        return_code = CFE_PSP_StopNTPDaemon();
+    }
+
+    return return_code;
 }
 
 /******************************************************************************

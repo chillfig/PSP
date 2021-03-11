@@ -1,6 +1,12 @@
 #ifndef _psp_time_sync_
 #define _psp_time_sync_
 
+/**
+ * Boolean variable to control if to synchronize CFE Time Service with VxWorks
+ * local time.
+ * True, synch will occur
+ * False, timer will not be disabled, but sync will not execute
+ */
 static bool setTime_From_VxWorks = true;
 
 /**
@@ -25,7 +31,7 @@ static uint16 PSP_VXWORKS_TIME_SYNC_SEC = 30;
 int32 CFE_PSP_SetTime_Enable(bool);
 
 /******************************************************************************
-**  Function:  CFE_PSP_SetTime_From_VxWorks()
+**  Function:  CFE_PSP_GetTime_VxWorks()
 **
 **  Purpose:
 **    Syncronize CFE Time Service with VxWorks local time. VxWorks time is 
@@ -40,7 +46,7 @@ int32 CFE_PSP_SetTime_Enable(bool);
 **  Return:
 **    void
 ******************************************************************************/
-void CFE_PSP_SetTime_From_VxWorks(uint32 timer_id);
+void CFE_PSP_GetTime_VxWorks(uint32 timer_id);
 
 /******************************************************************************
 **  Function:  CFE_PSP_TIME_Init()
