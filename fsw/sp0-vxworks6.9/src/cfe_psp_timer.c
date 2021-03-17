@@ -185,7 +185,7 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 **    bool - When True, CFE_PSP_Get_VxWorks_Time will be called to synchronize time
 **
 **  Return:
-**    int32 - True if 
+**    int32 - input argument
 ******************************************************************************/
 int32 CFE_PSP_Sync_From_VxWorks_Ena(bool enable)
 {
@@ -201,7 +201,7 @@ int32 CFE_PSP_Sync_From_VxWorks_Ena(bool enable)
     /* Set flag */
     getTime_From_VxWorks_flag = enable;
 
-    return getTime_From_VxWorks_flag;
+    return (int32) getTime_From_VxWorks_flag;
 }
 
 /******************************************************************************
@@ -270,12 +270,13 @@ int32 CFE_PSP_Sync_From_VxWorks_Freq(uint16 new_frequency_sec)
 **    uint32 ts_nsec - NanoSecond timestamp
 **
 **  Return:
-**    None
+**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 ******************************************************************************/
-void CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
+int32 CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
     struct timespec     unixTime;
     int                 ret;
+    int32               return_status = CFE_PSP_SUCCESS;
 
     if (ts_sec > 0 && ts_nsec >=0)
     {
@@ -290,12 +291,16 @@ void CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
         else
         {
             CFE_ES_WriteToSysLog("ERROR Clock not set");
+            return_status = CFE_PSP_ERROR;
         }
     }
     else
     {
         CFE_ES_WriteToSysLog("ERROR: Invalid timestamp");
+        return_status = CFE_PSP_ERROR;
     }
+
+    return return_status;
 }
 
 /******************************************************************************

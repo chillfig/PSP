@@ -26,7 +26,7 @@ static uint16 PSP_VXWORKS_TIME_SYNC_SEC = 30;
 **    bool - When True, CFE_PSP_Get_VxWorks_Time will be called to synchronize time
 **
 **  Return:
-**    int32 - True if 
+**    int32 - input argument
 ******************************************************************************/
 int32 CFE_PSP_Sync_From_VxWorks_Ena(bool);
 
