@@ -152,7 +152,7 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
     Status = OS_TimerCreate(&PSP_NTP_TimerId,
                             "PSPNTPSync",
                             &PSP_NTP_ClockAccuracy,
-                            CFE_PSP_Get_VxWorks_Time);
+                            CFE_PSP_Get_OS_Time);
     if (Status != CFE_SUCCESS)
     {
         CFE_ES_WriteToSysLog("Failed to create PSP_NTP_Sync task.\n");
@@ -176,32 +176,32 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Sync_From_VxWorks_Ena(bool)
+**  Function:  CFE_PSP_Sync_From_OS_Enable(bool)
 **
 **  Purpose:
-**    Enable or Disable CFE_PSP_Get_VxWorks_Time
+**    Enable or Disable CFE_PSP_Get_OS_Time
 **
 **  Arguments:
-**    bool - When True, CFE_PSP_Get_VxWorks_Time will be called to synchronize time
+**    bool - When True, CFE_PSP_Get_OS_Time will be called to synchronize time
 **
 **  Return:
 **    int32 - input argument
 ******************************************************************************/
-int32 CFE_PSP_Sync_From_VxWorks_Ena(bool enable)
+int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 {
     
     if (enable)
     {
-        CFE_ES_WriteToSysLog("Sync with VxWorks is enabled\n");
+        CFE_ES_WriteToSysLog("Sync with OS is enabled\n");
     }
     else
     {
-        CFE_ES_WriteToSysLog("Sync with VxWorks is disabled\n");
+        CFE_ES_WriteToSysLog("Sync with OS is disabled\n");
     }
     /* Set flag */
-    getTime_From_VxWorks_flag = enable;
+    getTime_From_OS_flag = enable;
 
-    return (int32) getTime_From_VxWorks_flag;
+    return (int32) getTime_From_OS_flag;
 }
 
 /******************************************************************************
@@ -230,7 +230,7 @@ int32 CFE_PSP_NTP_Daemon_Get_Status()
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Sync_From_VxWorks_Freq(uint16_t)
+**  Function:  CFE_PSP_Sync_From_OS_Freq(uint16_t)
 **
 **  Purpose:
 **    Changes the synchronication frequency
@@ -239,29 +239,29 @@ int32 CFE_PSP_NTP_Daemon_Get_Status()
 **    uint16 - seconds between updates. If zero, returns the current value
 **
 **  Return:
-**    int - CFE_PSP_SUCCESS or the current PSP_VXWORKS_TIME_SYNC_SEC value
+**    int - CFE_PSP_SUCCESS or the current PSP_OS_TIME_SYNC_SEC value
 ******************************************************************************/
-int32 CFE_PSP_Sync_From_VxWorks_Freq(uint16 new_frequency_sec)
+int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 {
     
     int32 return_value = CFE_PSP_SUCCESS;
 
     if (new_frequency_sec == 0)
     {
-        return_value = (int32)PSP_VXWORKS_TIME_SYNC_SEC;
+        return_value = (int32)PSP_OS_TIME_SYNC_SEC;
     }
     else
     {
-        PSP_VXWORKS_TIME_SYNC_SEC = new_frequency_sec;
+        PSP_OS_TIME_SYNC_SEC = new_frequency_sec;
     }
     return return_value;
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Set_VxWorks_Time()
+**  Function:  CFE_PSP_Set_OS_Time()
 **
 **  Purpose:
-**    Set the VxWorks CLOCK_REALTIME to a specified timestamp
+**    Set the OS CLOCK_REALTIME to a specified timestamp
 **    IMPORTANT: If NTP daemon is enabled and it is capable of contacting an
 **               NTP server, setting time does not work.
 **
@@ -272,7 +272,7 @@ int32 CFE_PSP_Sync_From_VxWorks_Freq(uint16 new_frequency_sec)
 **  Return:
 **    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
+int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
     struct timespec     unixTime;
     int                 ret;
@@ -304,10 +304,10 @@ int32 CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Get_VxWorks_Time()
+**  Function:  CFE_PSP_Get_OS_Time()
 **
 **  Purpose:
-**    Syncronize CFE Time Service with VxWorks local time. VxWorks time is 
+**    Syncronize CFE Time Service with OS local time. OS time is 
 **    automatically syncronized to NTP server
 **    Declaration is dictated by OSAL, see osapi-os-timer.h OS_TimerCreate info
 **
@@ -319,7 +319,7 @@ int32 CFE_PSP_Set_VxWorks_Time(const uint32 ts_sec, const uint32 ts_nsec)
 **  Return:
 **    void
 ******************************************************************************/
-void CFE_PSP_Get_VxWorks_Time(uint32 timer_id)
+void CFE_PSP_Get_OS_Time(uint32 timer_id)
 {
     struct timespec     unixTime;
     uint32              tv_sec = 0;
@@ -328,10 +328,10 @@ void CFE_PSP_Get_VxWorks_Time(uint32 timer_id)
     int                 ret;
 
     /* If the flag is enabled */
-    if (getTime_From_VxWorks_flag)
+    if (getTime_From_OS_flag)
     {
-        /* CFE_ES_WriteToSysLog("CFE_PSP: Syncing Time with VxWorks\n"); */
-        /* Get real time clock from VxWorks OS */
+        /* CFE_ES_WriteToSysLog("CFE_PSP: Syncing Time with OS\n"); */
+        /* Get real time clock from OS */
         ret = clock_gettime(CLOCK_REALTIME, &unixTime);
         /* If there are no errors, save the time in CFE Time Service using CFE_TIME_SetTime() */
         if (ret == OK)
@@ -353,8 +353,8 @@ void CFE_PSP_Get_VxWorks_Time(uint32 timer_id)
             }
             else
             {
-                /* VxWorks has not sync with NTP server yet. */
-                CFE_ES_WriteToSysLog("CFE_PSP: VxWorks OS has not sync with NTP server yet, trying again later.\n");
+                /* OS has not sync with NTP server yet. */
+                CFE_ES_WriteToSysLog("CFE_PSP: OS has not sync with NTP server yet, trying again later.\n");
             }
         }
         else
@@ -368,7 +368,7 @@ void CFE_PSP_Get_VxWorks_Time(uint32 timer_id)
 **  Function:  CFE_PSP_StartNTPDaemon()
 **
 **  Purpose:
-**    Start the NTP daemon on VxWorks OS that sync with NTP server
+**    Start the NTP daemon on OS that sync with NTP server
 **
 **  Arguments:
 **    none
@@ -407,7 +407,7 @@ int32 CFE_PSP_StartNTPDaemon(void)
 **  Function:  CFE_PSP_StopNTPDaemon()
 **
 **  Purpose:
-**    Stop the NTP daemon on VxWorks OS that sync with NTP server
+**    Stop the NTP daemon on OS that sync with NTP server
 **
 **  Arguments:
 **    none
@@ -428,7 +428,7 @@ int32 CFE_PSP_StopNTPDaemon(void)
     }
     else
     {
-        /* Although the name, VxWorks user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
+        /* Although the name, OS user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
         if (ret == IPCOM_ERR_NOT_STARTED)
         {
             CFE_ES_WriteToSysLog("NTP Daemon already stopped");
@@ -447,7 +447,7 @@ int32 CFE_PSP_StopNTPDaemon(void)
 **  Function:  CFE_PSP_NTP_Daemon_Enable(bool)
 **
 **  Purpose:
-**    Enable or Disable VxWorks NTP dameon process
+**    Enable or Disable OS NTP dameon process
 **
 **  Arguments:
 **    bool - When True starts NTP daemon, else stop process
