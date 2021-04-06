@@ -403,7 +403,7 @@ void OS_Application_Startup(void)
 
     /* Initialize task to sync VxWorks time with CFE Time Service */
     /* Update every PSP_VXWORKS_TIME_SYNC_SEC seconds */
-    CFE_PSP_TIME_Init(PSP_VXWORKS_TIME_SYNC_SEC);
+    CFE_PSP_TIME_Init(PSP_OS_TIME_SYNC_SEC);
 
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
