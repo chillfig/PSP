@@ -12,13 +12,14 @@
 #ifndef _PSP_STUB_BLKIO_H_
 #define _PSP_STUB_BLKIO_H_
 
-#include <PCS_basetypes.h>
-#include <PCS_vxWorks.h>
+#include "PCS_basetypes.h"
+#include "PCS_vxWorks.h"
 
 /* The module and blk_dev types are used in several headers */
-typedef struct PCS_BLK_DEV { int bd; }  PCS_BLK_DEV;
-typedef PCS_BLK_DEV*                    PCS_BLK_DEV_ID;
-
+typedef struct PCS_BLK_DEV
+{
+    int bd;
+} PCS_BLK_DEV;
+typedef PCS_BLK_DEV *PCS_BLK_DEV_ID;
 
 #endif /* _PSP_STUB_BLKIO_H_ */
-

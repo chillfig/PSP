@@ -12,12 +12,11 @@
 #ifndef _PSP_OVERRIDE_ESFPPC_H_
 #define _PSP_OVERRIDE_ESFPPC_H_
 
-#include <PCS_arch_ppc_esfPpc.h>
+#include "PCS_arch_ppc_esfPpc.h"
 
 /* ----------------------------------------- */
 /* mappings for declarations in fenv.h */
 /* ----------------------------------------- */
-#define ESFPPC  PCS_ESFPPC
-
+#define ESFPPC PCS_ESFPPC
 
 #endif /* _PSP_OVERRIDE_ESFPPC_H_ */

@@ -23,7 +23,7 @@
 **
 ** Purpose:
 ** Unit test stubs for BSP routines
-** 
+**
 ** Notes:
 ** Minimal work is done, only what is required for unit testing
 **
@@ -37,10 +37,9 @@
 #include "utstubs.h"
 #include <string.h>
 
-#include <target_config.h>
+#include "target_config.h"
 
-Target_PspConfigData GLOBAL_PSP_CONFIGDATA = { 0 };
-Target_CfeConfigData GLOBAL_CFE_CONFIGDATA = { 0 };
+Target_CfeConfigData GLOBAL_CFE_CONFIGDATA = {0};
 
 /**
  * Instantiation of global system-wide configuration struct
@@ -48,21 +47,16 @@ Target_CfeConfigData GLOBAL_CFE_CONFIGDATA = { 0 };
  * configuration structures.  Everything will be linked together
  * in the final executable.
  */
-Target_ConfigData GLOBAL_CONFIGDATA =
-{
-        .MissionVersion = "MissionUnitTest",
-        .CfeVersion = "CfeUnitTest",
-        .OsalVersion = "OsalUnitTest",
-        .Config = "MissionConfig",
-        .Date = "MissionBuildDate",
-        .User = "MissionBuildUser",
-        .Default_CpuName = "UnitTestCpu",
-        .Default_CpuId = 1,
-        .Default_SpacecraftId = 0x42,
-        .CfeConfig = &GLOBAL_CFE_CONFIGDATA,
-        .PspConfig = &GLOBAL_PSP_CONFIGDATA
-};
-
+Target_ConfigData GLOBAL_CONFIGDATA = {.MissionVersion       = "MissionUnitTest",
+                                       .CfeVersion           = "CfeUnitTest",
+                                       .OsalVersion          = "OsalUnitTest",
+                                       .Config               = "MissionConfig",
+                                       .Date                 = "MissionBuildDate",
+                                       .User                 = "MissionBuildUser",
+                                       .Default_CpuName      = "UnitTestCpu",
+                                       .Default_CpuId        = 1,
+                                       .Default_SpacecraftId = 0x42,
+                                       .CfeConfig            = &GLOBAL_CFE_CONFIGDATA};
 
 /*
 ** Functions
@@ -90,7 +84,7 @@ Target_ConfigData GLOBAL_CONFIGDATA =
 void CFE_PSP_Panic(int32 ErrorCode)
 {
     UT_DEFAULT_IMPL(CFE_PSP_Panic);
-    UT_Stub_CopyFromLocal(UT_KEY(CFE_PSP_Panic), (uint8*)&ErrorCode, sizeof(ErrorCode));
+    UT_Stub_CopyFromLocal(UT_KEY(CFE_PSP_Panic), (uint8 *)&ErrorCode, sizeof(ErrorCode));
 }
 
 /*****************************************************************************/
@@ -161,7 +155,7 @@ uint32 CFE_PSP_GetSpacecraftId(void)
 ******************************************************************************/
 const char *CFE_PSP_GetProcessorName(void)
 {
-    int32      status;
+    int32       status;
     const char *ptr = GLOBAL_CONFIGDATA.Default_CpuName;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_GetProcessorName);
@@ -198,10 +192,9 @@ void CFE_PSP_GetTime(OS_time_t *LocalTime)
 
     if (status >= 0)
     {
-        if (UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_GetTime), (uint8*)LocalTime, sizeof(*LocalTime)) < sizeof(*LocalTime))
+        if (UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_GetTime), (uint8 *)LocalTime, sizeof(*LocalTime)) < sizeof(*LocalTime))
         {
-            LocalTime->seconds = 100;
-            LocalTime->microsecs = 200;
+            *LocalTime = OS_TimeAssembleFromNanoseconds(100, 200000);
         }
     }
 }
@@ -227,20 +220,18 @@ void CFE_PSP_GetTime(OS_time_t *LocalTime)
 **        Returns either OS_SUCCESS, OS_ERROR, or a user-defined value.
 **
 ******************************************************************************/
-int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite,
-                         uint32 CDSOffset,
-                         uint32 NumBytes)
+int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 NumBytes)
 {
     uint8 *BufPtr;
     size_t CdsSize;
     size_t Position;
-    int32 status;
+    int32  status;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_WriteToCDS);
 
     if (status >= 0)
     {
-        UT_GetDataBuffer(UT_KEY(CFE_PSP_WriteToCDS), (void**)&BufPtr, &CdsSize, &Position);
+        UT_GetDataBuffer(UT_KEY(CFE_PSP_WriteToCDS), (void **)&BufPtr, &CdsSize, &Position);
         if (BufPtr != NULL && (CDSOffset + NumBytes) <= CdsSize)
         {
             memcpy(BufPtr + CDSOffset, PtrToDataToWrite, NumBytes);
@@ -271,20 +262,18 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite,
 **        Returns either OS_SUCCESS, OS_ERROR, or a user-defined value.
 **
 ******************************************************************************/
-int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead,
-                          uint32 CDSOffset,
-                          uint32 NumBytes)
+int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumBytes)
 {
     uint8 *BufPtr;
     size_t CdsSize;
     size_t Position;
-    int32 status;
+    int32  status;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_ReadFromCDS);
 
     if (status >= 0)
     {
-        UT_GetDataBuffer(UT_KEY(CFE_PSP_ReadFromCDS), (void**)&BufPtr, &CdsSize, &Position);
+        UT_GetDataBuffer(UT_KEY(CFE_PSP_ReadFromCDS), (void **)&BufPtr, &CdsSize, &Position);
         if (BufPtr != NULL && (CDSOffset + NumBytes) <= CdsSize)
         {
             memcpy(PtrToDataToRead, BufPtr + CDSOffset, NumBytes);
@@ -312,7 +301,7 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead,
 ******************************************************************************/
 int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 {
-    int32 status;
+    int32  status;
     size_t TempSize;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_GetCDSSize);
@@ -344,9 +333,9 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 ******************************************************************************/
 int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
 {
-    int32 status;
+    int32  status;
     size_t TempSize;
-    void *TempAddr;
+    void * TempAddr;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_GetVolatileDiskMem);
 
@@ -354,7 +343,7 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
     {
         UT_GetDataBuffer(UT_KEY(CFE_PSP_GetVolatileDiskMem), &TempAddr, &TempSize, NULL);
 
-        *PtrToVolDisk = (cpuaddr)TempAddr;
+        *PtrToVolDisk  = (cpuaddr)TempAddr;
         *SizeOfVolDisk = TempSize;
     }
 
@@ -383,7 +372,7 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
 void CFE_PSP_Restart(uint32 reset_type)
 {
     UT_DEFAULT_IMPL(CFE_PSP_Restart);
-    UT_Stub_CopyFromLocal(UT_KEY(CFE_PSP_Restart), (uint8*)&reset_type, sizeof(reset_type));
+    UT_Stub_CopyFromLocal(UT_KEY(CFE_PSP_Restart), (uint8 *)&reset_type, sizeof(reset_type));
 }
 
 /*****************************************************************************/
@@ -401,7 +390,7 @@ void CFE_PSP_Restart(uint32 reset_type)
 **        This function does not return a value.
 **
 ******************************************************************************/
-void CFE_PSP_Get_Timebase(uint32 *Tbu, uint32* Tbl)
+void CFE_PSP_Get_Timebase(uint32 *Tbu, uint32 *Tbl)
 {
     *Tbu = 0;
     *Tbl = 0;
@@ -429,9 +418,9 @@ void CFE_PSP_Get_Timebase(uint32 *Tbu, uint32* Tbl)
 ******************************************************************************/
 int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 {
-    int32 status;
+    int32  status;
     size_t TempSize;
-    void *TempAddr;
+    void * TempAddr;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_GetResetArea);
 
@@ -439,7 +428,7 @@ int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
     {
         UT_GetDataBuffer(UT_KEY(CFE_PSP_GetResetArea), &TempAddr, &TempSize, NULL);
 
-        *PtrToResetArea = (cpuaddr)TempAddr;
+        *PtrToResetArea  = (cpuaddr)TempAddr;
         *SizeOfResetArea = TempSize;
     }
 
@@ -461,7 +450,7 @@ int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 **        This function does not return a value.
 **
 ******************************************************************************/
-void  CFE_PSP_AttachExceptions(void)
+void CFE_PSP_AttachExceptions(void)
 {
     UT_DEFAULT_IMPL(CFE_PSP_AttachExceptions);
 }
@@ -556,13 +545,12 @@ uint32 CFE_PSP_GetTimerLow32Rollover(void)
 **        Returns either a user-defined status flag or OS_SUCCESS.
 **
 ******************************************************************************/
-int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment,
-                                    uint32 *SizeOfCFESegment)
+int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFESegment)
 {
     static uint32 LocalTextSegment;
-    int32 status;
-    void *TempAddr;
-    size_t TempSize;
+    int32         status;
+    void *        TempAddr;
+    size_t        TempSize;
 
     status = UT_DEFAULT_IMPL(CFE_PSP_GetCFETextSegmentInfo);
 
@@ -572,13 +560,58 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment,
         if (*PtrToCFESegment == 0)
         {
             /* Backup -- Set the pointer and size to anything */
-            *PtrToCFESegment = (cpuaddr)&LocalTextSegment;
+            *PtrToCFESegment  = (cpuaddr)&LocalTextSegment;
             *SizeOfCFESegment = sizeof(LocalTextSegment);
         }
         else
         {
-            *PtrToCFESegment = (cpuaddr)TempAddr;
+            *PtrToCFESegment  = (cpuaddr)TempAddr;
             *SizeOfCFESegment = TempSize;
+        }
+    }
+
+    return status;
+}
+
+/*****************************************************************************/
+/**
+** \brief CFE_PSP_GetKernelTextSegmentInfo stub function
+**
+** \par Description
+**        This function is used to mimic the response of the PSP function
+**        CFE_PSP_GetKernelTextSegmentInfo.  The user can adjust the response by
+**        setting the values in the BSPGetCFETextRtn structure prior to this
+**        function being called.
+**
+** \par Assumptions, External Events, and Notes:
+**        None
+**
+** \returns
+**        Returns either a user-defined status flag or OS_SUCCESS.
+**
+******************************************************************************/
+int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *SizeOfKernelSegment)
+{
+    static uint32 LocalTextSegment;
+    int32         status;
+    void *        TempAddr;
+    size_t        TempSize;
+
+    status = UT_DEFAULT_IMPL(CFE_PSP_GetKernelTextSegmentInfo);
+
+    if (status >= 0)
+    {
+        UT_GetDataBuffer(UT_KEY(CFE_PSP_GetKernelTextSegmentInfo), &TempAddr, &TempSize, NULL);
+        if (*PtrToKernelSegment == 0)
+        {
+            /* Backup -- Set the pointer and size to anything */
+            *PtrToKernelSegment  = (cpuaddr)&LocalTextSegment;
+            *SizeOfKernelSegment = sizeof(LocalTextSegment);
+        }
+        else
+        {
+            *PtrToKernelSegment  = (cpuaddr)TempAddr;
+            *SizeOfKernelSegment = TempSize;
         }
     }
 
@@ -635,7 +668,7 @@ int32 CFE_PSP_MemRead8(cpuaddr Address, uint8 *Data)
 **        Returns either a user-defined status flag or OS_SUCCESS.
 **
 ******************************************************************************/
-int32 CFE_PSP_MemValidateRange(cpuaddr Address, uint32 Size, uint32 MemoryType)
+int32 CFE_PSP_MemValidateRange(cpuaddr Address, size_t Size, uint32 MemoryType)
 {
     int32 status;
 
@@ -689,7 +722,7 @@ int32 CFE_PSP_MemCpy(void *dst, const void *src, uint32 size)
 **        Returns OS_SUCCESS.
 **
 ******************************************************************************/
-int32 CFE_PSP_MemSet(void *dst, uint8 value , uint32 size)
+int32 CFE_PSP_MemSet(void *dst, uint8 value, uint32 size)
 {
     int32 status;
 
@@ -708,9 +741,9 @@ uint32 CFE_PSP_Exception_GetCount(void)
 {
     int32 status;
 
-     status = UT_DEFAULT_IMPL(CFE_PSP_Exception_GetCount);
+    status = UT_DEFAULT_IMPL(CFE_PSP_Exception_GetCount);
 
-     return status;
+    return status;
 }
 
 int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize)
@@ -718,8 +751,8 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
     int32 status;
 
     *ContextLogId = 0;
-    *TaskId = OS_OBJECT_ID_UNDEFINED;
-    *ReasonBuf = 0;
+    *TaskId       = OS_OBJECT_ID_UNDEFINED;
+    *ReasonBuf    = 0;
 
     /* allow the testcase to easily set the taskID output, anything more involved needs a hook */
     status = UT_DEFAULT_IMPL_ARGS(CFE_PSP_Exception_GetSummary, ContextLogId, TaskId, ReasonBuf, ReasonSize);
@@ -727,7 +760,6 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
     {
         UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_Exception_GetSummary), TaskId, sizeof(*TaskId));
     }
-
 
     return status;
 }
@@ -745,4 +777,87 @@ int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint3
     return status;
 }
 
+/*----------------------------------------------------------------
+ *
+ * Function: CFE_PSP_GetVersionString
+ *
+ *  Purpose: Implemented per public OSAL API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
+const char *CFE_PSP_GetVersionString(void)
+{
+    static const char DEFAULT[] = "UT";
+    void *            Buffer;
+    const char *      RetVal;
 
+    UT_GetDataBuffer(UT_KEY(CFE_PSP_GetVersionString), &Buffer, NULL, NULL);
+    if (Buffer == NULL)
+    {
+        RetVal = DEFAULT;
+    }
+    else
+    {
+        RetVal = Buffer;
+    }
+
+    return RetVal;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: CFE_PSP_GetVersionCodeName
+ *
+ *  Purpose: Implemented per public OSAL API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
+const char *CFE_PSP_GetVersionCodeName(void)
+{
+    static const char DEFAULT[] = "UT";
+    void *            Buffer;
+    const char *      RetVal;
+
+    UT_GetDataBuffer(UT_KEY(CFE_PSP_GetVersionCodeName), &Buffer, NULL, NULL);
+    if (Buffer == NULL)
+    {
+        RetVal = DEFAULT;
+    }
+    else
+    {
+        RetVal = Buffer;
+    }
+
+    return RetVal;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: CFE_PSP_GetVersionNumber
+ *
+ *  Purpose: Implemented per public OSAL API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
+void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
+{
+    UT_Stub_RegisterContext(UT_KEY(CFE_PSP_GetVersionNumber), VersionNumbers);
+    UT_DEFAULT_IMPL(VersionNumbers);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: CFE_PSP_GetBuildNumber
+ *
+ *  Purpose: Implemented per public OSAL API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
+uint32 CFE_PSP_GetBuildNumber(void)
+{
+    int32 status;
+
+    status = UT_DEFAULT_IMPL(CFE_PSP_GetBuildNumber);
+
+    return status;
+}

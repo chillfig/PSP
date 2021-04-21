@@ -12,12 +12,11 @@
 #ifndef _PSP_OVERRIDE_VXLIB_H_
 #define _PSP_OVERRIDE_VXLIB_H_
 
-#include <PCS_vxLib.h>
+#include "PCS_vxLib.h"
 #include <arch/ppc/vxPpcLib.h>
 
 /* ----------------------------------------- */
 /* mappings for declarations in vxLib.h */
 /* ----------------------------------------- */
-
 
 #endif /* _PSP_OVERRIDE_VXLIB_H_ */

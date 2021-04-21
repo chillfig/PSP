@@ -12,13 +12,11 @@
 #ifndef _PSP_OVERRIDE_XBDRAMDISK_H_
 #define _PSP_OVERRIDE_XBDRAMDISK_H_
 
-#include <PCS_xbdRamDisk.h>
+#include "PCS_xbdRamDisk.h"
 #include <vxWorks.h>
 
 /* ----------------------------------------- */
 /* mappings for declarations in xbdRamDisk.h */
 /* ----------------------------------------- */
-
-
 
 #endif /* _PSP_OVERRIDE_XBDRAMDISK_H_ */

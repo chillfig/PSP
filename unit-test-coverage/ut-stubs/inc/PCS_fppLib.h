@@ -2,7 +2,7 @@
 #ifndef _PSP_STUB_FPPLIB_H_
 #define _PSP_STUB_FPPLIB_H_
 
-#include <PCS_basetypes.h>
+#include "PCS_basetypes.h"
 
 /* ----------------------------------------- */
 /* constants normally defined in fppLib.h */
@@ -20,7 +20,6 @@ typedef struct
 /* ----------------------------------------- */
 /* prototypes normally declared in fppLib.h */
 /* ----------------------------------------- */
-extern void PCS_fppSave (PCS_FP_CONTEXT *fpc);
+extern void PCS_fppSave(PCS_FP_CONTEXT *fpc);
 
 #endif /* _PSP_STUB_FPPLIB_H_ */
-
