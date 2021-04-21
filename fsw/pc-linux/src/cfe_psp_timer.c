@@ -72,14 +72,11 @@ bool getTime_From_OS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
  */
 uint16 cfe_OS_Time_Sync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
 
-<<<<<<< HEAD
 /*
 ** Function Prototypes
 */
 void CFE_PSP_Get_OS_Time(uint32 timer_id);
 
-=======
->>>>>>> gsfc_hash
 /******************* Macro Definitions ***********************/
 
 /**
