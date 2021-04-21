@@ -54,6 +54,7 @@
 #include "osapi.h"
 
 #include "cfe_psp.h"
+#include "cfe_psp_config.h"
 #include "cfe_psp_memory.h"
 
 /*
@@ -63,6 +64,7 @@
  */
 #include <target_config.h>
 #include "cfe_psp_module.h"
+#include "psp_time_sync.h"
 
 #define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
 #define CFE_PSP_1HZ_FUNCTION         (*GLOBAL_CONFIGDATA.CfeConfig->System1HzISR)
@@ -83,6 +85,14 @@
  * For reference see manpage for "pthread_setname_np".
  */
 #define CFE_PSP_KERNEL_NAME_LENGTH_MAX  16
+
+/**
+ * Function and variables defined in cfe_psp_timer.h
+ * Support the Sync CFE time with OS time
+ */
+
+extern bool getTime_From_OS_flag;
+extern uint16 cfe_OS_Time_Sync_Sec;
 
 /*
 ** Typedefs for this module
@@ -467,6 +477,12 @@ void OS_Application_Startup(void)
        CFE_PSP_SetupLocal1Hz();
    }
 
+    /* Initialize task to sync OS time with CFE Time Service */
+    /* Update every PSP_OS_TIME_SYNC_SEC seconds */
+    if (getTime_From_OS_flag)
+    {
+        CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
+    }
 }
 
 void OS_Application_Run(void)

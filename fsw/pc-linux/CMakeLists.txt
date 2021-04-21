@@ -7,7 +7,8 @@
 # This contains the fully platform-specific code to 
 # run CFE on this target.
 
-include_directories(inc) 
+include_directories(inc)
+include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
 
 # Build the pc-linux implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT

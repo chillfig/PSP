@@ -145,5 +145,28 @@ typedef struct
  */
 extern CFE_PSP_IdleTaskState_t  CFE_PSP_IdleTaskState;
 
-#endif
+/**
+ *  \cfetimecfg Default EPOCH Values 
+ * 
+ *  \par Description:
+ *      Enable or disable the Automatic time sync with the OS
+ * 
+ *  \par Limits
+ *      Binary true or false
+ */
+#define CFE_MISSION_TIME_SYNC_OS_ENABLE true
 
+/**
+ *  \cfetimecfg Default EPOCH Values 
+ * 
+ *  \par Description:
+ *      Default number of seconds between time synchronizations.
+ *      CFE Time Service updates MET and STCF from VxWorks OS.
+ *      When set to zero, CFE Time will be synchronized only once during start.
+ * 
+ *  \par Limits
+ *      Positive integer
+ */
+#define CFE_MISSION_TIME_SYNC_OS_SEC 30
+
+#endif
