@@ -29,8 +29,8 @@
 #include "scratchRegMap.h"
 #include <target_config.h>
 #include "aimonUtil.h"
+#include "cfe_psp_config.h"
 #include "psp_time_sync.h"
-
 
 /*
 ** Macro Definitions
@@ -38,12 +38,17 @@
 #define CFE_PSP_TASK_PRIORITY    (30)
 #define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
 
-#define PSP_1HZ_INTERVAL 1000000
-
 /*
 **  External Function Prototypes
 */
 int OS_BSPMain(void);
+
+/**
+ * Function and variables defined in cfe_psp_timer.h
+ * Support the Sync CFE time with OS time
+ */
+extern bool getTime_From_OS_flag;
+extern uint16 cfe_OS_Time_Sync_Sec;
 
 /*
  * The preferred way to obtain the CFE tunable values at runtime is via
@@ -402,8 +407,11 @@ void OS_Application_Startup(void)
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
     /* Initialize task to sync VxWorks time with CFE Time Service */
-    /* Update every PSP_VXWORKS_TIME_SYNC_SEC seconds */
-    CFE_PSP_TIME_Init(PSP_OS_TIME_SYNC_SEC);
+    /* Update every cfe_VxWorks_Time_Sync_Sec seconds */
+    if (getTime_From_OS_flag)
+    {
+        CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
+    }   
 
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
@@ -583,7 +591,7 @@ void OS_Application_Run(void)
    else
    {
        /*Set the interval to one second in microseconds.*/
-       Status = OS_TimerSet(PSP_1Hz_TimerId, PSP_1HZ_INTERVAL, PSP_1HZ_INTERVAL);
+       Status = OS_TimerSet(PSP_1Hz_TimerId, 1000000, 1000000);
        if (Status != CFE_SUCCESS)
        {
            CFE_ES_WriteToSysLog("Failed to set OS_Timer for 1Hz local time.\n");
