@@ -42,7 +42,6 @@
 #include "osapi.h"
 
 #include <time.h>
-#include "cfe.h"
 #include "cfe_time.h"
 #include "cfe_time_utils.h"
 

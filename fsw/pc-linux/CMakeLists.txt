@@ -7,9 +7,6 @@
 # This contains the fully platform-specific code to
 # run CFE on this target.
 
-include_directories(inc)
-include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
-
 # Build the pc-linux implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
@@ -31,5 +28,7 @@ target_compile_definitions(psp-${CFE_SYSTEM_PSPNAME}-impl PRIVATE
 target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
     inc
     $<TARGET_PROPERTY:psp_module_api,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
+    ${MISSION_SOURCE_DIR}/cfe/modules/time/fsw/src
 )
 
