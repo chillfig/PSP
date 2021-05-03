@@ -29,7 +29,6 @@
 
 #include "common_types.h"
 #include "osapi.h"
-#include "cfe_es.h"           
 
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
