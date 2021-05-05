@@ -16,41 +16,67 @@
 **
 *************************************************************************************************/
 
-/*
-**  Include Files
-*/
-#include <vxWorks.h>
-#include <sysLib.h>
-#include <vxLib.h>
-#include "osapi.h"
-#include "cfe_psp.h"
-#include "target_config.h"
-#include "sp0.h"
-
-/* VxWorks IPCOM for Starting/Stopping NTP Daemon */
-#define IP_PORT_VXWORKS 69
-#include "ipcom_err.h"
-#include "taskLib.h"
 
 /* For supporting REALTIME clock */
-#include <timers.h>
-/* For supporting SetTime and SetSTCF */
-#include <cfe_tbl_api_typedefs.h>
-#include <osapi-clock.h>
+#include <time.h>
+
+
+#include "cfe_psp.h"
 #include "cfe_psp_config.h"
+#include "cfe_psp_module.h"
+
+/**
+ *  \cfetimecfg Default EPOCH Values 
+ * 
+ *  \par Description:
+ *      Enable or disable the Automatic time sync with the OS
+ * 
+ *  \par Limits
+ *      Binary true or false
+ */
+#define CFE_MISSION_TIME_SYNC_OS_ENABLE true
+
+/**
+ *  \cfetimecfg Default EPOCH Values 
+ * 
+ *  \par Description:
+ *      Default number of seconds between time synchronizations.
+ *      CFE Time Service updates MET and STCF from VxWorks OS.
+ *      When set to zero, CFE Time will be synchronized only once during start.
+ * 
+ *  \par Limits
+ *      Positive integer
+ */
+#define CFE_MISSION_TIME_SYNC_OS_SEC 30
+
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF 987654321
+
+/* Below is define in CFE module core-api cfe_time_extern_typedefs.h */
+typedef struct CFE_TIME_SysTime
+{
+    uint32 Seconds;    /**< \brief Number of seconds since epoch */
+    uint32 Subseconds; /**< \brief Number of subseconds since epoch (LSB = 2^(-32) seconds) */
+} CFE_TIME_SysTime_t;
+
 
 /*
 ** External Function Prototypes
 */
-extern TASK_ID taskNameToId (char * name);
-extern IP_PUBLIC Ip_err ipcom_ipd_kill (const char *name );
-extern IP_PUBLIC Ip_err ipcom_ipd_start (const char *name );  
+
+/* Below are defined in CFE module time cfe_time.h and cfe_time_utils.h */
+extern uint32 CFE_TIME_Micro2SubSecs(uint32);
+
+/* 
+SetTime may not be necessary since the function CFE_TIME_SetTimeCmd in CFE module time
+can take the ground command directly
+*/
+extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
 
 
 /*
 ** Function Prototypes
 */
-void CFE_PSP_Get_OS_Time(uint32 timer_id);
+void CFE_PSP_Get_OS_Time(uint32);
 
 /**
  * \brief Boolean variable to control if to synchronize CFE Time Service with OS
@@ -66,90 +92,17 @@ bool getTime_From_OS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
  */
 uint16 cfe_OS_Time_Sync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
 
-
-/*
-** Macro Definitions
-*/
-
-
-/* CFE_PSP_TIMER_LOW32_ROLLOVER
-**
-**   The number that the least significant 32 bits of the 64-bit timestamp returned
-**   by CFE_PSP_Get_Timebase() rolls over.
-**
-**   If the lower 32 bits rolls at 1 second, then
-**     CFE_PSP_TIMER_LOW32_ROLLOVER will be 1000000.
-**   If the lower 32 bits rolls at its maximum value (2^32), then
-**     CFE_PSP_TIMER_LOW32_ROLLOVER will be 0.
-*/
-#define CFE_PSP_TIMER_LOW32_ROLLOVER  0
-
-static uint32 tickPerSecond = 0;
-
-/******************************************************************************
-**  Function:  CFE_PSP_GetTime()
-**
-**  Purpose:
-**    Gets the value of the time from the hardware using the processor TBR
-**
-**  Arguments:
-**    Output - pLocalTime - pointer to local time variable
-**
-**  Return:
-**    None
-******************************************************************************/
-void CFE_PSP_GetTime(OS_time_t *pLocalTime)
-{
-    uint32 tbu = 0;
-    uint32 tbl = 0;
-    unsigned long long tb = 0;
-    static uint32 errorCount = 0;
-
-    if (pLocalTime != NULL)
-    {
-
-    	vxTimeBaseGet((UINT32 *)&tbu, (UINT32 *)&tbl);
-
-        /* Re-assemble the 64-bit count */
-        tb = ((unsigned long long)tbu << 32) | (unsigned long long)tbl;
-        /* If the ticks per second is default zero, then initialize it.
-         * The SP0 value is 41666666 and the SP0-S value is 49999999
-         */
-        if (tickPerSecond == 0)
-        {
-            tickPerSecond = sysTimestampFreq();
-        }
-        if (tickPerSecond != 0)
-        {
-                /* Convert to seconds and microseconds using only integer computations.
-                 * The max seconds value is 442721864852  for the SP0 and 36893488221 for
-                 * the SP0-S. The conversion below will cause a loss of data which is just
-                 * a roll over of the clock for the local time defined in osal.
-                 */
-                pLocalTime->seconds   = (tb / tickPerSecond);
-                pLocalTime->microsecs = ((tb % tickPerSecond) * 1000000 )/(tickPerSecond);
-
-        }
-        else if (errorCount < 2)
-        {
-            OS_printf("CFE_PSP: CFE_PSP_GetTime() - tickPerSecond equals zero.\n");
-            errorCount++;
-        }
-    }
-}
-
 /**
  * \brief Initialize the CFE PSP Time Task synchronizing with the NTP server
  */
-int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
+void ntp_clock_linux_Init(uint32 PspModuleId)
 {
     
     /* Initialize */
     int32       Status;
-    int32       return_status = CFE_PSP_SUCCESS;
     osal_id_t   PSP_NTP_TimerId = 0;
     uint32      PSP_NTP_ClockAccuracy = 0;
-    uint32      timer_interval_msec = timer_frequency_sec * 1000000;
+    uint32      timer_interval_msec = cfe_OS_Time_Sync_Sec * 1000000;
 
     /*Create the 1Hz timer for synchronizing the major frame*/
     Status = OS_TimerCreate(&PSP_NTP_TimerId,
@@ -158,24 +111,22 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
                             CFE_PSP_Get_OS_Time);
     if (Status != CFE_PSP_SUCCESS)
     {
-        OS_printf("Failed to create PSP_NTP_Sync task.\n");
-        return_status = CFE_PSP_ERROR;
+        printf("Failed to create PSP_NTP_Sync task.\n");
     }
     else
     {
-        /*Set the interval to one second in microseconds for the first time call, then every timer_frequency_sec.*/
+        /*Set the interval to one second in microseconds for the first time call, then every cfe_OS_Time_Sync_Sec.*/
         Status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
         if (Status != CFE_PSP_SUCCESS)
         {
-            OS_printf("Failed to set PSP_NTP_Sync task.\n");
-            return_status = CFE_PSP_ERROR;
+            /* TODO: Need to delete the Timer created by OS_TimerCreate? */
+            printf("Failed to set PSP_NTP_Sync task.\n");
         }
         else
         {
-            OS_printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",timer_frequency_sec);
+            printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",cfe_OS_Time_Sync_Sec);
         }
     }
-    return return_status;
 }
 
 /******************************************************************************
@@ -198,11 +149,11 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
     
     if (enable)
     {
-        OS_printf("Sync with OS is enabled\n");
+        printf("Sync with OS is enabled\n");
     }
     else
     {
-        OS_printf("Sync with OS is disabled\n");
+        printf("Sync with OS is disabled\n");
     }
     /* Set flag */
     getTime_From_OS_flag = enable;
@@ -228,14 +179,42 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 int32 CFE_PSP_NTP_Daemon_Get_Status(void)
 {
     int32       return_code = true;
-    TASK_ID     ret;
     
-    ret = taskNameToId("ipntpd");
-    if (ret == ERROR)
-    {
-        return_code = false;
-    }
+    printf("CFE_PSP_NTP_Daemon_Get_Status not implemented in Linux OS");
+
     return return_code;
+}
+
+/**
+ * @brief 
+ * 
+ * @return int32 
+ */
+int32 net_clock_linux_Destroy()
+{
+    osal_id_t   timer_id;
+    const char  *task_name = "PSPNTPSync";
+    int32       return_value = CFE_PSP_SUCCESS;
+    int32       ret;
+
+    /* Find timer by name */
+    ret = OS_TimerGetIdByName(&timer_id,task_name);
+    if (ret != OS_SUCCESS)
+    {
+        printf("Could not update the Time Sync frequency");
+        return_value == CFE_PSP_ERROR;
+    }
+
+    if (return_value != CFE_PSP_ERROR)
+    {
+        /* Delete timer */
+        ret = OS_TimerDelete(timer_id);
+        if (ret != OS_SUCCESS)
+        {
+            printf("Could not delete Time Sync process");
+            return_value == CFE_PSP_ERROR;
+        }
+    }
 }
 
 /******************************************************************************
@@ -271,33 +250,12 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
         /* Update frequency with new value */
         cfe_OS_Time_Sync_Sec = new_frequency_sec;
 
-        /* Find timer by name */
-        ret = OS_TimerGetIdByName(&timer_id,task_name);
-        if (ret != OS_SUCCESS)
-        {
-            OS_printf("Could not update the Time Sync frequency");
-            return_value == CFE_PSP_ERROR;
-        }
-
-        if (return_value != CFE_PSP_ERROR)
-        {
-            /* Delete timer */
-            ret = OS_TimerDelete(timer_id);
-            if (ret != OS_SUCCESS)
-            {
-                OS_printf("Could not delete Time Sync process");
-                return_value == CFE_PSP_ERROR;
-            }
-        }
+        net_clock_linux_Destroy();
 
         if (return_value != CFE_PSP_ERROR)
         {
             /* Reinitialize timer with new updated value */
-            ret = CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
-            if (ret != CFE_PSP_SUCCESS)
-            {
-                return_value == CFE_PSP_ERROR;
-            }
+            ntp_clock_linux_Init((uint32)0);
         }
     }
 
@@ -328,27 +286,7 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
     int                 ret;
     int32               return_status = CFE_PSP_SUCCESS;
 
-    if (ts_sec > 0 && ts_nsec >=0)
-    {
-        unixTime.tv_sec = ts_sec;
-        unixTime.tv_nsec = ts_nsec;
-
-        ret = clock_settime(CLOCK_REALTIME, &unixTime);
-        if (ret == OK)
-        {
-            OS_printf("Clock set");
-        }
-        else
-        {
-            OS_printf("ERROR Clock not set");
-            return_status = CFE_PSP_ERROR;
-        }
-    }
-    else
-    {
-        OS_printf("ERROR: Invalid timestamp");
-        return_status = CFE_PSP_ERROR;
-    }
+    printf("CFE_PSP_Set_OS_Time not implemented in Linux OS");
 
     return return_status;
 }
@@ -387,7 +325,7 @@ void CFE_PSP_Get_OS_Time(uint32 timer_id)
         ret = clock_gettime(CLOCK_REALTIME, &unixTime);
         
         /* If there are no errors, save the time in CFE Time Service using CFE_TIME_SetTime() */
-        if (ret == OK)
+        if (ret == CFE_PSP_SUCCESS)
         {
 
             /* If the unix time has synchronzed with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
@@ -401,12 +339,12 @@ void CFE_PSP_Get_OS_Time(uint32 timer_id)
             else
             {
                 /* OS has not sync with NTP server yet. */
-                OS_printf("CFE_PSP: OS has not sync with NTP server yet, trying again later.\n");
+                printf("CFE_PSP: OS has not sync with NTP server yet, trying again later.\n");
             }
         }
         else
         {
-            OS_printf("clock_gettime function failed\n");
+            printf("clock_gettime function failed\n");
         }
     }
 }
@@ -431,25 +369,8 @@ int32 CFE_PSP_StartNTPDaemon(void)
     int32       return_code = 0;
     int32       ret;
     
-    ret = ipcom_ipd_start("ipntp");
-    if (ret == IPCOM_SUCCESS)
-    {
-        OS_printf("NTP Daemon Started Successfully");
-        return_code = taskNameToId("ipntpd");
-    }
-    else
-    {
-        if (ret == IPCOM_ERR_ALREADY_STARTED)
-        {
-            OS_printf("NTP Daemon already started");
-            return_code = taskNameToId("ipntpd");
-        }
-        else
-        {
-            OS_printf("ERROR NTP Daemon did not Start (ip_err = %d)",ret);
-            return_code = CFE_PSP_ERROR;
-        }
-    }
+    printf("CFE_PSP_StartNTPDaemon not implemented in Linux OS");
+
     return return_code;
 }
 
@@ -474,24 +395,7 @@ int32 CFE_PSP_StopNTPDaemon(void)
     int32       return_code = CFE_PSP_SUCCESS;
     int32       ret;
 
-    ret = ipcom_ipd_kill("ipntp");
-    if (ret == IPCOM_SUCCESS)
-    {
-        OS_printf("NTP Daemon Stopped Successfully");
-    }
-    else
-    {
-        /* Although the name, OS user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
-        if (ret == IPCOM_ERR_NOT_STARTED)
-        {
-            OS_printf("NTP Daemon already stopped");
-        }
-        else
-        {
-            OS_printf("ERROR NTP Daemon did not stop (ip_err = %d)",ret);
-        }
-        return_code = CFE_PSP_ERROR;
-    }
+    printf("CFE_PSP_StopNTPDaemon not implemented in Linux OS");
 
     return return_code;
 }
@@ -517,113 +421,7 @@ int32 CFE_PSP_NTP_Daemon_Enable(bool enable)
 {
     int32   return_code = CFE_PSP_SUCCESS;
 
-    if (enable)
-    {
-        return_code = CFE_PSP_StartNTPDaemon();
-    }
-    else
-    {
-        return_code = CFE_PSP_StopNTPDaemon();
-    }
+    printf("CFE_PSP_NTP_Daemon_Enable not implemented in Linux OS");
 
     return return_code;
 }
-
-/******************************************************************************
-**  Function:  CFE_PSP_Get_Timer_Tick()
-**
-**  Purpose:
-**    Provides a common interface to system clock tick. This routine
-**    is in the BSP because it is sometimes implemented in hardware and
-**    sometimes taken care of by the RTOS.
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    OS system clock ticks per second
-******************************************************************************/
-uint32 CFE_PSP_Get_Timer_Tick(void)
-{
-    return ((uint32)sysClkRateGet());
-}
-
-
-/******************************************************************************
-**  Function:  CFE_PSP_GetTimerTicksPerSecond()
-**
-**  Purpose:
-**    Provides number of timer ticks per second
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    Value of ticks per second  returned by sysTimestampFreq
-******************************************************************************/
-uint32 CFE_PSP_GetTimerTicksPerSecond(void)
-{
-    return (tickPerSecond);
-}
-
-
-/******************************************************************************
-**  Function:  CFE_PSP_GetTimerLow32Rollover()
-**
-**  Purpose:
-**    Provides the value of the least significant 32 bits of the 64-bit timestamp
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    Value of CFE_PSP_TIMER_LOW32_ROLLOVER macro constant
-******************************************************************************/
-uint32 CFE_PSP_GetTimerLow32Rollover(void)
-{
-    return ((uint32)CFE_PSP_TIMER_LOW32_ROLLOVER);
-}
-
-
-/******************************************************************************
-**  Function:  CFE_PSP_Get_Timebase()
-**
-**  Purpose:
-**    Provides the Time-Base Register (TBR) values
-**
-**  Arguments:
-**    Output - tbu - pointer to tbu variable
-**    Output - tbl - pointer to tbl variable
-**
-**  Return:
-**      Time-Base Register (TBR) values
-******************************************************************************/
-void CFE_PSP_Get_Timebase(uint32 *tbu, uint32* tbl)
-{
-    if ((tbu != NULL) && (tbl != NULL))
-    {
-        vxTimeBaseGet((UINT32 *)tbu, (UINT32 *)tbl);
-    }
-}
-
-
-/******************************************************************************
-**  Function:  CFE_PSP_Get_Dec()
-**
-**  Purpose:
-**    Provides a common interface to decrementer counter. This routine
-**    is in the BSP because it is sometimes implemented in hardware and
-**    sometimes taken care of by the RTOS.
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    ??? value
-******************************************************************************/
-uint32 CFE_PSP_Get_Dec(void)
-{
-    return ((uint32)vxDecGet());
-}
-
-

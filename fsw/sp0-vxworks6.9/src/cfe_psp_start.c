@@ -29,7 +29,6 @@
 #include <target_config.h>
 #include "aimonUtil.h"
 #include "cfe_psp_config.h"
-#include "psp_time_sync.h"
 
 /*
 ** Macro Definitions
@@ -46,8 +45,8 @@ int OS_BSPMain(void);
  * Function and variables defined in cfe_psp_timer.h
  * Support the Sync CFE time with OS time
  */
-extern bool getTime_From_OS_flag;
-extern uint16 cfe_OS_Time_Sync_Sec;
+/* extern bool getTime_From_OS_flag;
+extern uint16 cfe_OS_Time_Sync_Sec; */
 
 /*
  * The preferred way to obtain the CFE tunable values at runtime is via
@@ -404,13 +403,6 @@ void OS_Application_Startup(void)
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
-
-    /* Initialize task to sync VxWorks time with CFE Time Service */
-    /* Update every cfe_VxWorks_Time_Sync_Sec seconds */
-    if (getTime_From_OS_flag)
-    {
-        CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
-    }   
 
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
