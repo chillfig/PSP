@@ -259,11 +259,11 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
        * require special logic to access
        */
       ByteValue = *BufPtr;
-      Index = (( Crc ^ ByteValue) & 0x00FF);
-      Crc = ((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index];
+      Index = (int16) (( Crc ^ ByteValue) & 0x00FF);
+      Crc = (int16) (((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index]);
     }
      
-    return(Crc);
+    return (uint32) (Crc);
 
 } /* End of CFE_PSP_CalculateCRC() */
 
@@ -329,7 +329,7 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
       }
       else
       {
-        *puiReadBytes = readBytes;
+        *puiReadBytes = (uint32) readBytes;
       }
       /* Close the CDS file after opened and read */
       close(iCDSFd);
@@ -401,7 +401,7 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
       }
       else
       {
-        *puiWroteBytes = wroteBytes;
+        *puiWroteBytes = (uint32) wroteBytes;
       }
       /* Close the CDS file after opened and write */
       close(iCDSFd);

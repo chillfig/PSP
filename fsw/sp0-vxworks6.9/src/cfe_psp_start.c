@@ -21,15 +21,22 @@
 #include <string.h>
 #include <vxWorks.h>
 #include <taskLib.h>
-#include "osapi.h"
-#include "cfe_psp.h"
-#include "cfe_psp_memory.h"
+#include <target_config.h>
+
 #include "target_config.h"
 #include "scratchRegMap.h"
-#include <target_config.h>
 #include "aimonUtil.h"
 #include "cfe_psp_config.h"
 
+/*
+** cFE includes
+*/
+#include "common_types.h"
+#include "osapi.h"
+
+#include "cfe_psp.h"
+#include "cfe_psp_memory.h"
+#include "cfe_psp_module.h"
 /*
 ** Macro Definitions
 */
@@ -176,7 +183,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 status = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    uint32 talkative = 1;
+    bool talkative = 1;
 
     memset(&safeModeUserData, 0, sizeof(safeModeUserData));
 
@@ -380,6 +387,11 @@ void OS_Application_Startup(void)
     }
 
     CFE_PSP_SetupReservedMemoryMap();
+
+    /*
+    ** Initialize the statically linked modules (if any)
+    */
+    CFE_PSP_ModuleInit();
 
     /* Initialize the watchdog, it's left disabled */
     CFE_PSP_WatchdogInit();

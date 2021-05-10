@@ -19,7 +19,7 @@
 
 /* For supporting REALTIME clock */
 #include <time.h>
-
+#include "cfe_time_extern_typedefs.h"
 
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
@@ -52,11 +52,7 @@
 #define CFE_MISSION_TIME_EPOCH_UNIX_DIFF 987654321
 
 /* Below is define in CFE module core-api cfe_time_extern_typedefs.h */
-typedef struct CFE_TIME_SysTime
-{
-    uint32 Seconds;    /**< \brief Number of seconds since epoch */
-    uint32 Subseconds; /**< \brief Number of subseconds since epoch (LSB = 2^(-32) seconds) */
-} CFE_TIME_SysTime_t;
+
 
 
 /*
@@ -73,9 +69,13 @@ can take the ground command directly
 extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
 
 
+/* Declare this file a PSP Module */
+CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_linux);
+
 /*
 ** Function Prototypes
 */
+int32 CFE_PSP_TIME_Init(uint16);
 void CFE_PSP_Get_OS_Time(uint32);
 
 /**
@@ -93,16 +93,38 @@ bool getTime_From_OS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
 uint16 cfe_OS_Time_Sync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
 
 /**
- * \brief Initialize the CFE PSP Time Task synchronizing with the NTP server
+ * @brief 
+ * 
+ * @param PspModuleId 
  */
 void ntp_clock_linux_Init(uint32 PspModuleId)
+{
+    if (getTime_From_OS_flag)
+    {
+        CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
+    }
+}
+
+/******************************************************************************
+**  Function:  CFE_PSP_TIME_Init()
+**
+**  Purpose:
+**    Initialize the CFE PSP Time Task synchronizing with the NTP server
+**
+**  Arguments:
+**    timer_frequency_sec is the update frequency in seconds
+**
+**  Return:
+**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+******************************************************************************/
+int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 {
     
     /* Initialize */
     int32       Status;
     osal_id_t   PSP_NTP_TimerId = 0;
     uint32      PSP_NTP_ClockAccuracy = 0;
-    uint32      timer_interval_msec = cfe_OS_Time_Sync_Sec * 1000000;
+    uint32      timer_interval_msec = timer_frequency_sec * 1000000U;
 
     /*Create the 1Hz timer for synchronizing the major frame*/
     Status = OS_TimerCreate(&PSP_NTP_TimerId,
@@ -115,7 +137,7 @@ void ntp_clock_linux_Init(uint32 PspModuleId)
     }
     else
     {
-        /*Set the interval to one second in microseconds for the first time call, then every cfe_OS_Time_Sync_Sec.*/
+        /*Set the interval to one second in microseconds for the first time call, then every timer_frequency_sec.*/
         Status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
         if (Status != CFE_PSP_SUCCESS)
         {
@@ -124,7 +146,7 @@ void ntp_clock_linux_Init(uint32 PspModuleId)
         }
         else
         {
-            printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",cfe_OS_Time_Sync_Sec);
+            printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",timer_frequency_sec);
         }
     }
 }
@@ -141,9 +163,6 @@ void ntp_clock_linux_Init(uint32 PspModuleId)
 **  Return:
 **    int32 - input argument
 ******************************************************************************/
-/**
- * \brief Enable or Disable Time Sync with OS 
- */
 int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 {
     
@@ -171,12 +190,9 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 **    none
 **
 **  Return:
-**    int32 - True if NTP Daemon is running, False if it is not running
+**    bool - True if NTP Daemon is running, False if it is not running
 ******************************************************************************/
-/**
- * \brief Get status of NTP daemon
- */
-int32 CFE_PSP_NTP_Daemon_Get_Status(void)
+bool CFE_PSP_NTP_Daemon_Get_Status(void)
 {
     int32       return_code = true;
     
@@ -229,9 +245,6 @@ int32 net_clock_linux_Destroy()
 **  Return:
 **    int - CFE_PSP_SUCCESS or the current cfe_OS_Time_Sync_Sec value
 ******************************************************************************/
-/**
- * \brief Changes the synchronization frequency with local OS time
- */
 int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 {
     osal_id_t   timer_id;
@@ -277,9 +290,6 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 **  Return:
 **    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 ******************************************************************************/
-/**
- * \brief Set local OS clock to specific timestamp 
- */
 int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
     struct timespec     unixTime;
@@ -307,9 +317,6 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 **  Return:
 **    void
 ******************************************************************************/
-/**
- * \brief Get local OS timestamp
- */
 void CFE_PSP_Get_OS_Time(uint32 timer_id)
 {
     struct timespec     unixTime;
@@ -331,7 +338,7 @@ void CFE_PSP_Get_OS_Time(uint32 timer_id)
             /* If the unix time has synchronzed with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
             if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
             {
-                myT.Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
+                myT.Seconds = (uint32) unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
                 tv_msec = (uint32)unixTime.tv_nsec / 1000;
                 myT.Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
                 CFE_TIME_SetTime(myT);
@@ -361,9 +368,6 @@ void CFE_PSP_Get_OS_Time(uint32 timer_id)
 **  Return:
 **    int32 - Task ID or CFE_PSP_ERROR
 ******************************************************************************/
-/**
- * \brief Start NTP daemon
- */
 int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       return_code = 0;
@@ -387,9 +391,6 @@ int32 CFE_PSP_StartNTPDaemon(void)
 **    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 **            Note: NTP task already stopped, return CFE_PSP_ERROR
 ******************************************************************************/
-/**
- * \brief Stop NTP daemon
- */
 int32 CFE_PSP_StopNTPDaemon(void)
 {
     int32       return_code = CFE_PSP_SUCCESS;
@@ -414,9 +415,6 @@ int32 CFE_PSP_StopNTPDaemon(void)
 **            Task ID is returned when successfully starting NTP process
 **            CFE_PSP_SUCCESS is returned when successfully stopping NTP process
 ******************************************************************************/
-/**
- * \brief Enable or Disable the NTP daemon
- */
 int32 CFE_PSP_NTP_Daemon_Enable(bool enable)
 {
     int32   return_code = CFE_PSP_SUCCESS;
