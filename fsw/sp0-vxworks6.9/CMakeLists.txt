@@ -24,7 +24,6 @@ add_compile_options(-Werror=conversion -Werror=sign-conversion -Werror=all)
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
     src/cfe_psp_memory.c
-    #src/cfe_psp_memtab.c   # No longer needed ? Where did it go?
     src/cfe_psp_start.c
     src/cfe_psp_support.c
     src/cfe_psp_watchdog.c)
