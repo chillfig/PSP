@@ -8,11 +8,21 @@ ___
 
 ## VxWorks Kernel Requirements
 
-Kernel must provide the following functions:
-- GetWrsKernelTextStart
-- GetWrsKernelTextEnd 
-- 
 
+### Functions
+
+Kernel must provide the following functions:
+- GetWrsKernelTextStart()
+- GetWrsKernelTextEnd()
+
+#### Not included - from MCP750
+- startCfeCore() - _"This function is used to unzip, load, and run CFE core"_
+
+> **Note:** This function is not necessary during development time, but could be useful in production. The _startCfeCore_ function could load CFE on startup.
+
+- CFE_PSP_InitFlashDisk() - _"Initialize the Compact flash disk in vxWorks"_
+
+### Components
 Kernel must include the following services:
 - FTP
   - Port 21

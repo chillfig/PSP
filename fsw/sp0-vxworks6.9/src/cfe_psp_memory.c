@@ -203,6 +203,11 @@ uint32 CFE_PSP_GetStaticCRC()
 **    The result of the CRC calculation on the specified memory block, 
 **    or error code \ref CFEReturnCodes
 ******************************************************************************/
+/* 
+TODO: Replace with:
+uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
+Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
+*/
 uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
 {
     uint32  i;
