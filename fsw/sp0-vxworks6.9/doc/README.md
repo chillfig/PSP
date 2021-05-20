@@ -2,6 +2,8 @@
 
 This is the PSP implementation for Aitch SP0 and SP0s targets flight computers
 
+> **NOTE:** Aitech SP0 and SP0s do not support User Reserved Memory nor Persistente Memory. 
+
 [[_TOC_]]
 
 ___
@@ -27,7 +29,7 @@ Kernel must include the following services:
 - FTP
   - Port 21
 - Telnet
-- User Reserved Memory
+- User Reserved Memory (Not Supported by Aitech)
   - Why CLEAR_USER_RESERVED_MEMORY_ON_COLD_BOOT in Kernel is set to True?
 - Watchdog
 - NTP
