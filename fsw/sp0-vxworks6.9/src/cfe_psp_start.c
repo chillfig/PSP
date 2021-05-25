@@ -133,7 +133,7 @@ void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
     uint64 bitResult   = 0ULL;
-    uint32 i = 0;
+    uint32 i;
 
     if ((aimonGetBITExecuted(&bitExecuted, 0) == OK) &&
         (aimonGetBITResults(&bitResult, 0) == OK))
@@ -470,9 +470,9 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 ******************************************************************************/
 static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 {
-    int32 tid = 0;
+    int32 tid;
     int32 curPrio = 0;
-    int32 newPrio = 0;
+    int32 newPrio;
     int32 status = OS_SUCCESS;
 
     if ((tName != NULL) && (strlen(tName) > 0))

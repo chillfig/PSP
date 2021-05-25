@@ -38,9 +38,3 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
     $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:time,INTERFACE_INCLUDE_DIRECTORIES>
 )
-
-
-# Add unit test, if enabled
-if (ENABLE_UNIT_TESTS)
-    add_subdirectory(unit_test)
-endif (ENABLE_UNIT_TESTS)

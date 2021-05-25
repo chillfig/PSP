@@ -263,7 +263,6 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
     const char *TaskName;
-    int ret;
 
     /*
     ** Get the vxWorks task name
@@ -277,9 +276,9 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer
 
     /* 
     NOTE:
-    if ret > ReasonSize then ReasonBuf will be a truncated string hiding part of the Task Name. No error will occur.
+    if return code > ReasonSize then ReasonBuf will be a truncated string hiding part of the Task Name. No error will occur.
     */
-    ret = snprintf(ReasonBuf, ReasonSize, "Vector=0x%06X, Task ID=0x%08X, vxWorks Task Name=%s",
+    snprintf(ReasonBuf, ReasonSize, "Vector=0x%06X, Task ID=0x%08X, vxWorks Task Name=%s",
             Buffer->context_info.vector,Buffer->sys_task_id,TaskName);
     
 

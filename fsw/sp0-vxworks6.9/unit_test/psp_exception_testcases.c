@@ -16,11 +16,11 @@
 **=======================================================================================*/
 #include <unistd.h>
 #include <string.h>
-#include <target_config.h>
+/* #include <target_config.h> */
 #include "uttest.h"
 #include "utstubs.h"
 #include "ut_psp_utils.h"
-#include "cfe_psp.h"
+/* #include "cfe_psp.h" */
 
 #include "psp_exception_testcases.h"
 #include "../src/cfe_psp_exception.c"

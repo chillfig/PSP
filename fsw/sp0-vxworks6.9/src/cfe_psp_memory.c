@@ -288,9 +288,9 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ******************************************************************************/
 int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
-  int32   iCDSFd = 0;
+  int32   iCDSFd;
   int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t readBytes = 0;
+  ssize_t readBytes;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -360,9 +360,9 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 ******************************************************************************/
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
-  int32   iCDSFd = 0;
+  int32   iCDSFd;
   int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t wroteBytes = 0;
+  ssize_t wroteBytes;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -700,8 +700,8 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     cpuaddr start_addr;
     uint32 reserve_memory_size = 0;
     int32 return_code = CFE_PSP_SUCCESS;
-    int32  iCDSFd = -1;
-    ssize_t readBytes = 0;  
+    int32  iCDSFd;
+    ssize_t readBytes;  
 
     /* 
     Returns the address and size of the user-reserved region

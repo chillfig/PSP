@@ -27,7 +27,7 @@
 #include "psp_memory_testcases.h"
 #include "psp_exception_testcases.h"
 #include "psp_support_testcases.h"
-#include "psp_timer_testcases.h"
+/* #include "psp_timer_testcases.h" */
 #include "psp_watchdog_testcases.h"
 
 /*=======================================================================================
