@@ -21,6 +21,7 @@
 #include <time.h>
 #include "cfe_time_extern_typedefs.h"
 
+#include "cfe_mission_cfg.h"
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "cfe_psp_module.h"
@@ -48,11 +49,6 @@
  *      Positive integer
  */
 #define CFE_MISSION_TIME_SYNC_OS_SEC 30
-
-#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF 987654321
-
-/* Below is define in CFE module core-api cfe_time_extern_typedefs.h */
-
 
 
 /*
