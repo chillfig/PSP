@@ -878,7 +878,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     status = CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, end_of_ram, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
     if (status != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP_MemRangeGet returned error\n");
+        OS_printf("CFE_PSP_MemRangeSet returned error\n");
     }
 
 }
