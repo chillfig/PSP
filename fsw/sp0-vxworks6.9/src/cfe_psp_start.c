@@ -21,15 +21,22 @@
 #include <string.h>
 #include <vxWorks.h>
 #include <taskLib.h>
-#include "osapi.h"
-#include "cfe_psp.h"
-#include "cfe_psp_memory.h"
+#include <target_config.h>
+
 #include "target_config.h"
 #include "scratchRegMap.h"
-#include <target_config.h>
 #include "aimonUtil.h"
 #include "cfe_psp_config.h"
 
+/*
+** cFE includes
+*/
+#include "common_types.h"
+#include "osapi.h"
+
+#include "cfe_psp.h"
+#include "cfe_psp_memory.h"
+#include "cfe_psp_module.h"
 /*
 ** Macro Definitions
 */
@@ -126,7 +133,7 @@ void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
     uint64 bitResult   = 0ULL;
-    uint32 i = 0;
+    uint32 i;
 
     if ((aimonGetBITExecuted(&bitExecuted, 0) == OK) &&
         (aimonGetBITResults(&bitResult, 0) == OK))
@@ -176,7 +183,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 status = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    uint32 talkative = 1;
+    bool talkative = 1;
 
     memset(&safeModeUserData, 0, sizeof(safeModeUserData));
 
@@ -381,6 +388,11 @@ void OS_Application_Startup(void)
 
     CFE_PSP_SetupReservedMemoryMap();
 
+    /*
+    ** Initialize the statically linked modules (if any)
+    */
+    CFE_PSP_ModuleInit();
+
     /* Initialize the watchdog, it's left disabled */
     CFE_PSP_WatchdogInit();
 
@@ -458,9 +470,9 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 ******************************************************************************/
 static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 {
-    int32 tid = 0;
+    int32 tid;
     int32 curPrio = 0;
-    int32 newPrio = 0;
+    int32 newPrio;
     int32 status = OS_SUCCESS;
 
     if ((tName != NULL) && (strlen(tName) > 0))

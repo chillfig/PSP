@@ -151,10 +151,10 @@ void CFE_PSP_WatchdogSet(uint32 watchDogValue)
 {
     float rate = 0.0;
 
-    CFE_PSP_WatchdogValue = watchDogValue/1000;  /* in msecs */
+    CFE_PSP_WatchdogValue = watchDogValue / 1000U;  /* in msecs */
 
     /*Rate is in seconds*/
-    rate = (((float)watchDogValue)*0.001);
+    rate = (((float)watchDogValue) * 0.001F);
     sysSetFpgaWdt(rate);
 }
 

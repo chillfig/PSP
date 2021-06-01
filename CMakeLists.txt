@@ -67,9 +67,20 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME} INTERFACE
     fsw/inc
 )
 
-
 if (ENABLE_UNIT_TESTS)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+    # Figure out if the compiler is for a real target
+    set(RUN_ON_TARGET 0)
+    string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
+    message("RUN_ON_TARGET: " ${RUN_ON_TARGET})
+    if (RUN_ON_TARGET GREATER 0)
+      # Prepare for Unit Test on Target
+      message("Preparing for Unit Test on Target")
+      add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/unit_test)
+    else(RUN_ON_TARGET GREATER 0)
+      # Prepare for Unit Test on Linux (This is maintained by Github upstream PSP)
+      message("Preparing for Unit Test on Linux")
+      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
+      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+    endif(RUN_ON_TARGET GREATER 0)
 endif (ENABLE_UNIT_TESTS)
 

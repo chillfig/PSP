@@ -18,14 +18,14 @@ include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
 
+add_compile_options(-Werror=conversion -Werror=sign-conversion -Werror=all)
+
 # Build the sp0-vxworks implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
     src/cfe_psp_memory.c
-    #src/cfe_psp_memtab.c   # No longer needed
     src/cfe_psp_start.c
     src/cfe_psp_support.c
-    #src/cfe_psp_timer.c    # Will move to PSP Modules
     src/cfe_psp_watchdog.c)
 
 target_compile_definitions(psp-${CFE_SYSTEM_PSPNAME}-impl PRIVATE
@@ -38,9 +38,3 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
     $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:time,INTERFACE_INCLUDE_DIRECTORIES>
 )
-
-
-# Add unit test, if enabled
-if (ENABLE_UNIT_TESTS)
-    add_subdirectory(unit_test)
-endif (ENABLE_UNIT_TESTS)

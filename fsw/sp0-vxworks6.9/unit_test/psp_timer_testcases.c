@@ -22,8 +22,8 @@
 #include "ut_psp_utils.h"
 #include "cfe_psp.h"
 
-#include "psp_timer_testcases.h"
-#include "../src/cfe_psp_timer.c"
+/* #include "psp_timer_testcases.h" */
+/* #include "../src/cfe_psp_timer.c" */
 
 /*=======================================================================================
 ** External Global Variable Declarations

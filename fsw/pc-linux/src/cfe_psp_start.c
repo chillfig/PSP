@@ -85,14 +85,6 @@
  */
 #define CFE_PSP_KERNEL_NAME_LENGTH_MAX 16
 
-/**
- * Function and variables defined in cfe_psp_timer.h
- * Support the Sync CFE time with OS time
- */
-
-extern bool getTime_From_OS_flag;
-extern uint16 cfe_OS_Time_Sync_Sec;
-
 /*
 ** Typedefs for this module
 */
