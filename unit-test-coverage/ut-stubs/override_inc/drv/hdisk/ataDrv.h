@@ -12,15 +12,14 @@
 #ifndef _PSP_OVERRIDE_DRV_HDISK_ATADRV_H_
 #define _PSP_OVERRIDE_DRV_HDISK_ATADRV_H_
 
-#include <PCS_drv_hdisk_ataDrv.h>
+#include "PCS_drv_hdisk_ataDrv.h"
 #include <vxWorks.h>
 #include <blkIo.h>
 
 /* ----------------------------------------- */
 /* mappings for declarations in drv/hdisk/ataDrv.h */
 /* ----------------------------------------- */
-#define ataDevCreate       PCS_ataDevCreate
-#define ataXbdDevCreate    PCS_ataXbdDevCreate
-
+#define ataDevCreate    PCS_ataDevCreate
+#define ataXbdDevCreate PCS_ataXbdDevCreate
 
 #endif /* _PSP_OVERRIDE_DRV_HDISK_ATADRV_H_ */

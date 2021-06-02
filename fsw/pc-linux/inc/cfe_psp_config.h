@@ -25,8 +25,6 @@
 #ifndef _cfe_psp_config_
 #define _cfe_psp_config_
 
-
-
 #include "common_types.h"
 
 #include <signal.h>
@@ -45,17 +43,16 @@
  *
  * It must always be a power of two.
  */
-#define CFE_PSP_MAX_EXCEPTION_ENTRIES           4
-#define CFE_PSP_MAX_EXCEPTION_BACKTRACE_SIZE    16
-
+#define CFE_PSP_MAX_EXCEPTION_ENTRIES        4
+#define CFE_PSP_MAX_EXCEPTION_BACKTRACE_SIZE 16
 
 /*
  * A random 32-bit value that is used as the "validity flag"
  * of the PC-Linux boot record structure.  This is simply
  * a value that is unlikely to occur unless specifically set.
  */
-#define CFE_PSP_BOOTRECORD_VALID            ((uint32)0x2aebe984)
-#define CFE_PSP_BOOTRECORD_INVALID          (~CFE_PSP_BOOTRECORD_VALID)
+#define CFE_PSP_BOOTRECORD_VALID   ((uint32)0x2aebe984)
+#define CFE_PSP_BOOTRECORD_INVALID (~CFE_PSP_BOOTRECORD_VALID)
 
 /*
  * The amount of time to wait for an orderly shutdown
@@ -63,11 +60,23 @@
  *
  * If this expires, then an abnormal exit/abort() is triggered.
  */
-#define CFE_PSP_RESTART_DELAY               10000
+#define CFE_PSP_RESTART_DELAY 10000
 
 /* use the "USR1" signal to wake the idle thread when an exception occurs */
-#define CFE_PSP_EXCEPTION_EVENT_SIGNAL      SIGUSR1
+#define CFE_PSP_EXCEPTION_EVENT_SIGNAL SIGUSR1
 
+/*
+ * The tick period that will be configured in the RTOS for the simulated
+ * time base, in microseconds.  This in turn is used to drive the 1hz clock
+ * and other functions.
+ *
+ * To minimize jitter in the resulting callbacks, it should be an even
+ * divisor of 1000000 usec.
+ *
+ * Note - 10ms/100Hz is chosen to also allow this same timebase to be
+ * used to drive the CFS SCH minor frame callbacks in its default config.
+ */
+#define CFE_PSP_SOFT_TIMEBASE_PERIOD 10000
 
 /*
 ** Global variables
@@ -100,11 +109,9 @@ typedef struct
  */
 typedef struct
 {
-    pthread_t ThreadID;
+    pthread_t     ThreadID;
     volatile bool ShutdownReq;
 } CFE_PSP_IdleTaskState_t;
-
-
 
 /**
  * \brief The data type used by the underlying OS to represent a thread ID.
@@ -119,7 +126,7 @@ typedef pthread_t CFE_PSP_Exception_SysTaskId_t;
 typedef struct
 {
     struct timespec event_time;
-    siginfo_t si;
+    siginfo_t       si;
 
     /*
      * Note this is a variably-filled array based on the number of addresses
@@ -132,7 +139,7 @@ typedef struct
 ** Watchdog minimum and maximum values ( in milliseconds )
 */
 #define CFE_PSP_WATCHDOG_MIN (0)
-#define CFE_PSP_WATCHDOG_MAX (0xFFFFFFFF) 
+#define CFE_PSP_WATCHDOG_MAX (0xFFFFFFFF)
 
 /*
 ** Number of EEPROM banks on this platform
@@ -143,30 +150,6 @@ typedef struct
  * Information about the "idle task" --
  * this is used by exception handling to wake it when an event occurs
  */
-extern CFE_PSP_IdleTaskState_t  CFE_PSP_IdleTaskState;
-
-/**
- *  \cfetimecfg Default EPOCH Values 
- * 
- *  \par Description:
- *      Enable or disable the Automatic time sync with the OS
- * 
- *  \par Limits
- *      Binary true or false
- */
-#define CFE_MISSION_TIME_SYNC_OS_ENABLE true
-
-/**
- *  \cfetimecfg Default EPOCH Values 
- * 
- *  \par Description:
- *      Default number of seconds between time synchronizations.
- *      CFE Time Service updates MET and STCF from VxWorks OS.
- *      When set to zero, CFE Time will be synchronized only once during start.
- * 
- *  \par Limits
- *      Positive integer
- */
-#define CFE_MISSION_TIME_SYNC_OS_SEC 30
+extern CFE_PSP_IdleTaskState_t CFE_PSP_IdleTaskState;
 
 #endif

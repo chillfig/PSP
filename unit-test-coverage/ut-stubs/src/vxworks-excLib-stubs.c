@@ -13,9 +13,9 @@
 #include <stdlib.h>
 #include "utstubs.h"
 
-#include <PCS_excLib.h>
+#include "PCS_excLib.h"
 
-void   PCS_excHookAdd  (void (*Hook)(PCS_TASK_ID, int, void *))
+void PCS_excHookAdd(void (*Hook)(PCS_TASK_ID, int, void *))
 {
     UT_DEFAULT_IMPL(PCS_excHookAdd);
 }

@@ -1,4 +1,5 @@
-Travis-CI: [![Build Status](https://travis-ci.com/nasa/PSP.svg)](https://travis-ci.com/nasa/PSP)
+![Static Analysis](https://github.com/nasa/psp/workflows/Static%20Analysis/badge.svg)
+![Format Check](https://github.com/nasa/psp/workflows/Format%20Check/badge.svg)
 
 # Core Flight System : Framework : Platform Support Package
 
@@ -7,6 +8,77 @@ This repository contains NASA's Platform Support Package (PSP), which is a frame
 This is a collection of APIs abstracting platform specific functionality to be located in the `psp` subdirectory of a cFS Mission Tree. The Core Flight System is bundled at <https://github.com/nasa/cFS>, which includes build and execution instructions.
 
 ## Version History
+
+
+### Development Build: v1.5.0-rc1+dev112
+
+- Cleans up stale code from the previous methods of generating 1Hz. Adds a new PSP module that instantiates an OSAL abstract timebase for use with cFE services. This single module is used across all psp implementations (mcp750, pc-linux, pc-rtems). Results in 1Hz timing tick on MCP750 will be more accurate. No changes to Linux or RTEMS
+- Fixes segfaults when `CFE_PSP_Port` routines are invoked on Linux.
+- Converts `cfe_psp_ram.c` and `cfe_psp_port.c` into modular components and removes from the "shared" directory. The existing implementations become the corresponding "direct" module, and are enabled based on the psp module selection. Adds a "notimpl" variant where all the functions return `CFE_PSP_ERR_NOT_IMPLEMENTED`. This is used on Linux
+or any other system where direct access is not possible.  Renames the existing `eeprom_stub` module to be `eeprom_notimpl` for consistency and to avoid confusion with the unit test stubs.
+- Implements two PSP modules to provide `CFE_PSP_GetTime` and `CFE_PSP_GetTimeBase`, one for POSIX-compliant RTOS using `clock_gettime()` and the other specifically for PowerPC processors on VxWorks that have the `vxTimeBaseGet()` routine. Clarifies and documents the difference and use cases for `CFE_PSP_GetTime` and `CFE_PSP_GetTimeBase`. No impact to behavior.
+- Adds a coverage test for the VxWorks PSP timebase module and provides an example of how this can be implemented for other modules.
+- See <https://github.com/nasa/PSP/pull/289> and <https://github.com/nasa/cFS/pull/238>
+
+### Development Build: v1.5.0-rc1+dev101
+
+- Removes unnecessary global config structure `Target_PspConfigData` and associated elements infavor of the new version API.
+- The mem pool stats TLM command now works on 64-bit Linux and sends out the expected telemetry packet.
+Converts `CFE_PSP_MemoryTable` to internal object (instead of external) that should only be accessed via the PSP API. Replace `uint32`s with `size_t`. Use full range (SIZE_MAX) in the Linux/RTEMS implementation.
+- See <https://github.com/nasa/PSP/pull/288> and <https://github.com/nasa/cFS/pull/233>
+
+### Development Build: v1.5.0-rc1+dev95
+
+- Includes `cfe_psp_version.c` in the cmake source list, which was mistakenly omitted previously.
+- Applied the patch and confirmed that CS Cmake unit tests build. Unit tests relying on `CFE_PSP_GetKernelTextSegmentInfo` will build.
+- See <https://github.com/nasa/PSP/pull/279>
+
+### Development Build: v1.5.0-rc1+dev90
+
+- Addresses the issue of incompatible/non-portable code blobs in the "shared" directory. It uses the same modular init pattern as is used elsewhere in cFE: CMake generates a list of "base" modules correlating with the selected PSP (i.e. pc-linux, mcp750-vxworks, etc) and these modules are then initialized (in order) before the rest of PSP runs. The "direct write" EEPROM is not used unconditionally. Instead the proper eeprom implementation module is selected based on which PSP is selected. MCP750 uses direct write, pc-linux uses an mmap file, and pc-rtems uses a stub (not implemented).
+- Replaces " used on non-system header #includes with <>
+- Adds a contributing guide that links to the main cFS contributing guide.
+- See <https://github.com/nasa/PSP/pull/273>
+
+
+### Development Build: v1.5.0-rc1+dev82
+
+- HOTFIX 20210312, updates to work with older CMake
+- See <https://github.com/nasa/PSP/pull/268>
+
+### Development Build: v1.5.0-rc1+dev76
+
+- Fix #246, remove unused code.
+- Fix #254, use CMake to publish interface details
+- Fix #256, add PSP version API
+- Fix #258, Add Testing Tools to the Security Policy
+- See <https://github.com/nasa/PSP/pull/260>
+
+### Development Build: 1.5.0-rc1+dev68
+
+- Updates continuous integration workfow by adding static analysis with timeout and code format check. Adds status badges to ReadMe and removes old TravisCI artifacts.
+- Adds CodeQL analysis to continuous integration
+- Apply standard formatting to psp codebase. Only changes whitespace.
+- Adds missing "+dev" to development version output
+- See <https://github.com/nasa/PSP/pull/250>
+
+### Development Build: 1.5.0-rc1+dev58
+
+- Add `Security.md` with instructions on reporting vulnerabilities.
+- Rename `UT_ClearForceFail` as `UT_ClearDefaultValue` to reflect <https://github.com/nasa/osal/issues/724>
+- Remove unused elements in `CFE_PSP_ModuleType_t` enum to avoids irregular enum warning
+- See <https://github.com/nasa/PSP/pull/243>
+
+### Development Build: 1.5.0-rc1+dev50
+
+-  Instead of accessing `OS_time_t` member values directly, use the OSAL-provided conversion and access methods. This provides independence and abstraction from the specific `OS_time_t` definition and allows OSAL to transition to a 64 bit value.
+- See <https://github.com/nasa/psp/pull/240>
+
+### Development Build: 1.5.0-rc1+dev46
+
+- Add cppcheck GitHub Actions workflow file
+- See <https://github.com/nasa/PSP/pull/234>
+
 
 ### Development Build: 1.5.0-rc1+dev42
 
@@ -23,7 +95,7 @@ This is a collection of APIs abstracting platform specific functionality to be l
 
 ### Development Build: 1.5.0-rc1+dev30
 
-- PR #212 - Use event callback mechanism to invoke pthread_setname_np() such that the OS kernel is informed of the OSAL task name. `/proc` filesystem on Linux now has actual task name, instead of all being core-cpu1. The `pthread_setname_np` API requires `_GNU_SOURCE` to be defined when compiling - this can be local to PSP.
+- - Use event callback mechanism to invoke pthread_setname_np() such that the OS kernel is informed of the OSAL task name. `/proc` filesystem on Linux now has actual task name, instead of all being core-cpu1. The `pthread_setname_np` API requires `_GNU_SOURCE` to be defined when compiling - this can be local to PSP.
 - Set REVISION to "99" to indicate development version
 - See <https://github.com/nasa/PSP/pull/213>
 

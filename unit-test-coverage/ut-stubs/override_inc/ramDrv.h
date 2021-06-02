@@ -12,7 +12,7 @@
 #ifndef _PSP_OVERRIDE_RAMDRV_H_
 #define _PSP_OVERRIDE_RAMDRV_H_
 
-#include <PCS_ramDrv.h>
+#include "PCS_ramDrv.h"
 #include <vxWorks.h>
 #include <blkIo.h>
 
@@ -20,7 +20,6 @@
 /* mappings for declarations in ramDrv.h */
 /* ----------------------------------------- */
 
-#define ramDevCreate     PCS_ramDevCreate
-
+#define ramDevCreate PCS_ramDevCreate
 
 #endif /* _PSP_OVERRIDE_RAMDRV_H_ */

@@ -29,7 +29,6 @@
 
 #include "common_types.h"
 #include "osapi.h"
-#include "cfe_es.h"           
 
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
@@ -94,7 +93,7 @@ void CFE_PSP_Restart(uint32 reset_type)
 void CFE_PSP_Panic(int32 errorCode)
 {
     logMsg("CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n",
-           (unsigned int)errorCode, 0,0,0,0,0);
+           errorCode, 0,0,0,0,0);
 
     exit(-1);   /* TODO: Need to improve this */
 }

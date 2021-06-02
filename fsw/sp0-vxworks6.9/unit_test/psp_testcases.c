@@ -195,7 +195,8 @@ void UtTest_Setup(void)
                "Ut_CFE_PSP_GetProcessorName");
 
     /* cfe_psp_timer.c test cases area */
-    UtTest_Add(Ut_CFE_PSP_GetTime,
+
+/*     UtTest_Add(Ut_CFE_PSP_GetTime,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetTime");
 
@@ -218,7 +219,7 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_Get_Dec,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_Get_Dec");
-
+ */
     /* cfe_psp_watchdog.c test cases area */
     UtTest_Add(Ut_CFE_PSP_WatchdogInit,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

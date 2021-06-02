@@ -12,14 +12,12 @@
 #ifndef _PSP_OVERRIDE_ERRNOLIB_H_
 #define _PSP_OVERRIDE_ERRNOLIB_H_
 
-#include <PCS_errnoLib.h>
+#include "PCS_errnoLib.h"
 #include <vxWorks.h>
-
 
 /* -----------------------------------------  */
 /* mappings for declarations in errnoLib.h */
 /* -----------------------------------------  */
-#define errnoGet     PCS_errnoGet
-
+#define errnoGet PCS_errnoGet
 
 #endif /* _PSP_OVERRIDE_ERRNOLIB_H_ */

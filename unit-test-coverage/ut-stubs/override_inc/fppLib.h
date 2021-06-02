@@ -12,12 +12,12 @@
 #ifndef _PSP_OVERRIDE_FPPLIB_H_
 #define _PSP_OVERRIDE_FPPLIB_H_
 
-#include <PCS_fppLib.h>
+#include "PCS_fppLib.h"
 
 /* ----------------------------------------- */
 /* mappings for declarations in fppLib.h */
 /* ----------------------------------------- */
-#define FP_CONTEXT  PCS_FP_CONTEXT
-#define fppSave     PCS_fppSave
+#define FP_CONTEXT PCS_FP_CONTEXT
+#define fppSave    PCS_fppSave
 
 #endif /* _PSP_OVERRIDE_FPPLIB_H_ */

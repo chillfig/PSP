@@ -21,17 +21,22 @@
 #include <string.h>
 #include <vxWorks.h>
 #include <taskLib.h>
-#include "osapi.h"
-#include "cfe.h"
-#include "cfe_psp.h"
-#include "cfe_psp_memory.h"
+#include <target_config.h>
+
 #include "target_config.h"
 #include "scratchRegMap.h"
-#include <target_config.h>
 #include "aimonUtil.h"
 #include "cfe_psp_config.h"
-#include "psp_time_sync.h"
 
+/*
+** cFE includes
+*/
+#include "common_types.h"
+#include "osapi.h"
+
+#include "cfe_psp.h"
+#include "cfe_psp_memory.h"
+#include "cfe_psp_module.h"
 /*
 ** Macro Definitions
 */
@@ -47,8 +52,8 @@ int OS_BSPMain(void);
  * Function and variables defined in cfe_psp_timer.h
  * Support the Sync CFE time with OS time
  */
-extern bool getTime_From_OS_flag;
-extern uint16 cfe_OS_Time_Sync_Sec;
+/* extern bool getTime_From_OS_flag;
+extern uint16 cfe_OS_Time_Sync_Sec; */
 
 /*
  * The preferred way to obtain the CFE tunable values at runtime is via
@@ -128,7 +133,7 @@ void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
     uint64 bitResult   = 0ULL;
-    uint32 i = 0;
+    uint32 i;
 
     if ((aimonGetBITExecuted(&bitExecuted, 0) == OK) &&
         (aimonGetBITResults(&bitResult, 0) == OK))
@@ -140,26 +145,26 @@ void CFE_PSP_ProcessPOSTResults(void)
             {
                 if (bitResult & (1ULL << i))
                 {
-                    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
+                    OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
                 else
                 {
-                    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
+                    OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
             }
             else
             {
 
-                CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
+                OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
                         AimonCompletionBlockTestIDStrings[i]);
             }
         }
     }
     else
     {
-        CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.");
+        OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.");
     }
 }
 /******************************************************************************
@@ -178,7 +183,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 status = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    uint32 talkative = 1;
+    bool talkative = 1;
 
     memset(&safeModeUserData, 0, sizeof(safeModeUserData));
 
@@ -313,7 +318,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
         }
         break;
     }
-    CFE_ES_WriteToSysLog("CFE_PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+    OS_printf("CFE_PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
               resetSrc,
               resetSrcString,
               safeModeUserData.safeMode,
@@ -325,16 +330,16 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     {
         if (safeModeUserData.mckCause != 0)
         {
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error error: reset\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error error: reset\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error: reset\n");
-            CFE_ES_WriteToSysLog("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
+            OS_printf("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
+            OS_printf("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error error: reset\n");
+            OS_printf("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error error: reset\n");
+            OS_printf("CFE_PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
+            OS_printf("CFE_PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
+            OS_printf("CFE_PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
+            OS_printf("CFE_PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
+            OS_printf("CFE_PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
+            OS_printf("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error: reset\n");
+            OS_printf("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
     CFE_PSP_ProcessPOSTResults();
@@ -383,6 +388,11 @@ void OS_Application_Startup(void)
 
     CFE_PSP_SetupReservedMemoryMap();
 
+    /*
+    ** Initialize the statically linked modules (if any)
+    */
+    CFE_PSP_ModuleInit();
+
     /* Initialize the watchdog, it's left disabled */
     CFE_PSP_WatchdogInit();
 
@@ -406,23 +416,16 @@ void OS_Application_Startup(void)
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
-    /* Initialize task to sync VxWorks time with CFE Time Service */
-    /* Update every cfe_VxWorks_Time_Sync_Sec seconds */
-    if (getTime_From_OS_flag)
-    {
-        CFE_PSP_TIME_Init(cfe_OS_Time_Sync_Sec);
-    }   
-
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
 
 
     if (taskSetStatus != OS_SUCCESS)
     {
-        CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() At least one vxWorks task priority set failed. System may have degraded performance.\n");
+        OS_printf("CFE_PSP: CFE_PSP_Start() At least one vxWorks task priority set failed. System may have degraded performance.\n");
     }
 
-    CFE_ES_WriteToSysLog("CFE_PSP: CFE_PSP_Start() done.\n");
+    OS_printf("CFE_PSP: CFE_PSP_Start() done.\n");
 
     OS_Application_Startup_Exit_Tag:
     return;
@@ -467,9 +470,9 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 ******************************************************************************/
 static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 {
-    int32 tid = 0;
+    int32 tid;
     int32 curPrio = 0;
-    int32 newPrio = 0;
+    int32 newPrio;
     int32 status = OS_SUCCESS;
 
     if ((tName != NULL) && (strlen(tName) > 0))
@@ -577,24 +580,24 @@ void PSP_1HzLocalCallback(uint32 TimerId)
 */
 void OS_Application_Run(void)
 {
-   int32  Status    = CFE_SUCCESS;
+   int32  Status    = CFE_PSP_SUCCESS;
 
    /*Create the 1Hz timer for synchronizing the major frame*/
    Status = OS_TimerCreate(&PSP_1Hz_TimerId,
                             "PSP_1HZ_TIMER",
                             &PSP_1Hz_ClockAccuracy,
                             PSP_1HzLocalCallback);
-   if (Status != CFE_SUCCESS)
+   if (Status != CFE_PSP_SUCCESS)
    {
-       CFE_ES_WriteToSysLog("Failed to create OS_Timer for 1Hz local time.\n");
+       OS_printf("Failed to create OS_Timer for 1Hz local time.\n");
    }
    else
    {
        /*Set the interval to one second in microseconds.*/
        Status = OS_TimerSet(PSP_1Hz_TimerId, 1000000, 1000000);
-       if (Status != CFE_SUCCESS)
+       if (Status != CFE_PSP_SUCCESS)
        {
-           CFE_ES_WriteToSysLog("Failed to set OS_Timer for 1Hz local time.\n");
+           OS_printf("Failed to set OS_Timer for 1Hz local time.\n");
        }
    }
 
@@ -629,7 +632,7 @@ void OS_Application_Run(void)
 *******************************************************************************/
 unsigned int vxFpscrGet(void)
 {
-    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
+    OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
 
     return (0);
 }
@@ -661,6 +664,6 @@ unsigned int vxFpscrGet(void)
 *******************************************************************************/
 void vxFpscrSet(unsigned int x)
 {
-    CFE_ES_WriteToSysLog("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
+    OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
 }
 

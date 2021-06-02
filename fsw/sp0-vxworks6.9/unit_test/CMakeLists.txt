@@ -12,26 +12,46 @@
 
 set (UT_NAME "psp")
 
+# PROJECT_SOURCE_DIR is $HOME/cert_testbed/psp
+# CMAKE_CURRENT_SOURCE_DIR is $HOME/cert_testbed/psp/fsw/sp0-vxworks6.9/unit_test
+set(IMPL_DIR ${MISSION_SOURCE_DIR}/${UT_NAME}/fsw/${CFE_SYSTEM_PSPNAME})
+
 enable_testing()
 
-include_directories(${MISSION_SOURCE_DIR}/osal/ut_assert/inc)
-include_directories(${MISSION_SOURCE_DIR}/osal/src/os/inc)
-include_directories(${MISSION_SOURCE_DIR}/osal/src/os/shared/inc)
-include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
-include_directories(${MISSION_SOURCE_DIR}/${UT_NAME}/fsw/${CFE_SYSTEM_PSPNAME}/ut_stubs)
-include_directories(${MISSION_SOURCE_DIR}/osal/src/os/shared)
-include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/ut-stubs)
-include_directories(${MISSION_SOURCE_DIR}/osal/src/ut-stubs)
+### ### ###
+### Preprocess TESTCASE source files to embed functions under test into the testcase files
+set(TMP_FOLDER_CODE_COVERAGE tmp_code_coverage)
+# Remove previous tmp_code_coverage
+file(REMOVE_RECURSE ${TMP_FOLDER_CODE_COVERAGE})
 
-# The following are needed to leverage ut_support from the cFE unit tests
-include_directories(${cfe-core_MISSION_DIR}/unit-test)
-include_directories(${cfe-core_MISSION_DIR}/src/evs)
-include_directories(${cfe-core_MISSION_DIR}/src/es)
-include_directories(${cfe-core_MISSION_DIR}/src/time)
+# Function that performs the file merge
+# Gets content of IN_FILE1, find and replace SEARCH_STRING with content of IN_FILE2, save result in OUT_FILE
+function(mergeFilesTo IN_FILE1 IN_FILE2 SEARCH_STRING OUT_FILE)
+    file(READ ${IN_FILE1} TEST_CONTENT)
+    file(READ ${IN_FILE2} IMPL_CONTENT)
+    string(REPLACE "${SEARCH_STRING}" "${IMPL_CONTENT}" COMBINED_CONTENT "${TEST_CONTENT}")
+    file(APPEND ${OUT_FILE} "${COMBINED_CONTENT}")
+endfunction()
+
+# Create subfolder and all concatenated files
+file(MAKE_DIRECTORY ${TMP_FOLDER_CODE_COVERAGE})
+mergeFilesTo(
+    psp_exception_testcases.c ${IMPL_DIR}/src/cfe_psp_exception.c "#include \"../src/cfe_psp_exception.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_expection_testcases.c)
+mergeFilesTo(
+    psp_memory_testcases.c ${IMPL_DIR}/src/cfe_psp_memory.c "#include \"../src/cfe_psp_memory.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_memory_testcases.c)
+mergeFilesTo(
+    psp_start_testcases.c ${IMPL_DIR}/src/cfe_psp_start.c "#include \"../src/cfe_psp_start.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_start_testcases.c)
+mergeFilesTo(
+    psp_support_testcases.c ${IMPL_DIR}/src/cfe_psp_support.c "#include \"../src/cfe_psp_support.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_support_testcases.c)
+mergeFilesTo(
+    psp_watchdog_testcases.c ${IMPL_DIR}/src/cfe_psp_watchdog.c "#include \"../src/cfe_psp_watchdog.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_watchdog_testcases.c)
+file(COPY psp_testcases.c DESTINATION ${IMPL_DIR}/unit_test/${TMP_FOLDER_CODE_COVERAGE})
+
+### ### ###
 
 # Source for this app's UT executable
-aux_source_directory(${MISSION_SOURCE_DIR}/${UT_NAME}/fsw/${CFE_SYSTEM_PSPNAME}/unit_test UT_SRCS)
-aux_source_directory(${MISSION_SOURCE_DIR}/${UT_NAME}/fsw/${CFE_SYSTEM_PSPNAME}/ut_stubs UT_SRCS)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FOLDER_CODE_COVERAGE} UT_SRCS)
+aux_source_directory(${IMPL_DIR}/ut_stubs UT_SRCS)
 
 add_executable(${UT_NAME}_ut ${UT_SRCS})
 
@@ -42,9 +62,29 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
     OS_Application_Run=UT_OS_Application_Run
 )
 
+include_directories(${IMPL_DIR}/ut_stubs)
+include_directories(${IMPL_DIR}/unit_test)
+#include_directories(${IMPL_DIR}/inc)
+#include_directories(${WIND_HOME}/vxworks-6.9/target/3rdparty/aitech/sp0)
+
+target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
+    #${IMPL_DIR}/inc
+    #${IMPL_DIR}/unit_test
+    #${IMPL_DIR}/ut_stubs
+    ${WIND_HOME}/vxworks-6.9/target/3rdparty/aitech/sp0
+    #$<TARGET_PROPERTY:psp-${CFE_PSP_TARGETNAME}-shared,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:psp_module_api,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:time,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
 add_test(${UT_NAME}_ut ${UT_NAME}_ut)
 
-install(TARGETS ${UT_NAME}_ut DESTINATION ./)
+#install(TARGETS ${UT_NAME}_ut DESTINATION ./)
 
-target_link_libraries(${UT_NAME}_ut ut_assert
-                      ut_osapi_stubs)
+target_link_libraries(${UT_NAME}_ut 
+    ut_assert
+    ut_osapi_stubs
+    psp_module_api
+    psp-${CFE_PSP_TARGETNAME}-shared
+    )

@@ -203,6 +203,11 @@ uint32 CFE_PSP_GetStaticCRC()
 **    The result of the CRC calculation on the specified memory block, 
 **    or error code \ref CFEReturnCodes
 ******************************************************************************/
+/* 
+TODO: Replace with:
+uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
+Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
+*/
 uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
 {
     uint32  i;
@@ -259,11 +264,11 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
        * require special logic to access
        */
       ByteValue = *BufPtr;
-      Index = (( Crc ^ ByteValue) & 0x00FF);
-      Crc = ((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index];
+      Index = (int16) (( Crc ^ ByteValue) & 0x00FF);
+      Crc = (int16) (((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index]);
     }
      
-    return(Crc);
+    return (uint32) (Crc);
 
 } /* End of CFE_PSP_CalculateCRC() */
 
@@ -283,9 +288,9 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ******************************************************************************/
 int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
-  int32   iCDSFd = 0;
+  int32   iCDSFd;
   int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t readBytes = 0;
+  ssize_t readBytes;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -329,7 +334,7 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
       }
       else
       {
-        *puiReadBytes = readBytes;
+        *puiReadBytes = (uint32) readBytes;
       }
       /* Close the CDS file after opened and read */
       close(iCDSFd);
@@ -355,9 +360,9 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 ******************************************************************************/
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
-  int32   iCDSFd = 0;
+  int32   iCDSFd;
   int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t wroteBytes = 0;
+  ssize_t wroteBytes;
   #if defined(PRINT_DEBUG)
     OS_time_t localTime;
   #endif
@@ -401,7 +406,7 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
       }
       else
       {
-        *puiWroteBytes = wroteBytes;
+        *puiWroteBytes = (uint32) wroteBytes;
       }
       /* Close the CDS file after opened and write */
       close(iCDSFd);
@@ -695,11 +700,16 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     cpuaddr start_addr;
     uint32 reserve_memory_size = 0;
     int32 return_code = CFE_PSP_SUCCESS;
-    int32  iCDSFd = -1;
-    ssize_t readBytes = 0;  
+    int32  iCDSFd;
+    ssize_t readBytes;  
 
+    /* 
+    Returns the address and size of the user-reserved region
+    This is a Kernel function
+     */
     userReservedGet((char**)&start_addr, &reserve_memory_size);
 
+    /* If the VxWorks reserved memory size is smaller than the requested, print error */
     if(PSP_ReservedMemBlock.BlockSize > reserve_memory_size)
     {
       OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, Total Size = 0x%lx, VxWorks Reserved Size=0x%lx\n",
@@ -719,20 +729,22 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
       CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
 
     }
-
+    /**** CDS File ****/
     if(return_code == CFE_PSP_SUCCESS)
     {
-      /* Make sure the CDS file was created */
+      /* Open the CDS file */
       iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
+      /* If the file was not opened, we need to create it */
       if(iCDSFd < 0)
       {
-        /* Create the CDS file afer failed to open it */
+        /* If CDS file cannot be created, print error */
         if(creat(g_cCDSFilename, S_IRWXU) < 0)
         {
           OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
                      g_cCDSFilename);
           return_code = OS_ERROR;
         }
+        /* If CDS file was create, print success message and close CDS file */
         else
         {
           OS_printf("CFE_PSP: Created the CDS file.\n");
@@ -740,6 +752,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
           close(iCDSFd);
         }
       }
+      /* If the CDS file was opened at first attempt, read content */
       else
       {
         readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
@@ -780,9 +793,11 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 */
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
-    cpuaddr start_addr;
-    cpuaddr end_addr;
-    uint32 reserve_memory_size = 0;
+    cpuaddr   start_addr;
+    cpuaddr   end_addr;
+    uint32    reserve_memory_size = 0;
+    uint32    end_of_ram = 0;
+    int32     status = OS_SUCCESS;
 
     /*
     ** Setup the pointer to the reserved area in vxWorks.
@@ -794,9 +809,16 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     ** should be aligned to hold any data type, being the very start
     ** of the memory space.
     */
+    
+    /* 
+    Returns the address and size of the user-reserved region
+    This is a Kernel function
+    */
     userReservedGet((char**)&start_addr, &reserve_memory_size);
 
     end_addr = start_addr;
+
+    end_of_ram = (uint32)sysPhysMemTop();
 
     memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
 
@@ -813,16 +835,28 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     end_addr += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
 
+    OS_printf("CFE_PSP: Reset Memory Block at 0x%08lx, Total Size = 0x%lx\n",
+            (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+            (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+
     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void*)end_addr;
     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize =
         GLOBAL_CONFIGDATA.CfeConfig->RamDiskSectorSize * GLOBAL_CONFIGDATA.CfeConfig->RamDiskTotalSectors;
     end_addr += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
     
+    OS_printf("CFE_PSP: Volatile Disk Memory Block at 0x%08lx, Total Size = 0x%lx\n",
+            (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+            (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)end_addr;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->CdsSize;
     end_addr += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+
+    OS_printf("CFE_PSP: CDS Memory Block at 0x%08lx, Total Size = 0x%lx\n",
+            (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+            (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
 
     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void*)end_addr;
     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->UserReservedSize;
@@ -833,10 +867,20 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     PSP_ReservedMemBlock.BlockPtr = (void*)start_addr;
     PSP_ReservedMemBlock.BlockSize =  end_addr - start_addr;
 
-    OS_printf("CFE_PSP: Reserved Memory Block at 0x%08lx, Total Size = 0x%lx, VxWorks Reserved Size=0x%lx\n",
+    OS_printf("CFE_PSP: Reserved Memory Block at 0x%08lx with size 0x%lx, Total VxWorks Reserved Size=0x%lx\n",
             (unsigned long)PSP_ReservedMemBlock.BlockPtr,
             (unsigned long)PSP_ReservedMemBlock.BlockSize,
             (unsigned long)reserve_memory_size);
+
+    /*
+     * Set up the "RAM" entry in the memory table.
+     */
+    status = CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, end_of_ram, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
+    if (status != OS_SUCCESS)
+    {
+        OS_printf("CFE_PSP_MemRangeSet returned error\n");
+    }
+
 }
 
 /******************************************************************************
