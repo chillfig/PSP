@@ -130,25 +130,25 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 {
     
     /* Initialize */
-    int32       Status;
+    int32       status;
     osal_id_t   PSP_NTP_TimerId = 0;
     uint32      PSP_NTP_ClockAccuracy = 0;
     uint32      timer_interval_msec = timer_frequency_sec * 1000000U;
     
     /*Create the 1Hz timer for synchronizing the major frame*/
-    Status = OS_TimerCreate(&PSP_NTP_TimerId,
+    status = OS_TimerCreate(&PSP_NTP_TimerId,
                             "PSPNTPSync",
                             &PSP_NTP_ClockAccuracy,
                             CFE_PSP_Get_OS_Time);
-    if (Status != CFE_PSP_SUCCESS)
+    if (status != CFE_PSP_SUCCESS)
     {
         printf("Failed to create PSP_NTP_Sync task.\n");
     }
     else
     {
         /*Set the interval to one second in microseconds for the first time call, then every timer_frequency_sec.*/
-        Status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
-        if (Status != CFE_PSP_SUCCESS)
+        status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
+        if (status != CFE_PSP_SUCCESS)
         {
             /* TODO: Need to delete the Timer created by OS_TimerCreate? */
             printf("Failed to set PSP_NTP_Sync task.\n");
@@ -158,6 +158,8 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
             printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",timer_frequency_sec);
         }
     }
+
+    return status;
 }
 
 /******************************************************************************
@@ -244,6 +246,8 @@ int32 net_clock_vxworks_Destroy()
             return_value == CFE_PSP_ERROR;
         }
     }
+
+    return return_value;
 }
 
 /******************************************************************************

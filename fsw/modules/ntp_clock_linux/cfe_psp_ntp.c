@@ -117,25 +117,25 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 {
     
     /* Initialize */
-    int32       Status;
+    int32       status;
     osal_id_t   PSP_NTP_TimerId = 0;
     uint32      PSP_NTP_ClockAccuracy = 0;
     uint32      timer_interval_msec = timer_frequency_sec * 1000000U;
 
     /*Create the 1Hz timer for synchronizing the major frame*/
-    Status = OS_TimerCreate(&PSP_NTP_TimerId,
+    status = OS_TimerCreate(&PSP_NTP_TimerId,
                             "PSPNTPSync",
                             &PSP_NTP_ClockAccuracy,
                             CFE_PSP_Get_OS_Time);
-    if (Status != CFE_PSP_SUCCESS)
+    if (status != CFE_PSP_SUCCESS)
     {
         printf("Failed to create PSP_NTP_Sync task.\n");
     }
     else
     {
         /*Set the interval to one second in microseconds for the first time call, then every timer_frequency_sec.*/
-        Status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
-        if (Status != CFE_PSP_SUCCESS)
+        status = OS_TimerSet(PSP_NTP_TimerId, 1000000, timer_interval_msec);
+        if (status != CFE_PSP_SUCCESS)
         {
             /* TODO: Need to delete the Timer created by OS_TimerCreate? */
             printf("Failed to set PSP_NTP_Sync task.\n");
@@ -145,6 +145,8 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
             printf("CFE_PSP: PSP_NTP_Sync task initialized at %u.\n",timer_frequency_sec);
         }
     }
+
+    return status;
 }
 
 /******************************************************************************
@@ -214,7 +216,7 @@ int32 net_clock_linux_Destroy()
     if (ret != OS_SUCCESS)
     {
         printf("Could not update the Time Sync frequency");
-        return_value == CFE_PSP_ERROR;
+        return_value = CFE_PSP_ERROR;
     }
 
     if (return_value != CFE_PSP_ERROR)
@@ -224,9 +226,11 @@ int32 net_clock_linux_Destroy()
         if (ret != OS_SUCCESS)
         {
             printf("Could not delete Time Sync process");
-            return_value == CFE_PSP_ERROR;
+            return_value = CFE_PSP_ERROR;
         }
     }
+
+    return return_value;
 }
 
 /******************************************************************************
@@ -243,10 +247,7 @@ int32 net_clock_linux_Destroy()
 ******************************************************************************/
 int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 {
-    osal_id_t   timer_id;
-    const char  *task_name = "PSPNTPSync";
     int32       return_value = CFE_PSP_SUCCESS;
-    int32       ret;
 
     if (new_frequency_sec == 0)
     {
@@ -288,8 +289,6 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 ******************************************************************************/
 int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
-    struct timespec     unixTime;
-    int                 ret;
     int32               return_status = CFE_PSP_SUCCESS;
 
     printf("CFE_PSP_Set_OS_Time not implemented in Linux OS");
@@ -316,7 +315,6 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 void CFE_PSP_Get_OS_Time(uint32 timer_id)
 {
     struct timespec     unixTime;
-    uint32              tv_sec = 0;
     uint32              tv_msec = 0;
     CFE_TIME_SysTime_t  myT;
     int                 ret;
@@ -367,7 +365,6 @@ void CFE_PSP_Get_OS_Time(uint32 timer_id)
 int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       return_code = 0;
-    int32       ret;
     
     printf("CFE_PSP_StartNTPDaemon not implemented in Linux OS");
 
@@ -390,7 +387,6 @@ int32 CFE_PSP_StartNTPDaemon(void)
 int32 CFE_PSP_StopNTPDaemon(void)
 {
     int32       return_code = CFE_PSP_SUCCESS;
-    int32       ret;
 
     printf("CFE_PSP_StopNTPDaemon not implemented in Linux OS");
 

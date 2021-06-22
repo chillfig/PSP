@@ -1,0 +1,15 @@
+variables:
+  WORKSPACE: "$CI_PROJECT_DIR"
+
+stages:
+  - test
+
+TriggerBranch:
+  stage: test
+  variables:
+     SRC_BRANCH: $CI_COMMIT_REF_NAME
+     SRC_SUB: $CI_PROJECT_NAME
+  trigger: 
+     project: aes/cert_testbed
+     branch: $CI_COMMIT_REF_NAME
+     strategy: depend
