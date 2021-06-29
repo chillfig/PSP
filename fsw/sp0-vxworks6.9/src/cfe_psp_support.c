@@ -44,6 +44,8 @@
  */
 extern CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
 
+extern void psp_dump_data(void);
+
 /******************************************************************************
 **  Function:  CFE_PSP_Restart()
 **
@@ -95,7 +97,10 @@ void CFE_PSP_Panic(int32 errorCode)
     logMsg("CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n",
            errorCode, 0,0,0,0,0);
 
-    exit(-1);   /* TODO: Need to improve this */
+    /* Dump PSP SP0 Information */
+    psp_dump_data();
+
+    exit(-1);
 }
 
 

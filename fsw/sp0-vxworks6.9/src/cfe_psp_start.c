@@ -21,7 +21,6 @@
 #include <string.h>
 #include <vxWorks.h>
 #include <taskLib.h>
-#include <target_config.h>
 
 #include "target_config.h"
 #include "scratchRegMap.h"
@@ -47,6 +46,7 @@
 **  External Function Prototypes
 */
 int OS_BSPMain(void);
+extern int32 getSP0Info(void);
 
 /**
  * Function and variables defined in cfe_psp_timer.h
@@ -239,6 +239,10 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
                 ResetType = CFE_PSP_RST_TYPE_POWERON;
                 ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
 
+                /*
+                Aitech manual says that it always returs OK, but we should check
+                anyway in case a new BSP changes the return value.
+                */
                 if(ReadSafeModeUserData(&safeModeUserData, talkative)!= OK)
                 {
                     OS_printf("CFE_PSP: PROCESSOR Reset: failed to read safemode data.\n");
@@ -386,6 +390,14 @@ void OS_Application_Startup(void)
         OS_printf("CFE_PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
     }
 
+    /* 
+    Collect SP0 information for Telemetry
+    This function should run as early as possible to collect information from
+    hardware and POST, and setup the task to dump the collected information 
+    when abort is called.
+    */
+    getSP0Info();
+
     CFE_PSP_SetupReservedMemoryMap();
 
     /*
@@ -418,7 +430,6 @@ void OS_Application_Startup(void)
 
     /*Now that the system is initialized log software reset type to syslog*/
     CFE_PSP_LogSoftwareResetType(resetSrc);
-
 
     if (taskSetStatus != OS_SUCCESS)
     {
