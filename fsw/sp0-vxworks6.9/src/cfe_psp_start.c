@@ -36,6 +36,7 @@
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
+#include "psp_mem_scrub.h"
 /*
 ** Macro Definitions
 */
@@ -45,6 +46,7 @@
 /*
 **  External Function Prototypes
 */
+
 int OS_BSPMain(void);
 extern int32 getSP0Info(void);
 
@@ -418,6 +420,8 @@ void OS_Application_Startup(void)
                   status);
         goto OS_Application_Startup_Exit_Tag;
     }
+
+    CFE_PSP_MEM_SCRUB_Init();
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are

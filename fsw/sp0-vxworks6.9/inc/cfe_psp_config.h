@@ -148,6 +148,34 @@ typedef struct
 */
 #define CFE_PSP_CDS_READ_METHOD_FLASH       2
 
+/**
+ * @brief Set the Active Memory Scrub Task Default Priority
+ * 
+ */
+#define MEMSCRUB_DEFAULT_PRIORITY           250
+
+/**
+ * @brief Set the Active Memory Scrub Task Up Range Allowable Priority
+ *        Task Priority can be changed using CFE_PSP_MEM_SCRUB_Set.
+ *        Up Range priority is capped by VxWorks OS.
+ * 
+ */
+#define MEMSCRUB_PRIORITY_UP_RANGE          254
+
+/**
+ * @brief Set the Active Memory Scrub Task Down Range Allowable Priority
+ *        Task Priority can be changed using CFE_PSP_MEM_SCRUB_Set.
+ *        Down Range priority should not be lower than your apps.
+ * 
+ */
+#define MEMSCRUB_PRIORITY_DOWN_RANGE        120
+
+/**
+ * @brief Set the Active Memory Scrub Task Name
+ * 
+ */
+#define MEMSCRUB_TASK_NAME                  "PSPMemScrub"
+
 #endif  /* _cfe_psp_config_ */
 
 

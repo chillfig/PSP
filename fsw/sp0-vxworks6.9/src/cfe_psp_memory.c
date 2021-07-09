@@ -42,6 +42,10 @@
 
 #include <target_config.h>
 
+/* Memory Scrubbing */
+#include "mem_scrub.h"
+#include "psp_mem_scrub.h"
+
 /*
 ** Macro Definitions
 */
@@ -72,6 +76,29 @@ uint8 g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_DEFAULT;
 
 /* This static variable will store the calculated CRC for previous CDS changed data */
 static uint32  sg_uiCDSCrc = 0;
+
+
+static osal_priority_t sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+
+
+/**
+ * @brief Contains the Active Memory Scrubbing Task ID
+ *        If 0, task is not running
+ */
+static uint32 sg_uiMemScrubTask_id = 0;
+
+static uint32 sg_uiMemScrubStartAddr = 0;
+static uint32 sg_uiMemScrubEndAddr = 0;
+static uint32 sg_uiMemScrubCurrentPage = 0;
+static uint32 sg_uiMemScrubTotalPages = 0;
+
+/**
+ * @brief Contains the address of the end of RAM
+ *        This is useful when cFS is used with hardware that different RAM 
+ *        memory size.
+ * 
+ */
+static uint32 sg_endOfRam = 0;
 
 /*
 ** Pointer to the vxWorks USER_RESERVED_MEMORY area
@@ -796,7 +823,6 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     cpuaddr   start_addr;
     cpuaddr   end_addr;
     uint32    reserve_memory_size = 0;
-    uint32    end_of_ram = 0;
     int32     status = OS_SUCCESS;
 
     /*
@@ -818,7 +844,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
 
     end_addr = start_addr;
 
-    end_of_ram = (uint32)sysPhysMemTop();
+    sg_endOfRam = (uint32)sysPhysMemTop();
 
     memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
 
@@ -875,7 +901,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     /*
      * Set up the "RAM" entry in the memory table.
      */
-    status = CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, end_of_ram, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
+    status = CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, sg_endOfRam, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
     if (status != OS_SUCCESS)
     {
         OS_printf("CFE_PSP_MemRangeSet returned error\n");
@@ -997,5 +1023,260 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
    return(return_code);
 }
 
+/******** PSP Active Memory Scrubbing ********/
 
+/**
+ * @internal
+ * 
+ * @brief Set the Memory Scrubbing parameters
+ * 
+ * NOTE: After calling this function, the new settings will be applied in the 
+ *       next call to the Activate Memory Scrubbing funtion.
+ * 
+ * @param[in] newStartAddr Address to start from, usually zero.
+ * @param[in] newEndAddr Address to end to, usually end of physical RAM. If this is 
+ *            set to a value larger than the actual physical memory limit, the 
+ *            function will use the phyisical memory limit.
+ * @param[in] memScrubTask_Priority task priority. Priority can only be set between
+ *            MEMSCRUB_PRIORITY_UP_RANGE and MEMSCRUB_PRIORITY_DOWN_RANGE.
+ *            Default is set by MEMSCRUB_DEFAULT_PRIORITY.
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
+{
+  /* If top of memory has not been initialized, then initialize it */
+  if (sg_endOfRam == 0)
+  {
+    sg_endOfRam = (uint32) sysPhysMemTop();
+  }
 
+  /* Verify Start and End Addresses */
+	sg_uiMemScrubStartAddr = newStartAddr;
+    if (newEndAddr > sg_endOfRam-1)
+    {
+        sg_uiMemScrubEndAddr = sg_endOfRam-1;
+    }
+    else
+    {
+        sg_uiMemScrubEndAddr = newEndAddr;
+    }
+
+    /*
+    If the task priority is different from the currently set value,
+    then change it as long as it is within the allowed range
+    */
+    if (task_priority != sg_uiMemScrubTaskPriority)
+    {
+      /* If the Task Priority is set outside the range, use default range and 
+      report error */
+      if (task_priority > MEMSCRUB_PRIORITY_UP_RANGE || task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE)
+      {
+          /* Apply default priority */
+          sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+          OS_printf("PSP MEM SCRUB: Priority is outside range, using default `%u`\n",sg_uiMemScrubTaskPriority);
+      }
+      else
+      {
+          /* Apply new priority */
+          sg_uiMemScrubTaskPriority = task_priority;
+          OS_printf("PSP MEM SCRUB: Priority changed to `%u`\n",sg_uiMemScrubTaskPriority);
+      }
+
+      if (CFE_PSP_MEM_SCRUB_isRunning())
+      {
+        /* Since priority has changed, restart the task */
+        if (OS_TaskDelete(sg_uiMemScrubTask_id) == OS_SUCCESS)
+        {
+          sg_uiMemScrubTask_id = 0;
+          CFE_PSP_MEM_SCRUB_Init();
+        }
+        else
+        {
+          OS_printf("PSP MEM SCRUB: Could not kill the Memory Scrubbing Task\n");
+        }
+      }
+    }
+} /* end CFE_PSP_MEM_SCRUB_Set */
+
+/**
+ * @internal
+ * 
+ * @brief Function stop memory scrubbing task and reset total number of scrubbed pages
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Delete(void)
+{
+  if (OS_TaskDelete(sg_uiMemScrubTask_id) == OS_SUCCESS)
+  {
+    OS_printf("PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
+  }
+  /* Reset task stats and ID */
+  sg_uiMemScrubTotalPages = 0;
+  sg_uiMemScrubTask_id = 0;
+}
+
+/**
+ * @internal
+ * 
+ * @brief Function prints the status of Active Memory Scrubbing
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Status(void)
+{
+  if (sg_uiMemScrubTask_id > 0)
+  {
+    OS_printf("PSP MEM SCRUB: MemScrub -> StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
+              sg_uiMemScrubStartAddr,
+              sg_uiMemScrubEndAddr,
+              sg_uiMemScrubCurrentPage,
+              sg_uiMemScrubTotalPages
+              );
+  }
+  else
+  {
+    OS_printf("Active Memory Scrubbing task could not be found\n");
+  }
+}
+
+/**
+ * @internal
+ * 
+ * @brief Run Active Memory Scrubbing using the specific parameters
+ *        This is the actual task performing the memory scrubbing
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Task(void)
+{
+	STATUS status;
+
+  if (sg_uiMemScrubEndAddr <= sg_endOfRam) {
+
+    while(1)
+    {
+        /* Call the active memory scrubbing function */
+        status = scrubMemory(sg_uiMemScrubStartAddr, sg_uiMemScrubEndAddr, &sg_uiMemScrubCurrentPage);
+
+        if ( status == ERROR )
+        {
+          OS_printf("PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
+        }
+        else
+        {
+          sg_uiMemScrubTotalPages += sg_uiMemScrubCurrentPage;
+        }
+    }
+
+  }
+}
+
+/**
+ * @internal
+ * 
+ * @brief Initialize the memory scrubbing task
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Init(void)
+{
+    /* Initialize */
+    int32 status;
+
+    /* If task is not running, create task */
+    if (CFE_PSP_MEM_SCRUB_isRunning() == false)
+    {
+      /* Set the scrub settings to default */
+      CFE_PSP_MEM_SCRUB_Set(0,sg_endOfRam,sg_uiMemScrubTaskPriority);
+
+      OS_printf("PSP MEM SCRUB: Starting Active Memory Scrubbing\n");
+
+      status = OS_TaskCreate(&sg_uiMemScrubTask_id, 
+                            MEMSCRUB_TASK_NAME, 
+                            CFE_PSP_MEM_SCRUB_Task,
+                            OSAL_TASK_STACK_ALLOCATE, 
+                            OSAL_SIZE_C(1024), 
+                            sg_uiMemScrubTaskPriority, 
+                            0
+                            );
+                            
+      if (status != OS_SUCCESS)
+      {
+        OS_printf("PSP MEM SCRUB: Error creating PSPMemScrub\n");
+      }
+    }
+    else
+    {
+      /* If task is already runnning, notify user */
+      OS_printf("PSP MEM SCRUB: Task already running\n");
+    }
+}
+
+/**
+ * @internal
+ * 
+ * @brief Report if the Memory Scrubbing Task is running
+ * 
+ * @return true if task is running
+ * @return false if task not running
+ * 
+ * @endinternal
+ */
+bool CFE_PSP_MEM_SCRUB_isRunning(void)
+{
+  int32 status;
+  osal_id_t mem_scurb_id = 0;
+
+  status = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
+
+  if (status == OS_ERR_NAME_NOT_FOUND)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+/**
+ * @internal
+ * 
+ * @brief Starts the Active Memory Scrubbing task
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Enable(void)
+{
+  /* If task is not running, initilize it */
+  if (sg_uiMemScrubTask_id > 0)
+  {
+    OS_printf("Active Memory Scrubbing task is already running\n");
+  }
+  else
+  {
+    CFE_PSP_MEM_SCRUB_Init();
+  }
+}
+
+/**
+ * @internal
+ * 
+ * @brief Stops the Active Memory Scrubbing task
+ * 
+ * @endinternal
+ */
+void CFE_PSP_MEM_SCRUB_Disable(void)
+{
+  /* If task is running, delete it */
+  if (sg_uiMemScrubTask_id > 0)
+  {
+    CFE_PSP_MEM_SCRUB_Delete();
+  }
+  else
+  {
+    OS_printf("Active Memory Scrubbing task could not be found\n");
+  }
+}
