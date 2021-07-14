@@ -37,25 +37,17 @@
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
 #include "psp_mem_scrub.h"
+
 /*
 ** Macro Definitions
 */
-#define CFE_PSP_TASK_PRIORITY    (30)
-#define CFE_PSP_TASK_STACK_SIZE  (20 * 1024)
+
 
 /*
 **  External Function Prototypes
 */
-
 int OS_BSPMain(void);
 extern int32 getSP0Info(void);
-
-/**
- * Function and variables defined in cfe_psp_timer.h
- * Support the Sync CFE time with OS time
- */
-/* extern bool getTime_From_OS_flag;
-extern uint16 cfe_OS_Time_Sync_Sec; */
 
 /*
  * The preferred way to obtain the CFE tunable values at runtime is via
@@ -65,14 +57,12 @@ extern uint16 cfe_OS_Time_Sync_Sec; */
 
 #define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
 #define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
-#define CFE_PSP_1HZ_FUNCTION         (*GLOBAL_CONFIGDATA.CfeConfig->System1HzISR)
 
 /*
 **  Local Function Prototypes
 */
 static int32 SetSysTasksPrio(void);
 static int32 SetTaskPrio(const char* tName, int32 tgtPrio);
-void CFE_PSP_Start(void);
 
 /*
 **  Local Global Variables
@@ -80,8 +70,6 @@ void CFE_PSP_Start(void);
 static uint32 ResetType = 0;
 static uint32 ResetSubtype = 0;
 static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
-static uint32 PSP_1Hz_TimerId = 0;
-static uint32 PSP_1Hz_ClockAccuracy = 0;
 
 /*
  * The list of VxWorks task to change the task priority
@@ -348,7 +336,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
             OS_printf("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
-    CFE_PSP_ProcessPOSTResults();
+
 }
 /******************************************************************************
 **  Function:  OS_Application_Startup()
@@ -428,19 +416,21 @@ void OS_Application_Startup(void)
     ** at a lower priority that the CFS apps
     */
     taskSetStatus = SetSysTasksPrio();
+    if (taskSetStatus != OS_SUCCESS)
+    {
+        OS_printf("CFE_PSP: At least one vxWorks task priority set failed. System may have degraded performance.\n");
+    }
+
+    /* Print software reset type */
+    CFE_PSP_LogSoftwareResetType(resetSrc);
+
+    /* Print all POST results */
+    CFE_PSP_ProcessPOSTResults();
+
+    OS_printf("CFE_PSP: PSP Application Startup Complete\n");
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
-
-    /*Now that the system is initialized log software reset type to syslog*/
-    CFE_PSP_LogSoftwareResetType(resetSrc);
-
-    if (taskSetStatus != OS_SUCCESS)
-    {
-        OS_printf("CFE_PSP: CFE_PSP_Start() At least one vxWorks task priority set failed. System may have degraded performance.\n");
-    }
-
-    OS_printf("CFE_PSP: CFE_PSP_Start() done.\n");
 
     OS_Application_Startup_Exit_Tag:
     return;
@@ -562,61 +552,6 @@ static int32 SetSysTasksPrio(void)
     return status;
 }
 
-
-/******************************************************************************
-**  Function:  PSP_1HzLocalCallback()
-**
-**  Purpose:
-**    The 1Hz call back handler calls the cfe 1Hz routine
-**
-**  Arguments:
-**    Input TimerId - Id for 1Hz timer
-**
-**  Return:
-**    (none)
-*/
-void PSP_1HzLocalCallback(uint32 TimerId)
-{
-    CFE_PSP_1HZ_FUNCTION();
-}
-/******************************************************************************
-**  Function:  OS_Application_Run()
-**
-**  Purpose:
-**    Initializes the 1Hz timer connects the cFE 1Hz ISR for providing the
-**    CFS 1Hz time sync, sync the scheduler's 1Hz major frame start to the
-**    1Hz timer.
-**
-**  Arguments:
-**    (none)
-**
-**  Return:
-**    (none)
-*/
-void OS_Application_Run(void)
-{
-   int32  Status    = CFE_PSP_SUCCESS;
-
-   /*Create the 1Hz timer for synchronizing the major frame*/
-   Status = OS_TimerCreate(&PSP_1Hz_TimerId,
-                            "PSP_1HZ_TIMER",
-                            &PSP_1Hz_ClockAccuracy,
-                            PSP_1HzLocalCallback);
-   if (Status != CFE_PSP_SUCCESS)
-   {
-       OS_printf("Failed to create OS_Timer for 1Hz local time.\n");
-   }
-   else
-   {
-       /*Set the interval to one second in microseconds.*/
-       Status = OS_TimerSet(PSP_1Hz_TimerId, 1000000, 1000000);
-       if (Status != CFE_PSP_SUCCESS)
-       {
-           OS_printf("Failed to set OS_Timer for 1Hz local time.\n");
-       }
-   }
-
-}
 
 /*TODO have osal add conditional compile when SPE preset instead of FPU
  * Once that has occurred we can remove vxFpscrGet and vxFpscrSet

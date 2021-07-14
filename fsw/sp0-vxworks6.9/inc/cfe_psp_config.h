@@ -38,7 +38,7 @@
  * Note this is distinct from the VxWorks system timer tick which runs,
  * confusingly, at 60Hz or a ~16.67ms period.
  */
-#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   60
+#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   20
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
 
 /*
