@@ -71,6 +71,8 @@ static uint32 ResetType = 0;
 static uint32 ResetSubtype = 0;
 static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
 
+static TASK_ID sg_uiShellTaskID = 0;
+
 /*
  * The list of VxWorks task to change the task priority
  * to before finishing initialization.
@@ -103,7 +105,7 @@ void CFE_PSP_Main(void)
 {
     int32 status = 0;
     status = OS_BSPMain();
-    OS_printf("PSP: CFE_PSP_Main() - OS_BSPMain application status %d \n",status);
+    printf("\nPSP: Exiting CFE_PSP_Main() - OS_BSPMain application status [%d] \n",status);
 }
 
 
@@ -436,7 +438,61 @@ void OS_Application_Startup(void)
     return;
 }
 
+void OS_Application_Run(void)
+{
+    /*
+    The declaration of PSP OS_Application_Run is necessary to avoid running the
+    OSAL OS_Application_Run which forces the tShell0 task, the VxWorks console 
+    shell, into suspend mode.
+    */
+}
 
+/**
+ * @brief Function Suspend/Resume the Console Shell Task.
+ * 
+ * @param suspend true to suspend
+ *        suspend false to resume
+ * 
+ * @return int32 CFE_PSP_SUCCESS or CFE_PSP_ERROR
+ * 
+ */
+int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
+{
+    int32 status;
+
+    /* Get the Shell Task ID if we have not done it already */
+    if (sg_uiShellTaskID == 0)
+    {
+        sg_uiShellTaskID = taskNameToId("tShell0");
+    }
+
+    if (suspend)
+    {
+        status = taskSuspend(sg_uiShellTaskID);
+        if (status == OK)
+        {
+            OS_printf("Shell Task Suspended [0x%08X]\n",sg_uiShellTaskID);
+        }
+        else
+        {
+            OS_printf("Shell Task could not be suspended [0x%08X]\n",sg_uiShellTaskID);
+        }
+    }
+    else
+    {
+        status = taskResume(sg_uiShellTaskID);
+        if (status == OK)
+        {
+            OS_printf("Shell Task Resumed [0x%08X]\n",sg_uiShellTaskID);
+        }
+        else
+        {
+            OS_printf("Shell Task could not be resumed [0x%08X]\n",sg_uiShellTaskID);
+        }
+    }
+
+    return status;
+}
 /******************************************************************************
 **  Function:  CFE_PSP_GetRestartType()
 **
