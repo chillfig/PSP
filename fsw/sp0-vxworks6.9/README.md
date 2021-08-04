@@ -66,17 +66,19 @@
   - getTime_From_OS_flag
   - cfe_OS_Time_Sync_Sec
 
-* Functions
+* Functions Internal
   - CFE_PSP_TIME_Init
+  - CFE_PSP_Update_OS_Time
+  - CFE_PSP_StartNTPDaemon
+  - CFE_PSP_StopNTPDaemon
+
+* Functions (include psp_time_sync.h)
   - CFE_PSP_Sync_From_OS_Enable
-  - CFE_PSP_NTP_Daemon_Get_Status
   - CFE_PSP_Sync_From_OS_Freq
   - CFE_PSP_Set_OS_Time
   - CFE_PSP_Get_OS_Time
-  - CFE_PSP_StartNTPDaemon
-  - CFE_PSP_StopNTPDaemon
+  - CFE_PSP_NTP_Daemon_Get_Status
   - CFE_PSP_NTP_Daemon_Enable
-  - 
 
 ### Interactive Console Shell
 

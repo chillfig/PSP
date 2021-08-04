@@ -25,10 +25,15 @@
 /* For supporting REALTIME clock */
 #include <timers.h>
 
+/* Provides the definition of CFE_TIME_SysTime_t */
+#include "cfe_time_extern_typedefs.h"
+
 #include "cfe_mission_cfg.h"
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "cfe_psp_module.h"
+
+#include "psp_time_sync.h"
 
 /**
  *  \cfetimecfg Default EPOCH Values 
@@ -59,17 +64,9 @@
 
 #define PRE_PRINT_SCOPE             "PSP NTP SYNC: "
 
-/* Below is define in CFE module core-api cfe_time_extern_typedefs.h */
-typedef struct CFE_TIME_SysTime
-{
-    uint32 Seconds;    /**< \brief Number of seconds since epoch */
-    uint32 Subseconds; /**< \brief Number of subseconds since epoch (LSB = 2^(-32) seconds) */
-} CFE_TIME_SysTime_t;
+/**** External Function Prototypes ****/
 
-
-/*
-** External Function Prototypes
-*/
+/* Functions provided by Kernel */
 extern TASK_ID taskNameToId (char * name);
 extern IP_PUBLIC Ip_err ipcom_ipd_kill (const char *name );
 extern IP_PUBLIC Ip_err ipcom_ipd_start (const char *name ); 
@@ -83,16 +80,44 @@ can take the ground command directly
 */
 extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
 
-/*
-** Function Prototypes
-*/
-int32 CFE_PSP_TIME_Init(uint16);
-void CFE_PSP_Update_OS_Time(void);
-int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *);
 
-/*
-** Global variables
-*/
+/**** Internal Function Prototypes ****/
+
+/**
+ * @brief Initialize the CFE PSP Time Task synchronizing with the NTP server
+ * 
+ * @param uint16 - the update frequency in seconds
+ * 
+ * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+ */
+int32 CFE_PSP_TIME_Init(uint16);
+
+/**
+ * @brief Get OS time and update CFE Time Service. Function will run forever 
+ * until task is deleted.
+ * 
+ */
+void CFE_PSP_Update_OS_Time(void);
+
+/**
+ * @brief Start the NTP daemon on OS that sync with NTP server
+ * 
+ * @return int32 - Task ID or CFE_PSP_ERROR
+ */
+int32 CFE_PSP_StartNTPDaemon(void);
+
+/**
+ * @brief Stop the NTP daemon on OS that sync with NTP server
+ * 
+ * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+ * 
+ * Note: If NTP task already stopped, return CFE_PSP_ERROR
+ * 
+ */
+int32 CFE_PSP_StopNTPDaemon(void);
+
+
+/**** Global variables ****/
 
 /**
  * @brief Contains the NTP Sync Task ID
@@ -135,18 +160,13 @@ void ntp_clock_vxworks_Init(uint32 PspModuleId)
     }
 }
 
-/******************************************************************************
-**  Function:  CFE_PSP_TIME_Init()
-**
-**  Purpose:
-**    Initialize the CFE PSP Time Task synchronizing with the NTP server
-**
-**  Arguments:
-**    timer_frequency_sec is the update frequency in seconds
-**
-**  Return:
-**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
-******************************************************************************/
+/**
+ * @brief Initialize the CFE PSP Time Task synchronizing with the NTP server
+ * 
+ * @param uint16 - the update frequency in seconds
+ * 
+ * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
+ */
 int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 {
     /* Initialize */

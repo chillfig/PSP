@@ -17,20 +17,6 @@
 #define _PSP_TIME_SYNC_H_
 
 /******************************************************************************
-**  Function:  CFE_PSP_TIME_Init()
-**
-**  Purpose:
-**    Initialize the CFE PSP Time Task synchronizing with the NTP server
-**
-**  Arguments:
-**    timer_frequency_sec is the update frequency in seconds
-**
-**  Return:
-**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
-******************************************************************************/
-int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec);
-
-/******************************************************************************
 **  Function:  CFE_PSP_Sync_From_OS_Enable(bool)
 **
 **  Purpose:
@@ -43,20 +29,6 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec);
 **    int32 - input argument
 ******************************************************************************/
 int32 CFE_PSP_Sync_From_OS_Enable(bool enable);
-
-/******************************************************************************
-**  Function:  CFE_PSP_NTP_Daemon_Get_Status(void)
-**
-**  Purpose:
-**    Get status of NTP daemon
-**
-**  Arguments:
-**    none
-**
-**  Return:
-**    int32 - True if NTP Daemon is running, False if it is not running
-******************************************************************************/
-int32 CFE_PSP_NTP_Daemon_Get_Status(void);
 
 /******************************************************************************
 **  Function:  CFE_PSP_Sync_From_OS_Freq(uint16_t)
@@ -105,36 +77,21 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
 **  Return:
 **    void
 ******************************************************************************/
-void CFE_PSP_Get_OS_Time(uint32 timer_id);
+int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT);
 
 /******************************************************************************
-**  Function:  CFE_PSP_StartNTPDaemon()
+**  Function:  CFE_PSP_NTP_Daemon_Get_Status(void)
 **
 **  Purpose:
-**    Start the NTP daemon on OS that sync with NTP server
+**    Get status of NTP daemon
 **
 **  Arguments:
 **    none
 **
 **  Return:
-**    int32 - Task ID or CFE_PSP_ERROR
+**    bool - True if NTP Daemon is running, False if it is not running
 ******************************************************************************/
-int32 CFE_PSP_StartNTPDaemon(void);
-
-/******************************************************************************
-**  Function:  CFE_PSP_StopNTPDaemon()
-**
-**  Purpose:
-**    Stop the NTP daemon on OS that sync with NTP server
-**
-**  Arguments:
-**    none
-**
-**  Return:
-**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
-**            Note: NTP task already stopped, return CFE_PSP_ERROR
-******************************************************************************/
-int32 CFE_PSP_StopNTPDaemon(void);
+bool CFE_PSP_NTP_Daemon_Get_Status(void);
 
 /******************************************************************************
 **  Function:  CFE_PSP_NTP_Daemon_Enable(bool)

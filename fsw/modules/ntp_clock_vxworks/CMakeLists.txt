@@ -1,5 +1,5 @@
-
-#include_directories(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core/src/time)
+include_directories(${MISSION_SOURCE_DIR}/cfe/modules/core_api/fsw/inc)
+include_directories(${MISSION_SOURCE_DIR}/psp/fsw/${CFE_SYSTEM_PSPNAME}/inc)
 
 # To support the starting and killing of NTP daemon process
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/include)
