@@ -1,20 +1,24 @@
-/************************************************************************************************
-**
-** File: cfe_psp_watchdog.c
-**
-**      Copyright (c) 2004-2011, United States Government as represented by
-**      Administrator for The National Aeronautics and Space Administration.
-**      All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
-**
-** Purpose:
-**   This file contains glue routines between the cFE and the OS Board Support Package (BSP).
-**   The functions here allow the cFE to interface functions that are board and OS specific
-**   and usually dont fit well in the OS abstraction layer.
-**
-*************************************************************************************************/
+/**
+ ** \file: cfe_psp_watchdog.c
+ **
+ ** \brief API to support Watchdog
+ **
+ ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved. \n
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that 
+ ** agreement.
+ **
+ ** \par Description:
+ ** API to enable/disable, and control watchdog
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ **
+ */
 
 /*
 **  Include Files
@@ -32,80 +36,80 @@
 /*
 ** Global Variables
 */
+/** \brief Watchdog current millisecond value */
 uint32 CFE_PSP_WatchdogValue = 20000;  /* Watchdog time in msecs */
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogInit()
+/**
+** \func Initialize the watchdog timer
 **
-**  Purpose:
-**    To setup the timer resolution and/or other settings custom to this platform
+** \par Description:
+** This function configures and intializes the watchdog timer.
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_WatchdogInit(void)
 {
 	CFE_PSP_WatchdogSet(CFE_PSP_WatchdogValue);  /* in msecs */
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogEnable()
+/**
+** \func Enable the watchdog timer
 **
-**  Purpose:
-**    Enable the watchdog timer
+** \par Description:
+** This function enables the watchdog timer.
 **
-**    If the processor BSP is set to define "ENABLE_STARTUP_WATCHDOG" in config.h or
-**    using the kernel config tool, this function will be called in sysHwInit2()
-**    in sysLib.c. The watchdog timer is disabled by default in startup firmware.
-**    The defalut value for the WATCH DOG timer is defined by "STARTUP_WATCHDOG_TIMEOUT".
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Arguments:
-**    None
+** \param None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \return None
+*/
 void CFE_PSP_WatchdogEnable(void)
 {
 	sysEnableFpgaWdt(1);
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogDisable()
+/**
+** \func Disable the watchdog timer
 **
-**  Purpose:
-**    Disable the watchdog timer
+** \par Description:
+** This function disables the watchdog timer.
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_WatchdogDisable(void)
 {
 	sysDisableFpgaWdt();
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogService()
+/**
+** \func Service the watchdog timer
 **
-**  Purpose:
-**    Feed the watchdog timer
+** \par Description:
+** This function services the watchdog timer according to the value set in CFE_PSP_WatchdogSet().
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_WatchdogService(void)
 {
 	/*
@@ -117,36 +121,38 @@ void CFE_PSP_WatchdogService(void)
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogGet
+/**
+** \func Get the watchdog time
 **
-**  Purpose:
-**    Get the current watchdog value
+** \par Description:
+** This function fetches the watchdog time, in milliseconds.
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    The current watchdog value in msecs
-******************************************************************************/
+** \param None
+**
+** \return The watchdog time in milliseconds
+*/
 uint32 CFE_PSP_WatchdogGet(void)
 {
    return((uint32)CFE_PSP_WatchdogValue);
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_WatchdogSet
+/**
+** \func Set the watchdog time
 **
-**  Purpose:
-**    Get the current watchdog value
+** \par Description:
+** This function sets the current watchdog time, in milliseconds.
 **
-**  Arguments:
-**    input - watchDogValue - The new watchdog value in msecs
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \param[in] watchDogValue - watchdog time in milliseconds
+**
+** \return None
+*/
 void CFE_PSP_WatchdogSet(uint32 watchDogValue)
 {
     float rate = 0.0;

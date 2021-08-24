@@ -18,20 +18,20 @@
 **  limitations under the License.
 */
 
-/******************************************************************************
-**
-** File:  cfe_psp_exception.c
-**
-**      MCP750 vxWorks 6.2 Version
-**
-** Purpose:
-**   cFE PSP Exception related functions.
-**
-** History:
-**   2007/05/29  A. Cudmore      | vxWorks 6.2 MCP750 version
-**   2016/04/07  M.Grubb         | Updated for PSP version 1.3
-**
-******************************************************************************/
+/**
+ **
+ ** \file  cfe_psp_exceptionstorage.c
+ **
+ **      MCP750 vxWorks 6.2 Version
+ **
+ ** Purpose:
+ **   cFE PSP Exception related functions.
+ **
+ ** History:
+ **   2007/05/29  A. Cudmore      | vxWorks 6.2 MCP750 version
+ **   2016/04/07  M.Grubb         | Updated for PSP version 1.3
+ **
+ */
 
 /*
 **  Include Files
@@ -56,7 +56,10 @@
 /*
 **  Constants
 */
+
+/** \name CFE_PSP_MAX_EXCEPTION_ENTRY_MASK */
 #define CFE_PSP_MAX_EXCEPTION_ENTRY_MASK (CFE_PSP_MAX_EXCEPTION_ENTRIES - 1)
+/** \name CFE_PSP_EXCEPTION_ID_BASE */
 #define CFE_PSP_EXCEPTION_ID_BASE        ((OS_OBJECT_TYPE_USER + 0x101) << OS_OBJECT_TYPE_SHIFT)
 
 /***************************************************************************
@@ -64,29 +67,59 @@
  **                 (Functions used only within the PSP itself)
  ***************************************************************************/
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_Reset
- * Internal function - see description in prototype
- *---------------------------------------------------------------------------*/
+/**
+ ** \func Reset the exception storage buffer counter
+ **
+ ** \par Description:
+ ** This function resets the state of exception processing.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return None
+ */
 void CFE_PSP_Exception_Reset(void)
 {
     /* just reset the counter */
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumRead = CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumWritten;
 }
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_GetBuffer
- * Internal function - see description in prototype
- *---------------------------------------------------------------------------*/
+/**
+ ** \func Get the next buffer for exception buffer corresponding to sequence
+ ** 
+ ** \par Description:
+ ** This function obtains a storage buffer corresponding to the given sequence number. 
+ ** The pointer to storage memory is directly returned. 
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** It is not cleared or modified, and no checks are performed to determine if the sequence number is valid.
+ **
+ ** \param[in] seq - Sequence number
+ **
+ ** \return Pointer to buffer.
+ */
 CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetBuffer(uint32 seq)
 {
     return &CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->Entries[seq & CFE_PSP_MAX_EXCEPTION_ENTRY_MASK];
 }
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_GetNextContextBuffer
- * Internal function - see description in prototype
- *---------------------------------------------------------------------------*/
+/**
+ ** \func Get the next buffer for exception context storage
+ **
+ ** \par Description:
+ ** This function is invoked by the low level exception handler (typically an ISR/signal)
+ ** to obtain a buffer for context capture.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The buffer is cleared (memset zero) before returning to the caller.
+ **
+ ** \param None
+ **
+ ** \return Pointer to buffer - If successful
+ ** \return NULL - If storage is full
+ */
 CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetNextContextBuffer(void)
 {
     CFE_PSP_Exception_LogData_t *Buffer;
@@ -107,10 +140,21 @@ CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetNextContextBuffer(void)
     return Buffer;
 }
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_WriteComplete
- * Internal function - see description in prototype
- *---------------------------------------------------------------------------*/
+/**
+ ** \func Wrap up the storage of exception data
+ **
+ ** \par Description:
+ ** This function is invoked by the low level exception handler (typically an ISR/signal)
+ ** once the exception context capture is complete.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This should be invoked after a successful call to CFE_PSP_Exception_GetNextContextBuffer()
+ ** to commit the information to the log.
+ **
+ ** \param None
+ **
+ ** \return None
+ */
 void CFE_PSP_Exception_WriteComplete(void)
 {
     CFE_PSP_Exception_LogData_t *Buffer;
@@ -139,20 +183,42 @@ void CFE_PSP_Exception_WriteComplete(void)
  **                   (Functions used by CFE or PSP)
  ***************************************************************************/
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_GetCount
- * See description in PSP API
- *---------------------------------------------------------------------------*/
+/**
+** \func Get the exception count
+**
+** \par Description:
+** This function fetches the exception count.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return The exception count
+*/
 uint32 CFE_PSP_Exception_GetCount(void)
 {
     return (CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumWritten -
             CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumRead);
 }
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_GetSummary
- * See description in PSP API
- *---------------------------------------------------------------------------*/
+/**
+** \func Translate a stored exception log entry into a summary string
+**
+** \par Description:
+** This function takes a stored exception-log entry and converts it into a summary string.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[out] ContextLogId - Pointer to the variable that stores the returned log ID
+** \param[out] TaskId - Pointer to the variable that stores the returned OSAL task ID
+** \param[out] ReasonBuf - The buffer that stores the returned string
+** \param[out] ReasonSize - The maximum length of the buffer, ReasonBuf
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize)
 {
     const CFE_PSP_Exception_LogData_t *Buffer;
@@ -212,10 +278,21 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
     return CFE_PSP_SUCCESS;
 }
 
-/*---------------------------------------------------------------------------
- * CFE_PSP_Exception_CopyContext
- * See description in PSP API
- *---------------------------------------------------------------------------*/
+/**
+** \func Translate a stored exception log entry into a summary string
+**
+** \par Description:
+** This function takes a stored exception-log entry and converts it into a summary string.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[in] ContextLogId - The stored exception log ID
+** \param[out] ContextBuf - Pointer to the variable that stores the copied data
+** \param[out] ContextSize - The maximum length of the buffer, ContextBuf
+**
+** \return The actual size of the copied data
+*/
 int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize)
 {
     const CFE_PSP_Exception_LogData_t *Buffer;

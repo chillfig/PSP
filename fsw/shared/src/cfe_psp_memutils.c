@@ -18,8 +18,8 @@
 **  limitations under the License.
 */
 
-/*
-** File   :	cfe_psp_memutils.c
+/**
+** \file   :	cfe_psp_memutils.c
 **
 ** Author :	Ezra Yeheskeli
 **
@@ -47,60 +47,50 @@
 ** global memory
 */
 
-/*
-** Name: CFE_PSP_MemCpy
-**
-** Purpose:
-**	Copies 'size' byte from memory address pointed by 'src' to memory
-**  address pointed by ' dst' For now we are using the standard c library
-**  call 'memcpy' but if we find we need to make it more efficient then
-**  we'll implement it in assembly.
-**
-** Assumptions and Notes:
-**
-** Parameters:
-**	dst : pointer to an address to copy to
-**  src : pointer address to copy from
-**
-** Global Inputs: None
-**
-** Global Outputs: None
-**
-**
-** Return Values: CFE_PSP_SUCCESS
-*/
-int32 CFE_PSP_MemCpy(void *dst, const void *src, uint32 size)
+/**
+ ** \func Copy from one memory block to another memory block
+ **
+ ** \par Description:
+ ** Copies 'size' byte from memory address pointed by 'src' to memory
+ ** address pointed by ' dst' For now we are using the standard c library
+ ** call 'memcpy' but if we find we need to make it more efficient then
+ ** we'll implement it in assembly.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[inout] dest - Pointer to an address to copy to
+ ** \param[inout] src - Pointer address to copy from
+ ** \param[in] size - Number of bytes to copy
+ **
+ ** \return #CFE_PSP_SUCCESS 
+ */
+int32 CFE_PSP_MemCpy(void *dest, const void *src, uint32 size)
 {
-    memcpy(dst, src, size);
+    memcpy(dest, src, size);
     return (CFE_PSP_SUCCESS);
 }
 
-/*
-** Name: CFE_PSP_MemSet
-**
-** Purpose:
-**	Copies 'size' number of byte of value 'value' to memory address pointed
-**  by 'dst' .For now we are using the standard c library call 'memset'
-**  but if we find we need to make it more efficient then we'll implement
-**  it in assembly.
-**
-**
-** Assumptions and Notes:
-**
-** Parameters:
-**
-** Global Inputs: None
-**
-** Global Outputs: None
-**
-**
-** Return Values: CFE_PSP_SUCCESS
-*/
-/*
-** CFE_PSP_MemSet
-*/
-int32 CFE_PSP_MemSet(void *dst, uint8 value, uint32 size)
+/**
+ ** \func Initialize the specified memory block with the specified value
+ **
+ ** \par Description:
+ ** Copies 'size' number of byte of value 'value' to memory address pointed
+ ** by 'dst' .For now we are using the standard c library call 'memset'
+ ** but if we find we need to make it more efficient then we'll implement
+ ** it in assembly.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[inout] dest - Pointer to destination address
+ ** \param[in] value - An 8-bit value to fill in the memory
+ ** \param[in] size - The number of values to write
+ **
+ ** \return #CFE_PSP_SUCCESS
+ */
+int32 CFE_PSP_MemSet(void *dest, uint8 value, uint32 size)
 {
-    memset(dst, (int)value, (size_t)size);
+    memset(dest, (int)value, (size_t)size);
     return (CFE_PSP_SUCCESS);
 }

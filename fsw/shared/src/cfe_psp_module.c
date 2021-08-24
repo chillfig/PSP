@@ -31,24 +31,37 @@
 
 #include "cfe_psp_module.h"
 
-/*
- * When using an OSAL that also supports "opaque object ids", choose values here
- * that will fit in with the OSAL object ID values and not overlap anything.
+/**
+ ** \name CFE PSP Module Base and Index
+ ** \par Description:
+ ** When using an OSAL that also supports "opaque object ids", choose values here
+ ** that will fit in with the OSAL object ID values and not overlap anything.
  */
 #ifdef OS_OBJECT_TYPE_USER
-#define CFE_PSP_MODULE_BASE       ((OS_OBJECT_TYPE_USER + 0x100) << OS_OBJECT_TYPE_SHIFT)
-#define CFE_PSP_MODULE_INDEX_MASK OS_OBJECT_INDEX_MASK
+ /** \name CFE_PSP_MODULE_BASE */
+ #define CFE_PSP_MODULE_BASE       ((OS_OBJECT_TYPE_USER + 0x100) << OS_OBJECT_TYPE_SHIFT)
+ /** \name CFE_PSP_MODULE_INDEX_MASK */
+ #define CFE_PSP_MODULE_INDEX_MASK OS_OBJECT_INDEX_MASK
 #else
-#define CFE_PSP_MODULE_BASE       0x01100000
-#define CFE_PSP_MODULE_INDEX_MASK 0xFFFF
+ #define CFE_PSP_MODULE_BASE       0x01100000
+ #define CFE_PSP_MODULE_INDEX_MASK 0xFFFF
 #endif
+
 
 static uint32 CFE_PSP_ModuleCount = 0;
 
-/***************************************************
- * Function Name: CFE_PSP_ModuleInitList
- *
- * Helper function to initalize a list of modules (not externally called)
+/**
+ ** \func Initialize a list of Modules
+ ** 
+ ** \par Description:
+ ** Helper function to initalize a list of modules (not externally called)
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[inout] ListPtr - Pointer to the list of modules
+ ** 
+ ** \return None
  */
 void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
 {
@@ -74,10 +87,18 @@ void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
     }
 }
 
-/***************************************************
- * Function Name: CFE_PSP_ModuleInit
- *
- * See prototype for full description
+/**
+ ** \func Initialize a list of Modules
+ ** 
+ ** \par Description:
+ ** Initalize all modules for PSP including user-selected modules
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ ** 
+ ** \return None
  */
 void CFE_PSP_ModuleInit(void)
 {
@@ -88,10 +109,20 @@ void CFE_PSP_ModuleInit(void)
     CFE_PSP_ModuleInitList(GLOBAL_CONFIGDATA.PspModuleList);
 }
 
-/***************************************************
- * Function Name: CFE_PSP_Module_GetAPIEntry
- *
- * See prototype for full description
+/**
+ ** \func Get entry point of Module
+ ** 
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] PspModuleId - Module ID
+ ** \param[in] API -  
+ ** 
+ ** \return #CFE_PSP_INVALID_MODULE_ID
+ ** \return #CFE_PSP_SUCCESS
  */
 int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
 {
@@ -112,10 +143,20 @@ int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
     return Result;
 }
 
-/***************************************************
- * Function Name: CFE_PSP_Module_FindByName
- *
- * See prototype for full description
+/**
+ ** \func Find a module by name
+ ** 
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] ModuleName - The name of the Module
+ ** \param[inout] PspModuleId - The Module Id
+ ** 
+ ** \return #CFE_PSP_INVALID_MODULE_NAME
+ ** \return #CFE_PSP_SUCCESS
  */
 int32 CFE_PSP_Module_FindByName(const char *ModuleName, uint32 *PspModuleId)
 {

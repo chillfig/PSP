@@ -19,9 +19,26 @@
 */
 
 /**
- * \file cfe_psp_exceptionstorage_types.h
- *
- * Provides a generic storage buffer ring for exceptions
+ ** \file cfe_psp_exceptionstorage_types.h
+ **
+ ** \brief Provides a generic storage buffer ring for exceptions
+ **
+ ** \copyright
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that agreement.
+ **
+ ** \par Description:
+ ** The "MetaData" stores ephemeral exception information
+ ** which only has meaning within the currently-running process.
+ **
+ ** This data is important for diagnosing the exception, but it
+ ** is NOT saved to any persistent log because it will not be
+ ** relevant once the process ends.
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ **
  */
 
 #ifndef CFE_PSP_EXCEPTIONSTORAGE_TYPES_H_
@@ -30,30 +47,34 @@
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 
-/*
- * The "MetaData" stores ephemeral exception information
- * which only has meaning within the currently-running process.
- *
- * This data is important for diagnosing the exception, but it
- * is NOT saved to any persistent log because it will not be
- * relevant once the process ends.
- */
+/** \brief Exception Log Data Struct */
 struct CFE_PSP_Exception_LogData
 {
-    uint32                               context_id;   /**< a unique ID assigned to this exception entry */
-    uint32                               context_size; /**< actual size of the "context_info" data */
-    CFE_PSP_Exception_SysTaskId_t        sys_task_id;  /**< the BSP-specific task info (not osal abstracted id) */
+    /** \brief a unique ID assigned to this exception entry */
+    uint32                               context_id;
+    /** \brief actual size of the "context_info" data */
+    uint32                               context_size;
+    /** \brief the BSP-specific task info (not osal abstracted id) */
+    CFE_PSP_Exception_SysTaskId_t        sys_task_id;
+    /** \brief Context Info */
     CFE_PSP_Exception_ContextDataEntry_t context_info;
 };
 
+/** \brief Exception Storage Struct */
 struct CFE_PSP_ExceptionStorage
 {
+    /** \brief Num Written*/
     volatile uint32                  NumWritten;
+    /** \brief Num Read*/
     volatile uint32                  NumRead;
+    /** \brief Entries */
     struct CFE_PSP_Exception_LogData Entries[CFE_PSP_MAX_EXCEPTION_ENTRIES];
 };
 
+/** \brief Exception Log Data Type */
 typedef struct CFE_PSP_Exception_LogData CFE_PSP_Exception_LogData_t;
-typedef struct CFE_PSP_ExceptionStorage  CFE_PSP_ExceptionStorage_t;
+
+/** \brief Exception Storage Type */
+typedef struct CFE_PSP_ExceptionStorage CFE_PSP_ExceptionStorage_t;
 
 #endif /* CFE_PSP_EXCEPTIONSTORAGE_TYPES_H_ */

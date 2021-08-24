@@ -1,112 +1,227 @@
-/*******************************************************************************
+/**
+** \file  psp_time_sync.h
 **
-**  \file psp_time_sync.h
+** \brief Header API to control NTP Sync
 **
-**  \copyright
-**  Copyright (c) 2004-2011, United States Government as represented by
-**  Administrator for The National Aeronautics and Space Administration.
-**  All Rights Reserved.
+** \copyright
+** This software was created at NASA's Johnson Space Center.
+** This software is governed by the NASA Open Source Agreement and may be 
+** used, distributed and modified only pursuant to the terms of that agreement.
 **
-**  This is governed by the NASA Open Source Agreement and may be used,
-**  distributed and modified only pursuant to the terms of that agreement.
+** \par Description:
+** This file contains the function prototypes that synchronize the cFE Time
+** services to the NTP server. Note that the NTP server must be built into the
+** kernel.
 **
-**  \brief Header file for PSP Time Service support
+** \par Limitations, Assumptions, External Events, and Notes:
+** The way this module updates the local time is by calling the CFE Time Service
+** function CFE_TIME_SetTime(). The function changes the STCF value.\n
 **
-*******************************************************************************/
+** GSFC developers do not recommend to use this method of updating CFE time, 
+** but rather to use the function CFE_TIME_ExternalTime(). The only way to use
+** this function is by building an app that will periodically (1Hz) get NTP
+** time and publish it via Software Bus.
+*/
+
 #ifndef _PSP_TIME_SYNC_H_
 #define _PSP_TIME_SYNC_H_
 
-/******************************************************************************
-**  Function:  CFE_PSP_Sync_From_OS_Enable(bool)
+/**
+** \func Initialize the CFE PSP Time Task synchronizing with the NTP server
 **
-**  Purpose:
-**    Enable or Disable CFE_PSP_Get_OS_Time
+** \par Description:
+** This function intializes the cFE PSP Time sync task with the NTP server.
 **
-**  Arguments:
-**    bool - When True, CFE_PSP_Get_OS_Time will be called to synchronize time
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    int32 - input argument
-******************************************************************************/
-int32 CFE_PSP_Sync_From_OS_Enable(bool enable);
+** \param[in] timer_frequency_sec - The update frequency, in seconds
+** 
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_TIME_Init(uint16 timer_frequency_sec);
 
-/******************************************************************************
-**  Function:  CFE_PSP_Sync_From_OS_Freq(uint16_t)
+/**
+** \func Enable/disable time sync
 **
-**  Purpose:
-**    Changes the synchronication frequency
+** \par Description:
+** This function sets the enabling/disabling of time sync.
 **
-**  Arguments:
-**    uint16 - seconds between updates. If zero, returns the current value
+** \par Assumptions, External Events, and Notes:
+** When the flag is true, the NTP Sync task actively trys to sync clocks.
+** When the flag is false, the NTP Sync task will remain active without sync.
 **
-**  Return:
-**    int - CFE_PSP_SUCCESS or the current cfe_OS_Time_Sync_Sec value
-******************************************************************************/
-int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec);
+** \param[in] enable - Boolean flag for sync or not sync
+** 
+** \return True - If synchronized
+** \return False - If not synchronized
+*/
+int32  CFE_PSP_Sync_From_OS_Enable(bool enable);
 
-/******************************************************************************
-**  Function:  CFE_PSP_Set_OS_Time()
+/**
+** \func Get the NTP daemon status
 **
-**  Purpose:
-**    Set the OS CLOCK_REALTIME to a specified timestamp
-**    IMPORTANT: If NTP daemon is enabled and it is capable of contacting an
-**               NTP server, setting time does not work.
+** \par Description:
+** This function checks if the VxWorks NTP client task is running. It does not
+** check if the task has successfully synchronized with an NTP server.
 **
-**  Arguments:
-**    uint32 ts_sec - Seconds since Epoch 1/1/1970
-**    uint32 ts_nsec - NanoSecond timestamp
+** \par Assumptions, External Events, and Notes:
+** The task name for the VxWorks NTP client is the default "ipntpd".
 **
-**  Return:
-**    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
-******************************************************************************/
-int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
+** \param None
+** 
+** \return True - If NTP client task is running
+** \return False - If NTP client task is not running
+*/
+bool  CFE_PSP_NTP_Daemon_Get_Status(void);
 
-/******************************************************************************
-**  Function:  CFE_PSP_Get_OS_Time()
+/**
+** \func Gracefully shutdown NTP Sync Module 
+** 
+** \par Description:
+** Function will attempt to delete the task. Usually this function will be 
+** called when exiting cFS.
 **
-**  Purpose:
-**    Syncronize CFE Time Service with OS local time. OS time is 
-**    automatically syncronized to NTP server
-**    Declaration is dictated by OSAL, see osapi-os-timer.h OS_TimerCreate info
+** \par Assumptions, External Events, and Notes:
+** The task name for the VxWorks NTP client is the default "ipntpd".
 **
-**    IMPORTANT: Function declaration is dictated by OS_TimerCreate function.
-**
-**  Arguments:
-**    timer_id
-**
-**  Return:
-**    void
-******************************************************************************/
-int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT);
+** \param None
+** 
+** \return #CFE_PSP_SUCCESS 
+** \return #CFE_PSP_ERROR
+*/
+int32 net_clock_vxworks_Destroy(void);
 
-/******************************************************************************
-**  Function:  CFE_PSP_NTP_Daemon_Get_Status(void)
+/**
+** \func Change the sync frequency
 **
-**  Purpose:
-**    Get status of NTP daemon
+** \par Description:
+** This function updates the NTP time synchronization frequency, in seconds.
 **
-**  Arguments:
-**    none
+** \par Assumptions, External Events, and Notes:
+** If 0 is passed in, the function returns the current frequency.
 **
-**  Return:
-**    bool - True if NTP Daemon is running, False if it is not running
-******************************************************************************/
-bool CFE_PSP_NTP_Daemon_Get_Status(void);
+** \param[in] new_frequency_sec - The new frequency, in seconds
+** 
+** \return #CFE_PSP_SUCCESS - If successfully changed
+** \return Current frequency - If passed in 0 for new_frequency_sec
+*/
+int32  CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec);
 
-/******************************************************************************
-**  Function:  CFE_PSP_NTP_Daemon_Enable(bool)
+/**
+** \func Set the OS time
 **
-**  Purpose:
-**    Enable or Disable OS NTP dameon process
+** \par Description:
+** This function sets the VxWorks OS time.
 **
-**  Arguments:
-**    bool - When True starts NTP daemon, else stop process
+** \par Assumptions, External Events, and Notes:
+** The changes do not occur if the NTP client is setup to synchrone with an NTP server.
+** Set the OS CLOCK_REALTIME to a specified timestamp. Parameters are in UNIX time format,
+** since Epoch 1/1/1970.
 **
-**  Return:
-**    int32 - Task ID or CFE_PSP_SUCCESS or CFE_PSP_ERROR
-**            Task ID is returned when successfully starting NTP process
-**            CFE_PSP_SUCCESS is returned when successfully stopping NTP process
-******************************************************************************/
-int32 CFE_PSP_NTP_Daemon_Enable(bool enable);
+** \param[in] ts_sec - Time in seconds
+** \param[in] ts_nsec - Time in nanoseconds
+** 
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
+
+/**
+** \func Gets the current time from VxWorks OS
+**
+** \par Description:
+** This function gets the current VxWorks OS time.
+**
+** \par Assumptions, External Events, and Notes:
+** This function is used by the NTP Sync task to grab the current OS time.
+** It uses CLOCK_REALTIME.
+**
+** \param[inout] myT - Pointer to the variable that stores the returned time value
+** 
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT);
+
+/**
+** \brief Check if CFS Time Service is up and running
+** 
+** \par Description:
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return true - CFE Time Service is ready
+** \return false - CFE Time Service is not ready
+*/
+bool CFE_PSP_TimeService_Ready(void);
+
+/**
+** \func Update cFE time
+** 
+** \par Description:
+** This function updates the time used by the cFE Time service.
+**
+** \par Assumptions, External Events, and Notes:
+** This function will run forever until its task is deleted.
+** 
+** \param None
+**
+** \return None
+*/
+void  CFE_PSP_Update_OS_Time(void);
+
+/**
+** \func Start the NTP client
+** 
+** \par Description:
+** This function starts the NTP client task, ipntpd, on VxWorks.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+** 
+** \param None
+**
+** \return NTP client Task ID
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_StartNTPDaemon(void);
+
+/**
+** \func Stop the NTP client
+** 
+** \par Description:
+** This function stops the NTP client task, ipntpd, on VxWorks.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+** 
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_StopNTPDaemon(void);
+
+/**
+** \func Enable/disable the NTP client
+** 
+** \par Description:
+** This function enables/disables the NTP client task, ipntpd, on VxWorks.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+** 
+** \param[in] enable - Boolean flag for enable or disable
+**
+** \return NTP client task ID - If successfully starts the NTP clien task
+** \return #CFE_PSP_SUCCESS - If successfully stops the NTP client task
+** \return #CFE_PSP_ERROR
+*/
+int32  CFE_PSP_NTP_Daemon_Enable(bool enable);
 
 #endif /* _PSP_TIME_SYNC_H_ */

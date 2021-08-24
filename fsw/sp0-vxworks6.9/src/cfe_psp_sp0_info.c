@@ -1,23 +1,26 @@
-/******************************************************************************
-**
-** File:  cfe_psp_support.c
-**
-**      Copyright (c) 2004-2011, United States Government as represented by
-**      Administrator for The National Aeronautics and Space Administration.
-**      All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
-**
-** Purpose:
-**   This file contains glue routines between the cFE and the OS Board Support
-**   Package (BSP). The functions here allow CFS to provide a method to probe 
-**   SP0 hardware for information from POST, Temperatures, Voltages, Active 
-**   Boot EEPROM, etc. In addition, this module has a function to save a 
-**   dump_core text file before aborting CFS execution. 
-**   
-**
-******************************************************************************/
+/**
+ ** \file:  cfe_psp_sp0_info.c
+ **
+ ** \brief API for collecting SP0(s) hardware and software information
+ **
+ ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved. \n
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that 
+ ** agreement.
+ **
+ ** \par Description:
+ ** Functions here allow CFS to provide a method to probe 
+ ** SP0 hardware for information from POST, Temperatures, Voltages, Active 
+ ** Boot EEPROM, etc. In addition, this module has a function to save a 
+ ** dump_core text file before aborting CFS execution. 
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ */
 
 /*
 **  Include Files
@@ -37,6 +40,7 @@
 /* #include "sysLib.c" */
 #include "tempSensor.h"
 
+#include "cfe_psp_config.h"
 #include "psp_sp0_info.h"
 
 /*
@@ -52,22 +56,22 @@
 /*
 **  External Declarations
 */
-extern char * sysModel (void);
-extern char * sysBspRev (void);
-extern uint32 sysPhysMemTop (void);
-extern int sysProcNumGet (void);
-extern int sysClkRateGet (void);
 
 /**
- * @brief Collects SP0 Hardware and Firmware information
- * 
- *        Data is saved in structure CFE_PSP_SP0_Info_t sp0_info_table and
- *        saved as string in sp0_data_dump.
- * 
- * @return int32 CFE_PSP_SUCCESS or CFE_PSP_ERROR
- * 
- * TODO: Fix the return code
- */
+** \func Collect SP0 Hardware and Firmware data
+**
+** \par Description:
+** This function collects the SP0 hardware and firmware data and saves it
+** in the sp0_info_table object, as well as a string in the sp0_data_dump object.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR - Never returns it
+*/
 int32 getSP0Info(void)
 {
     RESET_SRC_REG_ENUM resetSrc = 0;
@@ -98,7 +102,7 @@ int32 getSP0Info(void)
     indicates the top of memory. Normally, the user specifies the amount of 
     physical memory with the macro LOCAL_MEM_SIZE in config.h.
     */
-    sp0_info_table.systemPhysMemTop = sysPhysMemTop();
+    sp0_info_table.systemPhysMemTop = (uint32) sysPhysMemTop();
 
     /*
     This routine returns the processor number for the CPU board, which is set 
@@ -141,7 +145,9 @@ int32 getSP0Info(void)
     status = ReadSafeModeUserData(&safeModeUserData,0);
     if (status == OS_SUCCESS)
     {
-        snprintf(sp0_info_table.safeModeUserData, 256, "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
+        snprintf(sp0_info_table.safeModeUserData, 
+                256, 
+                "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
                 safeModeUserData.safeMode,
                 (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
                 safeModeUserData.reason,
@@ -172,7 +178,7 @@ int32 getSP0Info(void)
     for (i = 0; i < 4; i++)
     {
         /* This function takes about 3msec each time */
-        status = tempSensorRead(i,0,&temperature,0);
+        status = tempSensorRead(i, 0, &temperature, 0);
         if (status == OS_SUCCESS)
         {
             sp0_info_table.temperatures[i] = temperature;
@@ -183,7 +189,7 @@ int32 getSP0Info(void)
     for (i = 1; i < 7; i++)
     {
         /* This function takes about 3msec each time */
-        status = volSensorRead(i,0,&voltage,0);
+        status = volSensorRead(i, 0, &voltage, 0);
         if (status == OS_SUCCESS)
         {
             sp0_info_table.voltages[i-1] = voltage;
@@ -194,14 +200,14 @@ int32 getSP0Info(void)
     status = aimonGetBITExecuted(&bitExecuted, 0);
     if (status == OS_SUCCESS)
     {
-        sp0_info_table.bitExecuted = bitExecuted;
+        memcpy(&sp0_info_table.bitExecuted, &bitExecuted, 8);
     }
 
     /* This function returns the summary of the test results in a 64 bit packed word */
     status = aimonGetBITResults(&bitResult, 0);
     if (status == OS_SUCCESS)
     {
-        sp0_info_table.bitResult = bitResult;
+        memcpy(&sp0_info_table.bitResult, &bitResult, 8);
     }
 
     /* Output to local string buffer */
@@ -219,8 +225,8 @@ int32 getSP0Info(void)
         "active_boot: %u '%s'\n"
         "sysClkRateGet: %d [Ticks/sec]\n"
         "sysAuxClkRateGet: %d [Ticks/sec]\n"
-        "bitExecuted: 0x%08X\n"
-        "bitResult: 0x%08X\n"
+        "bitExecuted: 0x%016llX\n"
+        "bitResult: 0x%016llX\n"
         "TempLeft:  %.3f [C]\n"
         "TempRight: %.3f [C]\n"
         "TempCPU:   %.3f [C]\n"
@@ -263,10 +269,18 @@ int32 getSP0Info(void)
 }
 
 /**
- * @brief Print the data collected to console and return a string containing
- *        the printout
- * 
- */
+** \func Collect SP0 Hardware and Firmware data
+**
+** \par Description:
+** This function prints the SP0 data to the output console.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return None
+*/
 void printSP0_info_table(void)
 {
     /* Output to console */
@@ -274,19 +288,29 @@ void printSP0_info_table(void)
 }
 
 /**
- * @brief Function dumps the collected data to file
- * 
- *        The safest place to put this file is the Flash memory
+ ** \func Function dumps the collected data to file
+ **
+ ** \par Description:
+ ** This function prints the SP0 data to the output console.
+ ** Data is saved at #SP0_DATA_DUMP_FILEPATH
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return None
+ **
  */
 void psp_dump_data(void)
 {
-    char filename[] = "/ffx0/PSP_SP0_DUMP";
+    char filename[] = SP0_DATA_DUMP_FILEPATH;
     int fd;
 
-	/*  */
+    /* Delete previous dump file if exists */
     remove(filename);
 
-	fd = creat(filename, O_RDWR);
+    fd = creat(filename, O_RDWR);
     write(fd, sp0_data_dump, (size_t) sp0_data_dump_length);
     close(fd);
 }

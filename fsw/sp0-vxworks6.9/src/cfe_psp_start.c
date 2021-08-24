@@ -1,18 +1,24 @@
-/******************************************************************************
-**
-** File:  cfe_psp_start.c
-**
-**      Copyright (c) 2004-2011, United States Government as represented by
-**      Administrator for The National Aeronautics and Space Administration.
-**      All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
-**
-** Purpose:
-**   cFE PSP main entry point
-**
-******************************************************************************/
+/**
+ ** \file cfe_psp_start.c
+ **
+ ** \brief cFE PSP main entry point
+ **
+ ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved. \n
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that 
+ ** agreement.
+ **
+ ** \par Description:
+ ** None
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ **
+ */
 
 /*
 **  Include Files
@@ -34,9 +40,11 @@
 #include "osapi.h"
 
 #include "cfe_psp.h"
+#include "psp_start.h"
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
 #include "psp_mem_scrub.h"
+#include "psp_sp0_info.h"
 
 /*
 ** Macro Definitions
@@ -46,38 +54,43 @@
 /*
 **  External Function Prototypes
 */
-int OS_BSPMain(void);
-extern int32 getSP0Info(void);
+/** \brief OSAL OS_BSPMain Entry Point */
+extern int OS_BSPMain(void);
 
-/*
- * The preferred way to obtain the CFE tunable values at runtime is via
- * the dynamically generated configuration object.  This allows a single build
- * of the PSP to be completely CFE-independent.
- */
-
+/** \name PSP Configuration 
+ ** \par Description:
+ ** The preferred way to obtain the CFE tunable values at runtime is via
+ ** the dynamically generated configuration object.  This allows a single build
+ ** of the PSP to be completely CFE-independent.
+*/
+/** \{ */
+/** \brief PSP Main function pointer */
 #define CFE_PSP_MAIN_FUNCTION        (*GLOBAL_CONFIGDATA.CfeConfig->SystemMain)
+/** \brief PSP Non Volatile startup file */
 #define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
+/** \} */
 
 /*
 **  Local Function Prototypes
 */
-static int32 SetSysTasksPrio(void);
-static int32 SetTaskPrio(const char* tName, int32 tgtPrio);
 
-/*
-**  Local Global Variables
-*/
+
+/* Local Global Variables */
+
+/** \brief Reset Type */
 static uint32 ResetType = 0;
+/** \brief Reset Sub Type */
 static uint32 ResetSubtype = 0;
+/** \brief Safe Mode User Data */
 static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
-
+/** \brief Console Shell Task ID */
 static TASK_ID sg_uiShellTaskID = 0;
 
 /*
  * The list of VxWorks task to change the task priority
  * to before finishing initialization.
  */
-
+/** \brief The list of VxWorks task to change the task priority to before finishing initialization. */
 CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
 {
     {"tLogTask", 0},
@@ -90,17 +103,21 @@ CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
     {"ipcom_telnetd", 204}
 };
 
-/******************************************************************************
-**  Function:  CFE_PSP_Main()
+/**
+** \func Main entry-point
 **
-**  Purpose:
-**    vxWorks/PSP Application entry point
+** \par Description:
+** This function is the entry point that the real time OS calls to start cFS.
+** This function will do any BSP/OS-specific setup, then call the entry point
+** of cFS, which is this function.
 **
-**  Arguments:
-**    None
-**  Return:
-**    None
-******************************************************************************/
+** \par Assumptions, External Events, and Notes:
+** cFE should not call this function.  See the description.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_Main(void)
 {
     int32 status = 0;
@@ -109,18 +126,19 @@ void CFE_PSP_Main(void)
 }
 
 
-/******************************************************************************
-**  Function:  CFE_PSP_ProcessPOSTResults()
+/**
+** \func Log the Power On Self Test (POST) results to the system log.
 **
-**  Purpose:
-**    The Power on Self Test results are logged to the system log.
+** \par Description:
+** None
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    None
-******************************************************************************/
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
@@ -159,18 +177,24 @@ void CFE_PSP_ProcessPOSTResults(void)
         OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.");
     }
 }
-/******************************************************************************
-**  Function:  CFE_PSP_ProcessResetType()
+
+/**
+** \func Determines the reset type and logs off nominal resets.
 **
-**  Purpose:
-**     Determines the reset type and logs off nominal resets.
+** \par Description:
+** Reset Types are defined in Aitech headers
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    rest_type - Reset type
-******************************************************************************/
+** \param None
+**
+** \return RESET_SRC_POR 
+** \return RESET_SRC_WDT 
+** \return RESET_SRC_FWDT 
+** \return RESET_SRC_CPCI 
+** \return RESET_SRC_SWR 
+*/
 static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 status = 0;
@@ -265,19 +289,19 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     return resetSrc;
 }
 
-/******************************************************************************
-**  Function:  CFE_PSP_LogSoftwareResetType()
+/**
+** \func Determines if started in safe mode and logs off nominal resets.
 **
-**  Purpose:
-**     Determines if started in safe mode and logs off nominal resets.
+** \par Description:
+** None
 **
-**  Arguments:
-**    None
+** \par Assumptions, External Events, and Notes:
+** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
 **
-**  Return:
-**    rest_type - Reset type
-******************************************************************************/
-
+** \param resetSrc - Reset Type RESET_SRC_REG_ENUM
+**
+** \return None
+*/
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
     const char* resetSrcString = NULL;
@@ -338,19 +362,20 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
             OS_printf("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
-
 }
-/******************************************************************************
-**  Function:  OS_Application_Startup()
+
+/**
+** \func Application startup entry point from OSAL BSP.
 **
-**  Purpose:
-**    Application startup entry point from OSAL BSP.
+** \par Description:
+** SP0 Implementation Specific
 **
-**  Arguments:
-**    (none)
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    (none)
+** \param None
+**
+** \return None
 */
 void OS_Application_Startup(void)
 {
@@ -438,6 +463,20 @@ void OS_Application_Startup(void)
     return;
 }
 
+/**
+** \func Application Run entry point from OSAL BSP.
+**
+** \par Description:
+** SP0 Implementation Specific
+**
+** \par Assumptions, External Events, and Notes:
+** This function is declared but empty so that we don't run the default OSAL
+** equivalent function. The latter will actively suspend the console shell.
+**
+** \param None
+**
+** \return None
+*/
 void OS_Application_Run(void)
 {
     /*
@@ -448,13 +487,18 @@ void OS_Application_Run(void)
 }
 
 /**
- * @brief Function Suspend/Resume the Console Shell Task.
- * 
- * @param suspend true to suspend
- *        suspend false to resume
- * 
- * @return int32 CFE_PSP_SUCCESS or CFE_PSP_ERROR
- * 
+ ** \func Function Suspend/Resume the Console Shell Task.
+ **
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] suspend - True to suspend task, False to resume task
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
  */
 int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
 {
@@ -493,18 +537,23 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
 
     return status;
 }
-/******************************************************************************
-**  Function:  CFE_PSP_GetRestartType()
+
+/**
+** \func Get restart type
 **
-**  Purpose:
-**    Provides the CFE PSP reset type and subtype
+** \par Description:
+** This function returns the last reset type.  If a pointer to a valid
+** memory space is passed in, it returns the reset sub-type in that memory.
+** Right now the reset types are application-specific. For the cFE, they
+** are defined in the cfe_es.h file.
 **
-**  Arguments:
-**    Output - resetSubType - Reset subtype
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    Reset type
-******************************************************************************/
+** \param[out] resetSubType - Pointer to the variable that stores the returned reset sub-type
+**
+** \return Last reset type
+*/
 uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 {
     if (resetSubType != NULL)
@@ -515,26 +564,27 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
     return (ResetType);
 }
 
-
-/******************************************************************************
-**  Function:  SetTaskPrio()
-**
-**  Purpose:
-**    Changes default task priority to a given priority
-**
-**  Arguments:
-**    Input - tName - Task name
-**    Input - tgtPrio - New task priority
-**
-**  Return:
-**     None
-******************************************************************************/
+/**
+ ** \func Changes default task priority to a given priority
+ **
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] tName - Task name
+ ** \param[in] tgtPrio - New task priority
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 {
     int32 tid;
     int32 curPrio = 0;
     int32 newPrio;
-    int32 status = OS_SUCCESS;
+    int32 status = CFE_PSP_SUCCESS;
 
     if ((tName != NULL) && (strlen(tName) > 0))
     {
@@ -549,18 +599,18 @@ static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
         }
 
         tid = taskNameToId((char*)tName);
-        if (tid != ERROR)
+        if (tid != CFE_PSP_ERROR)
         {
-            if (taskPriorityGet(tid, (int *)&curPrio) != ERROR)
+            if (taskPriorityGet(tid, (int *)&curPrio) != CFE_PSP_ERROR)
             {
                 OS_printf("PSP: SetTaskPrio() - Setting %s priority from %d to %d\n",
                        tName, curPrio, newPrio);
 
-                if (taskPrioritySet(tid, newPrio) == ERROR)
+                if (taskPrioritySet(tid, newPrio) == CFE_PSP_ERROR)
                 {
                         OS_printf("PSP: taskPrioritySet() - Failed for %s priority from %d to %d\n",
                                   tName, curPrio, newPrio);
-                        status = OS_ERROR;
+                        status = CFE_PSP_ERROR;
                 }
 
             }
@@ -571,26 +621,26 @@ static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
 }
 
 
-/******************************************************************************
-**  Function:  SetSysTasksPrio()
-**
-**  Purpose:
-**    Changes system task priorities so that they are lower than CFS system
-**    task priorities
-**
-**    Note: tNet0 priority should be adjusted to be right below what ever
-**    gets defined for CI/TO apps in your system if using the network
-**    interface CCSDS/UDP for CI/TO apps.
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    None
-******************************************************************************/
+/**
+ ** \func Changes system task priorities so that they are lower than CFS system
+ ** task priorities
+ **
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** tNet0 priority should be adjusted to be right below what ever
+ ** gets defined for CI/TO apps in your system if using the network
+ ** interface CCSDS/UDP for CI/TO apps.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 static int32 SetSysTasksPrio(void)
 {
-    int32 status = OS_SUCCESS;
+    int32 status = CFE_PSP_SUCCESS;
     int32 index = 0;
 
     int32 numberOfTask = sizeof(VxWorksTaskList)/sizeof(CFE_PSP_OS_Task_and_priority_t);
@@ -601,7 +651,7 @@ static int32 SetSysTasksPrio(void)
     {
         if (SetTaskPrio(VxWorksTaskList[index].VxWorksTaskName, VxWorksTaskList[index].VxWorksTaskPriority) != OS_SUCCESS)
         {
-            status = OS_ERROR;
+            status = CFE_PSP_ERROR;
         }
     }
 
@@ -609,33 +659,30 @@ static int32 SetSysTasksPrio(void)
 }
 
 
-/*TODO have osal add conditional compile when SPE preset instead of FPU
- * Once that has occurred we can remove vxFpscrGet and vxFpscrSet
- * */
-/******************************************************************************
-**  Function:  vxFpscrGet()
-**
-**  Purpose:
-**    Provides stub function for FPU exception handler, vxFpscrGet()
-**
-**    Added this function here so that the code can compile & run without error.
-**
-**    If there's code that calls these functions, we will get a message like so,
-**       > ld < cfe-core.o
-**       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
-**       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
-**
-**    These do not seem to be included in 85xx build, but are defined as
-**       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
-**
-**    If this function is not used, stub it out like below. Otherwise, define it.
-**
-**  Arguments:
-**    None
-**
-**  Return:
-**    0
-*******************************************************************************/
+/**
+ ** \func Provides stub function for FPU exception handler, vxFpscrGet()
+ **
+ ** \par Description:
+ **    Added this function here so that the code can compile & run without error.
+ **
+ **    If there's code that calls these functions, we will get a message like so,
+ **       > ld < cfe-core.o
+ **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
+ **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
+ **
+ **    These do not seem to be included in 85xx build, but are defined as
+ **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
+ **
+ **    If this function is not used, stub it out like below. Otherwise, define it.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
+ ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
+ **
+ ** \param None
+ **
+ ** \return 0 - Integer Zero
+ */
 unsigned int vxFpscrGet(void)
 {
     OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
@@ -643,31 +690,30 @@ unsigned int vxFpscrGet(void)
     return (0);
 }
 
-
-/******************************************************************************
-**  Function:  vxFpscrSet()
-**
-**  Purpose:
-**    Provides stub function for FPU exception handler, vxFpscrSet()
-**
-**    Added this function here so that the code can compile & run without error.
-**
-**    If there's code that calls these functions, we will get a message like so,
-**       > ld < cfe-core.o
-**       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
-**       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
-**
-**    These do not seem to be included in 85xx build, but are defined as
-**       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
-**
-**    If this function is not used, stub it out like below. Otherwise, define it.
-**
-**  Arguments:
-**    Input - x - TODO: Describe x
-**
-**  Return:
-**    None
-*******************************************************************************/
+/**
+ ** \func Provides stub function for FPU exception handler, vxFpscrSet()
+ **
+ ** \par Description:
+ **    Added this function here so that the code can compile & run without error.
+ **
+ **    If there's code that calls these functions, we will get a message like so,
+ **       > ld < cfe-core.o
+ **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
+ **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
+ **
+ **    These do not seem to be included in 85xx build, but are defined as
+ **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
+ **
+ **    If this function is not used, stub it out like below. Otherwise, define it.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
+ ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
+ **
+ ** \param x - Unused
+ **
+ ** \return None
+ */
 void vxFpscrSet(unsigned int x)
 {
     OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);

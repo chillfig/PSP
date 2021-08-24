@@ -70,43 +70,6 @@ can take the ground command directly
 */
 extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
 
-
-/**** Internal Function Prototypes ****/
-
-/**
- * @brief Initialize the CFE PSP Time Task synchronizing with the NTP server
- * 
- * @param uint16 - the update frequency in seconds
- * 
- * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
- */
-int32 CFE_PSP_TIME_Init(uint16);
-
-/**
- * @brief Get OS time and update CFE Time Service. Function will run forever 
- * until task is deleted.
- * 
- */
-void CFE_PSP_Update_OS_Time(void);
-
-/**
- * @brief Start the NTP daemon on OS that sync with NTP server
- * 
- * @return int32 - Task ID or CFE_PSP_ERROR
- */
-int32 CFE_PSP_StartNTPDaemon(void);
-
-/**
- * @brief Stop the NTP daemon on OS that sync with NTP server
- * 
- * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
- * 
- * Note: If NTP task already stopped, return CFE_PSP_ERROR
- * 
- */
-int32 CFE_PSP_StopNTPDaemon(void);
-
-
 /**** Global variables ****/
 
 /**

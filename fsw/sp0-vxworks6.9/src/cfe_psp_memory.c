@@ -1,22 +1,26 @@
-/******************************************************************************
-** File:  cfe_psp_memory.c
-**
-**      Copyright (c) 2004-2011, United States Government as represented by
-**      Administrator for The National Aeronautics and Space Administration.
-**      All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
-**
-** Purpose:
-**   cFE PSP Memory related functions
-**
-**   This is the implementation of the cFE memory areas that have to be
-**   preserved, and the API that is designed to allow access to them.
-**   It also contains memory related routines to return the address of the
-**   kernel code used in the cFE checksum.
-**
-******************************************************************************/
+/**
+ ** \file cfe_psp_memory.c
+ **
+ ** \brief cFE PSP Memory related functions
+ **
+ ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved. \n
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that 
+ ** agreement.
+ **
+ ** \par Description:
+ ** This is the implementation of the cFE memory areas that have to be
+ ** preserved, and the API that is designed to allow access to them.
+ ** It also contains memory related routines to return the address of the
+ ** kernel code used in the cFE checksum.
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ */
 
 /*
 **  Include Files
@@ -50,13 +54,15 @@
 ** Macro Definitions
 */
 
-/* Define cFE core loadable module name*/
+/** \brief Define cFE core loadable module name */
 #define CFE_MODULE_NAME "cfe-core.o"
 
 /*
 **  External Declarations
 */
+/** \brief External Kernel Function GetWrsKernelTextStart */
 extern unsigned int GetWrsKernelTextStart(void);
+/** \brief External Kernel Function GetWrsKernelTextEnd */
 extern unsigned int GetWrsKernelTextEnd(void);
 
 
@@ -68,64 +74,104 @@ extern unsigned int GetWrsKernelTextEnd(void);
    file system will support read/write files to Flash at location from 
    128MB to 1GB.
 */
-/* CDS File name */
-char g_cCDSFilename[10] = "/ffx0/CDS";
+
+/**
+ ** \brief CDS File name in File System
+ ** \par Description:
+ ** Fully qualified path of where the CDS file will be stored.
+ */
+char g_cCDSFilename[10] = CFE_PSP_CFE_FLASH_FILEPATH;
 
 /* Set the default CDS reading method. It assumes the reserved CDS area on RAM is always correct */
+/** \brief CDS Read Method */
 uint8 g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_DEFAULT;
 
 /* This static variable will store the calculated CRC for previous CDS changed data */
+/** \brief CRC value of CDS content */
 static uint32  sg_uiCDSCrc = 0;
 
-
+/** \brief Task Priority of Memory Scrubbing Task */
 static osal_priority_t sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
 
 
 /**
- * @brief Contains the Active Memory Scrubbing Task ID
- *        If 0, task is not running
+ ** \brief Contains the Active Memory Scrubbing Task ID
+ ** \par Description:
+ ** If 0, task is not running
  */
 static uint32 sg_uiMemScrubTask_id = 0;
 
+/**
+ ** \brief Contains the Active Memory Scrubbing Start Address
+ ** \par Description:
+ ** The start address can be anything in the address space.
+ */
 static uint32 sg_uiMemScrubStartAddr = 0;
+
+/**
+ ** \brief Contains the Active Memory Scrubbing End Address
+ ** \par Description:
+ ** End Address cannot be larger than the maximum RAM
+ */
 static uint32 sg_uiMemScrubEndAddr = 0;
+
+/**
+ ** \brief Contains the Active Memory Scrubbing Current Page
+ ** \par Description:
+ ** Current page that the task is working on. This value gets
+ ** reset whenever task restart.
+ */
 static uint32 sg_uiMemScrubCurrentPage = 0;
+
+/**
+ ** \brief Contains the Active Memory Scrubbing Total Pages
+ ** \par Description:
+ ** Total number of pages processed since the start of the task. This value gets
+ ** reset whenever task restart.
+ */
 static uint32 sg_uiMemScrubTotalPages = 0;
 
 /**
- * @brief Contains the address of the end of RAM
- *        This is useful when cFS is used with hardware that different RAM 
- *        memory size.
- * 
+ ** \brief Contains the address of the end of RAM
+ ** \par Description:
+ ** This variable is filled out once during boot and never changed again. Its
+ ** value reflects the amount of RAM of the system. When moving cFS from SP0 to
+ ** SP0-s, the value changes automatically. Value is also used for checking for
+ ** out of range addresses.
+ ** 
  */
 static uint32 sg_endOfRam = 0;
 
-/*
-** Pointer to the vxWorks USER_RESERVED_MEMORY area
-** The sizes of each memory area is defined in os_processor.h for this architecture.
-*/
+/**
+ ** \brief Pointer to the vxWorks USER_RESERVED_MEMORY area
+ ** \par Description:
+ ** The sizes of each memory area is defined in os_processor.h for this architecture.
+ */
 CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
 
+/** \brief Pointer to the reserved memory block */
 CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
+
 /*
 *********************************************************************************
 ** CDS related functions
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_GetCDSSize
+/**
+** \func Get the size of the Critical Data Store memory area
 **
-**  Purpose:
-**    This function fetches the size of the OS Critical Data Store area.
+** \par Description:
+** This function fetches the size of the OS Critical Data Store memory area.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Arguments:
-**    Output - pSizeOfCds - Pointer to variable that stores size of CDS
+** \param[out] SizeOfCDS - Pointer to the variable that stores the returned memory size
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 {
    int32 return_code;
@@ -142,99 +188,104 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
    return(return_code);
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_SetReadCDSMethod
+/**
+** \func Set the CDS reading method
 **
-**  Purpose:
-**    This function set the CDS reading method(use CRC, always read from Flash,
-**    or trust the CDS reserved memory in RAM is correct.
+** \par Description:
+** This function set the CDS reading method(use CRC, always read from Flash,
+** or trust the CDS reserved memory in RAM is correct.
 **
-**  Arguments:
-**    Input - ucMethod - Reading method
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return: None
-******************************************************************************/
+** \param[in] ucMethod - Reading method
+**
+** \return None
+*/
 void CFE_PSP_SetReadCDSMethod(uint8 ucMethod)
 {
   g_CDSReadMethod = ucMethod;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_GetReadCDSMethod
+/**
+** \func Get the CDS reading method
 **
-**  Purpose:
-**    This function get the CDS reading method(use CRC, always read from Flash,
-**    or trust the CDS reserved memory in RAM is correct.
+** \par Description:
+** This function get the CDS reading method(use CRC, always read from Flash,
+** or trust the CDS reserved memory in RAM is correct.
 **
-**  Arguments: None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return: 
-**    CFE_PSP_CDS_READ_METHOD_DEFAULT: Trust the CDS data on RAM (no CRC or read from Flash)
-**    CFE_PSP_CDS_READ_METHOD_CRC: Check the CRC first then read from Flash if CRC mis-matched
-**    CFE_PSP_CDS_READ_METHOD_FLASH: Always read from Flash
-******************************************************************************/
+** \param None
+**
+** \return #CFE_PSP_CDS_READ_METHOD_DEFAULT - Trust the CDS data on RAM (no CRC or read from Flash)
+** \return #CFE_PSP_CDS_READ_METHOD_CRC - Check the CRC first then read from Flash if CRC mis-matched
+** \return #CFE_PSP_CDS_READ_METHOD_FLASH - Always read from Flash
+*/
 uint8 CFE_PSP_GetReadCDSMethod()
 {
   return g_CDSReadMethod;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_SetStaticCRC
+/**
+** \func Change the previous calculated CRC value to new provided value
 **
-**  Purpose:
-**    This function change the previous calculated CRC value to new provided value.
-**    This function is just for testing purpose by forcing the CRC mismatched and 
-**    read CDS data from Flash.
+** \par Description:
+** This function change the previous calculated CRC value to new provided value.
+** This function is just for testing purpose by forcing the CRC mismatched and 
+** read CDS data from Flash.
 **
-**  Arguments:
-**    Input - uiNewCRC - New force change value for static CRC variable
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return: None
-******************************************************************************/
+** \param uiNewCRC - New CRC
+**
+** \return None
+*/
 void CFE_PSP_SetStaticCRC(uint32 uiNewCRC)
 {
   sg_uiCDSCrc = uiNewCRC;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_GetStaticCRC
+/**
+** \func Get the previous calculated CRC value
 **
-**  Purpose:
-**    This function get the previous calculated CRC value.
+** \par Description:
+** None
 **
-**  Arguments: None
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    The previous calculated CRC from last write or read from Flash
-******************************************************************************/
-uint32 CFE_PSP_GetStaticCRC()
+** \param None
+**
+** \return Calculated CRC value
+*/
+uint32 CFE_PSP_GetStaticCRC(void)
 {
   return sg_uiCDSCrc;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_CalculateCRC
-**
-**  Purpose:
-**    This function calculate 16 bits CRC from input data.
-**
-**  Arguments:
-**    Input - DataPtr - Pointer to the input data buffer
-**    Input - DataLength - Data buffer length
-**    Input - InputCRC - A starting value for use in the CRC calculation.  
-**                       This parameter allows the user to calculate the CRC 
-**                       of non-contiguous blocks as a single value. 
-**                       Nominally, the user should set this value to zero.
-**
-**  Return: 
-**    The result of the CRC calculation on the specified memory block, 
-**    or error code \ref CFEReturnCodes
-******************************************************************************/
-/* 
-TODO: Replace with:
-uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
-Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
-*/
+/**
+ ** \func Calculate 16 bits CRC from input data
+ **
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** InputCRC allows the user to calculate the CRC of non-contiguous blocks as a
+ ** single value. Nominally, the user should set this value to zero.
+ **
+ ** CFE now includes a function to calculate the CRC.
+ ** uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
+ ** Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
+ **
+ ** \param[inout] DataPtr  - Pointer to the input data buffer
+ ** \param[inout] DataLength  - Data buffer length
+ ** \param[inout] InputCRC  - A starting value for use in the CRC calculation.
+ **
+ ** \return Calculated CRC value
+ */
 uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
 {
     uint32  i;
@@ -299,20 +350,22 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 
 } /* End of CFE_PSP_CalculateCRC() */
 
-/******************************************************************************
-**  Function: CFE_PSP_ReadCDSFromFlash
+/**
+** \func Read the whole CDS data from Flash
 **
-**  Purpose:
-**    This function read the whole CDS data on Flash to reserved memory on RAM.
-**    It took about 117ms to read 131072 bytes (128KB) whole CDS area from Flash. 
+** \par Description:
+** This function read the whole CDS data on Flash to reserved memory on RAM.
 **
-**  Arguments:
-**    Output - puiReadBytes - Number of read bytes
+** \warning It took about 117ms to read 131072 bytes (128KB) whole CDS area from Flash. 
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param puiReadBytes - Number of read bytes
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
   int32   iCDSFd;
@@ -371,20 +424,20 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
   return iReturnCode;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_WriteCDSToFlash
+/**
+** \func Write the whole CDS data on Flash
 **
-**  Purpose:
-**    This function write the whole CDS data from reserved memory on RAM to Flash.
-**    It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash. 
+** \par Description:
+** This function write the whole CDS data from reserved memory on RAM to Flash.
 **
-**  Arguments:
-**    Output - puiWroteBytes - Number of written bytes
+** \par Assumptions, External Events, and Notes:
+** It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash.
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param puiWroteBytes - Number of written bytes
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
   int32   iCDSFd;
@@ -443,21 +496,22 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
   return iReturnCode;
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_WriteToCDS
+/**
+** \func Write to the Critical Data Store memory area
 **
-**  Purpose:
-**    This function writes to the CDS Block.
+** \par Description:
+** This function write the specified data to the specified memory area of the CDS.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Arguments:
-**    Input - PtrToDataToWrite - Pointer to the input data buffer
-**    Input - CDSOffset - Memory offset of CDS
-**    Input - NumBytes - Number of bytes to write to CDS
+** \param[in] PtrToDataToWrite - Pointer to the data buffer to be written
+** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
+** \param[in] NumBytes - Number of bytes to be written
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 NumBytes)
 {
   uint8 *CopyPtr;
@@ -507,22 +561,22 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
   return(return_code);
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_ReadFromCDS
+/**
+** \func Read from the Critical Data Store memory area
 **
-**  Purpose:
-**    This function reads from the CDS Block.
+** \par Description:
+** This function reads from the CDS memory area.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Arguments:
-**    Output - PtrToDataToRead - Pointer to output data buffer
-**    Input  - CDSOffset - Memory offset of CDS
-**    Input  - NumBytes - Number of bytes to read from CDS
+** \param[out] PtrToDataToRead - Pointer to the data buffer that stores the read data
+** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
+** \param[in] NumBytes - Number of bytes to be read
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
-
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumBytes)
 {
   uint8   *CopyPtr;
@@ -556,13 +610,19 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumByt
             /* Update the static CRC variable with new read CDS data from Flash */
             sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                               CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-          }        
+          }
         }
       }
       /* In the always read from Flash mode */
       else if(g_CDSReadMethod == CFE_PSP_CDS_READ_METHOD_FLASH) 
       {
         return_code = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
+        if( return_code == CFE_PSP_SUCCESS)
+        {
+          /* Update the static CRC variable with new read CDS data from Flash */
+          sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+        }
       }
 
       /* Only copy the CDS data to user prefered pointer when the CDS memory in RAM is correct */
@@ -589,22 +649,23 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumByt
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_GetResetArea
+/**
+** \func Get the location and size of the ES Reset memory area
 **
-**  Purpose:
-**     This function returns the location and size of the ES Reset information area.
-**     This area is preserved during a processor reset and is used to store the
-**     ER Log, System Log and reset related variables
+** \par Description:
+** This function returns the location and size of the ES Reset memory area. This area 
+** is preserved during a processor reset and is used to store the ER Log, System Log 
+** and reset related variables.
 **
-**  Arguments:
-**    Output - PtrToResetArea - Pointer to the reset memory address
-**    Output - SizeOfResetArea - Pointer to variable that stores size of memory
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param[out] PtrToResetArea - Pointer to the variable that stores the returned memory address
+** \param[out] SizeOfResetArea - Pointer to the variable that stores the returned memory size
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetResetArea (cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 {
    int32   return_code;
@@ -629,21 +690,21 @@ int32 CFE_PSP_GetResetArea (cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_GetUserReservedArea
+/**
+** \func Get the location and size of the cFE user-reserved memory area
 **
-**  Purpose:
-**    This function returns the location and size of the memory used for the cFE
-**    user-reserved area.
+** \par Description:
+** This function returns the location and size of the cFE user-reserved memory area.
 **
-**  Arguments:
-**    Output - PtrToUserArea - Pointer to user-reserved memory address
-**    Output - SizeOfUserArea - Pointer to variable that stores size of memory
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param[out] PtrToUserArea - Pointer to the variable that stores the returned memory address
+** \param[out] SizeOfUserArea - Pointer to the variable that stores the returned memory size
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea )
 {
    int32   return_code;
@@ -668,21 +729,21 @@ int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_GetVolatileDiskMem
+/**
+** \func Get the location and size of the cFE volatile memory area
 **
-**  Purpose:
-**    This function returns the location and size of the memory used for the cFE
-**     volatile disk.
+** \par Description:
+** This function returns the location and size of the cFE volatile memory area.
 **
-**  Arguments:
-**    Output - PtrToVolDisk - Pointer to the volatile disk memory address
-**    Output - SizeOfVolDisk - Pointer to variable that stores size of memory
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param[out] PtrToVolDisk - Pointer to the variable that stores the returned memory address
+** \param[out] SizeOfVolDisk - Pointer to the variable that stores the returned memory size
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
 {
    int32   return_code;
@@ -710,18 +771,24 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_InitProcessorReservedMemory
-**
-**  Purpose:
-**    This function performs the top level reserved memory initialization.
-**
-**  Arguments:
-**    Input - RestartType - type of re-start
-**
-**  Return:
-**    CFE_PSP_SUCCESS
-******************************************************************************/
+/**
+ ** \func Initialize the processor's reserved memory
+ **
+ ** \par Description:
+ ** This function initializes all of the memory in the BSP that is preserved on 
+ ** a processor reset. The memory includes the Critical Data Store, the ES Reset Area,
+ ** the Volatile Disk Memory and the User Reserved Memory.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This initializes based on the reset type.  Typically, the information
+ ** is preserved on a processor reset, and cleared/reinitialized on a power-on
+ ** reset.
+ **
+ ** \param[in] RestartType - The reset type
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 {
     cpuaddr start_addr;
@@ -739,10 +806,12 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     /* If the VxWorks reserved memory size is smaller than the requested, print error */
     if(PSP_ReservedMemBlock.BlockSize > reserve_memory_size)
     {
-      OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, Total Size = 0x%lx, VxWorks Reserved Size=0x%lx\n",
+      OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
+                "Total Size = 0x%lx, "
+                "VxWorks Reserved Size=0x%lx\n",
                (unsigned long)PSP_ReservedMemBlock.BlockSize,
                (unsigned long)reserve_memory_size);
-      return_code = OS_ERROR;
+      return_code = CFE_PSP_ERROR;
 
     }
     else if ( RestartType != CFE_PSP_RST_TYPE_PROCESSOR )
@@ -769,7 +838,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         {
           OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
                      g_cCDSFilename);
-          return_code = OS_ERROR;
+          return_code = CFE_PSP_ERROR;
         }
         /* If CDS file was create, print success message and close CDS file */
         else
@@ -795,7 +864,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         {
           OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n"); 
           /* Return error if read failed */
-          return_code = OS_ERROR;
+          return_code = CFE_PSP_ERROR;
         }
         /* Close the CDS file after opened and read */
         close(iCDSFd);
@@ -805,19 +874,19 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
    return(return_code);
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_SetupReservedMemoryMap
-**
-**  Purpose:
-**    Set up the CFE_PSP_ReservedMemoryMap global data structure
-**    This only sets the pointers, it does not initialize the data.
-**
-**  Arguments:
-**    (none)
-**
-**  Return:
-**    (none)
-*/
+/**
+ ** \func Initialize the CFE_PSP_ReservedMemoryMap global object
+ **
+ ** \par Description:
+ ** This function initializes the CFE_PSP_ReservedMemoryMap global object.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function must be called by the startup code before the map is accessed.
+ **
+ ** \param None
+ **
+ ** \return None
+ */
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
     cpuaddr   start_addr;
@@ -901,20 +970,35 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     /*
      * Set up the "RAM" entry in the memory table.
      */
-    status = CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, sg_endOfRam, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
+    status = CFE_PSP_MemRangeSet(
+      0, 
+      CFE_PSP_MEM_RAM, 
+      0, 
+      sg_endOfRam, 
+      CFE_PSP_MEM_SIZE_DWORD, 
+      CFE_PSP_MEM_ATTR_READWRITE
+      );
     if (status != OS_SUCCESS)
     {
         OS_printf("CFE_PSP_MemRangeSet returned error\n");
     }
-
 }
 
-/******************************************************************************
- * Function: CFE_PSP_DeleteProcessorReservedMemory
- *
- * No action on SP0 - reserved block is statically allocated as user reserved
- * memory.
- * Implemented for API consistency with other PSPs.
+/**
+ ** \func Delete the processor's reserved memory
+ **
+ ** \par Description:
+ ** This function unlinks the memory segments within the CFE_PSP_ReservedMemoryMap
+ ** global object.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function is only relevant on systems where the objects are implemented
+ ** as kernel shared memory segments.  The segments will be marked for deletion
+ ** but the local maps remain usable until the process ends.
+ **
+ ** \param None
+ **
+ ** \return None
  */
 void CFE_PSP_DeleteProcessorReservedMemory(void)
 {
@@ -926,21 +1010,21 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
 *********************************************************************************
 */
 
-/******************************************************************************
-**  Function: CFE_PSP_GetKernelTextSegmentInfo
+/**
+** \func Get the location and size of the kernel text segment
 **
-**  Purpose:
-**    This function returns the start and end address of the kernel text segment.
-**     It may not be implemented on all architectures.
+** \par Description:
+** This function returns the location and size of the kernel text segment of the memory area.
 **
-**  Arguments:
-**    Output - PtrToKernelSegment - Pointer to kernel segment memory address
-**    Output - SizeOfKernelSegment - Pointer to variable that stores memory size
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param[out] PtrToKernelSegment - Pointer to the variable that stores the returned memory address
+** \param[out] SizeOfKernelSegment - Pointer to the variable that stores returned memory size
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *SizeOfKernelSegment)
 {
    int32 return_code;
@@ -970,21 +1054,21 @@ int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *Size
    return(return_code);
 }
 
-/******************************************************************************
-**  Function: CFE_PSP_GetCFETextSegmentInfo
+/**
+** \func Get the location and size of the cFE text segment
 **
-**  Purpose:
-**    This function returns the start and end address of the CFE text segment.
-**     It may not be implemented on all architectures.
+** \par Description:
+** This function returns the location and size of the cFE text segment of the memory area.
 **
-**  Arguments:
-**    Output - PtrToCFESegment - Pointer to CFE segment memory address
-**    Output - SizeOfCFESegment - Pointer to variable that stores memory size
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    CFE_PSP_SUCCESS
-**    CFE_PSP_ERROR
-******************************************************************************/
+** \param[out] PtrToCFESegment - Pointer to the variable that stores the returned memory address
+** \param[out] SizeOfCFESegment - Pointer to the variable that stores returned memory size
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
 int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFESegment)
 {
    int32       return_code;
@@ -1007,7 +1091,7 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
       else
       {
          status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
-         if ( status != ERROR )
+         if ( status != CFE_PSP_ERROR )
          {
             *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
             *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
@@ -1026,23 +1110,26 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
 /******** PSP Active Memory Scrubbing ********/
 
 /**
- * @internal
- * 
- * @brief Set the Memory Scrubbing parameters
- * 
- * NOTE: After calling this function, the new settings will be applied in the 
- *       next call to the Activate Memory Scrubbing funtion.
- * 
- * @param[in] newStartAddr Address to start from, usually zero.
- * @param[in] newEndAddr Address to end to, usually end of physical RAM. If this is 
- *            set to a value larger than the actual physical memory limit, the 
- *            function will use the phyisical memory limit.
- * @param[in] memScrubTask_Priority task priority. Priority can only be set between
- *            MEMSCRUB_PRIORITY_UP_RANGE and MEMSCRUB_PRIORITY_DOWN_RANGE.
- *            Default is set by MEMSCRUB_DEFAULT_PRIORITY.
- * 
- * @endinternal
- */
+** \func Set the Memory Scrubbing parameters
+** 
+** \par Description:
+** This functions set the memory scrubbing parameters.
+**
+** \par Assumptions, External Events, and Notes:
+** After calling this function, the new settings will be applied in the 
+** next call to the Activate Memory Scrubbing funtion.
+** If newEndAddr is set to a value larger than the actual physical memory limit,
+** the function will use the phyisical memory limit.
+** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
+** #MEMSCRUB_PRIORITY_DOWN_RANGE defined in cfe_psp_config.h. 
+** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.
+** 
+** \param[in] newStartAddr - Memory address to start from, usually zero
+** \param[in] newEndAddr - Memory address to end at, usually end of the physical RAM
+** \param[in] task_priority - The task priority
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
   /* If top of memory has not been initialized, then initialize it */
@@ -1100,12 +1187,19 @@ void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority
 } /* end CFE_PSP_MEM_SCRUB_Set */
 
 /**
- * @internal
- * 
- * @brief Function stop memory scrubbing task and reset total number of scrubbed pages
- * 
- * @endinternal
- */
+** \func Stop the memory scrubbing task
+**
+** \par Description:
+** This function deletes the Memory Scrubbing task.  
+** The task is deleted and the statistics are reset.
+** 
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param - None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Delete(void)
 {
   if (OS_TaskDelete(sg_uiMemScrubTask_id) == OS_SUCCESS)
@@ -1118,12 +1212,20 @@ void CFE_PSP_MEM_SCRUB_Delete(void)
 }
 
 /**
- * @internal
- * 
- * @brief Function prints the status of Active Memory Scrubbing
- * 
- * @endinternal
- */
+** \func Print the Memory Scrubbing statistics
+** 
+** \par Description:
+** This function outputs to the console the following Memory Scrubbing statistics:
+** Start memory address, End memory address, current memory page and total memory pages
+**
+** \par Assumptions, External Events, and Notes:
+** Start memory address is usually 0. End memory address is usually set to the 
+** last value of RAM address. Note that a page is 4098 bytes.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Status(void)
 {
   if (sg_uiMemScrubTask_id > 0)
@@ -1142,13 +1244,18 @@ void CFE_PSP_MEM_SCRUB_Status(void)
 }
 
 /**
- * @internal
- * 
- * @brief Run Active Memory Scrubbing using the specific parameters
- *        This is the actual task performing the memory scrubbing
- * 
- * @endinternal
- */
+** \func Main function for the Memory Scrubbing task
+**
+** \par Description:
+** This is the main function for the Memory Scrubbing task.
+**
+** \par Assumptions, External Events, and Notes:
+** The scrubMemory function implemented by AiTech may never return an error.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Task(void)
 {
 	STATUS status;
@@ -1160,7 +1267,7 @@ void CFE_PSP_MEM_SCRUB_Task(void)
         /* Call the active memory scrubbing function */
         status = scrubMemory(sg_uiMemScrubStartAddr, sg_uiMemScrubEndAddr, &sg_uiMemScrubCurrentPage);
 
-        if ( status == ERROR )
+        if ( status == CFE_PSP_ERROR )
         {
           OS_printf("PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
         }
@@ -1174,12 +1281,18 @@ void CFE_PSP_MEM_SCRUB_Task(void)
 }
 
 /**
- * @internal
- * 
- * @brief Initialize the memory scrubbing task
- * 
- * @endinternal
- */
+** \func Initialize the Memory Scrubbing task
+**
+** \par Description:
+** This function starts the Memory Scrubbing task as a child thread.
+**
+** \par Assumptions, External Events, and Notes:
+** The scrubMemory function implemented by AiTech may never return an error.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Init(void)
 {
     /* Initialize */
@@ -1215,15 +1328,19 @@ void CFE_PSP_MEM_SCRUB_Init(void)
 }
 
 /**
- * @internal
- * 
- * @brief Report if the Memory Scrubbing Task is running
- * 
- * @return true if task is running
- * @return false if task not running
- * 
- * @endinternal
- */
+** \func Check if the Memory Scrubbing task is running
+** 
+** \par Description:
+** This function provides the status whether the Memory Scrubbing task is running.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param - None
+**
+** \return true - If task is running
+** \return false - If task is not running
+*/
 bool CFE_PSP_MEM_SCRUB_isRunning(void)
 {
   int32 status;
@@ -1241,13 +1358,21 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
   }
 }
 
+
 /**
- * @internal
- * 
- * @brief Starts the Active Memory Scrubbing task
- * 
- * @endinternal
- */
+** \func Enable the Memory Scrubbing task
+**
+** \par Description:
+** This function enables the Memory Scrubbing task.
+**
+** \par Assumptions, External Events, and Notes:
+** If the task is already running, do nothing. If the task is not running,
+** then start it.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Enable(void)
 {
   /* If task is not running, initilize it */
@@ -1262,12 +1387,19 @@ void CFE_PSP_MEM_SCRUB_Enable(void)
 }
 
 /**
- * @internal
- * 
- * @brief Stops the Active Memory Scrubbing task
- * 
- * @endinternal
- */
+** \func Disable the Memory Scrubbing task
+**
+** \par Description:
+** This function disables the Memory Scrubbing task.
+**
+** \par Assumptions, External Events, and Notes:
+** If the task is already running, delete it. If the task is not running,
+** then do nothing.
+**
+** \param None
+**
+** \return None
+*/
 void CFE_PSP_MEM_SCRUB_Disable(void)
 {
   /* If task is running, delete it */
