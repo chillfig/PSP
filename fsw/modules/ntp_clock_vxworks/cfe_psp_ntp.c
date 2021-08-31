@@ -453,53 +453,108 @@ int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 }
 
 /**
-** \func Update cFE time
-** 
-** \par Description:
-** This function updates the time used by the cFE Time service.
-**
-** \par Assumptions, External Events, and Notes:
-** This function will run forever until its task is deleted.
-** 
-** \param None
-**
-** \return None
-*/
+ ** \brief Check if CFS Time Service is up and running
+ ** 
+ ** \par Description:
+ ** It is used on module initialization to wait until the CFE Time Service is
+ ** running and ready.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return true - CFE Time Service is ready
+ ** \return false - CFE Time Service is not ready
+ **
+ ** \sa CFE_PSP_Update_OS_Time
+ **
+ */
+bool CFE_PSP_TimeService_Ready(void)
+{
+    bool       return_code = true;
+    TASK_ID     ret;
+    
+    ret = taskNameToId("TIME_1HZ_TASK");
+    if (ret == ERROR)
+    {
+        return_code = false;
+    }
+    return return_code;
+}
+
+
+/**
+ ** \func Update cFE time
+ ** 
+ ** \par Description:
+ ** This function updates the time used by the cFE Time service.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will run forever until its task is deleted.
+ ** 
+ ** \param None
+ **
+ ** \return None
+ */
 void CFE_PSP_Update_OS_Time(void)
 {
     CFE_TIME_SysTime_t  myT;
     int32               ret = OS_SUCCESS;
     uint32              sleep_time;
+    uint32              error_counter = 0;
 
-    while (1)
+    /*
+    Delay the start of the synchronization until we verify that the 
+    CFE Time Service is running
+    If the CFE Time Service does not load in the next 500ms * 120 = 60 seconds,
+    something is broken.
+    */
+    while (CFE_PSP_TimeService_Ready() == false)
     {
-        if (ret == OS_SUCCESS)
+        error_counter += 1;
+        OS_TaskDelay(500);
+        if (error_counter > 120)
         {
-            /* If the flag is enabled */
-            if (sg_bEnableGetTimeFromOS_flag)
+            OS_printf(PRE_PRINT_SCOPE "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n");
+            break;
+        }
+    }
+
+    /* If within 60 seconds the CFE Time Service is ready, start NTP Sync */
+    if (error_counter < 120)
+    {
+        OS_printf(PRE_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n");
+        while (1)
+        {
+            if (ret == OS_SUCCESS)
             {
-                /* Get real time clock from OS */
-                ret = CFE_PSP_Get_OS_Time(&myT);
-                
-                /* If there are no errors, save the time in CFE Time Service using CFE_TIME_SetTime() */
-                if (ret == CFE_PSP_SUCCESS)
+                /* If the flag is enabled */
+                if (sg_bEnableGetTimeFromOS_flag)
                 {
-                    CFE_TIME_SetTime(myT);
-                }
-                else
-                {
-                    /* OS has not sync with NTP server yet. */
-                    printf(PRE_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
+                    /* Get real time clock from OS */
+                    ret = CFE_PSP_Get_OS_Time(&myT);
+                    
+                    /* If there are no errors, save the time in CFE Time Service using CFE_TIME_SetTime() */
+                    if (ret == CFE_PSP_SUCCESS)
+                    {
+                        CFE_TIME_SetTime(myT);
+                    }
+                    else
+                    {
+                        /* OS has not sync with NTP server yet. */
+                        printf(PRE_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
+                    }
                 }
             }
-        }
-        else
-        {
-            printf(PRE_PRINT_SCOPE "OS_TaskDelay error\n");
-        }
+            else
+            {
+                printf(PRE_PRINT_SCOPE "OS_TaskDelay error\n");
+            }
 
-        sleep_time = sg_uiOSTimeSync_Sec * 1000U;
-        ret = OS_TaskDelay(sleep_time);
+            sleep_time = sg_uiOSTimeSync_Sec * 1000U;
+            ret = OS_TaskDelay(sleep_time);
+        }
     }
 }
 
