@@ -100,7 +100,9 @@ CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
     {"tNet0", 25},         /* Should be set right below CI/TO */
     {"ipftps", 202},
     {"ipcom_syslogd", 205},
-    {"ipcom_telnetd", 204}
+    {"ipcom_telnetd", 204},
+    {"ipcom_egd", 253},
+    {"FTCMP00", 253}
 };
 
 /**

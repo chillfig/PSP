@@ -208,9 +208,11 @@ typedef struct
 ** \brief Memory Scrub Default Priority
 ** \par Description:
 ** Set the Active Memory Scrub Task Default Priority
+**
+** \par Note: Must be set to lowest possible value
 ** 
  */
-#define MEMSCRUB_DEFAULT_PRIORITY           250
+#define MEMSCRUB_DEFAULT_PRIORITY           254
 
 /**
 ** \brief Memory Scrub Maximum Allowed Priority
@@ -219,7 +221,7 @@ typedef struct
 ** Task Priority can be changed using CFE_PSP_MEM_SCRUB_Set.
 ** Up Range priority is capped by VxWorks OS.
  */
-#define MEMSCRUB_PRIORITY_UP_RANGE          254
+#define MEMSCRUB_PRIORITY_UP_RANGE          255
 
 /**
 ** \brief Memory Scrub Minimum Allowed Priority
