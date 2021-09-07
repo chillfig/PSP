@@ -1,16 +1,15 @@
 /**
- ** \file:  cfe_psp_sp0_info.c
+ ** \file cfe_psp_sp0_info.c
  **
  ** \brief API for collecting SP0(s) hardware and software information
  **
  ** \copyright
  ** Copyright 2016-2019 United States Government as represented by the 
  ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** used, distributed and modified only pursuant to the terms of that agreement.
  **
  ** \par Description:
  ** Functions here allow CFS to provide a method to probe 
@@ -30,6 +29,7 @@
 #include <stdio.h>
 #include "ioLib.h"
 #include <vxWorks.h>
+#include <float.h>
 
 /* BSP Specific */
 #include "aimonUtil.h"
@@ -72,18 +72,22 @@
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR - Never returns it
 */
-int32 getSP0Info(void)
+int32 PSP_SP0_GetInfo(void)
 {
-    RESET_SRC_REG_ENUM resetSrc = 0;
-    USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
-    int active_boot = 0;
-    int32 status = 0;
-    float temperature;
-    float voltage;
-    int i;
-    uint64 bitExecuted = 0ULL;
-    uint64 bitResult   = 0ULL;
-    int ret_code = CFE_PSP_SUCCESS;
+    RESET_SRC_REG_ENUM          resetSrc = 0;
+    USER_SAFE_MODE_DATA_STRUCT  safeModeUserData = {};
+    float                       fTotalMemory_MiB = 0.0f;
+    int                         active_boot = 0;
+    char                        *pActiveBootString = NULL;
+    char                        active_boot_primary[] = "PRIMARY";
+    char                        active_boot_secondary[] = "SECONDARY";
+    int32                       status = 0;
+    float                       fTemperature = 0.0f;
+    float                       fVoltage = 0.0f;
+    int                         i = 0;
+    uint64                      bitExecuted = 0ULL;
+    uint64                      bitResult   = 0ULL;
+    int                         ret_code = CFE_PSP_SUCCESS;
 
     /*
     This routine returns the model name of the CPU board. The returned string 
@@ -103,7 +107,8 @@ int32 getSP0Info(void)
     physical memory with the macro LOCAL_MEM_SIZE in config.h.
     */
     sp0_info_table.systemPhysMemTop = (uint32) sysPhysMemTop();
-
+    
+    fTotalMemory_MiB = (float)(sp0_info_table.systemPhysMemTop / 1048576); /* 1048576 is 1 mebibyte */
     /*
     This routine returns the processor number for the CPU board, which is set 
     with sysProcNumSet( ).
@@ -140,18 +145,43 @@ int32 getSP0Info(void)
     {
         sp0_info_table.systemLastResetReason = (uint8) resetSrc;
     }
+    else
+    {
+        ret_code = OS_ERROR;
+    }
 
     /* Do I need this: ReadSafeModeUserData() */
     status = ReadSafeModeUserData(&safeModeUserData,0);
     if (status == OS_SUCCESS)
     {
+        if (safeModeUserData.sbc == SM_LOCAL_SBC)
+        {
+            snprintf(sp0_info_table.safeModeUserData, 
+                    SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
+                    "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
+                    safeModeUserData.safeMode,
+                    "LOCAL",
+                    safeModeUserData.reason,
+                    safeModeUserData.mckCause);
+        }
+        else
+        {
+            snprintf(sp0_info_table.safeModeUserData, 
+                    SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
+                    "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
+                    safeModeUserData.safeMode,
+                    "REMOTE",
+                    safeModeUserData.reason,
+                    safeModeUserData.mckCause);
+        }
+    }
+    else
+    {
         snprintf(sp0_info_table.safeModeUserData, 
-                256, 
-                "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
-                safeModeUserData.safeMode,
-                (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-                safeModeUserData.reason,
-                safeModeUserData.mckCause);
+                 SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
+                 "OS_Error Retrieving SafeModeUserData"
+                );
+        ret_code = OS_ERROR;
     }
 
     /*
@@ -161,6 +191,14 @@ int32 getSP0Info(void)
     alternative boot device.
     */
     sp0_info_table.active_boot = (uint8) returnSelectedBootFlash();
+    if (sp0_info_table.active_boot == 1)
+    {
+        pActiveBootString = active_boot_primary;
+    }
+    else
+    {
+        pActiveBootString = active_boot_secondary;
+    }
 
     /*
     This routine returns the system clock rate. The number of ticks per second 
@@ -178,21 +216,35 @@ int32 getSP0Info(void)
     for (i = 0; i < 4; i++)
     {
         /* This function takes about 3msec each time */
-        status = tempSensorRead(i, 0, &temperature, 0);
+        status = tempSensorRead(i, 0, &fTemperature, 0);
+        /* If temperature is read successfully, save on table */
         if (status == OS_SUCCESS)
         {
-            sp0_info_table.temperatures[i] = temperature;
+            sp0_info_table.temperatures[i] = fTemperature;
+        }
+        /* If temperature reading is unsuccessful, save lowest possible number to show error */
+        else
+        {
+            sp0_info_table.temperatures[i] = FLT_MIN;
+            ret_code = OS_ERROR;
         }
     }
 
-    /**** Voltages ****/
+    /**** Read SP0 Voltages ****/
     for (i = 1; i < 7; i++)
     {
         /* This function takes about 3msec each time */
-        status = volSensorRead(i, 0, &voltage, 0);
+        status = volSensorRead(i - 1, 0, &fVoltage, 0);
+        /* If voltage is read successfully, save on table */
         if (status == OS_SUCCESS)
         {
-            sp0_info_table.voltages[i-1] = voltage;
+            sp0_info_table.voltages[i - 1] = fVoltage;
+        }
+        /* If voltage reading is unsuccessful, save lowest possible number to show error */
+        else
+        {
+            sp0_info_table.voltages[i - 1] = FLT_MIN;
+            ret_code = OS_ERROR;
         }
     }
 
@@ -202,6 +254,10 @@ int32 getSP0Info(void)
     {
         memcpy(&sp0_info_table.bitExecuted, &bitExecuted, 8);
     }
+    else
+    {
+        ret_code = OS_ERROR;
+    }
 
     /* This function returns the summary of the test results in a 64 bit packed word */
     status = aimonGetBITResults(&bitResult, 0);
@@ -209,11 +265,15 @@ int32 getSP0Info(void)
     {
         memcpy(&sp0_info_table.bitResult, &bitResult, 8);
     }
+    else
+    {
+        ret_code = OS_ERROR;
+    }
 
     /* Output to local string buffer */
     sp0_data_dump_length = snprintf(
         sp0_data_dump, 
-        1000,
+        SP0_TEXT_BUFFER_MAX_SIZE,
         "SysModel: %s\nSysBspRev: %s\n"
         "SysPhysMemTop: 0x%08X (%.0f MiB)\n"
         "sysProcNum: %d\n"
@@ -240,7 +300,7 @@ int32 getSP0Info(void)
         sp0_info_table.systemModel,
         sp0_info_table.systemBspRev,
         sp0_info_table.systemPhysMemTop,
-        (float)(sp0_info_table.systemPhysMemTop/1048576),   /* 1048576 is 1 mebibyte */
+        fTotalMemory_MiB,
         sp0_info_table.systemProcNum,
         sp0_info_table.systemSlotId,
         sp0_info_table.systemStartupUsecTime,
@@ -248,7 +308,7 @@ int32 getSP0Info(void)
         sp0_info_table.systemCoreClockSpeed,
         sp0_info_table.systemLastResetReason,
         sp0_info_table.active_boot,
-        (sp0_info_table.active_boot ? "PRIMARY": "SECONDARY"),
+        pActiveBootString,
         sp0_info_table.systemClkRateGet,
         sp0_info_table.systemAuxClkRateGet,
         sp0_info_table.bitExecuted,
@@ -281,10 +341,10 @@ int32 getSP0Info(void)
 **
 ** \return None
 */
-void printSP0_info_table(void)
+void PSP_SP0_PrintInfoTable(void)
 {
     /* Output to console */
-    printf("\n%s\n",&sp0_data_dump);
+    OS_printf("\n%s\n", &sp0_data_dump);
 }
 
 /**
@@ -302,10 +362,10 @@ void printSP0_info_table(void)
  ** \return None
  **
  */
-void psp_dump_data(void)
+void PSP_SP0_DumpData(void)
 {
-    char filename[] = SP0_DATA_DUMP_FILEPATH;
-    int fd;
+    char    filename[] = SP0_DATA_DUMP_FILEPATH;
+    int     fd = -1;
 
     /* Delete previous dump file if exists */
     remove(filename);

@@ -45,6 +45,7 @@
 #include "cfe_psp_module.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
+#include "psp_verify.h"
 
 /*
 ** Macro Definitions
@@ -78,20 +79,20 @@ extern int OS_BSPMain(void);
 /* Local Global Variables */
 
 /** \brief Reset Type */
-static uint32 ResetType = 0;
+static uint32 g_uiResetType = 0;
 /** \brief Reset Sub Type */
-static uint32 ResetSubtype = 0;
+static uint32 g_uiResetSubtype = 0;
 /** \brief Safe Mode User Data */
-static USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
+static USER_SAFE_MODE_DATA_STRUCT g_safeModeUserData;
 /** \brief Console Shell Task ID */
-static TASK_ID sg_uiShellTaskID = 0;
+static TASK_ID g_uiShellTaskID = 0;
 
 /*
  * The list of VxWorks task to change the task priority
  * to before finishing initialization.
  */
 /** \brief The list of VxWorks task to change the task priority to before finishing initialization. */
-CFE_PSP_OS_Task_and_priority_t VxWorksTaskList[] =
+CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
 {
     {"tLogTask", 0},
     {"tShell0", 201},
@@ -124,6 +125,9 @@ void CFE_PSP_Main(void)
 {
     int32 status = 0;
     status = OS_BSPMain();
+
+    /* At this point, CFS is closing and there is no guarantee that the OS_printf will work. */
+    // UndCC_NextLine(SSET134)
     printf("\nPSP: Exiting CFE_PSP_Main() - OS_BSPMain application status [%d] \n",status);
 }
 
@@ -145,38 +149,40 @@ void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
     uint64 bitResult   = 0ULL;
-    uint32 i;
+    uint64 bitMask     = 0ULL;
+    uint32 i = 0;
 
     if ((aimonGetBITExecuted(&bitExecuted, 0) == OK) &&
         (aimonGetBITResults(&bitResult, 0) == OK))
     {
         /* Only log Power on Self Test that are valid*/
-        for (i=0; i < FWCH_TMR; i++)
+        for (i = 0; i < FWCH_TMR; i++)
         {
-            if (bitExecuted & (1ULL << i))
+            bitMask = (1ULL << i);
+            if (bitExecuted & bitMask)
             {
-                if (bitResult & (1ULL << i))
+                if (bitResult & bitMask)
                 {
-                    OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
+                    OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
                 else
                 {
-                    OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
+                    OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
             }
             else
             {
 
-                OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
+                OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
                         AimonCompletionBlockTestIDStrings[i]);
             }
         }
     }
     else
     {
-        OS_printf("CFE_PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.");
+        OS_printf("PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.\n");
     }
 }
 
@@ -203,89 +209,77 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     RESET_SRC_REG_ENUM resetSrc = 0;
     bool talkative = 1;
 
-    memset(&safeModeUserData, 0, sizeof(safeModeUserData));
+    memset(&g_safeModeUserData, 0, sizeof(g_safeModeUserData));
 
     status  = ReadResetSourceReg(&resetSrc,talkative);
-    if (status == OS_SUCCESS )
+    if (status == OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: Reset Register = %02X\n",resetSrc);
+        OS_printf("PSP: Reset Register = %02X\n",resetSrc);
         switch (resetSrc)
         {
             case RESET_SRC_POR:
-            {
-                OS_printf("CFE_PSP: POWERON Reset: Power Switch ON.\n");
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_POWER_CYCLE;
-            }
-            break;
+                OS_printf("PSP: POWERON Reset: Power Switch ON.\n");
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_POWER_CYCLE;
+                break;
             case RESET_SRC_WDT:
-            {
-                OS_printf("CFE_PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
-                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
-                 * the SP0 FPGA resets the reserved memory. The ResetType
-                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
-                 */
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
-            }
-            break;
+                OS_printf("PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
+                /* The g_uiResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                * the SP0 FPGA resets the reserved memory. The g_uiResetType
+                * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                */
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
+                break;
             case RESET_SRC_FWDT:
-            {
-                OS_printf("CFE_PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
-                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
-                 * the SP0 FPGA resets the reserved memory. The ResetType
-                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
-                 */
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
-            }
-            break;
+                OS_printf("PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
+                /* The g_uiResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                * the SP0 FPGA resets the reserved memory. The g_uiResetType
+                * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                */
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
+                break;
             case RESET_SRC_CPCI:
-            {
-                OS_printf("CFE_PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
-                /* The ResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
-                 * the SP0 FPGA resets the reserved memory. The ResetType
-                 * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
-                 */
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
-            }
-            break;
+                OS_printf("PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
+                /* The g_uiResetType should be CFE_PSP_RST_TYPE_PROCESSOR but
+                * the SP0 FPGA resets the reserved memory. The g_uiResetType
+                * is forced to a CFE_PSP_RST_TYPE_POWERON (power on)
+                */
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+                break;
             case RESET_SRC_SWR:
-            {
-                OS_printf("CFE_PSP: POWERON Reset: Software Hard Reset.\n");
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+                OS_printf("PSP: POWERON Reset: Software Hard Reset.\n");
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
 
                 /*
                 Aitech manual says that it always returs OK, but we should check
                 anyway in case a new BSP changes the return value.
                 */
-                if(ReadSafeModeUserData(&safeModeUserData, talkative)!= OK)
+                if(ReadSafeModeUserData(&g_safeModeUserData, talkative)!= OK)
                 {
-                    OS_printf("CFE_PSP: PROCESSOR Reset: failed to read safemode data.\n");
+                    OS_printf("PSP: PROCESSOR Reset: failed to read safemode data.\n");
                 }
-            }
-            break;
+                break;
             default:
-            {
-                OS_printf("CFE_PSP: POWERON Reset: UNKNOWN Reset.\n");
-                ResetType = CFE_PSP_RST_TYPE_POWERON;
-                ResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
-            }
-            break;
+                OS_printf("PSP: POWERON Reset: UNKNOWN Reset.\n");
+                g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+                g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
+                break;
         }
     }
     else
     {
-        OS_printf("CFE_PSP: POWERON Reset: UNKNOWN Reset. Reset source read failed.\n");
-        ResetType = CFE_PSP_RST_TYPE_POWERON;
-        ResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
+        OS_printf("PSP: POWERON Reset: UNKNOWN Reset. Reset source read failed.\n");
+        g_uiResetType = CFE_PSP_RST_TYPE_POWERON;
+        g_uiResetSubtype = CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET;
     }
 
-    if (ResetType == 0)
+    if (g_uiResetType == 0)
     {
-        ResetType = CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type;
+        g_uiResetType = CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type;
     }
 
     return resetSrc;
@@ -306,62 +300,64 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 */
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
-    const char* resetSrcString = NULL;
+    const char *pResetSrcString = NULL;
     switch (resetSrc)
     {
         case RESET_SRC_POR:
-        {
-            resetSrcString = "RESET_SRC_POR";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_POR";
+            break;
         case RESET_SRC_WDT:
-        {
-            resetSrcString = "RESET_SRC_WDT";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_WDT";
+            break;
         case RESET_SRC_FWDT:
-        {
-            resetSrcString = "RESET_SRC_FWDT";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_FWDT";
+            break;
         case RESET_SRC_CPCI:
-        {
-            resetSrcString = "RESET_SRC_CPCI";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_CPCI";
+            break;
         case RESET_SRC_SWR:
-        {
-            resetSrcString = "RESET_SRC_SWR";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_SWR";
+            break;
         default:
-        {
-            resetSrcString = "RESET_SRC_POR";
-        }
-        break;
+            pResetSrcString = "RESET_SRC_POR";
+            break;
     }
-    OS_printf("CFE_PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
-              resetSrc,
-              resetSrcString,
-              safeModeUserData.safeMode,
-              (safeModeUserData.sbc == SM_LOCAL_SBC)? "LOCAL":"REMOTE",
-              safeModeUserData.reason,
-              safeModeUserData.mckCause);
+    if (g_safeModeUserData.sbc == SM_LOCAL_SBC)
+    {
+        OS_printf("PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+                resetSrc,
+                pResetSrcString,
+                g_safeModeUserData.safeMode,
+                "LOCAL",
+                g_safeModeUserData.reason,
+                g_safeModeUserData.mckCause);
+    }
+    else
+    {
+        OS_printf("PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+                resetSrc,
+                pResetSrcString,
+                g_safeModeUserData.safeMode,
+                "REMOTE",
+                g_safeModeUserData.reason,
+                g_safeModeUserData.mckCause);
+    }
+
 
     if (resetSrc == RESET_SRC_SWR)
     {
-        if (safeModeUserData.mckCause != 0)
+        if (g_safeModeUserData.mckCause != 0)
         {
-            OS_printf("CFE_PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
-            OS_printf("CFE_PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error error: reset\n");
-            OS_printf("CFE_PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error error: reset\n");
-            OS_printf("CFE_PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
-            OS_printf("CFE_PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
-            OS_printf("CFE_PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
-            OS_printf("CFE_PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
-            OS_printf("CFE_PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
-            OS_printf("CFE_PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error: reset\n");
-            OS_printf("CFE_PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
+            OS_printf("PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n");
+            OS_printf("PSP: MCHK_L1_DCHERR  =      (0x02) L1 data cache error error: reset\n");
+            OS_printf("PSP: MCHK_L1_DCHPERR =      (0x04) L1 data cache push error error: reset\n");
+            OS_printf("PSP: MCHK_L2_MULTERR =      (0x08) L2 multiple errors\n");
+            OS_printf("PSP: MCHK_L2_TPARERR =      (0x10) L2 tag parity error\n");
+            OS_printf("PSP: MCHK_L2_MBEERR  =      (0x20) L2 multi-bit error\n");
+            OS_printf("PSP: MCHK_L2_SBEERR  =      (0x40) L2 single bit error\n");
+            OS_printf("PSP: MCHK_L2_CFGERR  =      (0x80) L2 configuration error\n");
+            OS_printf("PSP: MCHK_SDRAM_MBECC_ERR = (0x100) DDR multi-bit error: reset\n");
+            OS_printf("PSP: MCHK_OTHER_MCHK_ERR =  (0x200) Other machine check error\n");
         }
     }
 }
@@ -379,12 +375,12 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 **
 ** \return None
 */
-void OS_Application_Startup(void)
+void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
     int32 status = OS_SUCCESS;
     int32 taskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    osal_id_t fs_id;
+    osal_id_t fs_id = 0;
 
     OS_printf_enable();
 
@@ -392,7 +388,7 @@ void OS_Application_Startup(void)
     status = OS_API_Init();
     if (status != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n",
+        OS_printf("PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n",
                status);
         goto OS_Application_Startup_Exit_Tag;
     }
@@ -406,7 +402,7 @@ void OS_Application_Startup(void)
     {
         /* Print for informational purposes --
          * startup can continue, but loads may fail later, depending on config. */
-        OS_printf("CFE_PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
+        OS_printf("PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
     }
 
     /* 
@@ -415,7 +411,7 @@ void OS_Application_Startup(void)
     hardware and POST, and setup the task to dump the collected information 
     when abort is called.
     */
-    getSP0Info();
+    PSP_SP0_GetInfo();
 
     CFE_PSP_SetupReservedMemoryMap();
 
@@ -431,9 +427,9 @@ void OS_Application_Startup(void)
     resetSrc = CFE_PSP_ProcessResetType();
 
     /* Initialize the reserved memory */
-    if (CFE_PSP_InitProcessorReservedMemory(ResetType) != OS_SUCCESS)
+    if (CFE_PSP_InitProcessorReservedMemory(g_uiResetType) != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
+        OS_printf("PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
                   status);
         goto OS_Application_Startup_Exit_Tag;
     }
@@ -444,10 +440,10 @@ void OS_Application_Startup(void)
     ** Adjust system task priorities so that tasks such as the shell are
     ** at a lower priority that the CFS apps
     */
-    taskSetStatus = SetSysTasksPrio();
+    taskSetStatus = CFE_PSP_SetSysTasksPrio();
     if (taskSetStatus != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP: At least one vxWorks task priority set failed. System may have degraded performance.\n");
+        OS_printf("PSP: At least one vxWorks task priority set failed. System may have degraded performance.\n");
     }
 
     /* Print software reset type */
@@ -456,10 +452,10 @@ void OS_Application_Startup(void)
     /* Print all POST results */
     CFE_PSP_ProcessPOSTResults();
 
-    OS_printf("CFE_PSP: PSP Application Startup Complete\n");
+    OS_printf("PSP: PSP Application Startup Complete\n");
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
-    CFE_PSP_MAIN_FUNCTION(ResetType, ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
+    CFE_PSP_MAIN_FUNCTION(g_uiResetType, g_uiResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
     OS_Application_Startup_Exit_Tag:
     return;
@@ -479,7 +475,7 @@ void OS_Application_Startup(void)
 **
 ** \return None
 */
-void OS_Application_Run(void)
+void OS_Application_Run(void) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
     /*
     The declaration of PSP OS_Application_Run is necessary to avoid running the
@@ -504,36 +500,36 @@ void OS_Application_Run(void)
  */
 int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
 {
-    int32 status;
+    int32 status = CFE_PSP_ERROR;
 
     /* Get the Shell Task ID if we have not done it already */
-    if (sg_uiShellTaskID == 0)
+    if (g_uiShellTaskID == 0)
     {
-        sg_uiShellTaskID = taskNameToId("tShell0");
+        g_uiShellTaskID = taskNameToId("tShell0");
     }
 
     if (suspend)
     {
-        status = taskSuspend(sg_uiShellTaskID);
+        status = taskSuspend(g_uiShellTaskID);
         if (status == OK)
         {
-            OS_printf("Shell Task Suspended [0x%08X]\n",sg_uiShellTaskID);
+            OS_printf("Shell Task Suspended [0x%08X]\n",g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be suspended [0x%08X]\n",sg_uiShellTaskID);
+            OS_printf("Shell Task could not be suspended [0x%08X]\n",g_uiShellTaskID);
         }
     }
     else
     {
-        status = taskResume(sg_uiShellTaskID);
+        status = taskResume(g_uiShellTaskID);
         if (status == OK)
         {
-            OS_printf("Shell Task Resumed [0x%08X]\n",sg_uiShellTaskID);
+            OS_printf("Shell Task Resumed [0x%08X]\n",g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be resumed [0x%08X]\n",sg_uiShellTaskID);
+            OS_printf("Shell Task could not be resumed [0x%08X]\n",g_uiShellTaskID);
         }
     }
 
@@ -560,10 +556,10 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 {
     if (resetSubType != NULL)
     {
-        *resetSubType = ResetSubtype;
+        *resetSubType = g_uiResetSubtype;
     }
 
-    return (ResetType);
+    return (g_uiResetType);
 }
 
 /**
@@ -581,11 +577,11 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
+int32 CFE_PSP_SetTaskPrio(const char *tName, int32 tgtPrio)
 {
-    int32 tid;
+    int32 tid = CFE_PSP_ERROR;
     int32 curPrio = 0;
-    int32 newPrio;
+    int32 newPrio = 0;
     int32 status = CFE_PSP_SUCCESS;
 
     if ((tName != NULL) && (strlen(tName) > 0))
@@ -600,19 +596,19 @@ static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
             newPrio = 255;
         }
 
-        tid = taskNameToId((char*)tName);
+        tid = taskNameToId((char *)tName);
         if (tid != CFE_PSP_ERROR)
         {
             if (taskPriorityGet(tid, (int *)&curPrio) != CFE_PSP_ERROR)
             {
                 OS_printf("PSP: SetTaskPrio() - Setting %s priority from %d to %d\n",
-                       tName, curPrio, newPrio);
+                          tName, curPrio, newPrio);
 
                 if (taskPrioritySet(tid, newPrio) == CFE_PSP_ERROR)
                 {
-                        OS_printf("PSP: taskPrioritySet() - Failed for %s priority from %d to %d\n",
-                                  tName, curPrio, newPrio);
-                        status = CFE_PSP_ERROR;
+                    OS_printf("PSP: taskPrioritySet() - Failed for %s priority from %d to %d\n",
+                              tName, curPrio, newPrio);
+                    status = CFE_PSP_ERROR;
                 }
 
             }
@@ -640,18 +636,21 @@ static int32 SetTaskPrio(const char* tName, int32 tgtPrio)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 SetSysTasksPrio(void)
+static int32 CFE_PSP_SetSysTasksPrio(void)
 {
     int32 status = CFE_PSP_SUCCESS;
     int32 index = 0;
+    int32 ret = OS_ERROR;
 
-    int32 numberOfTask = sizeof(VxWorksTaskList)/sizeof(CFE_PSP_OS_Task_and_priority_t);
+    int32 numberOfTask = sizeof(g_VxWorksTaskList) / sizeof(CFE_PSP_OS_Task_and_priority_t);
 
-    OS_printf("\nSetting system tasks' priorities for %d tasks.\n", numberOfTask);
+    OS_printf("PSP: Setting system tasks' priorities for %d tasks.\n", numberOfTask);
 
     for (index = 0; index < numberOfTask; index++)
     {
-        if (SetTaskPrio(VxWorksTaskList[index].VxWorksTaskName, VxWorksTaskList[index].VxWorksTaskPriority) != OS_SUCCESS)
+        ret = CFE_PSP_SetTaskPrio(g_VxWorksTaskList[index].VxWorksTaskName, 
+                                  g_VxWorksTaskList[index].VxWorksTaskPriority);
+        if (ret != OS_SUCCESS)
         {
             status = CFE_PSP_ERROR;
         }
@@ -659,65 +658,3 @@ static int32 SetSysTasksPrio(void)
 
     return status;
 }
-
-
-/**
- ** \func Provides stub function for FPU exception handler, vxFpscrGet()
- **
- ** \par Description:
- **    Added this function here so that the code can compile & run without error.
- **
- **    If there's code that calls these functions, we will get a message like so,
- **       > ld < cfe-core.o
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
- **
- **    These do not seem to be included in 85xx build, but are defined as
- **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
- **
- **    If this function is not used, stub it out like below. Otherwise, define it.
- **
- ** \par Assumptions, External Events, and Notes:
- ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
- ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
- **
- ** \param None
- **
- ** \return 0 - Integer Zero
- */
-unsigned int vxFpscrGet(void)
-{
-    OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
-
-    return (0);
-}
-
-/**
- ** \func Provides stub function for FPU exception handler, vxFpscrSet()
- **
- ** \par Description:
- **    Added this function here so that the code can compile & run without error.
- **
- **    If there's code that calls these functions, we will get a message like so,
- **       > ld < cfe-core.o
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
- **
- **    These do not seem to be included in 85xx build, but are defined as
- **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
- **
- **    If this function is not used, stub it out like below. Otherwise, define it.
- **
- ** \par Assumptions, External Events, and Notes:
- ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
- ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
- **
- ** \param x - Unused
- **
- ** \return None
- */
-void vxFpscrSet(unsigned int x)
-{
-    OS_printf("%s->%s<stub>:%d:\n", __FILE__, __func__, __LINE__);
-}
-

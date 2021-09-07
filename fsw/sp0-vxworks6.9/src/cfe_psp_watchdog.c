@@ -31,13 +31,13 @@
 #include "osapi.h"
 #include "cfe_psp.h"
 #include "sysApi.h"
-
+#include "cfe_psp_config.h"
 
 /*
 ** Global Variables
 */
 /** \brief Watchdog current millisecond value */
-uint32 CFE_PSP_WatchdogValue = 20000;  /* Watchdog time in msecs */
+static uint32 g_uiCFE_PSP_WatchdogValue = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
 
 
 /**
@@ -55,7 +55,7 @@ uint32 CFE_PSP_WatchdogValue = 20000;  /* Watchdog time in msecs */
 */
 void CFE_PSP_WatchdogInit(void)
 {
-	CFE_PSP_WatchdogSet(CFE_PSP_WatchdogValue);  /* in msecs */
+    CFE_PSP_WatchdogSet(g_uiCFE_PSP_WatchdogValue);  /* in msecs */
 }
 
 
@@ -74,7 +74,7 @@ void CFE_PSP_WatchdogInit(void)
 */
 void CFE_PSP_WatchdogEnable(void)
 {
-	sysEnableFpgaWdt(1);
+    sysEnableFpgaWdt(1);
 }
 
 
@@ -93,7 +93,7 @@ void CFE_PSP_WatchdogEnable(void)
 */
 void CFE_PSP_WatchdogDisable(void)
 {
-	sysDisableFpgaWdt();
+    sysDisableFpgaWdt();
 }
 
 
@@ -112,12 +112,12 @@ void CFE_PSP_WatchdogDisable(void)
 */
 void CFE_PSP_WatchdogService(void)
 {
-	/*
+    /*
      * This function toggles the watchdog timer and it must be called at least
      * once every watchdog timer period if the watchdog timer is enabled.
      * Otherwise, the board will perform a reset once the timer expires.
      */
-	sysPulseFpgaWdt();
+    sysPulseFpgaWdt();
 }
 
 
@@ -136,7 +136,7 @@ void CFE_PSP_WatchdogService(void)
 */
 uint32 CFE_PSP_WatchdogGet(void)
 {
-   return((uint32)CFE_PSP_WatchdogValue);
+    return((uint32)g_uiCFE_PSP_WatchdogValue);
 }
 
 
@@ -155,13 +155,13 @@ uint32 CFE_PSP_WatchdogGet(void)
 */
 void CFE_PSP_WatchdogSet(uint32 watchDogValue)
 {
-    float rate = 0.0;
+    float fRate = 0.0f;
 
-    CFE_PSP_WatchdogValue = watchDogValue / 1000U;  /* in msecs */
+    g_uiCFE_PSP_WatchdogValue = watchDogValue / 1000U;  /* in msecs */
 
     /*Rate is in seconds*/
-    rate = (((float)watchDogValue) * 0.001F);
-    sysSetFpgaWdt(rate);
+    fRate = (((float)watchDogValue) * 0.001f);
+    sysSetFpgaWdt(fRate);
 }
 
 

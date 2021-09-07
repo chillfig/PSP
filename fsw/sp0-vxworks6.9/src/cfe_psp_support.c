@@ -50,26 +50,20 @@
 #define CFE_PSP_SPACECRAFT_ID        (GLOBAL_CONFIGDATA.Default_SpacecraftId)
 /** \} */
 
-/*
- * Track the overall "reserved memory block" at the start of RAM.
- * This single large block is then subdivided into separate areas for CFE use.
- */
-extern CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
-
 /**
-** \func Re-start
-**
-** \par Description:
-** This function is the entry point back to the BSP to restart the processor.
-** cFE calls this function to restart the processor.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] resetType - Type of cFE reset
-**
-** \return None
-*/
+ ** \func Re-start
+ **
+ ** \par Description:
+ ** This function is the entry point back to the BSP to restart the processor.
+ ** cFE calls this function to restart the processor.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] resetType - Type of cFE reset
+ **
+ ** \return None
+ */
 void CFE_PSP_Restart(uint32 resetType)
 {
     if (resetType == CFE_PSP_RST_TYPE_POWERON)
@@ -92,69 +86,70 @@ void CFE_PSP_Restart(uint32 resetType)
 
 
 /**
-** \func Abort cFE startup
-**
-** \par Description:
-** This function provides the mechanism to abort the cFE startup process and 
-** returns back to the OS.
-**
-** \par Assumptions, External Events, and Notes:
-** This function should not be called by the cFS applications.
-**
-** \param[in] errorCode - Error code that causes the exit
-**
-** \return None
-*/
+ ** \func Abort cFE startup
+ **
+ ** \par Description:
+ ** This function provides the mechanism to abort the cFE startup process and 
+ ** returns back to the OS.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function should not be called by the cFS applications.
+ **
+ ** \param[in] errorCode - Error code that causes the exit
+ **
+ ** \return None
+ */
 void CFE_PSP_Panic(int32 errorCode)
 {
     logMsg("CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n",
            errorCode, 0,0,0,0,0);
 
     /* Dump PSP SP0 Information */
-    psp_dump_data();
+    PSP_SP0_DumpData();
 
+    /* UndCC_NextLine(SSET_100, SSET110) */
     exit(-1);
 }
 
 
 /**
-** \func Flush memory caches
-**
-** \par Description:
-** This function flushes the processor caches. This function is in the PSP
-** because it is sometimes implemented in hardware and sometimes taken 
-** care of by the OS.
-**
-** \par Assumptions, External Events, and Notes:
-** This function is not implemented for the SP0-vxworks6.9 PSP since it is 
-** managed by the SP0 BSP/VxWorks OS.
-**
-** \param[in] type - Cache memory type
-** \param[in] address - Pointer to the cache memory address
-** \param[in] size - Cache memory size
-**
-** \return None
-*/
-void CFE_PSP_FlushCaches(uint32 type, void* address, uint32 size)
+ ** \func Flush memory caches
+ **
+ ** \par Description:
+ ** This function flushes the processor caches. This function is in the PSP
+ ** because it is sometimes implemented in hardware and sometimes taken 
+ ** care of by the OS.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function is not implemented for the SP0-vxworks6.9 PSP since it is 
+ ** managed by the SP0 BSP/VxWorks OS.
+ **
+ ** \param[in] type - Cache memory type
+ ** \param[in] address - Pointer to the cache memory address
+ ** \param[in] size - Cache memory size
+ **
+ ** \return None
+ */
+void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 {
     /*The cache is managed by the SP0 BSP/VxWorks OS. */
 }
 
 
 /**
-** \func Get the CPU ID
-**
-** \par Description:
-** This function returns the CPU ID as pre-fdefined by the cFE for
-** specific board and BSP.
-**
-** \par Assumptions, External Events, and Notes:
-** The macro is defined in cfe_platform_cfg.h.
-**
-** \param None
-**
-** \return #CFE_PSP_CPU_ID
-*/
+ ** \func Get the CPU ID
+ **
+ ** \par Description:
+ ** This function returns the CPU ID as pre-fdefined by the cFE for
+ ** specific board and BSP.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The macro is defined in cfe_platform_cfg.h.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_CPU_ID
+ */
 uint32 CFE_PSP_GetProcessorId(void)
 {
     return CFE_PSP_CPU_ID;
@@ -162,37 +157,38 @@ uint32 CFE_PSP_GetProcessorId(void)
 
 
 /**
-** \func Get the spacecraft ID
-**
-** \par Description:
-** This function returns the spacecraft ID as pre-defined by the cFE.
-**
-** \par Assumptions, External Events, and Notes:
-** The macro is defined in cfe_platform_cfg.h.
-**
-** \param None
-**
-** \return #CFE_PSP_SPACECRAFT_ID
-*/
+ ** \func Get the spacecraft ID
+ **
+ ** \par Description:
+ ** This function returns the spacecraft ID as pre-defined by the cFE.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The macro is defined in cfe_platform_cfg.h.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SPACECRAFT_ID
+ */
 uint32 CFE_PSP_GetSpacecraftId(void)
 {
-   return CFE_PSP_SPACECRAFT_ID;
+    return CFE_PSP_SPACECRAFT_ID;
 }
 
 /**
-** \func Get the processor name
-**
-** \par Description:
-** This function returns the CPU name as pre-defined by the cFE.
-**
-** \par Assumptions, External Events, and Notes:
-** The macro is defined in cfe_platform_cfg.h.
-**
-** \param None
-**
-** \return #CFE_PSP_CPU_NAME
-*/
-const char *CFE_PSP_GetProcessorName   (void)
+ ** \func Get the processor name
+ **
+ ** \par Description:
+ ** This function returns the CPU name as pre-defined by the cFE.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The macro is defined in cfe_platform_cfg.h.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_CPU_NAME
+ */
+//UndCC_NextLine(SSET_058)
+const char *CFE_PSP_GetProcessorName(void)
 {
-   return CFE_PSP_CPU_NAME;
+    return CFE_PSP_CPU_NAME;
 }

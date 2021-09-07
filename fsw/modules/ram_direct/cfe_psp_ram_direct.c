@@ -1,3 +1,4 @@
+/* UndCC_Begin(*) */
 /*
 **  GSC-18128-1, "Core Flight Executive Version 6.7"
 **
@@ -230,3 +231,4 @@ int32 CFE_PSP_MemWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
 
     return (CFE_PSP_SUCCESS);
 }
+/* UndCC_End(*) */

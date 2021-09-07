@@ -1,9 +1,12 @@
 /**
  ** \file  psp_cds_flash.h
  **
- ** \brief API to save and restore CDS in FLASH memory
+ ** \brief API header to save and restore CDS in FLASH memory
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.
@@ -15,6 +18,13 @@
  ** None
  **
  */
+
+#ifndef _PSP_CDS_FLASH_H_
+#define _PSP_CDS_FLASH_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 ** \func Set the CDS reading method
@@ -138,3 +148,8 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
 */
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes);
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PSP_CDS_FLASH_H_ */

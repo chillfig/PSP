@@ -1,3 +1,4 @@
+/* UndCC_Begin(*) Maintained by GSFC */
 /*
 **  GSC-18128-1, "Core Flight Executive Version 6.7"
 **
@@ -248,3 +249,4 @@ void CFE_PSP_GetTime(OS_time_t *LocalTime)
     *LocalTime = (OS_time_t) {NormalizedTicks};
 
 } /* end CFE_PSP_GetLocalTime */
+/* UndCC_End(*) */

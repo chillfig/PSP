@@ -30,6 +30,10 @@
 #include "taskLib.h"
 #include "arch/ppc/esfPpc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  ** \name VxWorks timebase
  **
@@ -57,7 +61,7 @@
 /** \brief Memory Table Size. This define sets the number of memory ranges that 
 ** are defined in the memory range defintion table.
  */
-#define CFE_PSP_MEM_TABLE_SIZE 10
+#define CFE_PSP_MEM_TABLE_SIZE              10
 
 /**
  ** \brief Maximum Exception Entries
@@ -250,6 +254,15 @@ typedef struct
 #define SP0_DATA_DUMP_FILEPATH              "/ffx0/PSP_SP0_DUMP"
 /** \} */
 
+/** \name Watchdog Module */
+/** \{ */
+/** \brief Default Watchdog Value in milliseconds
+ */
+#define CFE_PSP_WATCHDOG_DEFAULT_MSEC       20000
+/** \} */
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif  /* _cfe_psp_config_ */
-
-

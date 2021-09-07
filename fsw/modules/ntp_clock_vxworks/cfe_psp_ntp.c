@@ -83,12 +83,12 @@
  ** \par Description:
  ** This string is printed before every print related to NTP Sync API.
 */
-#define PRE_PRINT_SCOPE             "PSP NTP SYNC: "
+#define NTPSYNC_PRINT_SCOPE         "PSP NTP SYNC: "
 
 
 /* Functions provided by Kernel */
 /** \brief VxWorks function to get ID of running task */
-extern TASK_ID taskNameToId (char * name);
+extern TASK_ID taskNameToId (char *name);
 /** \brief VxWorks function to kill a running daemon */
 extern IP_PUBLIC Ip_err ipcom_ipd_kill (const char *name );
 /** \brief VxWorks function to start a daemon */
@@ -112,54 +112,33 @@ extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
  * \brief Contains the NTP Sync Task ID
  * If 0, task is not running
  */
-static uint32 sg_uiPSPNTPTask_id = 0;
+static uint32 g_uiPSPNTPTask_id = 0;
 
 /**
  * \brief Current value of NTP Sync priority task.
  * 
  */
-static osal_priority_t sg_uiNTPSyncTaskPriority = NTPSYNC_DEFAULT_PRIORITY;
+static osal_priority_t g_uiNTPSyncTaskPriority = NTPSYNC_DEFAULT_PRIORITY;
 
 /**
  * \brief Boolean variable to control if to synchronize CFE Time Service with OS
  * local time. True, synch will occur. False, timer will not be disabled, but 
  * sync will not execute.
  */
-static bool sg_bEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
+static bool g_bEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
 
 /**
  * \brief Change how often to sync CFE Time Service with OS Local Time. OS local
  * time is synchronized to NTP server(s) automatically from within OS if 
  * enabled.
  */
-static uint16 sg_uiOSTimeSync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
+static uint16 g_uiOSTimeSync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
 
 
 /* Declare this file a PSP Module */
 /** \brief Macro to define this file a PSP Module */
-CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_vxworks);
+CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_vxworks); /* UndCC_Begin(SSET056) */
 
-
-/**
- ** \func Entry point for the module
- ** 
- ** \par Description:
- ** None
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[inout] PspModuleId - Unused
- **
- ** \return None
- */
-void ntp_clock_vxworks_Init(uint32 PspModuleId)
-{
-    if (sg_bEnableGetTimeFromOS_flag)
-    {
-        CFE_PSP_TIME_Init(sg_uiOSTimeSync_Sec);
-    }
-}
 
 /**
 ** \func Initialize the CFE PSP Time Task synchronizing with the NTP server
@@ -178,25 +157,25 @@ void ntp_clock_vxworks_Init(uint32 PspModuleId)
 int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 {
     /* Initialize */
-    int32       status;
+    int32       status = OS_ERROR;
     
     /*Create the 1Hz task for synchronizing with OS time*/
-    status = OS_TaskCreate(&sg_uiPSPNTPTask_id,
+    status = OS_TaskCreate(&g_uiPSPNTPTask_id,
                             NTPSYNC_TASK_NAME,
                             CFE_PSP_Update_OS_Time,
                             OSAL_TASK_STACK_ALLOCATE, 
                             OSAL_SIZE_C(1024),
-                            sg_uiNTPSyncTaskPriority,
+                            g_uiNTPSyncTaskPriority,
                             0
                             );
 
     if (status != OS_SUCCESS)
     {
-        printf(PRE_PRINT_SCOPE "Failed to create task\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Failed to create task\n");
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "Task Initialized\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Task Initialized\n");
     }
 
     return status;
@@ -223,17 +202,17 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
     
     if (enable)
     {
-        printf(PRE_PRINT_SCOPE "Sync with OS is enabled\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Sync with OS is enabled\n");
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "Sync with OS is disabled\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Sync with OS is disabled\n");
     }
 
     /* Set flag */
-    sg_bEnableGetTimeFromOS_flag = enable;
+    g_bEnableGetTimeFromOS_flag = enable;
 
-    return (int32) sg_bEnableGetTimeFromOS_flag;
+    return (int32) g_bEnableGetTimeFromOS_flag;
 }
 
 /**
@@ -254,10 +233,10 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 bool CFE_PSP_NTP_Daemon_Get_Status(void)
 {
     bool       return_code = true;
-    TASK_ID     ret;
+    TASK_ID    ret = CFE_PSP_ERROR;
     
     ret = taskNameToId("ipntpd");
-    if (ret == ERROR)
+    if (ret == CFE_PSP_ERROR)
     {
         return_code = false;
     }
@@ -274,33 +253,54 @@ bool CFE_PSP_NTP_Daemon_Get_Status(void)
  ** \return #CFE_PSP_SUCCESS 
  ** \return #CFE_PSP_ERROR
  */
-int32 net_clock_vxworks_Destroy(void)
+int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
     int32       return_value = CFE_PSP_SUCCESS;
-    int32       ret;
+    int32       ret = CFE_PSP_ERROR;
 
     /* Disable time update */
-    sg_bEnableGetTimeFromOS_flag = false;
+    g_bEnableGetTimeFromOS_flag = false;
     
     /* Delete task */
-    ret = OS_TaskDelete(sg_uiPSPNTPTask_id);
+    ret = OS_TaskDelete(g_uiPSPNTPTask_id);
 
     if (ret == OS_SUCCESS)
     {
-        sg_uiPSPNTPTask_id = 0;
+        g_uiPSPNTPTask_id = 0;
     }
     else if (ret == OS_ERR_INVALID_ID)
     {
-        printf(PRE_PRINT_SCOPE "Could not kill the NTP Sync task\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
         return_value == CFE_PSP_ERROR;
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "Could not kill the NTP Sync task\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
         return_value == CFE_PSP_ERROR;
     }
 
     return return_value;
+}
+
+/**
+ ** \func Entry point for the module
+ ** 
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[inout] PspModuleId - Unused
+ **
+ ** \return None
+ */
+void ntp_clock_vxworks_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
+{
+    if (g_bEnableGetTimeFromOS_flag)
+    {
+        CFE_PSP_TIME_Init(g_uiOSTimeSync_Sec);
+    }
 }
 
 /**
@@ -320,18 +320,17 @@ int32 net_clock_vxworks_Destroy(void)
 int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 {
     int32       return_value = CFE_PSP_SUCCESS;
-    int32       ret;
 
     if (new_frequency_sec == 0)
     {
-        /* Return the value of sg_uiOSTimeSync_Sec */
-        return_value = (int32)sg_uiOSTimeSync_Sec;
+        /* Return the value of g_uiOSTimeSync_Sec */
+        return_value = (int32)g_uiOSTimeSync_Sec;
     }
     else
     {
-        /* Set a new value of sg_uiOSTimeSync_Sec */
+        /* Set a new value of g_uiOSTimeSync_Sec */
         /* Update frequency with new value */
-        sg_uiOSTimeSync_Sec = new_frequency_sec;
+        g_uiOSTimeSync_Sec = new_frequency_sec;
 
         net_clock_vxworks_Destroy();
 
@@ -364,11 +363,11 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 */
 int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
-    struct timespec     unixTime;
-    int                 ret;
+    struct timespec     unixTime = {0,0};
+    int                 ret = CFE_PSP_ERROR;
     int32               return_status = CFE_PSP_SUCCESS;
 
-    if (ts_sec > 0 && ts_nsec >=0)
+    if ((ts_sec > 0) && (ts_nsec >=0))
     {
         unixTime.tv_sec = ts_sec;
         unixTime.tv_nsec = (long) ts_nsec;
@@ -376,17 +375,17 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
         ret = clock_settime(CLOCK_REALTIME, &unixTime);
         if (ret == OK)
         {
-            printf(PRE_PRINT_SCOPE "Clock set");
+            OS_printf(NTPSYNC_PRINT_SCOPE "Clock set");
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "ERROR Clock not set");
+            OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
             return_status = CFE_PSP_ERROR;
         }
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "ERROR: Invalid timestamp");
+        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
         return_status = CFE_PSP_ERROR;
     }
 
@@ -410,10 +409,10 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 */
 int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 {
-    struct timespec     unixTime;
+    struct timespec     unixTime = {0,0};
     uint32              tv_sec = 0;
     uint32              tv_msec = 0;
-    int                 ret;
+    int                 ret = CFE_PSP_ERROR;
     int32               return_code = CFE_PSP_SUCCESS;
 
     if (myT != NULL)
@@ -439,13 +438,13 @@ int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT)
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "clock_gettime function failed\n");
+            OS_printf(NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
             return_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "CFE_PSP_Get_OS_Time called without a proper argument\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_Get_OS_Time called without a proper argument\n");
         return_code = CFE_PSP_ERROR;
     }
     
@@ -473,10 +472,10 @@ int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 bool CFE_PSP_TimeService_Ready(void)
 {
     bool       return_code = true;
-    TASK_ID     ret;
+    TASK_ID    ret = 0;
     
     ret = taskNameToId("TIME_1HZ_TASK");
-    if (ret == ERROR)
+    if (ret == CFE_PSP_ERROR)
     {
         return_code = false;
     }
@@ -499,9 +498,9 @@ bool CFE_PSP_TimeService_Ready(void)
  */
 void CFE_PSP_Update_OS_Time(void)
 {
-    CFE_TIME_SysTime_t  myT;
+    CFE_TIME_SysTime_t  myT = {0,0};
     int32               ret = OS_SUCCESS;
-    uint32              sleep_time;
+    uint32              sleep_time = 0;
     uint32              error_counter = 0;
 
     /*
@@ -516,7 +515,9 @@ void CFE_PSP_Update_OS_Time(void)
         OS_TaskDelay(500);
         if (error_counter > 120)
         {
-            OS_printf(PRE_PRINT_SCOPE "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n");
+            OS_printf(
+                NTPSYNC_PRINT_SCOPE
+                "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n");
             break;
         }
     }
@@ -524,13 +525,13 @@ void CFE_PSP_Update_OS_Time(void)
     /* If within 60 seconds the CFE Time Service is ready, start NTP Sync */
     if (error_counter < 120)
     {
-        OS_printf(PRE_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n");
         while (1)
         {
             if (ret == OS_SUCCESS)
             {
                 /* If the flag is enabled */
-                if (sg_bEnableGetTimeFromOS_flag)
+                if (g_bEnableGetTimeFromOS_flag)
                 {
                     /* Get real time clock from OS */
                     ret = CFE_PSP_Get_OS_Time(&myT);
@@ -543,16 +544,16 @@ void CFE_PSP_Update_OS_Time(void)
                     else
                     {
                         /* OS has not sync with NTP server yet. */
-                        printf(PRE_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
+                        OS_printf(NTPSYNC_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
                     }
                 }
             }
             else
             {
-                printf(PRE_PRINT_SCOPE "OS_TaskDelay error\n");
+                OS_printf(NTPSYNC_PRINT_SCOPE "OS_TaskDelay error\n");
             }
 
-            sleep_time = sg_uiOSTimeSync_Sec * 1000U;
+            sleep_time = g_uiOSTimeSync_Sec * 1000U;
             ret = OS_TaskDelay(sleep_time);
         }
     }
@@ -576,24 +577,24 @@ void CFE_PSP_Update_OS_Time(void)
 int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       return_code = 0;
-    int32       ret;
+    int32       ret = CFE_PSP_ERROR;
     
     ret = ipcom_ipd_start("ipntp");
     if (ret == IPCOM_SUCCESS)
     {
-        printf(PRE_PRINT_SCOPE "NTP Daemon Started Successfully");
+        OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
         return_code = taskNameToId("ipntpd");
     }
     else
     {
         if (ret == IPCOM_ERR_ALREADY_STARTED)
         {
-            printf(PRE_PRINT_SCOPE "NTP Daemon already started");
+            OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
             return_code = taskNameToId("ipntpd");
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)",ret);
+            OS_printf(NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)",ret);
             return_code = CFE_PSP_ERROR;
         }
     }
@@ -617,23 +618,23 @@ int32 CFE_PSP_StartNTPDaemon(void)
 int32 CFE_PSP_StopNTPDaemon(void)
 {
     int32       return_code = CFE_PSP_SUCCESS;
-    int32       ret;
+    int32       ret = CFE_PSP_ERROR;
 
     ret = ipcom_ipd_kill("ipntp");
     if (ret == IPCOM_SUCCESS)
     {
-        printf(PRE_PRINT_SCOPE "NTP Daemon Stopped Successfully");
+        OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully");
     }
     else
     {
         /* Although the name, OS user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
         if (ret == IPCOM_ERR_NOT_STARTED)
         {
-            printf(PRE_PRINT_SCOPE "NTP Daemon already stopped");
+            OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped");
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = %d)",ret);
+            OS_printf(NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = %d)",ret);
         }
         return_code = CFE_PSP_ERROR;
     }

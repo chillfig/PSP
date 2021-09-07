@@ -1,9 +1,12 @@
 /** 
  ** \file psp_version.h
  **
- ** \brief Defines API that obtains the values of the various version identifiers
+ ** \brief API header to obtain the values of the various version identifiers
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.
@@ -18,8 +21,12 @@
  */
 
 
-#ifndef _psp_version_
-#define _psp_version_
+#ifndef _PSP_VERSION_H_
+#define _PSP_VERSION_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** \name Version Macro Definitions */
 /** \{ */
@@ -63,4 +70,8 @@
     ", Last Official Release: psp v1.4.0"          /* For full support please use this version */
 /** \} */
 
-#endif /* _psp_version_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PSP_VERSION_H */

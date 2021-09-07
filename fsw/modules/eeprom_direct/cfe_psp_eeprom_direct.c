@@ -1,3 +1,4 @@
+/* UndCC_Begin(*) Maintained by GSFC */
 /*
 **  GSC-18128-1, "Core Flight Executive Version 6.7"
 **
@@ -362,3 +363,4 @@ int32 CFE_PSP_EepromPowerDown(uint32 Bank)
 {
     return (CFE_PSP_SUCCESS);
 }
+/* UndCC_End(*) */

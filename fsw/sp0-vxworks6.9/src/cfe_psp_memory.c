@@ -65,6 +65,7 @@ extern unsigned int GetWrsKernelTextStart(void);
 /** \brief External Kernel Function GetWrsKernelTextEnd */
 extern unsigned int GetWrsKernelTextEnd(void);
 
+extern int32 CFE_PSP_SetTaskPrio(const char *tName, int32 tgtPrio);
 
 /*
 ** Global variables
@@ -84,14 +85,14 @@ char g_cCDSFilename[10] = CFE_PSP_CFE_FLASH_FILEPATH;
 
 /* Set the default CDS reading method. It assumes the reserved CDS area on RAM is always correct */
 /** \brief CDS Read Method */
-uint8 g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_DEFAULT;
+uint8 g_uiCDSReadMethod = CFE_PSP_CDS_READ_METHOD_DEFAULT;
 
 /* This static variable will store the calculated CRC for previous CDS changed data */
 /** \brief CRC value of CDS content */
-static uint32  sg_uiCDSCrc = 0;
+static uint32 g_uiCDSCrc = 0;
 
 /** \brief Task Priority of Memory Scrubbing Task */
-static osal_priority_t sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+static osal_priority_t g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
 
 
 /**
@@ -99,21 +100,21 @@ static osal_priority_t sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
  ** \par Description:
  ** If 0, task is not running
  */
-static uint32 sg_uiMemScrubTask_id = 0;
+static uint32 g_uiMemScrubTask_id = 0;
 
 /**
  ** \brief Contains the Active Memory Scrubbing Start Address
  ** \par Description:
  ** The start address can be anything in the address space.
  */
-static uint32 sg_uiMemScrubStartAddr = 0;
+static uint32 g_uiMemScrubStartAddr = 0;
 
 /**
  ** \brief Contains the Active Memory Scrubbing End Address
  ** \par Description:
  ** End Address cannot be larger than the maximum RAM
  */
-static uint32 sg_uiMemScrubEndAddr = 0;
+static uint32 g_uiMemScrubEndAddr = 0;
 
 /**
  ** \brief Contains the Active Memory Scrubbing Current Page
@@ -121,7 +122,7 @@ static uint32 sg_uiMemScrubEndAddr = 0;
  ** Current page that the task is working on. This value gets
  ** reset whenever task restart.
  */
-static uint32 sg_uiMemScrubCurrentPage = 0;
+static uint32 g_uiMemScrubCurrentPage = 0;
 
 /**
  ** \brief Contains the Active Memory Scrubbing Total Pages
@@ -129,7 +130,7 @@ static uint32 sg_uiMemScrubCurrentPage = 0;
  ** Total number of pages processed since the start of the task. This value gets
  ** reset whenever task restart.
  */
-static uint32 sg_uiMemScrubTotalPages = 0;
+static uint32 g_uiMemScrubTotalPages = 0;
 
 /**
  ** \brief Contains the address of the end of RAM
@@ -140,17 +141,17 @@ static uint32 sg_uiMemScrubTotalPages = 0;
  ** out of range addresses.
  ** 
  */
-static uint32 sg_endOfRam = 0;
+static uint32 g_uiEndOfRam = 0;
 
 /**
  ** \brief Pointer to the vxWorks USER_RESERVED_MEMORY area
  ** \par Description:
  ** The sizes of each memory area is defined in os_processor.h for this architecture.
  */
-CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
+CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap; //UndCC_Line(SSET056)
 
 /** \brief Pointer to the reserved memory block */
-CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
+CFE_PSP_MemoryBlock_t g_ReservedMemBlock;
 
 /*
 *********************************************************************************
@@ -174,18 +175,14 @@ CFE_PSP_MemoryBlock_t PSP_ReservedMemBlock;
 */
 int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 {
-   int32 return_code;
+    int32 return_code = CFE_PSP_ERROR;
 
-   if ( SizeOfCDS == NULL )
-   {
-       return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-       *SizeOfCDS =  CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
-       return_code = CFE_PSP_SUCCESS;
-   }
-   return(return_code);
+    if (SizeOfCDS != NULL)
+    {
+        *SizeOfCDS =  CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+        return_code = CFE_PSP_SUCCESS;
+    }
+    return(return_code);
 }
 
 /**
@@ -204,7 +201,7 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 */
 void CFE_PSP_SetReadCDSMethod(uint8 ucMethod)
 {
-  g_CDSReadMethod = ucMethod;
+    g_uiCDSReadMethod = ucMethod;
 }
 
 /**
@@ -225,7 +222,7 @@ void CFE_PSP_SetReadCDSMethod(uint8 ucMethod)
 */
 uint8 CFE_PSP_GetReadCDSMethod()
 {
-  return g_CDSReadMethod;
+    return g_uiCDSReadMethod;
 }
 
 /**
@@ -245,7 +242,7 @@ uint8 CFE_PSP_GetReadCDSMethod()
 */
 void CFE_PSP_SetStaticCRC(uint32 uiNewCRC)
 {
-  sg_uiCDSCrc = uiNewCRC;
+    g_uiCDSCrc = uiNewCRC;
 }
 
 /**
@@ -263,7 +260,7 @@ void CFE_PSP_SetStaticCRC(uint32 uiNewCRC)
 */
 uint32 CFE_PSP_GetStaticCRC(void)
 {
-  return sg_uiCDSCrc;
+    return g_uiCDSCrc;
 }
 
 /**
@@ -288,13 +285,13 @@ uint32 CFE_PSP_GetStaticCRC(void)
  */
 uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
 {
-    uint32  i;
-    int16  Index;
-    int16  Crc = 0;
-    const uint8 *BufPtr;
-    uint8  ByteValue;
+    uint32      i = 0;
+    int16       Index = 0;
+    int16       Crc = 0;
+    const uint8 *pBufPtr = NULL;
+    uint8       ByteValue = 0;
 
-    static const uint16 CrcTable[256]=
+    static const uint16 CrcTable[256] = 
     {
         0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
         0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -332,18 +329,20 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
     };
 
     Crc =  (int16)(0xFFFF & InputCRC);
-    BufPtr = (const uint8 *)DataPtr;
+    pBufPtr = (const uint8 *) DataPtr;
 
-    for (i = 0; i < DataLength; i++, BufPtr++)
+    for (i = 0; i < DataLength; i++)
     {
-      /*
-       * It is assumed that the supplied buffer is in a
-       * directly-accessible memory space that does not
-       * require special logic to access
-       */
-      ByteValue = *BufPtr;
-      Index = (int16) (( Crc ^ ByteValue) & 0x00FF);
-      Crc = (int16) (((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index]);
+        /*
+        * It is assumed that the supplied buffer is in a
+        * directly-accessible memory space that does not
+        * require special logic to access
+        */
+        ByteValue = *pBufPtr;
+        Index = (int16) (( Crc ^ ByteValue) & 0x00FF);
+        Crc = (int16) (((Crc >> 8 ) & 0x00FF) ^ CrcTable[Index]);
+        
+        pBufPtr++;
     }
      
     return (uint32) (Crc);
@@ -368,60 +367,56 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 */
 int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
-  int32   iCDSFd;
-  int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t readBytes;
-  #if defined(PRINT_DEBUG)
-    OS_time_t localTime;
-  #endif
-  
-  /* Return error if the output parameter wasn't allocated */
-  if(puiReadBytes == NULL)
-  {
-    iReturnCode = CFE_PSP_ERROR;
-  }
-  else
-  {
-    /* Open the CDS file for read */
-    iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
-    if(iCDSFd < 0)
+    int32   iCDSFd = -1;
+    int32   iReturnCode = CFE_PSP_SUCCESS;
+    ssize_t readBytes = 0;
+    #if defined(PRINT_DEBUG)
+        OS_time_t localTime;
+    #endif
+    
+    /* Return error if the output parameter wasn't allocated */
+    if(puiReadBytes != NULL)
     {
-      OS_printf("CFE_PSP: Failed to open the CDS file.\n");
-      iReturnCode = CFE_PSP_ERROR;
-    }
-    else
-    {
-      #if defined(PRINT_DEBUG)
-        CFE_PSP_GetTime(&localTime);
-        OS_printf("CFE_PSP: Time before read (Second: %d, microSecond: %d)\n", 
-                  localTime.seconds, localTime.microsecs);
-      #endif
-      readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                           CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-      #if defined(PRINT_DEBUG)
-        CFE_PSP_GetTime(&localTime);
-        OS_printf("CFE_PSP: Time after read (Second: %d, microSecond: %d)\n", 
-                  localTime.seconds, localTime.microsecs);
-      #endif
-      if(readBytes < 0)
-      {
-        OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
+        /* Open the CDS file for read */
+        iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
+        if(iCDSFd < 0)
+        {
+            OS_printf("CFE_PSP: Failed to open the CDS file.\n");
+            iReturnCode = CFE_PSP_ERROR;
+        }
+        else
+        {
+            #if defined(PRINT_DEBUG)
+            CFE_PSP_GetTime(&localTime);
+            OS_printf("CFE_PSP: Time before read (Second: %d, microSecond: %d)\n", 
+                    localTime.seconds, localTime.microsecs);
+            #endif
+            readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+            #if defined(PRINT_DEBUG)
+            CFE_PSP_GetTime(&localTime);
+            OS_printf("CFE_PSP: Time after read (Second: %d, microSecond: %d)\n", 
+                    localTime.seconds, localTime.microsecs);
+            #endif
+            if(readBytes < 0)
+            {
+                OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
 
-        /* Set the output parameter to 0 for read failed */
-        *puiReadBytes = 0;
-        /* Return error if read failed */
-        iReturnCode = CFE_PSP_ERROR;
-      }
-      else
-      {
-        *puiReadBytes = (uint32) readBytes;
-      }
-      /* Close the CDS file after opened and read */
-      close(iCDSFd);
+                /* Set the output parameter to 0 for read failed */
+                *puiReadBytes = 0;
+                /* Return error if read failed */
+                iReturnCode = CFE_PSP_ERROR;
+            }
+            else
+            {
+                *puiReadBytes = (uint32) readBytes;
+            }
+            /* Close the CDS file after opened and read */
+            close(iCDSFd);
+        }
     }
-  }
 
-  return iReturnCode;
+    return iReturnCode;
 }
 
 /**
@@ -440,60 +435,60 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 */
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
-  int32   iCDSFd;
-  int32   iReturnCode = CFE_PSP_SUCCESS;
-  ssize_t wroteBytes;
-  #if defined(PRINT_DEBUG)
-    OS_time_t localTime;
-  #endif
-  
-  /* Return error if the output parameter wasn't allocated */
-  if(puiWroteBytes == NULL)
-  {
-    iReturnCode = CFE_PSP_ERROR;
-  }
-  else
-  {
-    /* Open the CDS file for read */
-    iCDSFd = open(g_cCDSFilename, O_WRONLY, 0);
-    if(iCDSFd < 0)
+    int32   iCDSFd = -1;
+    int32   iReturnCode = CFE_PSP_SUCCESS;
+    ssize_t wroteBytes = 0;
+    #if defined(PRINT_DEBUG)
+        OS_time_t localTime;
+    #endif
+    
+    /* Return error if the output parameter wasn't allocated */
+    if(puiWroteBytes == NULL)
     {
-      OS_printf("CFE_PSP: Failed to open the CDS file.\n");
-      iReturnCode = CFE_PSP_ERROR;
+        iReturnCode = CFE_PSP_ERROR;
     }
     else
     {
-      #if defined(PRINT_DEBUG)
-        CFE_PSP_GetTime(&localTime);
-        OS_printf("CFE_PSP: Time before write (Second: %d, microSecond: %d)\n", 
-                  localTime.seconds, localTime.microsecs);
-      #endif
-      wroteBytes = write(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                         CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-      #if defined(PRINT_DEBUG)
-        CFE_PSP_GetTime(&localTime);
-        OS_printf("CFE_PSP: Time after write (Second: %d, microSecond: %d)\n", 
-                  localTime.seconds, localTime.microsecs);
-      #endif
-      if(wroteBytes < 0)
-      {
-        OS_printf("CFE_PSP: Failed to write the CDS data to Flash.\n");
+        /* Open the CDS file for read */
+        iCDSFd = open(g_cCDSFilename, O_WRONLY, 0);
+        if(iCDSFd < 0)
+        {
+            OS_printf("CFE_PSP: Failed to open the CDS file.\n");
+            iReturnCode = CFE_PSP_ERROR;
+        }
+        else
+        {
+            #if defined(PRINT_DEBUG)
+            CFE_PSP_GetTime(&localTime);
+            OS_printf("CFE_PSP: Time before write (Second: %d, microSecond: %d)\n", 
+                    localTime.seconds, localTime.microsecs);
+            #endif
+            wroteBytes = write(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                               CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+            #if defined(PRINT_DEBUG)
+            CFE_PSP_GetTime(&localTime);
+            OS_printf("CFE_PSP: Time after write (Second: %d, microSecond: %d)\n", 
+                    localTime.seconds, localTime.microsecs);
+            #endif
+            if(wroteBytes < 0)
+            {
+                OS_printf("CFE_PSP: Failed to write the CDS data to Flash.\n");
 
-        /* Set the output parameter to 0 for write failed */
-        *puiWroteBytes = 0;
-        /* Return error if write failed */
-        iReturnCode = CFE_PSP_ERROR;
-      }
-      else
-      {
-        *puiWroteBytes = (uint32) wroteBytes;
-      }
-      /* Close the CDS file after opened and write */
-      close(iCDSFd);
+                /* Set the output parameter to 0 for write failed */
+                *puiWroteBytes = 0;
+                /* Return error if write failed */
+                iReturnCode = CFE_PSP_ERROR;
+            }
+            else
+            {
+                *puiWroteBytes = (uint32) wroteBytes;
+            }
+            /* Close the CDS file after opened and write */
+            close(iCDSFd);
+        }
     }
-  }
 
-  return iReturnCode;
+    return iReturnCode;
 }
 
 /**
@@ -514,51 +509,44 @@ int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 */
 int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 NumBytes)
 {
-  uint8 *CopyPtr;
-  int32  return_code;
-  int32  iWroteBytes = 0; 
+    uint8 *pCopyPtr = NULL;
+    int32  return_code = CFE_PSP_ERROR;
+    int32  iWroteBytes = 0; 
 
-  if ( PtrToDataToWrite == NULL )
-  {
-     return_code = CFE_PSP_ERROR;
-  }
-  else
-  {
-    if ( (CDSOffset < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize ) &&
-           ( (CDSOffset + NumBytes) <= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize ))
+    if (PtrToDataToWrite != NULL)
     {
-      CopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
-      CopyPtr += CDSOffset;
-
-      /* Compare the original and user changed data. There is no overwriting CDS block on memory
-         and updating to Flash if they are matched */
-      if(memcmp((char *)CopyPtr, (char *)PtrToDataToWrite, NumBytes) == 0)
-      {
-        return_code = CFE_PSP_SUCCESS;
-      } 
-      else
-      {      
-        memcpy(CopyPtr, (char *)PtrToDataToWrite, NumBytes);
-
-        /* Write whole CDS memory to Flash */
-        return_code = CFE_PSP_WriteCDSToFlash(&iWroteBytes);
-        if(return_code == CFE_PSP_SUCCESS)
+        if ((CDSOffset >= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize) ||
+            ((CDSOffset + NumBytes) > CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize))
         {
-          OS_printf("CFE_PSP: Wrote %d to CDS file.\n", iWroteBytes);
-          /* Calculate the CRC for whole CDS memory and write to static variable after updated new CDS data on Flash */
-          sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-        }          
-      }
-    }
-    else
-    {
-      return_code = CFE_PSP_ERROR;
-    }
+            pCopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+            pCopyPtr += CDSOffset;
 
-  } /* end if PtrToDataToWrite == NULL */
+            /* Compare the original and user changed data. If not changes,
+            no overwriting CDS block on memory and no updating Flash */
+            if(memcmp((char *)pCopyPtr, (char *)PtrToDataToWrite, NumBytes) == 0)
+            {
+                return_code = CFE_PSP_SUCCESS;
+            }
+            else
+            {
+                /* Overwrite CFS block */
+                memcpy(pCopyPtr, (char *)PtrToDataToWrite, NumBytes);
 
-  return(return_code);
+                /* Write whole CDS memory to Flash */
+                return_code = CFE_PSP_WriteCDSToFlash(&iWroteBytes);
+                if(return_code == CFE_PSP_SUCCESS)
+                {
+                    OS_printf("CFE_PSP: Wrote %d to CDS file.\n", iWroteBytes);
+                    /* Calculate the CRC for whole CDS memory and write to static variable 
+                    after updated new CDS data on Flash */
+                    g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                      CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+                }
+            }
+        }
+    } /* end if PtrToDataToWrite != NULL */
+
+    return(return_code);
 }
 
 /**
@@ -579,68 +567,63 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
 */
 int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumBytes)
 {
-  uint8   *CopyPtr;
-  int32   return_code = CFE_PSP_SUCCESS;
-  uint32  uiTempCrc = 0;
-  uint32  uiReadBytes = 0;
-  
-  if ( PtrToDataToRead == NULL )
-  {
-     return_code = CFE_PSP_ERROR;
-  }
-  else
-  {
-    if ((CDSOffset < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize) &&
-           ((CDSOffset + NumBytes) <= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize))
+    uint8   *pCopyPtr = NULL;
+    int32   return_code = CFE_PSP_ERROR;
+    uint32  uiTempCrc = 0;
+    uint32  uiReadBytes = 0;
+    
+    if (PtrToDataToRead != NULL)
     {
-      /* In the CRC mode */
-      if(g_CDSReadMethod == CFE_PSP_CDS_READ_METHOD_CRC)
-      {
-        /* Calculate the CRC for whole CDS memory */
-        uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
-
-        /* CRC isn't match; Re-read CDS data from Flash to memory */
-        if(uiTempCrc != sg_uiCDSCrc)
+        if ((CDSOffset < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize) &&
+            ((CDSOffset + NumBytes) <= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize))
         {
-          OS_printf("CFE_PSP: CRC mismatched (uiTempCrc = 0x%08X, sg_uiCDSCrc = 0x%08X)\n", uiTempCrc, sg_uiCDSCrc);
-          return_code = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
-          if( return_code == CFE_PSP_SUCCESS)
-          {
-            /* Update the static CRC variable with new read CDS data from Flash */
-            sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                              CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-          }
+            /* In the CRC mode */
+            if(g_uiCDSReadMethod == CFE_PSP_CDS_READ_METHOD_CRC)
+            {
+                /* Calculate the CRC for whole CDS memory */
+                uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                 CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
+
+                /* CRC isn't match; Re-read CDS data from Flash to memory */
+                if(uiTempCrc != g_uiCDSCrc)
+                {
+                    OS_printf("CFE_PSP: CRC mismatched (uiTempCrc = 0x%08X, g_uiCDSCrc = 0x%08X)\n", 
+                              uiTempCrc, 
+                              g_uiCDSCrc);
+                    return_code = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
+                    if(return_code == CFE_PSP_SUCCESS)
+                    {
+                        /* Update the static CRC variable with new read CDS data from Flash */
+                        g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                          CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+                    }
+                }
+            }
+            /* In the always read from Flash mode */
+            if(g_uiCDSReadMethod == CFE_PSP_CDS_READ_METHOD_FLASH) 
+            {
+                return_code = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
+                if(return_code == CFE_PSP_SUCCESS)
+                {
+                    /* Update the static CRC variable with new read CDS data from Flash */
+                    g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+                }
+            }
+
+            /* Only copy the CDS data to user prefered pointer when the CDS memory in RAM is correct */
+            if((g_uiCDSReadMethod == CFE_PSP_CDS_READ_METHOD_DEFAULT) || (return_code == CFE_PSP_SUCCESS))
+            {
+                pCopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+                pCopyPtr += CDSOffset;
+                memcpy((char *)PtrToDataToRead,pCopyPtr, NumBytes);
+                return_code = CFE_PSP_SUCCESS;
+            }
         }
-      }
-      /* In the always read from Flash mode */
-      else if(g_CDSReadMethod == CFE_PSP_CDS_READ_METHOD_FLASH) 
-      {
-        return_code = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
-        if( return_code == CFE_PSP_SUCCESS)
-        {
-          /* Update the static CRC variable with new read CDS data from Flash */
-          sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-        }
-      }
 
-      /* Only copy the CDS data to user prefered pointer when the CDS memory in RAM is correct */
-      if(return_code == CFE_PSP_SUCCESS)
-      {
-        CopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
-        CopyPtr += CDSOffset;
-        memcpy((char *)PtrToDataToRead,CopyPtr, NumBytes);
-      }
-    }
-    else
-    {
-      return_code = CFE_PSP_ERROR;
-    }
+    } /* end if PtrToDataToWrite != NULL */
 
-  } /* end if PtrToDataToWrite == NULL */
-
-  return(return_code);
+    return(return_code);
 }
 
 /*
@@ -668,20 +651,16 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumByt
 */
 int32 CFE_PSP_GetResetArea (cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 {
-   int32   return_code;
+    int32   return_code = CFE_PSP_ERROR;
 
-   if ((PtrToResetArea == NULL) || (SizeOfResetArea == NULL))
-   {
-      return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-      *PtrToResetArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr);
-      *SizeOfResetArea = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-      return_code = CFE_PSP_SUCCESS;
-   }
+    if ((PtrToResetArea != NULL) && (SizeOfResetArea != NULL))
+    {
+        *PtrToResetArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr);
+        *SizeOfResetArea = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+        return_code = CFE_PSP_SUCCESS;
+    }
 
-   return(return_code);
+    return(return_code);
 }
 
 /*
@@ -707,21 +686,21 @@ int32 CFE_PSP_GetResetArea (cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 */
 int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea )
 {
-   int32   return_code;
+    int32   return_code = CFE_PSP_ERROR;
 
-   if ((PtrToUserArea == NULL) || (SizeOfUserArea == NULL))
-   {
-      return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-      *PtrToUserArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr);
-      *SizeOfUserArea = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
-      return_code = CFE_PSP_SUCCESS;
-   }
+    if ((PtrToUserArea == NULL) || (SizeOfUserArea == NULL))
+    {
+        return_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        *PtrToUserArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr);
+        *SizeOfUserArea = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+        return_code = CFE_PSP_SUCCESS;
+    }
 
-   return(return_code);
-}
+    return(return_code);
+    }
 
 /*
 *********************************************************************************
@@ -746,22 +725,20 @@ int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea
 */
 int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
 {
-   int32   return_code;
+    int32   return_code = CFE_PSP_ERROR;
 
-   if ((PtrToVolDisk == NULL) || (SizeOfVolDisk == NULL))
-   {
-      return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-      *PtrToVolDisk = (cpuaddr)(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr);
-      *SizeOfVolDisk = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
-      return_code = CFE_PSP_SUCCESS;
+    if ((PtrToVolDisk == NULL) || (SizeOfVolDisk == NULL))
+    {
+        return_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        *PtrToVolDisk = (cpuaddr)(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr);
+        *SizeOfVolDisk = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+        return_code = CFE_PSP_SUCCESS;
+    }
 
-   }
-
-   return(return_code);
-
+    return(return_code);
 }
 
 
@@ -791,84 +768,83 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
  */
 int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 {
-    cpuaddr start_addr;
-    uint32 reserve_memory_size = 0;
-    int32 return_code = CFE_PSP_SUCCESS;
-    int32  iCDSFd;
-    ssize_t readBytes;  
-
+    cpuaddr   start_addr = 0;
+    uint32    reserve_memory_size = 0;
+    int32     return_code = CFE_PSP_SUCCESS;
+    int32     iCDSFd = -1;
+    ssize_t   readBytes = 0;  
+    
     /* 
     Returns the address and size of the user-reserved region
     This is a Kernel function
      */
-    userReservedGet((char**)&start_addr, &reserve_memory_size);
+    userReservedGet((char **) &start_addr, &reserve_memory_size);
 
     /* If the VxWorks reserved memory size is smaller than the requested, print error */
-    if(PSP_ReservedMemBlock.BlockSize > reserve_memory_size)
+    if(g_ReservedMemBlock.BlockSize > reserve_memory_size)
     {
-      OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
-                "Total Size = 0x%lx, "
-                "VxWorks Reserved Size=0x%lx\n",
-               (unsigned long)PSP_ReservedMemBlock.BlockSize,
-               (unsigned long)reserve_memory_size);
-      return_code = CFE_PSP_ERROR;
+        OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
+                  "Total Size = 0x%lx, "
+                  "VxWorks Reserved Size=0x%lx\n",
+                  (unsigned long)g_ReservedMemBlock.BlockSize,
+                  (unsigned long)reserve_memory_size);
+        return_code = CFE_PSP_ERROR;
 
     }
-    else if ( RestartType != CFE_PSP_RST_TYPE_PROCESSOR )
+    else if (RestartType != CFE_PSP_RST_TYPE_PROCESSOR)
     {
-      OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
-      memset(PSP_ReservedMemBlock.BlockPtr, 0, PSP_ReservedMemBlock.BlockSize);
+        OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
+        memset(g_ReservedMemBlock.BlockPtr, 0, g_ReservedMemBlock.BlockSize);
 
-      /*
-      ** Set the default reset type in case a watchdog reset occurs
-      */
-      CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
-
+        /*
+        ** Set the default reset type in case a watchdog reset occurs
+        */
+        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
     }
     /**** CDS File ****/
     if(return_code == CFE_PSP_SUCCESS)
     {
-      /* Open the CDS file */
-      iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
-      /* If the file was not opened, we need to create it */
-      if(iCDSFd < 0)
-      {
-        /* If CDS file cannot be created, print error */
-        if(creat(g_cCDSFilename, S_IRWXU) < 0)
+        /* Open the CDS file */
+        iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
+        /* If the file was not opened, we need to create it */
+        if(iCDSFd < 0)
         {
-          OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
-                     g_cCDSFilename);
-          return_code = CFE_PSP_ERROR;
+            /* If CDS file cannot be created, print error */
+            if(creat(g_cCDSFilename, S_IRWXU) < 0)
+            {
+                OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
+                          g_cCDSFilename);
+                return_code = CFE_PSP_ERROR;
+            }
+            /* If CDS file was create, print success message and close CDS file */
+            else
+            {
+                OS_printf("CFE_PSP: Created the CDS file.\n");
+                /* Close the CDS file after created */
+                close(iCDSFd);
+            }
         }
-        /* If CDS file was create, print success message and close CDS file */
+        /* If the CDS file was opened at first attempt, read content */
         else
         {
-          OS_printf("CFE_PSP: Created the CDS file.\n");
-          /* Close the CDS file after created */
-          close(iCDSFd);
+            readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+            if(readBytes >= 0)
+            {
+                OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", readBytes);  
+                /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
+                g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                  CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+            }
+            else
+            {
+                OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n"); 
+                /* Return error if read failed */
+                return_code = CFE_PSP_ERROR;
+            }
+            /* Close the CDS file after opened and read */
+            close(iCDSFd);
         }
-      }
-      /* If the CDS file was opened at first attempt, read content */
-      else
-      {
-        readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-        if(readBytes >= 0)
-        {
-          OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", readBytes);  
-          /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
-          sg_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-        }
-        else
-        {
-          OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n"); 
-          /* Return error if read failed */
-          return_code = CFE_PSP_ERROR;
-        }
-        /* Close the CDS file after opened and read */
-        close(iCDSFd);
-      }
     }
 
    return(return_code);
@@ -889,8 +865,8 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
  */
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
-    cpuaddr   start_addr;
-    cpuaddr   end_addr;
+    cpuaddr   start_addr = 0;
+    cpuaddr   end_addr = 0;
     uint32    reserve_memory_size = 0;
     int32     status = OS_SUCCESS;
 
@@ -909,75 +885,75 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     Returns the address and size of the user-reserved region
     This is a Kernel function
     */
-    userReservedGet((char**)&start_addr, &reserve_memory_size);
+    userReservedGet((char **) &start_addr, &reserve_memory_size);
 
     end_addr = start_addr;
 
-    sg_endOfRam = (uint32)sysPhysMemTop();
+    g_uiEndOfRam = (uint32)sysPhysMemTop();
 
     memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
 
     CFE_PSP_ReservedMemoryMap.BootPtr = (CFE_PSP_ReservedMemoryBootRecord_t *)end_addr;
     end_addr += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (CFE_PSP_ExceptionStorage_t *)end_addr;
     end_addr += sizeof(CFE_PSP_ExceptionStorage_t);
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
-    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void*)end_addr;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void *) end_addr;
     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->ResetAreaSize;
     end_addr += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
     OS_printf("CFE_PSP: Reset Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-            (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
-            (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+              (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+              (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
 
-    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void*)end_addr;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void *) end_addr;
     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize =
         GLOBAL_CONFIGDATA.CfeConfig->RamDiskSectorSize * GLOBAL_CONFIGDATA.CfeConfig->RamDiskTotalSectors;
     end_addr += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
     
     OS_printf("CFE_PSP: Volatile Disk Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-            (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
-            (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+              (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+              (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
 
-    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)end_addr;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void *) end_addr;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->CdsSize;
     end_addr += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
     OS_printf("CFE_PSP: CDS Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-            (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
-            (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+              (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+              (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
 
-    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void*)end_addr;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void *) end_addr;
     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->UserReservedSize;
     end_addr += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & ~CFE_PSP_MEMALIGN_MASK;
+    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
     /* The total size of the entire block is the difference in address */
-    PSP_ReservedMemBlock.BlockPtr = (void*)start_addr;
-    PSP_ReservedMemBlock.BlockSize =  end_addr - start_addr;
+    g_ReservedMemBlock.BlockPtr = (void *) start_addr;
+    g_ReservedMemBlock.BlockSize =  end_addr - start_addr;
 
     OS_printf("CFE_PSP: Reserved Memory Block at 0x%08lx with size 0x%lx, Total VxWorks Reserved Size=0x%lx\n",
-            (unsigned long)PSP_ReservedMemBlock.BlockPtr,
-            (unsigned long)PSP_ReservedMemBlock.BlockSize,
-            (unsigned long)reserve_memory_size);
+              (unsigned long)g_ReservedMemBlock.BlockPtr,
+              (unsigned long)g_ReservedMemBlock.BlockSize,
+              (unsigned long)reserve_memory_size);
 
     /*
      * Set up the "RAM" entry in the memory table.
      */
     status = CFE_PSP_MemRangeSet(
-      0, 
-      CFE_PSP_MEM_RAM, 
-      0, 
-      sg_endOfRam, 
-      CFE_PSP_MEM_SIZE_DWORD, 
-      CFE_PSP_MEM_ATTR_READWRITE
-      );
+            0, 
+            CFE_PSP_MEM_RAM, 
+            0, 
+            g_uiEndOfRam, 
+            CFE_PSP_MEM_SIZE_DWORD, 
+            CFE_PSP_MEM_ATTR_READWRITE
+    );
     if (status != OS_SUCCESS)
     {
         OS_printf("CFE_PSP_MemRangeSet returned error\n");
@@ -1027,31 +1003,31 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
 */
 int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *SizeOfKernelSegment)
 {
-   int32 return_code;
-   cpuaddr StartAddress;
-   cpuaddr EndAddress;
+    int32    return_code = CFE_PSP_ERROR;
+    cpuaddr  StartAddress = 0;
+    cpuaddr  EndAddress = 0;
 
-   if ( SizeOfKernelSegment == NULL )
-   {
-      return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-      /*
-      ** Get the kernel start and end
-      ** addresses from the BSP, because the
-      ** symbol table does not contain the symbls we need for this
-      */
-      StartAddress = (cpuaddr) GetWrsKernelTextStart();
-      EndAddress = (cpuaddr) GetWrsKernelTextEnd();
+    if (SizeOfKernelSegment == NULL)
+    {
+        return_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        /*
+        ** Get the kernel start and end
+        ** addresses from the BSP, because the
+        ** symbol table does not contain the symbls we need for this
+        */
+        StartAddress = (cpuaddr) GetWrsKernelTextStart();
+        EndAddress = (cpuaddr) GetWrsKernelTextEnd();
 
-      *PtrToKernelSegment = StartAddress;
-      *SizeOfKernelSegment = (uint32) (EndAddress - StartAddress);
+        *PtrToKernelSegment = StartAddress;
+        *SizeOfKernelSegment = (uint32) (EndAddress - StartAddress);
 
-      return_code = CFE_PSP_SUCCESS;
-   }
+        return_code = CFE_PSP_SUCCESS;
+    }
 
-   return(return_code);
+    return(return_code);
 }
 
 /**
@@ -1071,40 +1047,40 @@ int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *Size
 */
 int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFESegment)
 {
-   int32       return_code;
-   STATUS      status;
-   MODULE_ID   cFEModuleId;
-   MODULE_INFO cFEModuleInfo;
+    int32       return_code = CFE_PSP_ERROR;
+    STATUS      status = CFE_PSP_ERROR;
+    MODULE_ID   cFEModuleId = NULL;
+    MODULE_INFO cFEModuleInfo = {};
 
-   if ( SizeOfCFESegment == NULL )
-   {
-      return_code = CFE_PSP_ERROR;
-   }
-   else
-   {
-      cFEModuleId = moduleFindByName(CFE_MODULE_NAME);
+    if (SizeOfCFESegment == NULL)
+    {
+        return_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        cFEModuleId = moduleFindByName(CFE_MODULE_NAME);
 
-      if ( cFEModuleId == NULL )
-      {
-         return_code = CFE_PSP_ERROR;
-      }
-      else
-      {
-         status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
-         if ( status != CFE_PSP_ERROR )
-         {
-            *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
-            *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
-            return_code = CFE_PSP_SUCCESS;
-         }
-         else
-         {
-            return_code = CFE_PSP_SUCCESS;
-         }
-      }
-   }
+        if (cFEModuleId == NULL)
+        {
+            return_code = CFE_PSP_ERROR;
+        }
+        else
+        {
+            status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
+            if (status != CFE_PSP_ERROR)
+            {
+                *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
+                *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
+                return_code = CFE_PSP_SUCCESS;
+            }
+            else
+            {
+                return_code = CFE_PSP_SUCCESS;
+            }
+        }
+    }
 
-   return(return_code);
+    return(return_code);
 }
 
 /******** PSP Active Memory Scrubbing ********/
@@ -1132,57 +1108,44 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
 */
 void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
-  /* If top of memory has not been initialized, then initialize it */
-  if (sg_endOfRam == 0)
-  {
-    sg_endOfRam = (uint32) sysPhysMemTop();
-  }
-
-  /* Verify Start and End Addresses */
-	sg_uiMemScrubStartAddr = newStartAddr;
-    if (newEndAddr > sg_endOfRam-1)
+    /* If top of memory has not been initialized, then initialize it */
+    if (g_uiEndOfRam == 0)
     {
-        sg_uiMemScrubEndAddr = sg_endOfRam-1;
+        g_uiEndOfRam = (uint32) sysPhysMemTop();
+    }
+
+    /* Verify Start and End Addresses */
+    g_uiMemScrubStartAddr = newStartAddr;
+    if (newEndAddr > (g_uiEndOfRam - 1))
+    {
+        g_uiMemScrubEndAddr = g_uiEndOfRam - 1;
     }
     else
     {
-        sg_uiMemScrubEndAddr = newEndAddr;
+        g_uiMemScrubEndAddr = newEndAddr;
     }
 
     /*
     If the task priority is different from the currently set value,
     then change it as long as it is within the allowed range
     */
-    if (task_priority != sg_uiMemScrubTaskPriority)
+    if (task_priority != g_uiMemScrubTaskPriority)
     {
-      /* If the Task Priority is set outside the range, use default range and 
-      report error */
-      if (task_priority > MEMSCRUB_PRIORITY_UP_RANGE || task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE)
-      {
-          /* Apply default priority */
-          sg_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
-          OS_printf("PSP MEM SCRUB: Priority is outside range, using default `%u`\n",sg_uiMemScrubTaskPriority);
-      }
-      else
-      {
-          /* Apply new priority */
-          sg_uiMemScrubTaskPriority = task_priority;
-          OS_printf("PSP MEM SCRUB: Priority changed to `%u`\n",sg_uiMemScrubTaskPriority);
-      }
-
-      if (CFE_PSP_MEM_SCRUB_isRunning())
-      {
-        /* Since priority has changed, restart the task */
-        if (OS_TaskDelete(sg_uiMemScrubTask_id) == OS_SUCCESS)
+        /* If the Task Priority is set outside the range, use default range and 
+        report error */
+        if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
         {
-          sg_uiMemScrubTask_id = 0;
-          CFE_PSP_MEM_SCRUB_Init();
+            /* Apply default priority */
+            g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+            OS_printf("PSP MEM SCRUB: Priority is outside range, using default `%u`\n",g_uiMemScrubTaskPriority);
         }
         else
         {
-          OS_printf("PSP MEM SCRUB: Could not kill the Memory Scrubbing Task\n");
+            /* Apply new priority */
+            g_uiMemScrubTaskPriority = task_priority;
         }
-      }
+
+        CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
     }
 } /* end CFE_PSP_MEM_SCRUB_Set */
 
@@ -1202,13 +1165,13 @@ void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority
 */
 void CFE_PSP_MEM_SCRUB_Delete(void)
 {
-  if (OS_TaskDelete(sg_uiMemScrubTask_id) == OS_SUCCESS)
-  {
-    OS_printf("PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
-  }
-  /* Reset task stats and ID */
-  sg_uiMemScrubTotalPages = 0;
-  sg_uiMemScrubTask_id = 0;
+    if (OS_TaskDelete(g_uiMemScrubTask_id) == OS_SUCCESS)
+    {
+        OS_printf("PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
+    }
+    /* Reset task stats and ID */
+    g_uiMemScrubTotalPages = 0;
+    g_uiMemScrubTask_id = 0;
 }
 
 /**
@@ -1228,19 +1191,19 @@ void CFE_PSP_MEM_SCRUB_Delete(void)
 */
 void CFE_PSP_MEM_SCRUB_Status(void)
 {
-  if (sg_uiMemScrubTask_id > 0)
-  {
-    OS_printf("PSP MEM SCRUB: MemScrub -> StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
-              sg_uiMemScrubStartAddr,
-              sg_uiMemScrubEndAddr,
-              sg_uiMemScrubCurrentPage,
-              sg_uiMemScrubTotalPages
-              );
-  }
-  else
-  {
-    OS_printf("Active Memory Scrubbing task could not be found\n");
-  }
+    if (g_uiMemScrubTask_id > 0)
+    {
+        OS_printf("PSP MEM SCRUB: MemScrub -> StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
+                g_uiMemScrubStartAddr,
+                g_uiMemScrubEndAddr,
+                g_uiMemScrubCurrentPage,
+                g_uiMemScrubTotalPages
+                );
+    }
+    else
+    {
+        OS_printf("Active Memory Scrubbing task could not be found\n");
+    }
 }
 
 /**
@@ -1258,26 +1221,25 @@ void CFE_PSP_MEM_SCRUB_Status(void)
 */
 void CFE_PSP_MEM_SCRUB_Task(void)
 {
-	STATUS status;
+    STATUS status = CFE_PSP_ERROR;
 
-  if (sg_uiMemScrubEndAddr <= sg_endOfRam) {
-
-    while(1)
+    if (g_uiMemScrubEndAddr <= g_uiEndOfRam)
     {
-        /* Call the active memory scrubbing function */
-        status = scrubMemory(sg_uiMemScrubStartAddr, sg_uiMemScrubEndAddr, &sg_uiMemScrubCurrentPage);
+        while(1)
+        {
+            /* Call the active memory scrubbing function */
+            status = scrubMemory(g_uiMemScrubStartAddr, g_uiMemScrubEndAddr, &g_uiMemScrubCurrentPage);
 
-        if ( status == CFE_PSP_ERROR )
-        {
-          OS_printf("PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
-        }
-        else
-        {
-          sg_uiMemScrubTotalPages += sg_uiMemScrubCurrentPage;
+            if (status == CFE_PSP_ERROR)
+            {
+                OS_printf("PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
+            }
+            else
+            {
+                g_uiMemScrubTotalPages += g_uiMemScrubCurrentPage;
+            }
         }
     }
-
-  }
 }
 
 /**
@@ -1296,34 +1258,34 @@ void CFE_PSP_MEM_SCRUB_Task(void)
 void CFE_PSP_MEM_SCRUB_Init(void)
 {
     /* Initialize */
-    int32 status;
+    int32 status = CFE_PSP_ERROR;
 
     /* If task is not running, create task */
     if (CFE_PSP_MEM_SCRUB_isRunning() == false)
     {
-      /* Set the scrub settings to default */
-      CFE_PSP_MEM_SCRUB_Set(0,sg_endOfRam,sg_uiMemScrubTaskPriority);
+        /* Set the scrub settings to default */
+        CFE_PSP_MEM_SCRUB_Set(0, g_uiEndOfRam, g_uiMemScrubTaskPriority);
 
-      OS_printf("PSP MEM SCRUB: Starting Active Memory Scrubbing\n");
+        OS_printf("PSP MEM SCRUB: Starting Active Memory Scrubbing\n");
 
-      status = OS_TaskCreate(&sg_uiMemScrubTask_id, 
-                            MEMSCRUB_TASK_NAME, 
-                            CFE_PSP_MEM_SCRUB_Task,
-                            OSAL_TASK_STACK_ALLOCATE, 
-                            OSAL_SIZE_C(1024), 
-                            sg_uiMemScrubTaskPriority, 
-                            0
-                            );
-                            
-      if (status != OS_SUCCESS)
-      {
-        OS_printf("PSP MEM SCRUB: Error creating PSPMemScrub\n");
-      }
+        status = OS_TaskCreate(&g_uiMemScrubTask_id, 
+                                MEMSCRUB_TASK_NAME, 
+                                CFE_PSP_MEM_SCRUB_Task,
+                                OSAL_TASK_STACK_ALLOCATE, 
+                                OSAL_SIZE_C(1024), 
+                                g_uiMemScrubTaskPriority, 
+                                0
+                                );
+                                
+        if (status != OS_SUCCESS)
+        {
+            OS_printf("PSP MEM SCRUB: Error creating PSPMemScrub\n");
+        }
     }
     else
     {
-      /* If task is already runnning, notify user */
-      OS_printf("PSP MEM SCRUB: Task already running\n");
+        /* If task is already runnning, notify user */
+        OS_printf("PSP MEM SCRUB: Task already running\n");
     }
 }
 
@@ -1343,19 +1305,19 @@ void CFE_PSP_MEM_SCRUB_Init(void)
 */
 bool CFE_PSP_MEM_SCRUB_isRunning(void)
 {
-  int32 status;
-  osal_id_t mem_scurb_id = 0;
+    /* Initialize */
+    bool        ret = true;
+    int32       status = OS_SUCCESS;
+    osal_id_t   mem_scurb_id = 0;
 
-  status = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
+    status = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
 
-  if (status == OS_ERR_NAME_NOT_FOUND)
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
+    if (status == OS_ERR_NAME_NOT_FOUND)
+    {
+        ret = false;
+    }
+
+    return ret;
 }
 
 
@@ -1375,15 +1337,15 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
 */
 void CFE_PSP_MEM_SCRUB_Enable(void)
 {
-  /* If task is not running, initilize it */
-  if (sg_uiMemScrubTask_id > 0)
-  {
-    OS_printf("Active Memory Scrubbing task is already running\n");
-  }
-  else
-  {
-    CFE_PSP_MEM_SCRUB_Init();
-  }
+    /* If task is not running, initilize it */
+    if (g_uiMemScrubTask_id > 0)
+    {
+        OS_printf("Active Memory Scrubbing task is already running\n");
+    }
+    else
+    {
+        CFE_PSP_MEM_SCRUB_Init();
+    }
 }
 
 /**
@@ -1402,13 +1364,13 @@ void CFE_PSP_MEM_SCRUB_Enable(void)
 */
 void CFE_PSP_MEM_SCRUB_Disable(void)
 {
-  /* If task is running, delete it */
-  if (sg_uiMemScrubTask_id > 0)
-  {
-    CFE_PSP_MEM_SCRUB_Delete();
-  }
-  else
-  {
-    OS_printf("Active Memory Scrubbing task could not be found\n");
-  }
+    /* If task is running, delete it */
+    if (g_uiMemScrubTask_id > 0)
+    {
+        CFE_PSP_MEM_SCRUB_Delete();
+    }
+    else
+    {
+        OS_printf("Active Memory Scrubbing task could not be found\n");
+    }
 }

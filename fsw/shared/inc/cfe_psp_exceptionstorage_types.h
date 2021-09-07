@@ -24,6 +24,9 @@
  ** \brief Provides a generic storage buffer ring for exceptions
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.

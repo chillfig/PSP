@@ -1,14 +1,17 @@
 /**
  ** \file  psp_mem_scrub.h
  **
- ** \brief API to control Memory Scrubbing
+ ** \brief API header to control Memory Scrubbing
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.
  **
- ** \par Description
+ ** \par Description:
  ** This file contains the function prototypes relating to memory scrubbing.
  ** This is specific to the SP0-S processor running VxWorks 6.9 OS.
  **
@@ -19,6 +22,10 @@
 
 #ifndef _PSP_MEM_SCRUB_H_
 #define _PSP_MEM_SCRUB_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 ** \func Set the Memory Scrubbing parameters
@@ -153,5 +160,9 @@ void  CFE_PSP_MEM_SCRUB_Enable(void);
 ** \return None
 */
 void  CFE_PSP_MEM_SCRUB_Disable(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _PSP_MEM_SCRUB_H_ */

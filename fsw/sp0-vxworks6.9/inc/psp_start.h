@@ -1,9 +1,12 @@
 /**
- ** \file  psp_start.h
+ ** \file psp_start.h
  **
  ** \brief Header file for the PSP function prototypes in cfe_psp_start.c
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.
@@ -15,6 +18,13 @@
  ** None
  **
 */
+
+#ifndef _PSP_START_H_
+#define _PSP_START_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 ** \func Log the Power On Self Test (POST) results to the system log.
@@ -145,7 +155,7 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 SetTaskPrio(const char* tName, int32 tgtPrio);
+int32 CFE_PSP_SetTaskPrio(const char* tName, int32 tgtPrio);
 
 /**
  ** \func Changes system task priorities so that they are lower than CFS system
@@ -164,56 +174,10 @@ static int32 SetTaskPrio(const char* tName, int32 tgtPrio);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 SetSysTasksPrio(void);
+static int32 CFE_PSP_SetSysTasksPrio(void);
 
-/**
- ** \func Provides stub function for FPU exception handler, vxFpscrGet()
- **
- ** \par Description:
- **    Added this function here so that the code can compile & run without error.
- **
- **    If there's code that calls these functions, we will get a message like so,
- **       > ld < cfe-core.o
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
- **
- **    These do not seem to be included in 85xx build, but are defined as
- **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
- **
- **    If this function is not used, stub it out like below. Otherwise, define it.
- **
- ** \par Assumptions, External Events, and Notes:
- ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
- ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
- **
- ** \param None
- **
- ** \return 0 - Integer Zero
- */
-unsigned int vxFpscrGet(void);
+#ifdef __cplusplus
+}
+#endif
 
-/**
- ** \func Provides stub function for FPU exception handler, vxFpscrSet()
- **
- ** \par Description:
- **    Added this function here so that the code can compile & run without error.
- **
- **    If there's code that calls these functions, we will get a message like so,
- **       > ld < cfe-core.o
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrGet.
- **       Warning: module 0x461d010 holds reference to undefined symbol vxFpscrSet.
- **
- **    These do not seem to be included in 85xx build, but are defined as
- **       "defined(_PPC_) && CPU != PPC440" in vxWorks osapi.c, line 2707, v4.2.1a
- **
- **    If this function is not used, stub it out like below. Otherwise, define it.
- **
- ** \par Assumptions, External Events, and Notes:
- ** If still relevant, have OSAL add conditional compile when SPE preset instead of FPU
- ** Once that has occurred we can remove vxFpscrGet and vxFpscrSet
- **
- ** \param x - Unused
- **
- ** \return None
- */
-void vxFpscrSet(unsigned int x);
+#endif /* _PSP_START_H_ */

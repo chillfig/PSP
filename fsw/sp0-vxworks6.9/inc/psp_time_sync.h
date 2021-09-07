@@ -1,30 +1,37 @@
 /**
-** \file  psp_time_sync.h
-**
-** \brief Header API to control NTP Sync
-**
-** \copyright
-** This software was created at NASA's Johnson Space Center.
-** This software is governed by the NASA Open Source Agreement and may be 
-** used, distributed and modified only pursuant to the terms of that agreement.
-**
-** \par Description:
-** This file contains the function prototypes that synchronize the cFE Time
-** services to the NTP server. Note that the NTP server must be built into the
-** kernel.
-**
-** \par Limitations, Assumptions, External Events, and Notes:
-** The way this module updates the local time is by calling the CFE Time Service
-** function CFE_TIME_SetTime(). The function changes the STCF value.\n
-**
-** GSFC developers do not recommend to use this method of updating CFE time, 
-** but rather to use the function CFE_TIME_ExternalTime(). The only way to use
-** this function is by building an app that will periodically (1Hz) get NTP
-** time and publish it via Software Bus.
-*/
+ ** \file psp_time_sync.h
+ **
+ ** \brief API header to control NTP Sync
+ **
+ ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
+ ** This software was created at NASA's Johnson Space Center.
+ ** This software is governed by the NASA Open Source Agreement and may be 
+ ** used, distributed and modified only pursuant to the terms of that agreement.
+ **
+ ** \par Description:
+ ** This file contains the function prototypes that synchronize the cFE Time
+ ** services to the NTP server. Note that the NTP server must be built into the
+ ** kernel.
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** The way this module updates the local time is by calling the CFE Time Service
+ ** function CFE_TIME_SetTime(). The function changes the STCF value.\n
+ **
+ ** GSFC developers do not recommend to use this method of updating CFE time, 
+ ** but rather to use the function CFE_TIME_ExternalTime(). The only way to use
+ ** this function is by building an app that will periodically (1Hz) get NTP
+ ** time and publish it via Software Bus.
+ */
 
 #ifndef _PSP_TIME_SYNC_H_
 #define _PSP_TIME_SYNC_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 ** \func Initialize the CFE PSP Time Task synchronizing with the NTP server
@@ -223,5 +230,9 @@ int32  CFE_PSP_StopNTPDaemon(void);
 ** \return #CFE_PSP_ERROR
 */
 int32  CFE_PSP_NTP_Daemon_Enable(bool enable);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _PSP_TIME_SYNC_H_ */

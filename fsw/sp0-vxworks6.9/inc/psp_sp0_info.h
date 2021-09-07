@@ -1,29 +1,47 @@
 /**
- ** \file  psp_sp0_info.h
+ ** \file psp_sp0_info.h
  **
- ** \brief API to collect and dump SP0 Hardware/Software information
+ ** \brief API header for collecting SP0(s) hardware and software information
  **
  ** \copyright
+ ** Copyright 2016-2019 United States Government as represented by the 
+ ** Administrator of the National Aeronautics and Space Administration. 
+ ** All Other Rights Reserved.\n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
  ** used, distributed and modified only pursuant to the terms of that agreement.
  **
- ** \par Description
- ** This file contains the function prototypes to access the SP0 hardware and 
- ** software data. It also dumps the same data to FLASH memory in the case when 
- ** cFS calls Panic.
+ ** \par Description:
+ ** Functions here allow CFS to provide a method to probe 
+ ** SP0 hardware for information from POST, Temperatures, Voltages, Active 
+ ** Boot EEPROM, etc. In addition, this module has a function to save a 
+ ** dump_core text file before aborting CFS execution. 
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
  **
 */
 
+#ifndef _PSP_SP0_INFO_H_
+#define _PSP_SP0_INFO_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  ** \brief SP0_TEXT_BUFFER_MAX_SIZE
  ** \par Description:
  ** This is the maximum size of the SP0 char array table.
  */
-#define SP0_TEXT_BUFFER_MAX_SIZE    1000
+#define SP0_TEXT_BUFFER_MAX_SIZE            1000
+
+/**
+ ** \brief SP0_SAFEMODEUSERDATA_BUFFER_SIZE
+ ** \par Description:
+ ** This is the maximum size of the safeModeUserData char array.
+ */
+#define SP0_SAFEMODEUSERDATA_BUFFER_SIZE    256
 
 /** \name SP0 Information String Buffer */
 /** \{ */
@@ -73,7 +91,7 @@ struct
     /** \brief Identifies the POST Test Results */
     uint64 bitResult;
     /** \brief Safe Mode User Data */
-    char safeModeUserData[256];
+    char safeModeUserData[SP0_SAFEMODEUSERDATA_BUFFER_SIZE];
     
     /** \brief Number of usec since startup */
     double systemStartupUsecTime;
@@ -98,7 +116,7 @@ struct
 **
 ** \return #CFE_PSP_SUCCESS
 */
-int32  getSP0Info(void);
+int32  PSP_SP0_GetInfo(void);
 
 /**
 ** \func Collect SP0 Hardware and Firmware data
@@ -113,7 +131,7 @@ int32  getSP0Info(void);
 **
 ** \return None
 */
-void  printSP0_info_table(void);
+void  PSP_SP0_PrintInfoTable(void);
 
 /**
  ** \func Function dumps the collected data to file
@@ -130,4 +148,10 @@ void  printSP0_info_table(void);
  ** \return None
  **
  */
-void psp_dump_data(void);
+void PSP_SP0_DumpData(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PSP_SP0_INFO_H_ */

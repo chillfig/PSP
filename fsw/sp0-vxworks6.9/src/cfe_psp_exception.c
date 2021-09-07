@@ -44,6 +44,13 @@
 #include "speLib.h"
 #include "arch/ppc/vxPpcLib.h"
 #include "arch/ppc/esfPpc.h"
+
+/*
+edrPolicyHandlerHookGet
+edrPolicyHandlerHookAdd
+edrPolicyHandlerHookRemove
+*/
+#include <edrLib.h>
 #include <private/edrLibP.h>
 
 /*
@@ -59,41 +66,42 @@
 #include "cfe_psp_memory.h"
 #include <target_config.h>
 
-
 /*
-** cFE includes
+** Defines
 */
 
-/*
-** BSP Specific defines
+/**
+ ** \brief Default NTP Sync pre-print string 
+ ** \par Description:
+ ** This string is printed before every print related to NTP Sync API.
 */
+#define PSP_EXCEP_PRINT_SCOPE         "PSP EXC: "
 
 /*
 **  External Declarations
 */
-/** \brief Declared in Aitech BSP */
+
+/** \brief Declared in Aitech BSP 'bootrom.map' */
 extern STATUS edrErrorPolicyHookRemove(void);
 
 /*
 ** Global variables
 */
-#include <target_config.h>
 
 /**
- ** \name overRideDefaultedrPolicyHandlerHook
+ ** \name g_bOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-BOOL overRideDefaultedrPolicyHandlerHook = FALSE;
-
-/* The EDR_POLICY_HANDLER_HOOK is a function pointer defined
- * in the header file edrLibP.h.
- */
+static BOOL g_bOverRideDefaultedrPolicyHandlerHook = FALSE;
 
 /**
- ** \name currentedrPolicyHandlerHook
+ ** \name g_pCurrentedrPolicyHandlerHook
  ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** The EDR_POLICY_HANDLER_HOOK is a function pointer defined
+ ** in VxWorks header file edrLibP.h.
  */
-LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
+static EDR_POLICY_HANDLER_HOOK g_pCurrentedrPolicyHandlerHook = NULL;
 
 
 /*
@@ -141,12 +149,15 @@ LOCAL EDR_POLICY_HANDLER_HOOK currentedrPolicyHandlerHook = NULL;
  */
 BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
-    CFE_PSP_Exception_LogData_t* Buffer;
+    CFE_PSP_Exception_LogData_t *pBuffer = NULL;
     BOOL returnStatus = FALSE;
-    EDR_TASK_INFO* pInfo = (EDR_TASK_INFO*)pInfo_param;
+    EDR_TASK_INFO *pInfo = NULL;    //UndCC_Line(SSET_059_060_077_078)
+    
+    pInfo = pInfo_param;
 
-    Buffer = CFE_PSP_Exception_GetNextContextBuffer();
-    if (Buffer != NULL)
+    /* Check if there is space in the Exception Storage Buffer. Only up to CFE_PSP_MAX_EXCEPTION_ENTRIES */
+    pBuffer = CFE_PSP_Exception_GetNextContextBuffer();
+    if (pBuffer != NULL)
     {
         /*
          * Immediately get a snapshot of the timebase when exception occurred
@@ -155,35 +166,49 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
          * in a cleanup job as a low priority background task, and might be
          * considerably delayed from the time the actual exception occurred.
          */
-        vxTimeBaseGet(&Buffer->context_info.timebase_upper, &Buffer->context_info.timebase_lower);
+        vxTimeBaseGet(&pBuffer->context_info.timebase_upper, &pBuffer->context_info.timebase_lower);
 
-        Buffer->sys_task_id = pInfo->taskId;
-        Buffer->context_info.vector = pInfo->vector;
+        pBuffer->sys_task_id = pInfo->taskId;
+        pBuffer->context_info.vector = pInfo->vector;
 
         /*
          * Save Exception Stack frame
          */
-        memcpy(&Buffer->context_info.esf, pInfo->pEsf, sizeof(Buffer->context_info.esf));
+        memcpy(&pBuffer->context_info.esf, pInfo->pEsf, sizeof(pBuffer->context_info.esf));
         /*
         ** Save floating point registers
         */
-        speSave(&Buffer->context_info.fp);
+        speSave(&pBuffer->context_info.fp);
 
         CFE_PSP_Exception_WriteComplete();
 
-        if (overRideDefaultedrPolicyHandlerHook == FALSE)
+        if (g_bOverRideDefaultedrPolicyHandlerHook == FALSE)
         {
-            if (currentedrPolicyHandlerHook != NULL)
+            /*
+            When using CFE_PSP_AttachExceptions, g_pCurrentedrPolicyHandlerHook is left to NULL
+            */
+            if (g_pCurrentedrPolicyHandlerHook != NULL)
             {
-                returnStatus = currentedrPolicyHandlerHook(type, pInfo, debug);
+                returnStatus = g_pCurrentedrPolicyHandlerHook(type, pInfo, debug);
+            }
+            else
+            {
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "Override enabled, but Handler Hook is not setup\n");
             }
         }
     }
+    else
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE 
+                  "No more storage available in exception buffer. Increase PSP_EXCEP_PRINT_SCOPE\n");
+    }
+
     if (GLOBAL_CFE_CONFIGDATA.SystemNotify != NULL)
     {
         /* notify the CFE of the event */
         GLOBAL_CFE_CONFIGDATA.SystemNotify();
     }
+
     return returnStatus;
 }
 
@@ -192,6 +217,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 **
 ** \par Description:
 ** This function sets up the exception environment for a particular platform.
+** It is called by CFE_ES_Main() in cfe_es_start.c 
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** For VxWorks, this function initializes the EDR policy handling. The handler is 
@@ -210,8 +236,10 @@ void CFE_PSP_AttachExceptions(void)
      * exceptions. The excHookAdd was replace with EDR&R because using the
      * exception hook interferes with the debugger. (breakpoints)
      */
-	currentedrPolicyHandlerHook = edrPolicyHandlerHookGet();
-    if (currentedrPolicyHandlerHook != NULL)
+    g_pCurrentedrPolicyHandlerHook = edrPolicyHandlerHookGet();
+
+    /* If there is a handler function defined, then remove it */
+    if (g_pCurrentedrPolicyHandlerHook != NULL)
     {
         /* The call to edrErrorPolicyHookRemove will return ERROR if the handler
          * is NULL otherwise it set the handler to NULL. No action was required but
@@ -219,23 +247,24 @@ void CFE_PSP_AttachExceptions(void)
          */
         if (edrErrorPolicyHookRemove() == CFE_PSP_ERROR)
         {
-            OS_printf(
-                "CFE_PSP_AttachException() - edrErrorPolicyHookRemove() failed for address 0x%x ", 
-                currentedrPolicyHandlerHook
-                );
-            currentedrPolicyHandlerHook = NULL;
+            OS_printf(PSP_EXCEP_PRINT_SCOPE
+                      "edrErrorPolicyHookRemove() failed for address 0x%x\n", 
+                      g_pCurrentedrPolicyHandlerHook);
+
+            g_pCurrentedrPolicyHandlerHook = NULL;
         }
 
     }
 
+    /* Add our own handler function */
     if (edrPolicyHandlerHookAdd(CFE_PSP_edrPolicyHandlerHook) == CFE_PSP_ERROR)
     {
-        OS_printf("CFE_PSP_AttachException() - edrPolicyHandlerHookAdd() failed "
-               "for CFE_PSP_edrPolicyHandlerHook()");
+        OS_printf(PSP_EXCEP_PRINT_SCOPE
+                  "edrPolicyHandlerHookAdd() failed for CFE_PSP_edrPolicyHandlerHook()\n");
     }
     else
     {
-        OS_printf("CFE_PSP_AttacheException() - Attached cFE Exception Handler. ");
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Attached cFE Exception Handler.\n");
     }
 }
 
@@ -274,28 +303,25 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
  **
  ** \return #CFE_PSP_SUCCESS on success
  */
-int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer, char *ReasonBuf, uint32 ReasonSize)
+int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
-    const char *TaskName;
+    const char *pTaskName = NULL;
 
-    /*
-    ** Get the vxWorks task name
-    */
-    TaskName = taskName(Buffer->sys_task_id);
+    /* Get the vxWorks task name */
+    pTaskName = taskName(Buffer->sys_task_id);
 
-    if (TaskName == NULL)
+    /* If the task is no longer available, return pointer to local "N/A" string */
+    if (pTaskName == NULL)
     {
-        TaskName = "NULL";
+        pTaskName = "N/A";
     }
 
     /* 
-    NOTE:
-    if return code > ReasonSize then ReasonBuf will be a truncated string 
+    if pTaskName is longer than ReasonSize then ReasonBuf will be a truncated string 
     hiding part of the Task Name. No error will occur.
     */
     snprintf(ReasonBuf, ReasonSize, "Vector=0x%06X, Task ID=0x%08X, vxWorks Task Name=%s",
-            Buffer->context_info.vector,Buffer->sys_task_id,TaskName);
-    
+            Buffer->context_info.vector,Buffer->sys_task_id,pTaskName);
 
     return CFE_PSP_SUCCESS;
 }

@@ -6,7 +6,7 @@
 
 CFE_PSP_Exception_LogData_t * CFE_PSP_Exception_GetNextContextBuffer(void)
 {
-    CFE_PSP_Exception_LogData_t retVal;
+    static CFE_PSP_Exception_LogData_t retVal;
     CFE_PSP_Exception_LogData_t *pRetVal = NULL;
     int32 iStatus;
 
