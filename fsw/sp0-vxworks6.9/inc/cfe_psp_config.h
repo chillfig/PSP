@@ -30,6 +30,9 @@
 #include "taskLib.h"
 #include "arch/ppc/esfPpc.h"
 
+/* getCoreClockSpeed */
+#include "sys950Lib.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,7 +56,7 @@ extern "C" {
  */
 /** \{ */
 /** \brief Numerator */
-#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   20
+#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   (uint32)(8000.0f / (float)getCoreClockSpeed())
 /** \brief Denominator */
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
 /** \} */
