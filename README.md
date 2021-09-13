@@ -10,6 +10,18 @@ This is a collection of APIs abstracting platform specific functionality to be l
 ## Version History
 
 
+### Development Build: v1.5.0-rc1+dev124
+
+- Relax strict of check before calling "Init" function of module, only check that module type is not invalid
+- Remove override of `add_psp_module` for coverage test
+- See <https://github.com/nasa/PSP/pull/307> and <https://github.com/nasa/cFS/pull/351>
+
+### Development Build: v1.5.0-rc1+dev118
+
+- Implement Coding Standards in CodeQL
+- rename doc to docs
+- See <https://github.com/nasa/PSP/pull/296> and <https://github.com/nasa/cFS/pull/265/>
+
 ### Development Build: v1.5.0-rc1+dev112
 
 - Cleans up stale code from the previous methods of generating 1Hz. Adds a new PSP module that instantiates an OSAL abstract timebase for use with cFE services. This single module is used across all psp implementations (mcp750, pc-linux, pc-rtems). Results in 1Hz timing tick on MCP750 will be more accurate. No changes to Linux or RTEMS
@@ -22,7 +34,7 @@ or any other system where direct access is not possible.  Renames the existing `
 
 ### Development Build: v1.5.0-rc1+dev101
 
-- Removes unnecessary global config structure `Target_PspConfigData` and associated elements infavor of the new version API.
+- Removes unnecessary global config structure `Target_PspConfigData` and associated elements in favor of the new version API.
 - The mem pool stats TLM command now works on 64-bit Linux and sends out the expected telemetry packet.
 Converts `CFE_PSP_MemoryTable` to internal object (instead of external) that should only be accessed via the PSP API. Replace `uint32`s with `size_t`. Use full range (SIZE_MAX) in the Linux/RTEMS implementation.
 - See <https://github.com/nasa/PSP/pull/288> and <https://github.com/nasa/cFS/pull/233>
@@ -56,7 +68,7 @@ Converts `CFE_PSP_MemoryTable` to internal object (instead of external) that sho
 
 ### Development Build: 1.5.0-rc1+dev68
 
-- Updates continuous integration workfow by adding static analysis with timeout and code format check. Adds status badges to ReadMe and removes old TravisCI artifacts.
+- Updates continuous integration workflow by adding static analysis with timeout and code format check. Adds status badges to ReadMe and removes old TravisCI artifacts.
 - Adds CodeQL analysis to continuous integration
 - Apply standard formatting to psp codebase. Only changes whitespace.
 - Adds missing "+dev" to development version output

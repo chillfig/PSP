@@ -54,7 +54,7 @@ static uint32 CFE_PSP_ModuleCount = 0;
  ** \func Initialize a list of Modules
  ** 
  ** \par Description:
- ** Helper function to initalize a list of modules (not externally called)
+ ** Helper function to initialize a list of modules (not externally called)
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -77,7 +77,7 @@ void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
         while (Entry->Name != NULL)
         {
             ApiPtr = (CFE_PSP_ModuleApi_t *)Entry->Api;
-            if ((uint32)ApiPtr->ModuleType == CFE_PSP_MODULE_TYPE_SIMPLE && ApiPtr->Init != NULL)
+            if ((uint32)ApiPtr->ModuleType != CFE_PSP_MODULE_TYPE_INVALID && ApiPtr->Init != NULL)
             {
                 (*ApiPtr->Init)(CFE_PSP_MODULE_BASE | CFE_PSP_ModuleCount);
             }

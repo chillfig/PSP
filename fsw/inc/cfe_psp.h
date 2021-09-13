@@ -179,11 +179,20 @@ void  CFE_PSP_Main(void);
 ** \func Get time
 **
 ** \par Description:
-** This function gets the local time from the hardware on the Vxworks system
-** on the MCP750s. On the other OS/HW setup, it will get time the standard way.
+** Sample/Read a monotonic platform clock with normalization
+**
+** Outputs an OS_time_t value indicating the time elapsed since an epoch.  The
+** epoch is not defined, but typically represents the system boot time.  The
+** value increases continuously over time and cannot be reset by software.
+**
+** This is similar to the CFE_PSP_Get_Timebase(), but additionally it normalizes
+** the output value to an OS_time_t, thereby providing consistent units to
+** the calling application.  Any OSAL-provided routine accepts OS_time_t inputs
+** may be used to convert this value into other standardized time units.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** This should refer to the same time domain as CFE_PSP_Get_Timebase(),
+** the primary difference being the format and units of the output value.
 **
 ** \param[out] LocalTime - Pointer to the structure that stores the returned time value
 **
@@ -249,7 +258,7 @@ void  CFE_PSP_FlushCaches(uint32 type, void* address, uint32 size);
 ** \func Get the CPU ID
 **
 ** \par Description:
-** This function returns the CPU ID as pre-fdefined by the cFE for
+** This function returns the CPU ID as pre-defined by the cFE for
 ** specific board and BSP.
 **
 ** \par Assumptions, External Events, and Notes:

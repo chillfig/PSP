@@ -274,7 +274,7 @@ int32 CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue)
 ** Name: CFE_PSP_EepromWriteEnable
 **
 ** Purpose:
-**		Eable the eeprom for write operation
+**		Enable the eeprom for write operation
 **
 ** Assumptions and Notes:
 **

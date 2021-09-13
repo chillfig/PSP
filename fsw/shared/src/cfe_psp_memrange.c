@@ -173,7 +173,7 @@ uint32 CFE_PSP_MemRanges(void)
 ** \func Set an entry in the memory range table
 **
 ** \par Description:
-** This function populates an entry in the global CFE_PSP_MemoryTable.
+** This function populates one of the records in the CFE_PSP_MemoryTable.
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** Because the table is fixed size, the entries are set by using the integer index.
@@ -193,8 +193,11 @@ uint32 CFE_PSP_MemRanges(void)
 **
 ** \return #CFE_PSP_SUCCESS - Memory range set successfuly
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
+** \return #CFE_PSP_INVALID_MEM_ADDR -- Starting address is not valid
 ** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match
 **                                     the passed in type.
+** \return #OP_INVALID_MEM_SIZE -- The Memory range associated with the address is not large enough to contain
+**                                 Address + Size.
 ** \return #CFE_PSP_INVALID_MEM_WORDSIZE - The WordSize parameter is not one of the 
 **                                         types.
 ** \return #CFE_PSP_INVALID_MEM_ATTR - The Attributes parameter is not one of the 
@@ -245,10 +248,10 @@ int32 CFE_PSP_MemRangeSet(uint32 RangeNum, uint32 MemoryType, cpuaddr StartAddr,
 ** \func Get an entry in the memory range table
 **
 ** \par Description:
-** This function retrieves an entry in the global CFE_PSP_MemoryTable.
+** This function retrieves one of the records in the CFE_PSP_MemoryTable.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** Because the table is fixed size, the entries are set by using the integer index.
+** Because the table is fixed size, the entries are accessed by using the integer index.
 **
 ** \param[in] RangeNum - A 32-bit integer (starting with 0) specifying the MemoryTable entry.
 ** \param[out] MemoryType - A pointer to the 32-bit integer where the Memory Type is stored.
@@ -264,7 +267,7 @@ int32 CFE_PSP_MemRangeSet(uint32 RangeNum, uint32 MemoryType, cpuaddr StartAddr,
 **                          memory range: (CFE_PSP_MEM_ATTR_WRITE, CFE_PSP_MEM_ATTR_READ,
 **                          CFE_PSP_MEM_ATTR_READWRITE) are stored.
 **
-** \return #CFE_PSP_SUCCESS - Memory range returned successfuly
+** \return #CFE_PSP_SUCCESS - Memory range returned successfully
 ** \return #CFE_PSP_INVALID_POINTER - Parameter error
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
 */

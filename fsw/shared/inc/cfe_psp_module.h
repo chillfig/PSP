@@ -106,7 +106,7 @@ typedef const struct
  ** \par Assumptions, External Events, and Notes:
  ** This function is an optional part of the PSP and some PSP implementations may not use it.
  **
- ** Note 1: It should only be called during PSP initialization before the system is operational.
+ ** Note 1: This function should only be called during PSP initialization before the system is operational.
  ** It is not intended to be called from application code after cFE has started.  The 
  ** function is not necessarily be thread-safe and should be called before any child threads
  ** are created.
