@@ -39,11 +39,11 @@
 #include <string.h>
 #include <vxWorks.h>
 #include <sysLib.h>
-#include "excLib.h"
-#include "taskLib.h"
-#include "speLib.h"
-#include "arch/ppc/vxPpcLib.h"
-#include "arch/ppc/esfPpc.h"
+#include <excLib.h>
+#include <taskLib.h>
+#include <speLib.h>
+#include <arch/ppc/vxPpcLib.h>
+#include <arch/ppc/esfPpc.h>
 
 /*
 edrPolicyHandlerHookGet
@@ -57,6 +57,7 @@ edrPolicyHandlerHookRemove
 ** cFE includes
 */
 #include "common_types.h"
+#include "target_config.h"
 #include "osapi.h"
 
 #include "cfe_psp.h"
@@ -64,7 +65,6 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
-#include <target_config.h>
 
 /*
 ** Defines
@@ -89,10 +89,10 @@ extern STATUS edrErrorPolicyHookRemove(void);
 */
 
 /**
- ** \name g_bOverRideDefaultedrPolicyHandlerHook
+ ** \name g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static BOOL g_bOverRideDefaultedrPolicyHandlerHook = FALSE;
+static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = FALSE;
 
 /**
  ** \name g_pCurrentedrPolicyHandlerHook
@@ -182,7 +182,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 
         CFE_PSP_Exception_WriteComplete();
 
-        if (g_bOverRideDefaultedrPolicyHandlerHook == FALSE)
+        if (g_ucOverRideDefaultedrPolicyHandlerHook == FALSE)
         {
             /*
             When using CFE_PSP_AttachExceptions, g_pCurrentedrPolicyHandlerHook is left to NULL

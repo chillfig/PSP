@@ -206,9 +206,14 @@ void  CFE_PSP_GetTime(OS_time_t *LocalTime);
 ** \par Description:
 ** This function is the entry point back to the BSP to restart the processor.
 ** cFE calls this function to restart the processor.
+** Depending on the resetType, the function will clear the memory or not.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** system restart types defined in sysLib.h:\n
+** - BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_\n
+** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
+** - BOOT_CLEAR _"clear memory"_
+** - BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
 **
 ** \param[in] resetType - Type of cFE reset
 **
@@ -574,13 +579,14 @@ uint32  CFE_PSP_WatchdogGet(void);
 ** This function sets the current watchdog time, in milliseconds.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** Although the WatchDog can be set to nano-seconds precision, the implementation
+** only allows milliseconds precision.
 **
-** \param[in] watchDogValue - watchdog time in milliseconds
+** \param[in] watchDogValue_ms - watchdog time in milliseconds
 **
 ** \return None
 */
-void  CFE_PSP_WatchdogSet(uint32 watchDogValue);
+void  CFE_PSP_WatchdogSet(uint32 watchDogValue_ms);
 
 /**
 ** \func Abort cFE startup

@@ -13,10 +13,10 @@
  ** agreement.
  **
  ** \par Description:
- ** API to enable/disable, and control watchdog
+ ** API to enable/disable, and control FPGA watchdog
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
- ** None
+ ** The FPGA watchdog timer has a counter with a tick precision of about 48 nano-seconds
  **
  */
 
@@ -27,17 +27,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/* Aitech BSP Specific */
+#include <sysApi.h>
+
 #include "common_types.h"
 #include "osapi.h"
+
 #include "cfe_psp.h"
-#include "sysApi.h"
 #include "cfe_psp_config.h"
 
 /*
 ** Global Variables
 */
 /** \brief Watchdog current millisecond value */
-static uint32 g_uiCFE_PSP_WatchdogValue = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
+static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
 
 
 /**
@@ -55,7 +58,7 @@ static uint32 g_uiCFE_PSP_WatchdogValue = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Wat
 */
 void CFE_PSP_WatchdogInit(void)
 {
-    CFE_PSP_WatchdogSet(g_uiCFE_PSP_WatchdogValue);  /* in msecs */
+    CFE_PSP_WatchdogSet(g_uiCFE_PSP_WatchdogValue_ms);  /* in msecs */
 }
 
 
@@ -74,7 +77,11 @@ void CFE_PSP_WatchdogInit(void)
 */
 void CFE_PSP_WatchdogEnable(void)
 {
-    sysEnableFpgaWdt(1);
+    /*
+    ** TRUE (allows slave SBC's WDT failure to reset all SBCs)
+    ** FALSE (slave SBC's WDT failure resets slave SBC only)
+    */
+    sysEnableFpgaWdt(true);
 }
 
 
@@ -136,7 +143,7 @@ void CFE_PSP_WatchdogService(void)
 */
 uint32 CFE_PSP_WatchdogGet(void)
 {
-    return((uint32)g_uiCFE_PSP_WatchdogValue);
+    return((uint32)g_uiCFE_PSP_WatchdogValue_ms);
 }
 
 
@@ -147,20 +154,22 @@ uint32 CFE_PSP_WatchdogGet(void)
 ** This function sets the current watchdog time, in milliseconds.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** Although the WatchDog can be set to nano-seconds precision, the implementation
+** only allows milliseconds precision.
 **
-** \param[in] watchDogValue - watchdog time in milliseconds
+** \param[in] watchDogValue_ms - watchdog time in milliseconds
 **
 ** \return None
 */
-void CFE_PSP_WatchdogSet(uint32 watchDogValue)
+void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
 {
     float fRate = 0.0f;
 
-    g_uiCFE_PSP_WatchdogValue = watchDogValue / 1000U;  /* in msecs */
+    g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;  /* input already in msecs */
 
     /*Rate is in seconds*/
-    fRate = (((float)watchDogValue) * 0.001f);
+    fRate = (((float)watchDogValue_ms) * 0.001f);
+
     sysSetFpgaWdt(fRate);
 }
 

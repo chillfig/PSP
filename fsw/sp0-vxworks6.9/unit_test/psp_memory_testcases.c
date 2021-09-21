@@ -74,7 +74,7 @@ void Ut_CFE_PSP_SetReadCDSMethod(void)
     /* Execute test */
     CFE_PSP_SetReadCDSMethod(ucMethod);
     /* Verify outputs */
-    UtAssert_True(g_CDSReadMethod = ucMethod, "_CFE_PSP_SetReadCDSMethod - 1/1:Nominal");
+    UtAssert_True(g_ucCDSReadMethod = ucMethod, "_CFE_PSP_SetReadCDSMethod - 1/1:Nominal");
 }
 
 /*=======================================================================================
@@ -86,11 +86,11 @@ void Ut_CFE_PSP_GetReadCDSMethod(void)
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs  */
-    g_CDSReadMethod = 20;
+    g_ucCDSReadMethod = 20;
     /* Execute test */
     ucRetCode = CFE_PSP_GetReadCDSMethod();
     /* Verify outputs */
-    UtAssert_True(ucRetCode = g_CDSReadMethod, "_CFE_PSP_GetReadCDSMethod - 1/1:Nominal");
+    UtAssert_True(ucRetCode = g_ucCDSReadMethod, "_CFE_PSP_GetReadCDSMethod - 1/1:Nominal");
 }
 
 /*=======================================================================================
@@ -339,7 +339,7 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     pucData = uiBuffer;
-    g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_CRC;
+    g_ucCDSReadMethod = CFE_PSP_CDS_READ_METHOD_CRC;
     sg_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes);
@@ -365,7 +365,7 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = uiBuffer;
-    g_CDSReadMethod = CFE_PSP_CDS_READ_METHOD_FLASH;
+    g_ucCDSReadMethod = CFE_PSP_CDS_READ_METHOD_FLASH;
     sg_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes);

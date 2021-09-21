@@ -14,7 +14,7 @@
  **
  ** \par Description:
  ** The functions here allow the cFE to interface functions
- ** that are board and OS specific and usually dont fit well in the OS
+ ** that are board and OS specific and usually don't fit well in the OS
  ** abstraction layer.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
@@ -28,17 +28,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vxWorks.h"
-#include "cacheLib.h"
-#include "rebootLib.h"
+#include <vxWorks.h>
+#include <cacheLib.h>
+#include <rebootLib.h>
 
 #include "common_types.h"
+#include "target_config.h"
 #include "osapi.h"
 
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
+#include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
-#include "target_config.h"
 
 /** \name Macros */
 /** \{ */
@@ -55,10 +56,15 @@
  **
  ** \par Description:
  ** This function is the entry point back to the BSP to restart the processor.
- ** cFE calls this function to restart the processor.
+ ** cFE calls this function to restart the processor.\n
+ ** Depending on the resetType, the function will clear the memory or not.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** system restart types defined in sysLib.h:\n
+ ** - BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_\n
+ ** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
+ ** - BOOT_CLEAR _"clear memory"_
+ ** - BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
  **
  ** \param[in] resetType - Type of cFE reset
  **
@@ -107,6 +113,9 @@ void CFE_PSP_Panic(int32 errorCode)
     /* Dump PSP SP0 Information */
     PSP_SP0_DumpData();
 
+    /* Close Memory Scrubbing Task if still running */
+    CFE_PSP_MEM_SCRUB_Delete();
+
     /* UndCC_NextLine(SSET_100, SSET110) */
     exit(-1);
 }
@@ -140,7 +149,7 @@ void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
  ** \func Get the CPU ID
  **
  ** \par Description:
- ** This function returns the CPU ID as pre-fdefined by the cFE for
+ ** This function returns the CPU ID as pre-defined by the cFE for
  ** specific board and BSP.
  **
  ** \par Assumptions, External Events, and Notes:

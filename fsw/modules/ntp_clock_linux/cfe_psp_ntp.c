@@ -76,23 +76,23 @@ extern void CFE_TIME_SetTime(CFE_TIME_SysTime_t);
  * @brief Contains the NTP Sync Task ID
  *        If 0, task is not running
  */
-static uint32 sg_uiPSPNTPTask_id = 0;
+static uint32 g_uiPSPNTPTask_id = 0;
 
-static osal_priority_t sg_uiNTPSyncTaskPriority = NTPSYNC_DEFAULT_PRIORITY;
+static osal_priority_t g_ucNTPSyncTaskPriority = NTPSYNC_DEFAULT_PRIORITY;
 
 /**
  * \brief Boolean variable to control if to synchronize CFE Time Service with OS
  * local time. True, synch will occur. False, timer will not be disabled, but 
  * sync will not execute.
  */
-static bool sg_bEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
+static bool g_iEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
 
 /**
  * \brief Change how often to sync CFE Time Service with OS Local Time. OS local
  * time is synchronized to NTP server(s) automatically from within OS if 
  * enabled.
  */
-static uint16 sg_uiOSTimeSync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
+static uint16 g_usOSTimeSync_Sec = CFE_MISSION_TIME_SYNC_OS_SEC;
 
 /* Declare this file a PSP Module */
 CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_linux);
@@ -107,9 +107,9 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_linux);
  */
 void ntp_clock_linux_Init(uint32 PspModuleId)
 {
-    if (sg_bEnableGetTimeFromOS_flag)
+    if (g_iEnableGetTimeFromOS_flag)
     {
-        CFE_PSP_TIME_Init(sg_uiOSTimeSync_Sec);
+        CFE_PSP_TIME_Init(g_usOSTimeSync_Sec);
     }
 }
 
@@ -126,12 +126,12 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
     int32       status;
     
     /*Create the 1Hz task for synchronizing with OS time*/
-    status = OS_TaskCreate(&sg_uiPSPNTPTask_id,
+    status = OS_TaskCreate(&g_uiPSPNTPTask_id,
                             NTPSYNC_TASK_NAME,
                             CFE_PSP_Update_OS_Time,
                             OSAL_TASK_STACK_ALLOCATE, 
                             OSAL_SIZE_C(1024),
-                            sg_uiNTPSyncTaskPriority,
+                            g_ucNTPSyncTaskPriority,
                             0
                             );
 
@@ -171,9 +171,9 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
         printf(PRE_PRINT_SCOPE "Sync with OS is disabled\n");
     }
     /* Set flag */
-    sg_bEnableGetTimeFromOS_flag = enable;
+    g_iEnableGetTimeFromOS_flag = enable;
 
-    return (int32) sg_bEnableGetTimeFromOS_flag;
+    return (int32) g_iEnableGetTimeFromOS_flag;
 }
 
 /******************************************************************************
@@ -241,7 +241,7 @@ int32 net_clock_linux_Destroy()
 **    uint16 - seconds between updates. If zero, returns the current value
 **
 **  Return:
-**    int - CFE_PSP_SUCCESS or the current sg_uiOSTimeSync_Sec value
+**    int - CFE_PSP_SUCCESS or the current g_usOSTimeSync_Sec value
 ******************************************************************************/
 int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 {
@@ -249,14 +249,14 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 
     if (new_frequency_sec == 0)
     {
-        /* Return the value of sg_uiOSTimeSync_Sec */
-        return_value = (int32)sg_uiOSTimeSync_Sec;
+        /* Return the value of g_usOSTimeSync_Sec */
+        return_value = (int32)g_usOSTimeSync_Sec;
     }
     else
     {
-        /* Set a new value of sg_uiOSTimeSync_Sec */
+        /* Set a new value of g_usOSTimeSync_Sec */
         /* Update frequency with new value */
-        sg_uiOSTimeSync_Sec = new_frequency_sec;
+        g_usOSTimeSync_Sec = new_frequency_sec;
 
         net_clock_linux_Destroy();
 
@@ -368,13 +368,13 @@ void CFE_PSP_Update_OS_Time(void)
 
     while (1)
     {
-        sleep_time = sg_uiOSTimeSync_Sec * 1000U;
+        sleep_time = g_usOSTimeSync_Sec * 1000U;
         ret = OS_TaskDelay(sleep_time);
 
         if (ret == OS_SUCCESS)
         {
             /* If the flag is enabled */
-            if (sg_bEnableGetTimeFromOS_flag)
+            if (g_iEnableGetTimeFromOS_flag)
             {
                 /* Get real time clock from OS */
                 ret = CFE_PSP_Get_OS_Time(&myT);
