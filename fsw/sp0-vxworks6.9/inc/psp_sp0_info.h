@@ -43,14 +43,6 @@ extern "C" {
  */
 #define SP0_SAFEMODEUSERDATA_BUFFER_SIZE    256
 
-/** \name SP0 Information String Buffer */
-/** \{ */
-/** \brief SP0 String Buffer */
-char sp0_data_dump[SP0_TEXT_BUFFER_MAX_SIZE];
-/** \brief Actual length of the string buffer */
-int sp0_data_dump_length;
-/** \} */
-
 /**
 ** \name SP0 info structure
 ** \par Description:
@@ -122,7 +114,7 @@ int32  PSP_SP0_GetInfo(void);
 ** \func Collect SP0 Hardware and Firmware data
 **
 ** \par Description:
-** This function prints the SP0 data to the output console.
+** This function prints the SP0 data to the output console
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -137,8 +129,7 @@ void  PSP_SP0_PrintInfoTable(void);
  ** \func Function dumps the collected data to file
  **
  ** \par Description:
- ** This function prints the SP0 data to the output console.
- ** Data is saved at #SP0_DATA_DUMP_FILEPATH
+ ** Saves data dump to location defined by #SP0_DATA_DUMP_FILEPATH
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** None

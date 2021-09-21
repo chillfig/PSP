@@ -54,7 +54,7 @@ void CFE_PSP_SetReadCDSMethod(uint8 ucMethod);
 **
 ** \param None
 **
-** \return #CFE_PSP_CDS_READ_METHOD_DEFAULT - Trust the CDS data on RAM (no CRC or read from Flash)
+** \return #CFE_PSP_CDS_READ_METHOD_RAM - Trust the CDS data on RAM (no CRC or read from Flash)
 ** \return #CFE_PSP_CDS_READ_METHOD_CRC - Check the CRC first then read from Flash if CRC mis-matched
 ** \return #CFE_PSP_CDS_READ_METHOD_FLASH - Always read from Flash
 */

@@ -22,12 +22,25 @@
 #ifndef _PSP_START_H_
 #define _PSP_START_H_
 
+/*
+**  Include Files
+*/
+#include <stdio.h>
+#include <string.h>
+#include <vxWorks.h>
+#include <taskLib.h>
+
+/* Aitech BSP Specific */
+#include <scratchRegMap.h>
+#include <aimonUtil.h>
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
-** \func Log the Power On Self Test (POST) results to the system log.
+** \func Print Power On Self Test (POST) results to the console
 **
 ** \par Description:
 ** None
@@ -42,10 +55,14 @@ extern "C" {
 void CFE_PSP_ProcessPOSTResults(void);
 
 /**
-** \func Determines the reset type and logs off nominal resets.
+** \func Determines the reset type and subtype
 **
 ** \par Description:
-** None
+** Reset Types are defined in Aitech headers
+** Function will save reset types to the respective global static variables:
+** - g_uiResetType
+** - g_uiResetSubtype
+** Finally, function will print to console the reset type
 **
 ** \par Assumptions, External Events, and Notes:
 ** Output defines are defined in Aitech file scratchRegMap.h

@@ -6,10 +6,11 @@
  ** \copyright
  ** Copyright 2016-2019 United States Government as represented by the 
  ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
+ ** All Other Rights Reserved. \n
  ** This software was created at NASA's Johnson Space Center.
  ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** used, distributed and modified only pursuant to the terms of that 
+ ** agreement.
  **
  ** \par Description:
  ** This file contains the function prototypes relating to memory scrubbing.
@@ -22,6 +23,9 @@
 
 #ifndef _PSP_MEM_SCRUB_H_
 #define _PSP_MEM_SCRUB_H_
+
+#include "common_types.h"
+#include "osapi.h"
 
 #ifdef __cplusplus
 extern "C" {

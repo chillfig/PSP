@@ -24,45 +24,43 @@
 /*
 **  Include Files
 */
-#include "cfe_psp.h"
+
 #include <fcntl.h>
 #include <stdio.h>
-#include "ioLib.h"
+#include <ioLib.h>
 #include <vxWorks.h>
 #include <float.h>
 
-/* BSP Specific */
-#include "aimonUtil.h"
-#include "sys950Lib.h"
-#include "sysApi.h"
-#include "scratchRegMap.h"
-#include "bflashCt.h"
-/* #include "sysLib.c" */
-#include "tempSensor.h"
+/* Aitech BSP Specific */
+#include <aimonUtil.h>
+#include <sys950Lib.h>
+#include <sysApi.h>
+#include <scratchRegMap.h>
+#include <bflashCt.h>
+#include <tempSensor.h>
 
+#include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "psp_sp0_info.h"
 
-/*
-** Macro Definitions
-*/
-
 
 /*
-** Global Variables
+** Static Variables
 */
-
-
-/*
-**  External Declarations
-*/
+/** \name SP0 Information String Buffer */
+/** \{ */
+/** \brief SP0 String Buffer */
+static char g_cSP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
+/** \brief Actual length of the string buffer */
+static int g_iSP0DataDumpLength;
+/** \} */
 
 /**
 ** \func Collect SP0 Hardware and Firmware data
 **
 ** \par Description:
 ** This function collects the SP0 hardware and firmware data and saves it
-** in the sp0_info_table object, as well as a string in the sp0_data_dump object.
+** in the sp0_info_table object, as well as a string in the g_cSP0DataDump object.
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -88,6 +86,8 @@ int32 PSP_SP0_GetInfo(void)
     uint64                      bitExecuted = 0ULL;
     uint64                      bitResult   = 0ULL;
     int                         ret_code = CFE_PSP_SUCCESS;
+
+    OS_printf("\nPSP SP0 INFO: Collecting Data\n");
 
     /*
     This routine returns the model name of the CPU board. The returned string 
@@ -147,6 +147,7 @@ int32 PSP_SP0_GetInfo(void)
     }
     else
     {
+        OS_printf("\nPSP SP0: Error collecting data from ReadResetSourceReg()\n");
         ret_code = OS_ERROR;
     }
 
@@ -181,6 +182,7 @@ int32 PSP_SP0_GetInfo(void)
                  SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                  "OS_Error Retrieving SafeModeUserData"
                 );
+        OS_printf("\nPSP SP0: Error collecting data from ReadSafeModeUserData()\n");
         ret_code = OS_ERROR;
     }
 
@@ -225,6 +227,7 @@ int32 PSP_SP0_GetInfo(void)
         /* If temperature reading is unsuccessful, save lowest possible number to show error */
         else
         {
+            OS_printf("\nPSP SP0: Error collecting data from tempSensorRead()\n");
             sp0_info_table.temperatures[i] = FLT_MIN;
             ret_code = OS_ERROR;
         }
@@ -234,7 +237,7 @@ int32 PSP_SP0_GetInfo(void)
     for (i = 1; i < 7; i++)
     {
         /* This function takes about 3msec each time */
-        status = volSensorRead(i - 1, 0, &fVoltage, 0);
+        status = volSensorRead(i, 0, &fVoltage, 0);
         /* If voltage is read successfully, save on table */
         if (status == OS_SUCCESS)
         {
@@ -243,6 +246,7 @@ int32 PSP_SP0_GetInfo(void)
         /* If voltage reading is unsuccessful, save lowest possible number to show error */
         else
         {
+            OS_printf("\nPSP SP0: Error collecting data from volSensorRead()\n");
             sp0_info_table.voltages[i - 1] = FLT_MIN;
             ret_code = OS_ERROR;
         }
@@ -256,6 +260,7 @@ int32 PSP_SP0_GetInfo(void)
     }
     else
     {
+        OS_printf("\nPSP SP0: Error collecting data from aimonGetBITExecuted()\n");
         ret_code = OS_ERROR;
     }
 
@@ -267,12 +272,13 @@ int32 PSP_SP0_GetInfo(void)
     }
     else
     {
+        OS_printf("\nPSP SP0: Error collecting data from aimonGetBITResults()\n");
         ret_code = OS_ERROR;
     }
 
     /* Output to local string buffer */
-    sp0_data_dump_length = snprintf(
-        sp0_data_dump, 
+    g_iSP0DataDumpLength = snprintf(
+        g_cSP0DataDump, 
         SP0_TEXT_BUFFER_MAX_SIZE,
         "SysModel: %s\nSysBspRev: %s\n"
         "SysPhysMemTop: 0x%08X (%.0f MiB)\n"
@@ -332,10 +338,10 @@ int32 PSP_SP0_GetInfo(void)
 ** \func Collect SP0 Hardware and Firmware data
 **
 ** \par Description:
-** This function prints the SP0 data to the output console.
+** This function prints the SP0 data to the output console
 ** 
 ** \par Assumptions, External Events, and Notes:
-** None
+** This function is only for debugging.
 **
 ** \param None
 **
@@ -344,15 +350,20 @@ int32 PSP_SP0_GetInfo(void)
 void PSP_SP0_PrintInfoTable(void)
 {
     /* Output to console */
-    OS_printf("\n%s\n", &sp0_data_dump);
+
+    /*
+    OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
+    is usually much longer.
+    */
+    // UndCC_NextLine(SSET134)
+    printf("\n\n%s\n\n", &g_cSP0DataDump);
 }
 
 /**
  ** \func Function dumps the collected data to file
  **
  ** \par Description:
- ** This function prints the SP0 data to the output console.
- ** Data is saved at #SP0_DATA_DUMP_FILEPATH
+ ** Saves data dump to location defined by #SP0_DATA_DUMP_FILEPATH
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -371,6 +382,6 @@ void PSP_SP0_DumpData(void)
     remove(filename);
 
     fd = creat(filename, O_RDWR);
-    write(fd, sp0_data_dump, (size_t) sp0_data_dump_length);
+    write(fd, g_cSP0DataDump, (size_t) g_iSP0DataDumpLength);
     close(fd);
 }

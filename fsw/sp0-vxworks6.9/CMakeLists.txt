@@ -20,10 +20,13 @@ include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/inclu
 
 add_compile_options(-Werror=conversion -Werror=sign-conversion -Werror=all)
 
+
+
 # Build the sp0-vxworks implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
     src/cfe_psp_memory.c
+    src/cfe_psp_mem_scrub.c
     src/cfe_psp_start.c
     src/cfe_psp_support.c
     src/cfe_psp_watchdog.c

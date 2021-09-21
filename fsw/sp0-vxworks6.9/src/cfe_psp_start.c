@@ -28,29 +28,25 @@
 #include <vxWorks.h>
 #include <taskLib.h>
 
-#include "target_config.h"
-#include "scratchRegMap.h"
-#include "aimonUtil.h"
-#include "cfe_psp_config.h"
+/* Aitech BSP Specific */
+#include <scratchRegMap.h>
+#include <aimonUtil.h>
 
 /*
 ** cFE includes
 */
 #include "common_types.h"
+#include "target_config.h"
 #include "osapi.h"
 
 #include "cfe_psp.h"
-#include "psp_start.h"
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
+#include "cfe_psp_config.h"
+#include "psp_start.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
 #include "psp_verify.h"
-
-/*
-** Macro Definitions
-*/
-
 
 /*
 **  External Function Prototypes
@@ -71,11 +67,6 @@ extern int OS_BSPMain(void);
 #define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
 /** \} */
 
-/*
-**  Local Function Prototypes
-*/
-
-
 /* Local Global Variables */
 
 /** \brief Reset Type */
@@ -92,7 +83,7 @@ static TASK_ID g_uiShellTaskID = 0;
  * to before finishing initialization.
  */
 /** \brief The list of VxWorks task to change the task priority to before finishing initialization. */
-CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
+static CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
 {
     {"tLogTask", 0},
     {"tShell0", 201},
@@ -133,7 +124,7 @@ void CFE_PSP_Main(void)
 
 
 /**
-** \func Log the Power On Self Test (POST) results to the system log.
+** \func Print Power On Self Test (POST) results to the console
 **
 ** \par Description:
 ** None
@@ -163,37 +154,41 @@ void CFE_PSP_ProcessPOSTResults(void)
             {
                 if (bitResult & bitMask)
                 {
-                    OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - FAILED - %s.\n",
+                    OS_printf("PSP: POST Test - FAILED - %s.\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
                 else
                 {
-                    OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - PASSED - %s .\n",
+                    OS_printf("PSP: POST Test - PASSED - %s .\n",
                             AimonCompletionBlockTestIDStrings[i]);
                 }
             }
             else
             {
 
-                OS_printf("PSP: CFE_PSP_ProcessPOSTResults: Test - Not Run - %s.\n",
+                OS_printf("PSP: POST Test - Not Run - %s.\n",
                         AimonCompletionBlockTestIDStrings[i]);
             }
         }
     }
     else
     {
-        OS_printf("PSP: CFE_PSP_ProcessPOSTResults: aimonGetBITExecuted() or aimonGetBITResults() failed.\n");
+        OS_printf("PSP: POST aimonGetBITExecuted() or aimonGetBITResults() failed.\n");
     }
 }
 
 /**
-** \func Determines the reset type and logs off nominal resets.
+** \func Determines the reset type and subtype
 **
 ** \par Description:
 ** Reset Types are defined in Aitech headers
+** Function will save reset types to the respective global static variables:
+** - g_uiResetType
+** - g_uiResetSubtype
+** Finally, function will print to console the reset type
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** Output defines are defined in Aitech file scratchRegMap.h
 **
 ** \param None
 **
@@ -601,7 +596,7 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, int32 tgtPrio)
         {
             if (taskPriorityGet(tid, (int *)&curPrio) != CFE_PSP_ERROR)
             {
-                OS_printf("PSP: SetTaskPrio() - Setting %s priority from %d to %d\n",
+                OS_printf("PSP: Setting %s priority from %d to %d\n",
                           tName, curPrio, newPrio);
 
                 if (taskPrioritySet(tid, newPrio) == CFE_PSP_ERROR)
