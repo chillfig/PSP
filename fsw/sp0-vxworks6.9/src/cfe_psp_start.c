@@ -447,6 +447,10 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     /* Print all POST results */
     CFE_PSP_ProcessPOSTResults();
 
+    /* Set the resource configuration flags */
+    OS_BSP_SetResourceTypeConfig(OS_OBJECT_TYPE_OS_TASK, VX_SPE_TASK);
+
+
     OS_printf("PSP: PSP Application Startup Complete\n");
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
