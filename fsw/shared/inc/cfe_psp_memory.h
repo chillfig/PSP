@@ -21,7 +21,7 @@
 /**
  ** \file  cfe_psp_memory.h
  **
- ** \brief Header file for the memory-related supporting functions for the local PSP routines
+ ** \brief Header file for the Reserved Memory-related supporting functions
  **
  ** \copyright
  ** Copyright 2016-2019 United States Government as represented by the 
@@ -32,7 +32,8 @@
  ** used, distributed and modified only pursuant to the terms of that agreement.
  **
  ** \par Description:
- ** None
+ ** Header file containing the function declarations to initialize, manage, and 
+ ** delete Reserved Memory
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
@@ -130,7 +131,8 @@ void CFE_PSP_SetupReservedMemoryMap(void);
  ** \par Description:
  ** This function initializes all of the memory in the BSP that is preserved on 
  ** a processor reset. The memory includes the Critical Data Store, the ES Reset Area,
- ** the Volatile Disk Memory and the User Reserved Memory.
+ ** the Volatile Disk Memory and the User Reserved Memory. Options include 
+ ** #CFE_PSP_RST_TYPE_PROCESSOR, #CFE_PSP_RST_TYPE_POWERON, #CFE_PSP_RST_TYPE_MAX
  **
  ** \par Assumptions, External Events, and Notes:
  ** This initializes based on the reset type.  Typically, the information

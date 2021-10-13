@@ -22,8 +22,8 @@
 ** cfe_psp_config.h
 */
 
-#ifndef _cfe_psp_config_
-#define _cfe_psp_config_
+#ifndef _CFE_PSP_CONFIG_
+#define _CFE_PSP_CONFIG_
 
 #include "common_types.h"
 

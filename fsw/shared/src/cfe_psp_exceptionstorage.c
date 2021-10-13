@@ -214,10 +214,10 @@ uint32 CFE_PSP_Exception_GetCount(void)
 ** \param[out] ContextLogId - Pointer to the variable that stores the returned log ID
 ** \param[out] TaskId - Pointer to the variable that stores the returned OSAL task ID
 ** \param[out] ReasonBuf - The buffer that stores the returned string
-** \param[out] ReasonSize - The maximum length of the buffer, ReasonBuf
+** \param[in] ReasonSize - The maximum length of the buffer, ReasonBuf
 **
 ** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_NO_EXCEPTION_DATA
 */
 int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize)
 {
@@ -289,9 +289,10 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
 **
 ** \param[in] ContextLogId - The stored exception log ID
 ** \param[out] ContextBuf - Pointer to the variable that stores the copied data
-** \param[out] ContextSize - The maximum length of the buffer, ContextBuf
+** \param[in] ContextSize - The maximum length of the buffer, ContextBuf
 **
 ** \return The actual size of the copied data
+** \return #CFE_PSP_NO_EXCEPTION_DATA
 */
 int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize)
 {

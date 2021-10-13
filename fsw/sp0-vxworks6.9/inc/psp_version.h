@@ -4,12 +4,14 @@
  ** \brief API header to obtain the values of the various version identifiers
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** Provide version identifiers for the cFE Platform Support Packages (PSP).
@@ -31,21 +33,21 @@ extern "C" {
 /** \name Version Macro Definitions */
 /** \{ */
 /** \brief Development Build Macro Definitions - Build Number */
-#define CFE_PSP_IMPL_BUILD_NUMBER   112
+#define CFE_PSP_IMPL_BUILD_NUMBER   124
 /** \brief Development Build Macro Definitions - Baseline */
 #define CFE_PSP_IMPL_BUILD_BASELINE "v1.5.0-rc1"
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
-#define CFE_PSP_IMPL_MINOR_VERSION 4 
+#define CFE_PSP_IMPL_MINOR_VERSION 5 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
-#define CFE_PSP_IMPL_REVISION      0 
+#define CFE_PSP_IMPL_REVISION      1 
 /** \brief ONLY APPLY for OFFICIAL releases.
  ** Revision version number. A value of "99" indicates an unreleased development version.
  */
-#define CFE_PSP_IMPL_MISSION_REV   99
+#define CFE_PSP_IMPL_MISSION_REV   0
 /** \brief ONLY APPLY for OFFICIAL releases. Codename */
-#define CFE_PSP_IMPL_CODENAME "Bootes"
+#define CFE_PSP_IMPL_CODENAME "Caelum"
 /** \} */
 
 /** \name Tools to construct version string */

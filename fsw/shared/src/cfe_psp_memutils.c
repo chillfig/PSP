@@ -59,8 +59,8 @@
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[inout] dest - Pointer to an address to copy to
- ** \param[inout] src - Pointer address to copy from
+ ** \param[out] dest - Pointer to an address to copy to
+ ** \param[in] src - Pointer address to copy from
  ** \param[in] size - Number of bytes to copy
  **
  ** \return #CFE_PSP_SUCCESS 
@@ -83,7 +83,7 @@ int32 CFE_PSP_MemCpy(void *dest, const void *src, uint32 size)
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[inout] dest - Pointer to destination address
+ ** \param[out] dest - Pointer to destination address
  ** \param[in] value - An 8-bit value to fill in the memory
  ** \param[in] size - The number of values to write
  **

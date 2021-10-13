@@ -17,14 +17,6 @@ Kernel must provide the following functions:
 - GetWrsKernelTextStart()
 - GetWrsKernelTextEnd()
 
-#### Not included - from MCP750
-
-- startCfeCore() - _"This function is used to unzip, load, and run CFE core"_
-
-> **Note:** This function is not necessary during development time, but could be useful in production. The _startCfeCore_ function could load CFE on startup.
-
-- CFE_PSP_InitFlashDisk() - _"Initialize the Compact flash disk in vxWorks"_
-
 ### Components
 
 Kernel must include the following services:
@@ -32,8 +24,7 @@ Kernel must include the following services:
 - FTP
   - Port 21
 - Telnet
-- User Reserved Memory (Not Supported by Aitech)
-  - Why CLEAR_USER_RESERVED_MEMORY_ON_COLD_BOOT in Kernel is set to True?
+- User Reserved Memory (Currently not supported by Aitech SP0 bootloader)
 - Watchdog
 - NTP
 - Datalight FlashFX (Aitech FLASH Memory)
@@ -73,7 +64,7 @@ Kernel must include the following services:
   - g_safeModeUserData
   - g_uiShellTaskID
   - g_ucOverRideDefaultedrPolicyHandlerHook
-  - g_pCurrentedrPolicyHandlerHook
+  - g_pDefaultedrPolicyHandlerHook
 
 - Functions Internal "Because defined as static"
   - CFE_PSP_ProcessResetType
@@ -115,6 +106,7 @@ Kernel must include the following services:
   - MEMSCRUB_PRIORITY_UP_RANGE `*`
   - MEMSCRUB_PRIORITY_DOWN_RANGE `*`
   - MEMSCRUB_TASK_NAME `*`
+  - MEM_SCRUB_PRINT_SCOPE
 
 - Static Variables
   - g_uiMemScrubTaskPriority
@@ -139,19 +131,13 @@ Kernel must include the following services:
 
 - Defines
   - CFE_PSP_CFE_FLASH_FILEPATH `*`
-  - CFE_PSP_CDS_READ_METHOD_DEFAULT `*` `^`
-  - CFE_PSP_CDS_READ_METHOD_RAM `*`
-  - CFE_PSP_CDS_READ_METHOD_CRC `*`
-  - CFE_PSP_CDS_READ_METHOD_FLASH `*`
 
 - Static Variables
   - g_cCDSFileName    "The full file path where the CDS file will be saved"
   - g_uiCDSCrc        "CDS CRC value"
-  - g_ucCDSReadMethod "The reading/writing method. Flash cannot be written on too often"
+  - g_bCorruptedCDSFlash "Identify if the CDS file in Flash memory is corrupted of not"
 
 - Functions
-  - CFE_PSP_SetReadCDSMethod  "setter for g_ucCDSReadMethod"
-  - CFE_PSP_GetReadCDSMethod  "getter for g_ucCDSReadMethod"
   - CFE_PSP_SetStaticCRC
   - CFE_PSP_GetStaticCRC
   - CFE_PSP_CalculateCRC
@@ -167,6 +153,7 @@ Kernel must include the following services:
   - SP0_DATA_DUMP_FILEPATH `*`
   - SP0_TEXT_BUFFER_MAX_SIZE
   - SP0_SAFEMODEUSERDATA_BUFFER_SIZE
+  - SP0_PRINT_SCOPE
 
 - Static Variables
   - g_cSP0DataDump
@@ -192,15 +179,15 @@ Kernel must include the following services:
   - g_iEnableGetTimeFromOS_flag
   - g_usOSTimeSync_Sec
 
-- Functions Internal "Because not defined in header"
+- Functions (include psp_time_sync.h)
   - CFE_PSP_TIME_Init
   - CFE_PSP_Update_OS_Time
   - CFE_PSP_StartNTPDaemon
   - CFE_PSP_StopNTPDaemon
-
-- Functions (include psp_time_sync.h)
+  - CFE_PSP_TimeService_Ready
   - CFE_PSP_Sync_From_OS_Enable
-  - CFE_PSP_Sync_From_OS_Freq
+  - CFE_PSP_Sync_From_OS_GetFreq
+  - CFE_PSP_Sync_From_OS_SetFreq
   - CFE_PSP_Set_OS_Time
   - CFE_PSP_Get_OS_Time
   - CFE_PSP_NTP_Daemon_Get_Status

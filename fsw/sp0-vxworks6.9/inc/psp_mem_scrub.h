@@ -4,13 +4,14 @@
  ** \brief API header to control Memory Scrubbing
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** This file contains the function prototypes relating to memory scrubbing.
@@ -32,6 +33,13 @@ extern "C" {
 #endif
 
 /**
+ ** \brief Default Memory Scrubbing pre-print string 
+ ** \par Description:
+ ** This string is printed before every print related to Memory Scrubbing API.
+*/
+#define MEM_SCRUB_PRINT_SCOPE   "PSP MEM SCRUB: "
+
+/**
 ** \func Set the Memory Scrubbing parameters
 ** 
 ** \par Description:
@@ -50,9 +58,10 @@ extern "C" {
 ** \param[in] newEndAddr - Memory address to end at, usually end of the physical RAM
 ** \param[in] task_priority - The task priority
 **
-** \return None
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
 */
-void  CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority);
+int32  CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority);
 
 /**
 ** \func Check if the Memory Scrubbing task is running

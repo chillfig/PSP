@@ -4,16 +4,19 @@
  ** \brief API header to save and restore CDS in FLASH memory
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
- ** None
- **
+ ** This file contains the function prototypes relating to CDS flash memory.
+ ** API header to save and restore CDS in FLASH memory.
+ ** 
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
  **
@@ -25,40 +28,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
-** \func Set the CDS reading method
-**
-** \par Description:
-** This function set the CDS reading method(use CRC, always read from Flash,
-** or trust the CDS reserved memory in RAM is correct.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] ucMethod - Reading method
-**
-** \return None
-*/
-void CFE_PSP_SetReadCDSMethod(uint8 ucMethod);
-
-/**
-** \func Get the CDS reading method
-**
-** \par Description:
-** This function get the CDS reading method(use CRC, always read from Flash,
-** or trust the CDS reserved memory in RAM is correct.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return #CFE_PSP_CDS_READ_METHOD_RAM - Trust the CDS data on RAM (no CRC or read from Flash)
-** \return #CFE_PSP_CDS_READ_METHOD_CRC - Check the CRC first then read from Flash if CRC mis-matched
-** \return #CFE_PSP_CDS_READ_METHOD_FLASH - Always read from Flash
-*/
-uint8 CFE_PSP_GetReadCDSMethod();
 
 /**
 ** \func Change the previous calculated CRC value to new provided value
@@ -106,9 +75,9 @@ uint32 CFE_PSP_GetStaticCRC(void);
  ** uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
  ** Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
  **
- ** \param[inout] DataPtr  - Pointer to the input data buffer
- ** \param[inout] DataLength  - Data buffer length
- ** \param[inout] InputCRC  - A starting value for use in the CRC calculation.
+ ** \param[in] DataPtr  - Pointer to the input data buffer
+ ** \param[in] DataLength  - Data buffer length
+ ** \param[in] InputCRC  - A starting value for use in the CRC calculation.
  **
  ** \return Calculated CRC value
  */
@@ -125,7 +94,7 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param puiReadBytes - Number of read bytes
+** \param puiReadBytes[out] - Number of read bytes
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
@@ -141,7 +110,7 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
 ** \par Assumptions, External Events, and Notes:
 ** It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash.
 **
-** \param puiWroteBytes - Number of written bytes
+** \param puiWroteBytes[out] - Number of written bytes
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR

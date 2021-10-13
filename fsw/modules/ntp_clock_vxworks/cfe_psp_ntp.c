@@ -5,13 +5,14 @@
  ** \brief API to control NTP Sync
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Purpose:
  ** This file contains the function declaration that synchronize the cFE Time
@@ -29,9 +30,13 @@
  */
 
 
-/* VxWorks IPCOM for Starting/Stopping NTP Daemon */
-/** \brief VxWorks IPCOM Specific Configuration */
-#define IP_PORT_VXWORKS 69
+#include <vxWorks.h>
+/* Endian information is requried by VxWorks IPCOM for Starting/Stopping NTP Daemon */
+#if (_BYTE_ORDER == _LITTLE_ENDIAN )
+#define IP_LITTLE_ENDIAN
+#elif (_BYTE_ORDER == _BIG_ENDIAN )
+#define IP_BIG_ENDIAN
+#endif
 #include <ipcom_err.h>
 #include <taskLib.h>
 
@@ -160,12 +165,18 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_vxworks); //UndCC_Begin(SSET056) Name fo
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[in] timer_frequency_sec - The update frequency, in seconds
+** \param None
 ** 
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
+** \return #OS_SUCCESS @copybrief OS_SUCCESS
+** \return #OS_INVALID_POINTER if any of the necessary pointers are NULL
+** \return #OS_ERR_INVALID_SIZE if the stack_size argument is zero
+** \return #OS_ERR_NAME_TOO_LONG name length including null terminator greater than #OS_MAX_API_NAME
+** \return #OS_ERR_INVALID_PRIORITY if the priority is bad @covtest
+** \return #OS_ERR_NO_FREE_IDS if there can be no more tasks created
+** \return #OS_ERR_NAME_TAKEN if the name specified is already used by a task
+** \return #OS_ERROR if an unspecified/other error occurs @covtest
 */
-int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
+int32 CFE_PSP_TIME_Init(void)
 {
     /* Initialize */
     int32       status = OS_ERROR;
@@ -205,8 +216,8 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 **
 ** \param[in] enable - Boolean flag for sync or not sync
 ** 
-** \return True - If synchronized
-** \return False - If not synchronized
+** \return 1 - If synchronized
+** \return 0 - If not synchronized
 */
 int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 {
@@ -234,7 +245,7 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
 ** check if the task has successfully synchronized with an NTP server.
 **
 ** \par Assumptions, External Events, and Notes:
-** The task name for the VxWorks NTP client is the default "ipntpd".
+** None
 **
 ** \param None
 ** 
@@ -246,7 +257,7 @@ bool CFE_PSP_NTP_Daemon_Get_Status(void)
     bool       return_code = true;
     TASK_ID    ret = CFE_PSP_ERROR;
     
-    ret = taskNameToId("ipntpd");
+    ret = taskNameToId(NTP_DAEMON_TASK_NAME);
     if (ret == CFE_PSP_ERROR)
     {
         return_code = false;
@@ -279,15 +290,10 @@ int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of 
     {
         g_uiPSPNTPTask_id = 0;
     }
-    else if (ret == OS_ERR_INVALID_ID)
-    {
-        OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
-        return_value == CFE_PSP_ERROR;
-    }
     else
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
-        return_value == CFE_PSP_ERROR;
+        return_value = CFE_PSP_ERROR;
     }
 
     return return_value;
@@ -302,16 +308,37 @@ int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of 
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[inout] PspModuleId - Unused
+ ** \param[in] PspModuleId - Unused
  **
  ** \return None
  */
 void ntp_clock_vxworks_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
+    g_iEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
+
     if (g_iEnableGetTimeFromOS_flag)
     {
-        CFE_PSP_TIME_Init(g_usOSTimeSync_Sec);
+        CFE_PSP_TIME_Init();
     }
+}
+
+/**
+** \func Get the currently set sync frequency
+**
+** \par Description:
+** This function returns the NTP time synchronization frequency, in seconds.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+** 
+** \return Current frequency
+*/
+uint16 CFE_PSP_Sync_From_OS_GetFreq(void)
+{
+    /* Return the value of g_usOSTimeSync_Sec */
+    return g_usOSTimeSync_Sec;
 }
 
 /**
@@ -321,34 +348,34 @@ void ntp_clock_vxworks_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name
 ** This function updates the NTP time synchronization frequency, in seconds.
 **
 ** \par Assumptions, External Events, and Notes:
-** If 0 is passed in, the function returns the current frequency.
+** None
 **
 ** \param[in] new_frequency_sec - The new frequency, in seconds
 ** 
 ** \return #CFE_PSP_SUCCESS - If successfully changed
-** \return Current frequency - If passed in 0 for new_frequency_sec
+** \return #CFE_PSP_ERROR
 */
-int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
+int32 CFE_PSP_Sync_From_OS_SetFreq(uint16 new_frequency_sec)
 {
     int32       return_value = CFE_PSP_SUCCESS;
 
-    if (new_frequency_sec == 0)
-    {
-        /* Return the value of g_usOSTimeSync_Sec */
-        return_value = (int32)g_usOSTimeSync_Sec;
-    }
-    else
-    {
-        /* Set a new value of g_usOSTimeSync_Sec */
-        /* Update frequency with new value */
-        g_usOSTimeSync_Sec = new_frequency_sec;
+    /* Set a new value of g_usOSTimeSync_Sec */
+    /* Update frequency with new value */
+    g_usOSTimeSync_Sec = new_frequency_sec;
 
-        net_clock_vxworks_Destroy();
+    /* Kill the NTP Sync task */
+    return_value = net_clock_vxworks_Destroy();
 
-        if (return_value != CFE_PSP_ERROR)
+    if (return_value != CFE_PSP_ERROR)
+    {
+        /* Reinitialize timer with new updated value */
+        /* The ModuleID is not used in the SP0 implementation */
+        ntp_clock_vxworks_Init((uint32)0);
+
+        /* If the task did not start, report error */
+        if (g_uiPSPNTPTask_id == 0)
         {
-            /* Reinitialize timer with new updated value */
-            ntp_clock_vxworks_Init((uint32)0);
+            return_value = CFE_PSP_ERROR;
         }
     }
 
@@ -362,7 +389,7 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 ** This function sets the VxWorks OS time.
 **
 ** \par Assumptions, External Events, and Notes:
-** The changes do not occur if the NTP client is setup to synchrone with an NTP server.
+** The changes do not occur if the NTP client is setup to synchronize with an NTP server.
 ** Set the OS CLOCK_REALTIME to a specified timestamp. Parameters are in UNIX time format,
 ** since Epoch 1/1/1970.
 **
@@ -375,28 +402,20 @@ int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
 int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
     struct timespec     unixTime = {0,0};
-    int                 ret = CFE_PSP_ERROR;
+    int32               ret = CFE_PSP_ERROR;
     int32               return_status = CFE_PSP_SUCCESS;
 
-    if ((ts_sec > 0) && (ts_nsec >=0))
-    {
-        unixTime.tv_sec = ts_sec;
-        unixTime.tv_nsec = (long) ts_nsec;
+    unixTime.tv_sec = ts_sec;
+    unixTime.tv_nsec = (long) ts_nsec;
 
-        ret = clock_settime(CLOCK_REALTIME, &unixTime);
-        if (ret == OK)
-        {
-            OS_printf(NTPSYNC_PRINT_SCOPE "Clock set");
-        }
-        else
-        {
-            OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
-            return_status = CFE_PSP_ERROR;
-        }
+    ret = clock_settime(CLOCK_REALTIME, &unixTime);
+    if (ret == OK)
+    {
+        OS_printf(NTPSYNC_PRINT_SCOPE "Clock set");
     }
     else
     {
-        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
+        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
         return_status = CFE_PSP_ERROR;
     }
 
@@ -411,9 +430,10 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 **
 ** \par Assumptions, External Events, and Notes:
 ** This function is used by the NTP Sync task to grab the current OS time.
-** It uses CLOCK_REALTIME.
+** It uses CLOCK_REALTIME.\n
+** NTP Sync will not occur if NTP time is less than CFE_MISSION_TIME_EPOCH_UNIX_DIFF
 **
-** \param[inout] myT - Pointer to the variable that stores the returned time value
+** \param[out] myT - Pointer to the variable that stores the returned time value
 ** 
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
@@ -485,7 +505,7 @@ bool CFE_PSP_TimeService_Ready(void)
     bool       return_code = true;
     TASK_ID    ret = 0;
     
-    ret = taskNameToId("TIME_1HZ_TASK");
+    ret = taskNameToId(CFE_1HZ_TASK_NAME);
     if (ret == CFE_PSP_ERROR)
     {
         return_code = false;
@@ -501,7 +521,8 @@ bool CFE_PSP_TimeService_Ready(void)
  ** This function updates the time used by the cFE Time service.
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function will run forever until its task is deleted.
+ ** This method is run on an independent thread and will continue to run until 
+ ** the thread is deleted using net_clock_linux_destroy
  ** 
  ** \param None
  **
@@ -523,8 +544,8 @@ void CFE_PSP_Update_OS_Time(void)
     while (CFE_PSP_TimeService_Ready() == false)
     {
         error_counter += 1;
-        OS_TaskDelay(500);
-        if (error_counter > 120)
+        OS_TaskDelay(NTPSYNC_INITIAL_TIME_DELAY);
+        if (error_counter > NTPSYNC_MAX_ITERATION_TIME_DELAY)
         {
             OS_printf(
                 NTPSYNC_PRINT_SCOPE
@@ -534,9 +555,10 @@ void CFE_PSP_Update_OS_Time(void)
     }
 
     /* If within 60 seconds the CFE Time Service is ready, start NTP Sync */
-    if (error_counter < 120)
+    if (error_counter < NTPSYNC_MAX_ITERATION_TIME_DELAY)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n");
+        /* This method is run on an independent thread and will continue to run until the thread is deleted */
         while (1)
         {
             if (ret == OS_SUCCESS)

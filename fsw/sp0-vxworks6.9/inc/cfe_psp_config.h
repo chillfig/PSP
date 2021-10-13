@@ -4,9 +4,14 @@
  ** \brief Main PSP Configuration File for SP0
  **
  ** \copyright
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** This file includes most of the PSP configuration
@@ -16,8 +21,8 @@
  **
  */
 
-#ifndef _cfe_psp_config_
-#define _cfe_psp_config_
+#ifndef _CFE_PSP_CONFIG_
+#define _CFE_PSP_CONFIG_
 
 #include <stdio.h>
 #include <string.h>
@@ -39,6 +44,34 @@ extern "C" {
 #endif
 
 /**
+ ** \brief Override OSAL OS_Application_Run
+ ** \par Description:
+ ** OSAL default OS_Application_Run suspends the shell task on VxWorks.
+ ** If that behaviour is not wanted, set this define to TRUE. The PSP default
+ ** function implementation is empty.
+ */
+#define OVERRIDE_OSAL_OS_APPLICATION_RUN             TRUE
+
+
+/** \brief The list of VxWorks tasks that PSP is tasked to adjust its priorites
+ ** \par Description:
+ ** PSP will adjust the priorities of each tasks according to the table.
+ ** \par Note:
+ ** Values are defined in cfe_psp_config.h header.\n
+ ** The priority reassignment will be moved to kernel in a future release.
+*/
+#define VXWORKS_TASK_PRIORITIES                     {"tLogTask", 0},\
+                                                    {"tShell0", 201},\
+                                                    {"tWdbTask", 203},\
+                                                    {"tVxdbgTask", 200},\
+                                                    {"tNet0", 25},\
+                                                    {"ipftps", 202},\
+                                                    {"ipcom_syslogd", 205},\
+                                                    {"ipcom_telnetd", 204},\
+                                                    {"ipcom_egd", 253},\
+                                                    {"FTCMP00", 253}
+
+/**
  ** \name VxWorks timebase
  **
  ** \par Description:
@@ -51,7 +84,8 @@ extern "C" {
  ** Refer to Aitech 00-0092-01_17_SP0_Programmers_Guide sec. 5.9
  **
  ** \par Note:
- ** This is expressed as a ratio in case it is not a whole number.
+ ** This is expressed as a ratio in case it is not a whole number. The numerator
+ ** unit of measure is nanoseconds per tick.
  **
  ** \warning Numerator calculation has been validated only on SP0-s and SP0 with 
  ** a DDR memory bus speed of 50 MHz and 41.666 MHz respectively.
@@ -79,10 +113,10 @@ extern "C" {
  **
  ** \par Description:
  ** This define sets the maximum number of exceptions that can be stored.
- ** It must always be a power of two.
  **
  ** \par Limits:
- ** Value > 0
+ ** Value > 0\n
+ ** Must be a power of two
  */
 #define CFE_PSP_MAX_EXCEPTION_ENTRIES       4
 
@@ -144,6 +178,15 @@ typedef struct
 
 } CFE_PSP_Exception_ContextDataEntry_t;
 
+
+/**
+ ** \brief Maximum length of a task name created or spawn by PSP
+ ** \par Description
+ ** This value will be used to verify task name length during build-time,
+ ** and used to verity CFE_PSP_SetTaskPrio task name at run-time
+ */
+#define CFE_PSP_MAXIMUM_TASK_LENGTH         30
+
 /** \name Watchdog Settings */
 /** \{ */
 /** \brief Watchdog minimum ( in milliseconds ) */
@@ -182,7 +225,7 @@ typedef struct
     /**
      ** \brief Task priority from 0 to 255
      */
-    int32           VxWorksTaskPriority;
+    uint8           VxWorksTaskPriority;
 
 } CFE_PSP_OS_Task_and_priority_t;
 
@@ -190,35 +233,11 @@ typedef struct
 /** \{ */
 /**
  ** \brief CDS FLASH Memory File Location
+ ** \par Note:
+ ** File will be overwritten every time CFS starts.
 */
 #define CFE_PSP_CFE_FLASH_FILEPATH          "/ffx0/CDS"
 /** \} */
-
-/** \name CDS Reading Method Configuration */
-/** \{ */
-
-/**
-** \brief Default reading method.
-**
-** \par Description:
-** There are 3 methods to read from CDS:\n
-** *RAM Only*: Assume the reserved CDS memory is always correct. This will not 
-** perform CRC and it will not read from Flash.\n
-** *CRC*: On every read, calculate CRC of CDS on RAM. If does not match, read from
-** FLASH and update CRC.\n
-** *FLASH Only*: This will always read from Flash for every CDS reading and update the CRC value.
-**
-** \warning Reading from FLASH is considerably slower.
-** \warning On the SP0, the reserved memory gets erased on reboot.
-*/
-#define CFE_PSP_CDS_READ_METHOD_RAM         0   /**< \brief  Always use RAM */
-#define CFE_PSP_CDS_READ_METHOD_CRC         1   /**< \brief  Confirm with CRC */
-#define CFE_PSP_CDS_READ_METHOD_FLASH       2   /**< \brief  Always use FLASH */
-
-/** \} */
-
-/** \name CDS Default Reading Method */
-#define CFE_PSP_CDS_READ_METHOD_DEFAULT     CFE_PSP_CDS_READ_METHOD_RAM
 
 
 /** \name Memory Scrubbing Configuration */
@@ -278,6 +297,65 @@ typedef struct
 /** \{ */
 
 /**
+ ** \brief Task name of the NTP daemon task
+ **
+ ** \par Description:
+ ** The default task name in VxWorks is "ipntpd", but it may need to be changed
+ */
+#define NTP_DAEMON_TASK_NAME                "ipntpd"
+
+/**
+ **  \brief EPOCH to Mission Time Difference
+ ** 
+ **  \par Description:
+ **  Default value corresponding to the difference in seconds between 
+ **  CFE Mission Epoch and UNIX Epoch. It is left to the end user to 
+ **  calculate the correct value.
+ ** 
+ **  \par Note:
+ **  Value could be positive or negative depending if Mission Epoch is before 
+ **  or after UNIX Epoch.
+ **  NTP Sync will not occur if NTP time is less than this value
+ ** 
+ */
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946728000
+
+/**
+ ** \brief CFE Time Service Task Name
+ ** \par Description:
+ ** This is the task name used by CFE Time Service to update the mission time.
+ ** \par Note:
+ ** This value is not checked against the CFE configuration, and it is up
+ ** to the end user to verify it matches the CFE configuration.\n
+ ** Definition will be deleted once the NTP Sync App is ready to be released.
+ */
+
+#define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
+
+/**
+ ** \brief Time delay in msec before checking CFE Time Service status
+ ** \par Description:
+ ** NTP Sync starts before the CFE Time Service.
+ ** This parameter introduces and non-blocking time delay before checking 
+ ** if the CFE Time Service has started. The goal is to start the NTP Sync
+ ** as soon as possible after CFE Time Service starts.
+ ** The time delay is defined in milliseconds and it will only occur during
+ ** CFS booting.
+ */
+#define NTPSYNC_INITIAL_TIME_DELAY          500
+
+/**
+ ** \brief Time delay maximum iterations
+ ** \par Description:
+ ** If the time delay introduced with #NTPSYNC_INITIAL_TIME_DELAY is not enough
+ ** the code will continue trying in a loop. This value sets the maximum 
+ ** number of times to run the time delay.
+ ** For example, if NTPSYNC_INITIAL_TIME_DELAY * NTPSYNC_MAX_ITERATION_TIME_DELAY
+ ** is 500 ms * 120 = 60 seconds maximum wait time.
+ */
+#define NTPSYNC_MAX_ITERATION_TIME_DELAY    120
+
+/**
  **  \brief Default NTP Sync Start/Stop on Startup
  ** 
  **  \par Description:
@@ -316,4 +394,4 @@ typedef struct
 }
 #endif
 
-#endif  /* _cfe_psp_config_ */
+#endif  /* _CFE_PSP_CONFIG_ */

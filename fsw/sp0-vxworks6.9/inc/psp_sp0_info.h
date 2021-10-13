@@ -4,12 +4,14 @@
  ** \brief API header for collecting SP0(s) hardware and software information
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** Functions here allow CFS to provide a method to probe 
@@ -44,6 +46,13 @@ extern "C" {
 #define SP0_SAFEMODEUSERDATA_BUFFER_SIZE    256
 
 /**
+ ** \brief Default SP0 Info pre-print string 
+ ** \par Description:
+ ** This string is printed before every print related to SP0 Info API.
+*/
+#define SP0_PRINT_SCOPE                     "PSP SP0: "
+
+/**
 ** \name SP0 info structure
 ** \par Description:
 ** The table includes values that changes only once during boot and others
@@ -54,7 +63,7 @@ extern "C" {
 ** - temperatures
 ** - voltages
 */
-struct
+typedef struct
 {
     /** \brief Pointer to the string identifing the System Model */
     char * systemModel;
@@ -91,7 +100,7 @@ struct
     float temperatures[4];
     /** \brief Array of 6 voltages powering the SP0 */
     float voltages[6];
-} sp0_info_table;
+} SP0_info_table_t;
 
 
 /**
@@ -107,6 +116,7 @@ struct
 ** \param None
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
 */
 int32  PSP_SP0_GetInfo(void);
 
@@ -136,10 +146,10 @@ void  PSP_SP0_PrintInfoTable(void);
  **
  ** \param None
  **
- ** \return None
- **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
  */
-void PSP_SP0_DumpData(void);
+int32 PSP_SP0_DumpData(void);
 
 #ifdef __cplusplus
 }

@@ -2,12 +2,14 @@
 **
 ** File: cfe_psp_timer.c
 **
-**      Copyright (c) 2004-2011, United States Government as represented by
-**      Administrator for The National Aeronautics and Space Administration.
-**      All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
+** Copyright (c) 2019-2021 United States Government as represented by
+** the Administrator of the National Aeronautics and Space Administration.
+** All Rights Reserved.
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
 **
 ** Purpose:
 **   This file contains glue routines between the cFE and the OS Board Support Package (BSP).
@@ -30,19 +32,20 @@
 
 #include "psp_time_sync.h"
 
+/** \name NTP Sync Configuration */
+/** \{ */
 /**
- *  \cfetimecfg Default EPOCH Values 
+ *  \brief Default NTP Sync Start/Stop on Startup
  * 
  *  \par Description:
  *      Enable or disable the Automatic time sync with the OS
- * 
- *  \par Limits
- *      Binary true or false
  */
+#ifndef CFE_MISSION_TIME_SYNC_OS_ENABLE
 #define CFE_MISSION_TIME_SYNC_OS_ENABLE true
+#endif
 
 /**
- *  \cfetimecfg Default EPOCH Values 
+ *  \brief Default Synchronization Frequency
  * 
  *  \par Description:
  *      Default number of seconds between time synchronizations.
@@ -50,14 +53,31 @@
  *      When set to zero, CFE Time will be synchronized only once during start.
  * 
  *  \par Limits
- *      Positive integer
+ *      Positive integer up to 255.
+ *      If this value is too low, it will starve the other processes.
  */
+#ifndef CFE_MISSION_TIME_SYNC_OS_SEC
 #define CFE_MISSION_TIME_SYNC_OS_SEC 30
+#endif
 
+/** \brief Default NTP Sync Task Name */
+#ifndef NTPSYNC_TASK_NAME
 #define NTPSYNC_TASK_NAME           "PSPNTPSync"
-#define NTPSYNC_DEFAULT_PRIORITY    60
+#endif
 
-#define PRE_PRINT_SCOPE             "PSP NTP SYNC: "
+/** \brief Default NTP Sync Task Priority */
+#ifndef NTPSYNC_DEFAULT_PRIORITY
+#define NTPSYNC_DEFAULT_PRIORITY    60
+#endif
+/** \} */
+
+/**
+ ** \brief Default NTP Sync pre-print string 
+ ** \par Description:
+ ** This string is printed before every print related to NTP Sync API.
+*/
+#define NTPSYNC_PRINT_SCOPE         "PSP NTP SYNC: "
+
 
 /**** External Function Prototypes ****/
 
@@ -99,28 +119,14 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_linux);
 
 
 
-
-/**
- * @brief 
- * 
- * @param PspModuleId 
- */
-void ntp_clock_linux_Init(uint32 PspModuleId)
-{
-    if (g_iEnableGetTimeFromOS_flag)
-    {
-        CFE_PSP_TIME_Init(g_usOSTimeSync_Sec);
-    }
-}
-
 /**
  * @brief Initialize the CFE PSP Time Task synchronizing with the NTP server
  * 
- * @param uint16 - the update frequency in seconds
+ * @param None
  * 
  * @return int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
  */
-int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
+int32 CFE_PSP_TIME_Init(void)
 {
     /* Initialize */
     int32       status;
@@ -137,11 +143,11 @@ int32 CFE_PSP_TIME_Init(uint16 timer_frequency_sec)
 
     if (status != OS_SUCCESS)
     {
-        printf(PRE_PRINT_SCOPE "Failed to create task\n");
+        printf(NTPSYNC_PRINT_SCOPE "Failed to create task\n");
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "Task Initialized\n");
+        printf(NTPSYNC_PRINT_SCOPE "Task Initialized\n");
     }
 
     return status;
@@ -164,11 +170,11 @@ int32 CFE_PSP_Sync_From_OS_Enable(bool enable)
     
     if (enable)
     {
-        printf(PRE_PRINT_SCOPE "Sync with OS is enabled\n");
+        printf(NTPSYNC_PRINT_SCOPE "Sync with OS is enabled\n");
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "Sync with OS is disabled\n");
+        printf(NTPSYNC_PRINT_SCOPE "Sync with OS is disabled\n");
     }
     /* Set flag */
     g_iEnableGetTimeFromOS_flag = enable;
@@ -192,7 +198,7 @@ bool CFE_PSP_NTP_Daemon_Get_Status(void)
 {
     bool    return_code = true;
     
-    printf(PRE_PRINT_SCOPE "CFE_PSP_NTP_Daemon_Get_Status not implemented in Linux OS");
+    printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_NTP_Daemon_Get_Status not implemented in Linux OS");
 
     return return_code;
 }
@@ -204,66 +210,105 @@ bool CFE_PSP_NTP_Daemon_Get_Status(void)
  */
 int32 net_clock_linux_Destroy()
 {
-    osal_id_t   timer_id;
-    const char  *task_name = "PSPNTPSync";
     int32       return_value = CFE_PSP_SUCCESS;
-    int32       ret;
+    int32       ret = CFE_PSP_ERROR;
 
-    /* Find timer by name */
-    ret = OS_TimerGetIdByName(&timer_id,task_name);
-    if (ret != OS_SUCCESS)
+    /* Disable time update */
+    g_iEnableGetTimeFromOS_flag = false;
+    
+    /* Delete task */
+    ret = OS_TaskDelete(g_uiPSPNTPTask_id);
+
+    if (ret == OS_SUCCESS)
     {
-        printf(PRE_PRINT_SCOPE "Could not update the Time Sync frequency");
-        return_value = CFE_PSP_ERROR;
+        g_uiPSPNTPTask_id = 0;
     }
-
-    if (return_value != CFE_PSP_ERROR)
+    else
     {
-        /* Delete timer */
-        ret = OS_TimerDelete(timer_id);
-        if (ret != OS_SUCCESS)
-        {
-            printf(PRE_PRINT_SCOPE "Could not delete Time Sync process");
-            return_value = CFE_PSP_ERROR;
-        }
+        OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
+        return_value = CFE_PSP_ERROR;
     }
 
     return return_value;
 }
 
-/******************************************************************************
-**  Function:  CFE_PSP_Sync_From_OS_Freq(uint16_t)
+/**
+ ** \func Entry point for the module
+ ** 
+ ** \par Description:
+ ** None
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] PspModuleId - Unused
+ **
+ ** \return None
+ */
+void ntp_clock_linux_Init(uint32 PspModuleId)
+{
+    g_iEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
+
+    if (g_iEnableGetTimeFromOS_flag)
+    {
+        CFE_PSP_TIME_Init();
+    }
+}
+
+/**
+** \func Get the currently set sync frequency
 **
-**  Purpose:
-**    Changes the synchronication frequency
+** \par Description:
+** This function returns the NTP time synchronization frequency, in seconds.
 **
-**  Arguments:
-**    uint16 - seconds between updates. If zero, returns the current value
+** \par Assumptions, External Events, and Notes:
+** None
 **
-**  Return:
-**    int - CFE_PSP_SUCCESS or the current g_usOSTimeSync_Sec value
-******************************************************************************/
-int32 CFE_PSP_Sync_From_OS_Freq(uint16 new_frequency_sec)
+** \param None
+** 
+** \return Current frequency
+*/
+uint16 CFE_PSP_Sync_From_OS_GetFreq(void)
+{
+    /* Return the value of g_usOSTimeSync_Sec */
+    return g_usOSTimeSync_Sec;
+}
+
+/**
+** \func Change the sync frequency
+**
+** \par Description:
+** This function updates the NTP time synchronization frequency, in seconds.
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[in] new_frequency_sec - The new frequency, in seconds
+** 
+** \return #CFE_PSP_SUCCESS - If successfully changed
+** \return #CFE_PSP_ERROR
+*/
+int32 CFE_PSP_Sync_From_OS_SetFreq(uint16 new_frequency_sec)
 {
     int32       return_value = CFE_PSP_SUCCESS;
 
-    if (new_frequency_sec == 0)
-    {
-        /* Return the value of g_usOSTimeSync_Sec */
-        return_value = (int32)g_usOSTimeSync_Sec;
-    }
-    else
-    {
-        /* Set a new value of g_usOSTimeSync_Sec */
-        /* Update frequency with new value */
-        g_usOSTimeSync_Sec = new_frequency_sec;
+    /* Set a new value of g_usOSTimeSync_Sec */
+    /* Update frequency with new value */
+    g_usOSTimeSync_Sec = new_frequency_sec;
 
-        net_clock_linux_Destroy();
+    /* Kill the NTP Sync task */
+    return_value = net_clock_linux_Destroy();
 
-        if (return_value != CFE_PSP_ERROR)
+    if (return_value != CFE_PSP_ERROR)
+    {
+        /* Reinitialize timer with new updated value */
+        /* The ModuleID is not used in this implementation */
+        ntp_clock_linux_Init((uint32)0);
+
+        /* If the task did not start, report error */
+        if (g_uiPSPNTPTask_id == 0)
         {
-            /* Reinitialize timer with new updated value */
-            ntp_clock_linux_Init((uint32)0);
+            return_value = CFE_PSP_ERROR;
         }
     }
 
@@ -289,7 +334,7 @@ int32 CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 {
     int32               return_status = CFE_PSP_SUCCESS;
 
-    printf(PRE_PRINT_SCOPE "CFE_PSP_Set_OS_Time not implemented in Linux OS");
+    printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_Set_OS_Time not implemented in Linux OS");
 
     return return_status;
 }
@@ -331,13 +376,13 @@ int32 CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT)
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "clock_gettime function failed\n");
+            printf(NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
             return_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        printf(PRE_PRINT_SCOPE "CFE_PSP_Get_OS_Time called without a proper argument\n");
+        printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_Get_OS_Time called without a proper argument\n");
         return_code = CFE_PSP_ERROR;
     }
 
@@ -387,13 +432,13 @@ void CFE_PSP_Update_OS_Time(void)
                 else
                 {
                     /* OS has not sync with NTP server yet. */
-                    printf(PRE_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
+                    printf(NTPSYNC_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n");
                 }
             }
         }
         else
         {
-            printf(PRE_PRINT_SCOPE "OS_TaskDelay error\n");
+            printf(NTPSYNC_PRINT_SCOPE "OS_TaskDelay error\n");
         }
     }
 }
@@ -414,7 +459,7 @@ int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       return_code = 0;
     
-    printf(PRE_PRINT_SCOPE "CFE_PSP_StartNTPDaemon not implemented in Linux OS");
+    printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_StartNTPDaemon not implemented in Linux OS");
 
     return return_code;
 }
@@ -436,7 +481,7 @@ int32 CFE_PSP_StopNTPDaemon(void)
 {
     int32       return_code = CFE_PSP_SUCCESS;
 
-    printf(PRE_PRINT_SCOPE "CFE_PSP_StopNTPDaemon not implemented in Linux OS");
+    printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_StopNTPDaemon not implemented in Linux OS");
 
     return return_code;
 }
@@ -459,7 +504,7 @@ int32 CFE_PSP_NTP_Daemon_Enable(bool enable)
 {
     int32   return_code = CFE_PSP_SUCCESS;
 
-    printf(PRE_PRINT_SCOPE "CFE_PSP_NTP_Daemon_Enable not implemented in Linux OS");
+    printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_NTP_Daemon_Enable not implemented in Linux OS");
 
     return return_code;
 }

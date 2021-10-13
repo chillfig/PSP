@@ -4,13 +4,14 @@
  ** \brief Contains glue routines between the cFE and the OS Board Support Package (BSP)
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** The functions here allow the cFE to interface functions
@@ -57,13 +58,17 @@
  ** \par Description:
  ** This function is the entry point back to the BSP to restart the processor.
  ** cFE calls this function to restart the processor.\n
- ** Depending on the resetType, the function will clear the memory or not.
+ ** Depending on the resetType, the function will reboot with the following 
+ ** restart type:\n
+ ** - resetType  = CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_CLEAR)
+ ** - resetType != CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_NORMAL)
  **
  ** \par Assumptions, External Events, and Notes:
  ** system restart types defined in sysLib.h:\n
  ** - BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_\n
- ** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
  ** - BOOT_CLEAR _"clear memory"_
+ ** The following reboot options are not used.
+ ** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
  ** - BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
  **
  ** \param[in] resetType - Type of cFE reset
@@ -142,6 +147,7 @@ void CFE_PSP_Panic(int32 errorCode)
 void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 {
     /*The cache is managed by the SP0 BSP/VxWorks OS. */
+    OS_printf("PSP FlushCache function not implemented. No need in SP0 target\n");
 }
 
 

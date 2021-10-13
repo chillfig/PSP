@@ -1,9 +1,27 @@
-/** \file  psp_verify.h
+/**
+ ** \file psp_verify.h
  **
  ** \brief Macros to run preprocessor checks on psp configuration
  **
+ ** \copyright
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
+ **
+ ** \par Description:
+ ** The file includes preprocessor statements to check the validity of the PSP
+ ** configuration saved in cfe_psp_config.h
+ **
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ **
  */
-    
+
 #ifndef _PSP_VERIFY_H_
 #define _PSP_VERIFY_H_
 
@@ -24,6 +42,9 @@ extern "C" {
 #ifndef MEMSCRUB_TASK_NAME
     #error "MEMSCRUB_TASK_NAME must be defined"
 #endif
+
+/** \brief Check that the MEM SCRUB Task name is no longer than the maximum allowed name length */
+CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEMSCRUB_TASK_NAME_TOO_LONG);
 
 /** \brief MEM SCRUB Priority Verification */
 #if (MEMSCRUB_DEFAULT_PRIORITY > MEMSCRUB_PRIORITY_UP_RANGE)
@@ -61,12 +82,24 @@ extern "C" {
 #if CFE_PSP_MAX_EXCEPTION_ENTRIES < 1
     #error "CFE_PSP_MAX_EXCEPTION_ENTRIES must be equal of above 1"
 #endif
+/* Verify power of two */
+#if ((CFE_PSP_MAX_EXCEPTION_ENTRIES & (CFE_PSP_MAX_EXCEPTION_ENTRIES - 1)) != 0)
+#error CFE_PSP_MAX_EXCEPTION_ENTRIES must be a power of 2
+#endif
 
 #if NTPSYNC_DEFAULT_PRIORITY < 50
     #error "NTPSYNC_DEFAULT_PRIORITY must have lower priority than NTP Daemon task"
 #elif NTPSYNC_DEFAULT_PRIORITY >= MEMSCRUB_DEFAULT_PRIORITY
     #error "NTPSYNC_DEFAULT_PRIORITY must have higher priority than MEMSCRUB_DEFAULT_PRIORITY"
 #endif
+
+/** \brief NTP SYNC Task Name Verification */
+#ifndef NTPSYNC_TASK_NAME
+    #error "NTPSYNC_TASK_NAME must be defined"
+#endif
+
+/** \brief Check that the NTP SYNC Task name is no longer than the maximum allowed name length */
+CompileTimeAssert(sizeof(NTPSYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 
 #ifdef __cplusplus
 }

@@ -4,13 +4,14 @@
  ** \brief API for Memory Scrubbing on SP0
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** Implementation of Memory Scrubbing task using Aitech internal functions
@@ -23,11 +24,16 @@
 
 /* Memory Scrubbing */
 #include <mem_scrub.h>
+
+/* Include PSP API */
 #include "cfe_psp.h"
+
+/* For CFE_PSP_SetTaskPrio() */
 #include "psp_start.h"
 #include "psp_mem_scrub.h"
 #include "cfe_psp_config.h"
 
+/* Defined in cfe_psp_memory.c */
 extern uint32 g_uiEndOfRam;
 
 /** \brief Task Priority of Memory Scrubbing Task */
@@ -83,55 +89,69 @@ static uint32 g_uiMemScrubTotalPages = 0;
 ** the function will use the phyisical memory limit.
 ** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
 ** #MEMSCRUB_PRIORITY_DOWN_RANGE defined in cfe_psp_config.h. 
-** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.
+** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.\n
+** If the scrubMemory function is called in a task that has a timing restriction, 
+** the scrub range (i.e. endAddr - startAddr) should be adjusted to a small 
+** value but should be a multiple of the page size (4096 bytes).
 ** 
 ** \param[in] newStartAddr - Memory address to start from, usually zero
 ** \param[in] newEndAddr - Memory address to end at, usually end of the physical RAM
 ** \param[in] task_priority - The task priority
 **
-** \return None
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
 */
-void CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
+int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
-    /* If top of memory has not been initialized, then initialize it */
-    if (g_uiEndOfRam == 0)
-    {
-        g_uiEndOfRam = (uint32) sysPhysMemTop();
-    }
+    int32 iReturnCode = CFE_PSP_ERROR;
 
-    /* Verify Start and End Addresses */
-    g_uiMemScrubStartAddr = newStartAddr;
-    if (newEndAddr > (g_uiEndOfRam - 1))
+    /* Verify start and end address */
+    if (newStartAddr < newEndAddr)
     {
-        g_uiMemScrubEndAddr = g_uiEndOfRam - 1;
-    }
-    else
-    {
-        g_uiMemScrubEndAddr = newEndAddr;
-    }
+        g_uiMemScrubStartAddr = newStartAddr;
 
-    /*
-    If the task priority is different from the currently set value,
-    then change it as long as it is within the allowed range
-    */
-    if (task_priority != g_uiMemScrubTaskPriority)
-    {
-        /* If the Task Priority is set outside the range, use default range and 
-        report error */
-        if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
+        /* If top of memory has not been initialized, then initialize it */
+        if (g_uiEndOfRam == 0)
         {
-            /* Apply default priority */
-            g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
-            OS_printf("PSP MEM SCRUB: Priority is outside range, using default `%u`\n",g_uiMemScrubTaskPriority);
+            g_uiEndOfRam = (uint32) sysPhysMemTop();
+        }
+
+        if (newEndAddr > g_uiEndOfRam)
+        {
+            g_uiMemScrubEndAddr = g_uiEndOfRam;
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Invalid newEndAddr. Range set to end of RAM\n");
         }
         else
         {
-            /* Apply new priority */
-            g_uiMemScrubTaskPriority = task_priority;
+            g_uiMemScrubEndAddr = newEndAddr;
         }
 
-        CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
+        /*
+        If the task priority is different from the currently set value,
+        then change it as long as it is within the allowed range
+        */
+        if (task_priority != g_uiMemScrubTaskPriority)
+        {
+            /* If the Task Priority is set outside the range, use default range and 
+            report error */
+            if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
+            {
+                /* Apply default priority */
+                g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Priority is outside range, using default `%u`\n",
+                          g_uiMemScrubTaskPriority);
+            }
+            else
+            {
+                /* Apply new priority */
+                g_uiMemScrubTaskPriority = task_priority;
+            }
+
+            iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
+        }
     }
+
+    return iReturnCode;
 } /* end CFE_PSP_MEM_SCRUB_Set */
 
 /**
@@ -152,7 +172,11 @@ void CFE_PSP_MEM_SCRUB_Delete(void)
 {
     if (OS_TaskDelete(g_uiMemScrubTaskId) == OS_SUCCESS)
     {
-        OS_printf("PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Deleted\n");
+    }
+    else
+    {
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Error\n");
     }
     /* Reset task stats and ID */
     g_uiMemScrubTotalPages = 0;
@@ -178,7 +202,7 @@ void CFE_PSP_MEM_SCRUB_Status(void)
 {
     if (g_uiMemScrubTaskId > 0)
     {
-        OS_printf("PSP MEM SCRUB: MemScrub -> StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
                 g_uiMemScrubStartAddr,
                 g_uiMemScrubEndAddr,
                 g_uiMemScrubCurrentPage,
@@ -187,7 +211,7 @@ void CFE_PSP_MEM_SCRUB_Status(void)
     }
     else
     {
-        OS_printf("Active Memory Scrubbing task could not be found\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
     }
 }
 
@@ -199,7 +223,9 @@ void CFE_PSP_MEM_SCRUB_Status(void)
 **
 ** \par Assumptions, External Events, and Notes:
 ** The scrubMemory function implemented by AiTech may never return an error.
-**
+** The function may never exit, the task is meant to be deleted using 
+** CFE_PSP_MEM_SCRUB_Delete
+** 
 ** \param None
 **
 ** \return None
@@ -217,7 +243,7 @@ void CFE_PSP_MEM_SCRUB_Task(void)
 
             if (status == CFE_PSP_ERROR)
             {
-                OS_printf("PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n");
             }
             else
             {
@@ -243,7 +269,7 @@ void CFE_PSP_MEM_SCRUB_Task(void)
 void CFE_PSP_MEM_SCRUB_Init(void)
 {
     /* Initialize */
-    int32 status = CFE_PSP_ERROR;
+    int32 iStatus = CFE_PSP_ERROR;
 
     /* If task is not running, create task */
     if (CFE_PSP_MEM_SCRUB_isRunning() == false)
@@ -251,9 +277,9 @@ void CFE_PSP_MEM_SCRUB_Init(void)
         /* Set the scrub settings to default */
         CFE_PSP_MEM_SCRUB_Set(0, g_uiEndOfRam, g_uiMemScrubTaskPriority);
 
-        OS_printf("PSP MEM SCRUB: Starting Active Memory Scrubbing\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Starting Active Memory Scrubbing\n");
 
-        status = OS_TaskCreate(&g_uiMemScrubTaskId, 
+        iStatus = OS_TaskCreate(&g_uiMemScrubTaskId, 
                                 MEMSCRUB_TASK_NAME, 
                                 CFE_PSP_MEM_SCRUB_Task,
                                 OSAL_TASK_STACK_ALLOCATE, 
@@ -262,15 +288,15 @@ void CFE_PSP_MEM_SCRUB_Init(void)
                                 0
                                 );
                                 
-        if (status != OS_SUCCESS)
+        if (iStatus != OS_SUCCESS)
         {
-            OS_printf("PSP MEM SCRUB: Error creating PSPMemScrub\n");
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Error creating task\n");
         }
     }
     else
     {
         /* If task is already runnning, notify user */
-        OS_printf("PSP MEM SCRUB: Task already running\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Task already running\n");
     }
 }
 
@@ -291,20 +317,19 @@ void CFE_PSP_MEM_SCRUB_Init(void)
 bool CFE_PSP_MEM_SCRUB_isRunning(void)
 {
     /* Initialize */
-    bool        ret = true;
-    int32       status = OS_SUCCESS;
+    bool        bReturnValue = true;
+    int32       iStatus = OS_SUCCESS;
     osal_id_t   mem_scurb_id = 0;
 
-    status = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
+    iStatus = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
 
-    if (status == OS_ERR_NAME_NOT_FOUND)
+    if (iStatus == OS_ERR_NAME_NOT_FOUND)
     {
-        ret = false;
+        bReturnValue = false;
     }
 
-    return ret;
+    return bReturnValue;
 }
-
 
 /**
 ** \func Enable the Memory Scrubbing task
@@ -325,7 +350,7 @@ void CFE_PSP_MEM_SCRUB_Enable(void)
     /* If task is not running, initilize it */
     if (g_uiMemScrubTaskId > 0)
     {
-        OS_printf("Active Memory Scrubbing task is already running\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n");
     }
     else
     {
@@ -356,6 +381,6 @@ void CFE_PSP_MEM_SCRUB_Disable(void)
     }
     else
     {
-        OS_printf("Active Memory Scrubbing task could not be found\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
     }
 }

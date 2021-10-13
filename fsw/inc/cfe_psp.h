@@ -205,14 +205,18 @@ void  CFE_PSP_GetTime(OS_time_t *LocalTime);
 **
 ** \par Description:
 ** This function is the entry point back to the BSP to restart the processor.
-** cFE calls this function to restart the processor.
-** Depending on the resetType, the function will clear the memory or not.
+** cFE calls this function to restart the processor.\n
+** Depending on the resetType, the function will reboot with the following 
+** restart type:\n
+** - resetType  = CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_CLEAR)
+** - resetType != CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_NORMAL)
 **
 ** \par Assumptions, External Events, and Notes:
 ** system restart types defined in sysLib.h:\n
 ** - BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_\n
-** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
 ** - BOOT_CLEAR _"clear memory"_
+** The following reboot options are not used.
+** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
 ** - BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
 **
 ** \param[in] resetType - Type of cFE reset
@@ -227,8 +231,7 @@ void  CFE_PSP_Restart(uint32 resetType);
 ** \par Description:
 ** This function returns the last reset type.  If a pointer to a valid
 ** memory space is passed in, it returns the reset sub-type in that memory.
-** Right now the reset types are application-specific. For the cFE, they
-** are defined in the cfe_es.h file.
+** Right now the reset types are application-specific.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -309,9 +312,10 @@ const char*  CFE_PSP_GetProcessorName(void);
 ** \func Get the timer ticks per second
 **
 ** \par Description:
-** This function provides the resolution of the least significant 32-bit
-** of the 64-bit timestamp, returned by CFE_PSP_Get_Timebase(), in timer
-** ticks per second.
+** This function provides the number of ticks per second based on the memory
+** bus clock speed. For example, an SP0s uses 400 MHz core clock speed. Memory
+** bus speed is 1/8 of the core clock speed, or 50 MHz, thus 50 million ticks
+** per second.
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** The timer resolution for accuracy should not be any slower than 1000000 ticks 
@@ -381,7 +385,8 @@ int32  CFE_PSP_GetCDSSize(uint32 *SizeOfCDS);
 ** This function write the specified data to the specified memory area of the CDS.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** None
+** Inability to write to FLASH does not affect return code because the reserve memory
+** is the golden copy while flash is just a backup
 **
 ** \param[in] PtrToDataToWrite - Pointer to the data buffer to be written
 ** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
@@ -399,16 +404,17 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
 ** This function reads from the CDS memory area.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** None
+** Inability to read from FLASH does not affect return code because the reserve memory
+** is the golden copy while flash is just a backup
 **
-** \param[out] PtrToDataToRead - Pointer to the data buffer that stores the read data
+** \param[out] PtrToDataFromRead - Pointer to the data buffer that stores the read data
 ** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
 ** \param[in] NumBytes - Number of bytes to be read
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32 CFE_PSP_ReadFromCDS(void *PtrToDataToRead, uint32 CDSOffset, uint32 NumBytes);
+int32 CFE_PSP_ReadFromCDS(void *PtrToDataFromRead, uint32 CDSOffset, uint32 NumBytes);
 
 /**
 ** \func Get the location and size of the ES Reset memory area
@@ -686,7 +692,7 @@ uint32  CFE_PSP_Exception_GetCount(void);
 ** \param[out] ContextLogId - Pointer to the variable that stores the returned log ID
 ** \param[out] TaskId - Pointer to the variable that stores the returned OSAL task ID
 ** \param[out] ReasonBuf - The buffer that stores the returned string
-** \param[out] ReasonSize - The maximum length of the buffer, ReasonBuf
+** \param[in] ReasonSize - The maximum length of the buffer, ReasonBuf
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
@@ -704,9 +710,10 @@ int32  CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, cha
 **
 ** \param[in] ContextLogId - The stored exception log ID
 ** \param[out] ContextBuf - Pointer to the variable that stores the copied data
-** \param[out] ContextSize - The maximum length of the buffer, ContextBuf
+** \param[in] ContextSize - The maximum length of the buffer, ContextBuf
 **
 ** \return The actual size of the copied data
+** \return #CFE_PSP_NO_EXCEPTION_DATA
 */
 int32  CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize);
 
@@ -740,7 +747,7 @@ int32  CFE_PSP_PortRead8(cpuaddr PortAddress, uint8 *ByteValue);
 ** None
 **
 ** \param[in] PortAddress - The port address to write to
-** \param[out] ByteValue - One-byte value to be written
+** \param[in] ByteValue - One-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
 */
@@ -772,7 +779,7 @@ int32  CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value);
 ** None
 **
 ** \param[in] PortAddress - The port address to write to
-** \param[out] uint16Value - Two-byte value to be written
+** \param[in] uint16Value - Two-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
 */
@@ -804,7 +811,7 @@ int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value);
 ** None
 **
 ** \param[in] PortAddress - The port address to write to
-** \param[out] uint32Value - Four-byte value to be written
+** \param[in] uint32Value - Four-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
 */
@@ -839,7 +846,7 @@ int32  CFE_PSP_MemRead8(cpuaddr MemoryAddress, uint8 *ByteValue);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] ByteValue - An 8-bit value to be written
 **
 ** \return #CFE_PSP_SUCCESS
@@ -871,7 +878,7 @@ int32  CFE_PSP_MemRead16(cpuaddr MemoryAddress, uint16 *uint16Value);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] uint16Value - A 16-bit value to be written
 **
 ** \return #CFE_PSP_SUCCESS
@@ -903,7 +910,7 @@ int32  CFE_PSP_MemRead32(cpuaddr MemoryAddress, uint32 *uint32Value);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] uint32Value - A 32-bit value to be written
 **
 ** \return #CFE_PSP_SUCCESS
@@ -922,8 +929,8 @@ int32  CFE_PSP_MemWrite32(cpuaddr MemoryAddress, uint32 uint32Value);
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[inout] dest - Pointer to an address to copy to
- ** \param[inout] src - Pointer address to copy from
+ ** \param[out] dest - Pointer to an address to copy to
+ ** \param[in] src - Pointer address to copy from
  ** \param[in] size - Number of bytes to copy
  **
  ** \return #CFE_PSP_SUCCESS 
@@ -942,7 +949,7 @@ int32  CFE_PSP_MemCpy(void *dest, const void *src, uint32 size);
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[inout] dest - Pointer to destination address
+ ** \param[out] dest - Pointer to destination address
  ** \param[in] value - An 8-bit value to fill in the memory
  ** \param[in] size - The number of values to write
  **
@@ -1062,7 +1069,7 @@ int32  CFE_PSP_MemRangeGet(uint32 RangeNum, uint32 *MemoryType, cpuaddr *StartAd
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] ByteValue - An 8-bit value to be written
 **
 ** \return #CFE_PSP_SUCCESS - Data wrote successfully
@@ -1079,7 +1086,7 @@ int32  CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] uint16Value - A 16-bit value to be written
 ** 
 ** \return #CFE_PSP_SUCCESS - Data wrote successfully
@@ -1096,7 +1103,7 @@ int32  CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[inout] MemoryAddress - The memory address to write to
+** \param[in] MemoryAddress - The memory address to write to
 ** \param[in] uint32Value - A 32-bit value to be written 
 **
 ** \return #CFE_PSP_SUCCESS - Data wrote successfully

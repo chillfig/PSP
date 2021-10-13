@@ -4,16 +4,18 @@
  ** \brief cFE PSP Exception related functions
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
- ** None
+ ** This is the implementation of the PSP Exception API. Functions defined here
+ ** handles exceptions occurring during the execution of CFS.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** The following was found in the <tt>VxWorks 6.9 architecture supplement, pg 179,
@@ -95,13 +97,13 @@ extern STATUS edrErrorPolicyHookRemove(void);
 static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = FALSE;
 
 /**
- ** \name g_pCurrentedrPolicyHandlerHook
+ ** \name g_pDefaultedrPolicyHandlerHook
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** The EDR_POLICY_HANDLER_HOOK is a function pointer defined
  ** in VxWorks header file edrLibP.h.
  */
-static EDR_POLICY_HANDLER_HOOK g_pCurrentedrPolicyHandlerHook = NULL;
+static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 
 /*
@@ -116,6 +118,8 @@ static EDR_POLICY_HANDLER_HOOK g_pCurrentedrPolicyHandlerHook = NULL;
  **
  **
  ** \par Assumptions, External Events, and Notes:
+ ** Assuming the VxWorks OS will call this function with the right parameters.
+ ** Thus, there is no check on the validity of the input parameters.
  ** When speSave() is called, it captures the last floating point
  ** context, which may not be valid. If a floating point exception
  ** occurs you can be almost 100% sure that this will reflect the
@@ -126,21 +130,21 @@ static EDR_POLICY_HANDLER_HOOK g_pCurrentedrPolicyHandlerHook = NULL;
  ** will not be valid. If the task is enabled for floating point,
  ** then it will be valid.
  **
- ** \param[inout] type - 
-              EDR_FACILITY_KERNEL    - VxWorks kernel events
-              EDR_FACILITY_INTERRUPT - interrupt handler events
-              EDR_FACILITY_INIT      - system startup events
-              EDR_FACILITY_BOOT      - system boot events
-              EDR_FACILITY_REBOOT    - system restart events
-              EDR_FACILITY_RTP       - RTP system events
-              EDR_FACILITY_USER      - user generated events
- ** \param[inout] pInfo_param - 
+ ** \param[in] type - 
+ **           EDR_FACILITY_KERNEL    - VxWorks kernel events
+ **           EDR_FACILITY_INTERRUPT - interrupt handler events
+ **           EDR_FACILITY_INIT      - system startup events
+ **           EDR_FACILITY_BOOT      - system boot events
+ **           EDR_FACILITY_REBOOT    - system restart events
+ **           EDR_FACILITY_RTP       - RTP system events
+ **           EDR_FACILITY_USER      - user generated events
+ ** \param[in] pInfo_param - 
  **            A pointer to an architecture-specific EXC_INFO structure,
  **            in case of exceptions, with CPU exception information. The exception
  **            information is saved by the default VxWorks exception handler.
  **            The structure is defined for each architecture in one of these
  **            files:  target/h/arch/arch/excArchLib.h For example:  target/h/arch/ppc/excPpcLib.h
- ** \param[inout] debug - 
+ ** \param[in] debug - 
  **            This flag indicates whether the ED&R system is in debug (also known as lab) mode,
  **            or in field (or deployed) mode.
  **
@@ -153,6 +157,10 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
     BOOL returnStatus = FALSE;
     EDR_TASK_INFO *pInfo = NULL;    //UndCC_Line(SSET_059_060_077_078)
     
+    /*
+    Assuming the VxWorks OS will call this function with the right parameters.
+    Thus, there is no check on the validity of the input parameters.
+    */
     pInfo = pInfo_param;
 
     /* Check if there is space in the Exception Storage Buffer. Only up to CFE_PSP_MAX_EXCEPTION_ENTRIES */
@@ -185,11 +193,11 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         if (g_ucOverRideDefaultedrPolicyHandlerHook == FALSE)
         {
             /*
-            When using CFE_PSP_AttachExceptions, g_pCurrentedrPolicyHandlerHook is left to NULL
+            When using CFE_PSP_AttachExceptions, g_pDefaultedrPolicyHandlerHook is left to NULL
             */
-            if (g_pCurrentedrPolicyHandlerHook != NULL)
+            if (g_pDefaultedrPolicyHandlerHook != NULL)
             {
-                returnStatus = g_pCurrentedrPolicyHandlerHook(type, pInfo, debug);
+                returnStatus = g_pDefaultedrPolicyHandlerHook(type, pInfo, debug);
             }
             else
             {
@@ -236,22 +244,22 @@ void CFE_PSP_AttachExceptions(void)
      * exceptions. The excHookAdd was replace with EDR&R because using the
      * exception hook interferes with the debugger. (breakpoints)
      */
-    g_pCurrentedrPolicyHandlerHook = edrPolicyHandlerHookGet();
+    g_pDefaultedrPolicyHandlerHook = edrPolicyHandlerHookGet();
 
     /* If there is a handler function defined, then remove it */
-    if (g_pCurrentedrPolicyHandlerHook != NULL)
+    if (g_pDefaultedrPolicyHandlerHook != NULL)
     {
         /* The call to edrErrorPolicyHookRemove will return ERROR if the handler
          * is NULL otherwise it set the handler to NULL. No action was required but
          * ignoring an error is a bad practice.
          */
-        if (edrErrorPolicyHookRemove() == CFE_PSP_ERROR)
+        if (edrErrorPolicyHookRemove() == ERROR) //UndCC_Line(SSET055) - returned by function
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE
                       "edrErrorPolicyHookRemove() failed for address 0x%x\n", 
-                      g_pCurrentedrPolicyHandlerHook);
+                      g_pDefaultedrPolicyHandlerHook);
 
-            g_pCurrentedrPolicyHandlerHook = NULL;
+            g_pDefaultedrPolicyHandlerHook = NULL;
         }
 
     }
@@ -285,7 +293,8 @@ void CFE_PSP_AttachExceptions(void)
 */
 void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
-    /* TODO: Determine the proper exception environment for the SP0 */
+    /* Currently using the default VxWorks exception environment for the SP0 */
+    OS_printf("PSP SetDefaultExceptionEnvironment not implemented\n");
 }
 
 /**
@@ -301,28 +310,49 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
  ** \param[out] ReasonBuf - Buffer to store string
  ** \param[in] ReasonSize - Size of string buffer
  **
- ** \return #CFE_PSP_SUCCESS on success
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
  */
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
-    const char *pTaskName = NULL;
+    int32       ret_code = CFE_PSP_SUCCESS;
+    int         iRetChar = 0;
+    const char  *pTaskName = NULL;
 
-    /* Get the vxWorks task name */
-    pTaskName = taskName(Buffer->sys_task_id);
-
-    /* If the task is no longer available, return pointer to local "N/A" string */
-    if (pTaskName == NULL)
+    if ((Buffer == NULL) || (ReasonBuf == NULL))
     {
-        pTaskName = "N/A";
+        ret_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        /* Get the vxWorks task name */
+        pTaskName = taskName(Buffer->sys_task_id);
+
+        /* If the task is no longer available, return pointer to local "N/A" string */
+        if (pTaskName == NULL)
+        {
+            pTaskName = "N/A";
+        }
+
+        /* 
+        if pTaskName is longer than ReasonSize then ReasonBuf will be a truncated string 
+        hiding part of the Task Name. No error will occur.
+        */
+        iRetChar = snprintf(ReasonBuf, ReasonSize, "Vector=0x%06X, Task ID=0x%08X, vxWorks Task Name=%s",
+                            Buffer->context_info.vector,Buffer->sys_task_id,pTaskName);
+        
+        if (iRetChar < 0)
+        {
+            OS_printf("PSP Exception: Could not save exception reason on buffer\n");
+            ret_code = CFE_PSP_ERROR;
+        }
+        if (iRetChar >= ReasonSize)
+        {
+            OS_printf("PSP Exception: Could not save the whole exception reason string on buffer\n");
+            ret_code = CFE_PSP_ERROR;
+        }
     }
 
-    /* 
-    if pTaskName is longer than ReasonSize then ReasonBuf will be a truncated string 
-    hiding part of the Task Name. No error will occur.
-    */
-    snprintf(ReasonBuf, ReasonSize, "Vector=0x%06X, Task ID=0x%08X, vxWorks Task Name=%s",
-            Buffer->context_info.vector,Buffer->sys_task_id,pTaskName);
-
-    return CFE_PSP_SUCCESS;
+    return ret_code;
 }
 

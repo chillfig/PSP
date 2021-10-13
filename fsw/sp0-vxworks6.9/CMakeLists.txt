@@ -5,9 +5,6 @@
 #
 ######################################################################
 
-# This contains supplemental code to support running CFE
-# on a variety of targets.
-#
 # Note this shared PSP code is currently built against headers provided by the
 # target implementation.  This makes it implementation-specific even though
 # the same source code is used with multiple targets.

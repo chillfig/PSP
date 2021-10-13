@@ -4,15 +4,19 @@
  ** \brief Header file for the PSP function prototypes in cfe_psp_start.c
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
- ** None
+ ** PSP Startup API for Aitech SP0. Functions implemented in this file are
+ ** used to configure the SP0 target and the VxWorks OS, and gather information
+ ** on how the system is setup.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
@@ -34,10 +38,16 @@
 #include <scratchRegMap.h>
 #include <aimonUtil.h>
 
+#include "cfe_psp_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ ** \brief List of MCHK Errors Messages
+ */
+const char * g_pMachineCheckCause_msg[10];
 
 /**
 ** \func Print Power On Self Test (POST) results to the console
@@ -172,7 +182,7 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_SetTaskPrio(const char* tName, int32 tgtPrio);
+int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
 
 /**
  ** \func Changes system task priorities so that they are lower than CFS system

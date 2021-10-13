@@ -193,11 +193,8 @@ uint32 CFE_PSP_MemRanges(void)
 **
 ** \return #CFE_PSP_SUCCESS - Memory range set successfuly
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
-** \return #CFE_PSP_INVALID_MEM_ADDR -- Starting address is not valid
 ** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match
 **                                     the passed in type.
-** \return #OP_INVALID_MEM_SIZE -- The Memory range associated with the address is not large enough to contain
-**                                 Address + Size.
 ** \return #CFE_PSP_INVALID_MEM_WORDSIZE - The WordSize parameter is not one of the 
 **                                         types.
 ** \return #CFE_PSP_INVALID_MEM_ATTR - The Attributes parameter is not one of the 

@@ -32,7 +32,8 @@
  ** used, distributed and modified only pursuant to the terms of that agreement.
  **
  ** \par Description:
- ** None
+ ** Header file containing the function declarations to initialize and manage 
+ ** PSP Modules
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None

@@ -4,13 +4,14 @@
  ** \brief API to support Watchdog
  **
  ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved. \n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that 
- ** agreement.
+ ** Copyright (c) 2019-2021 United States Government as represented by
+ ** the Administrator of the National Aeronautics and Space Administration.
+ ** All Rights Reserved.
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
  **
  ** \par Description:
  ** API to enable/disable, and control FPGA watchdog
@@ -47,7 +48,8 @@ static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* 
 ** \func Initialize the watchdog timer
 **
 ** \par Description:
-** This function configures and intializes the watchdog timer.
+** This function configures and initializes the watchdog timer to its 
+** default setting.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -58,6 +60,8 @@ static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* 
 */
 void CFE_PSP_WatchdogInit(void)
 {
+    g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;
+
     CFE_PSP_WatchdogSet(g_uiCFE_PSP_WatchdogValue_ms);  /* in msecs */
 }
 
@@ -77,11 +81,17 @@ void CFE_PSP_WatchdogInit(void)
 */
 void CFE_PSP_WatchdogEnable(void)
 {
+    int ret_code = OK;
+
     /*
     ** TRUE (allows slave SBC's WDT failure to reset all SBCs)
     ** FALSE (slave SBC's WDT failure resets slave SBC only)
     */
-    sysEnableFpgaWdt(true);
+    ret_code = sysEnableFpgaWdt(true);
+    if (ret_code != OK)
+    {
+        OS_printf("PSP Watchdog: Could not enable FPGA Watchdog\n");
+    }
 }
 
 
@@ -100,7 +110,14 @@ void CFE_PSP_WatchdogEnable(void)
 */
 void CFE_PSP_WatchdogDisable(void)
 {
-    sysDisableFpgaWdt();
+    int ret_code = OK;
+
+    ret_code = sysDisableFpgaWdt();
+
+    if (ret_code != OK)
+    {
+        OS_printf("PSP Watchdog: Could not disable FPGA Watchdog\n");
+    }
 }
 
 
@@ -143,7 +160,7 @@ void CFE_PSP_WatchdogService(void)
 */
 uint32 CFE_PSP_WatchdogGet(void)
 {
-    return((uint32)g_uiCFE_PSP_WatchdogValue_ms);
+    return g_uiCFE_PSP_WatchdogValue_ms;
 }
 
 
@@ -163,6 +180,7 @@ uint32 CFE_PSP_WatchdogGet(void)
 */
 void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
 {
+    int   ret_code = OK;
     float fRate = 0.0f;
 
     g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;  /* input already in msecs */
@@ -170,7 +188,12 @@ void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
     /*Rate is in seconds*/
     fRate = (((float)watchDogValue_ms) * 0.001f);
 
-    sysSetFpgaWdt(fRate);
+    ret_code = sysSetFpgaWdt(fRate);
+
+    if (ret_code != OK)
+    {
+        OS_printf("PSP Watchdog: Could not set FPGA Watchdog rate\n");
+    }
 }
 
 
