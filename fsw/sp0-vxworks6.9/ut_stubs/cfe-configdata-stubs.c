@@ -24,23 +24,12 @@
 void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char *StartFilePath);
 
 /**
- * Stub for 1Hz ISR function implemented in CFE TIME
- */
-void System1HzISR(void);
-
-/**
  * Stub for notification function implemented in CFE ES
  */
 void SystemNotify(void);
 
 Target_CfeConfigData GLOBAL_CFE_CONFIGDATA =
 {
-
-        /**
-         * 1Hz ISR entry point.  Called from PSP once per second on HW clock.
-         */
-        .System1HzISR = System1HzISR,
-
         /**
          * Main CFE entry point.  Called from PSP startup code.
          */
@@ -63,8 +52,7 @@ Target_ConfigData GLOBAL_CONFIGDATA =
         .Default_CpuName = "UnitTestCpu",
         .Default_CpuId = 1,
         .Default_SpacecraftId = 0x42,
-        .CfeConfig = &GLOBAL_CFE_CONFIGDATA,
-        .PspConfig = &GLOBAL_PSP_CONFIGDATA
+        .CfeConfig = &GLOBAL_CFE_CONFIGDATA
 };
 
 
@@ -80,15 +68,6 @@ void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char
     UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartFilePath);
     UT_DEFAULT_IMPL(SystemMain); 
 }
-
-/**
- * Stub for 1Hz ISR function implemented in CFE TIME
- */
-void System1HzISR(void)
-{
-    UT_DEFAULT_IMPL(System1HzISR);
-}
-
 
 /**
  * Stub for notification function implemented in CFE ES

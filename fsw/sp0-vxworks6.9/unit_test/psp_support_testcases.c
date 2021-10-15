@@ -39,6 +39,8 @@
 void Ut_CFE_PSP_Restart(void)
 {
     uint32  uiResetType = CFE_PSP_RST_TYPE_POWERON;
+    CFE_PSP_ReservedMemoryBootRecord_t localBootRecord[200];
+    CFE_PSP_ReservedMemoryMap.BootPtr = (CFE_PSP_ReservedMemoryBootRecord_t *) localBootRecord;
 
     /* ----- Test case #1 - Nominal Power on reboot ----- */
     /* Setup additional inputs */
@@ -65,14 +67,21 @@ void Ut_CFE_PSP_Panic(void)
 {
     int32 iErrorCode = -1;
     char cMsg[256] = {};
+    sprintf(cMsg, "CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n", iErrorCode);
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     Ut_logMsg_Setup();
-    sprintf(cMsg, "CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n", (unsigned int)iErrorCode);
+    UT_SetDefaultReturnValue(UT_KEY(remove), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(write), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelete), OS_SUCCESS);
+    CFE_PSP_MEM_SCRUB_Init();
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
+    // Ut_OS_printfPrint();
     UtAssert_logMsg(cMsg, "_CFE_PSP_Panic - 1/1: Nominal Panic log string found");
 }
 
@@ -81,7 +90,12 @@ void Ut_CFE_PSP_Panic(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_FlushCaches(void)
 {
+    uint32 ftype = 0;
+    void *faddress = NULL;
+    uint32 fsize = 1;
     /* Nothing to test because the empty function */
+    CFE_PSP_FlushCaches(ftype, faddress, fsize);
+    UtAssert_NA("_CFE_PSP_FlushCaches() - 1/1: N/A");
 }
 
 /*=======================================================================================

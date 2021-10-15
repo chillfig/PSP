@@ -36,12 +36,14 @@ void Ut_CFE_PSP_GetRestartType(void);
 void Ut_CFE_PSP_LogSoftwareResetType(void);
 void Ut_OS_Application_Startup(void);
 void Ut_CFE_PSP_LogSoftwareResetType(void);
-void Ut_SetTaskPrio(void);
-void Ut_SetSysTasksPrio(void);
+void Ut_CFE_PSP_SetTaskPrio(void);
+void Ut_CFE_PSP_SetSysTasksPrio(void);
 void Ut_PSP_1HzLocalCallback(void);
 void Ut_OS_Application_Run(void);
-void Ut_vxFpscrGet(void);
-void Ut_vxFpscrSet(void);
+void Ut_CFE_PSP_Main(void);
+void Ut_OS_Application_Run(void);
+void Ut_CFE_PSP_SuspendConsoleShellTask(void);
+void Ut_CFE_PSP_InitSSR(void);
 
 #endif  /* UT_PSP_START_TESTCASES_H */
 

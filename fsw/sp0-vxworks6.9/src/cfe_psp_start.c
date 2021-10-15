@@ -689,7 +689,7 @@ static int32 CFE_PSP_SetSysTasksPrio(void)
 int32  CFE_PSP_InitSSR(uint32 bus, uint32 device, char *DeviceName )
 {
     /* Function not implemented for the SP0 */
-    OS_printf("PSP: CFE_PSP_InitSSR function not implemented for SP0");
+    OS_printf("PSP: CFE_PSP_InitSSR function not implemented for SP0\n");
     return CFE_PSP_ERROR_NOT_IMPLEMENTED;
 
 }

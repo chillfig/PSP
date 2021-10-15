@@ -55,11 +55,28 @@ int32 ReadResetSourceReg(uint32 *puiResetSrc, uint32 uiTalkAtive)
     return iStatus;
 }
 
+/**
+ ** \brief UT Read the Safe Mode User Data
+ ** \par Description:
+ ** iStatus = 1 --> Remote
+ ** iStatus = 0 --> Local
+ ** iStatus = -1 --> Error
+ ** \param[out] pSafeModeUserData 
+ ** \param[in] uiTalkAtive 
+ ** \return int32 
+ */
 int32 ReadSafeModeUserData(void *pSafeModeUserData, uint32 uiTalkAtive)
 {
     int32 iStatus;
 
+    UT_Stub_RegisterContext(UT_KEY(ReadSafeModeUserData), pSafeModeUserData);
+
     iStatus = UT_DEFAULT_IMPL(ReadSafeModeUserData);
+
+    if (iStatus >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(ReadSafeModeUserData), (void *)pSafeModeUserData, sizeof(*pSafeModeUserData));
+    }
 
     return iStatus;
 }
@@ -88,3 +105,11 @@ int32 taskPrioritySet(int32 iTid, int32 iNewPrio)
     return iStatus;
 }
 
+char * taskName(TASK_ID tid)
+{
+    char * iStatus;
+
+    iStatus = (char *) UT_DEFAULT_IMPL(taskName);
+
+    return iStatus;
+}

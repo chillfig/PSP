@@ -272,7 +272,7 @@ void CFE_PSP_AttachExceptions(void)
     }
     else
     {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "Attached cFE Exception Handler.\n");
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Attached cFE Exception Handler\n");
     }
 }
 

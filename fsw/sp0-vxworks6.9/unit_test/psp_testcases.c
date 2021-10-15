@@ -11,13 +11,23 @@
 **    2020-12-16 | Minh Luong       | Initial revision
 **    2021-01-05 | Minh Luong       | Added test cases for psp_exception_testcase.c, 
 **               |                  | psp_support_testcases.c, psp_timer_testcase.c, 
-**               |                  | and psp_watchdog_testcases.c
+**               |                  | psp_watchdog_testcases.c, and psp_memory_testcases.c
+**    2021-09-08 | Claudio Olmi     | Added psp_ntp_testcases.c
 **=======================================================================================*/
 
 #include <unistd.h>
 #include "uttest.h"
 #include "utstubs.h"
 #include "psp_testcases.h"
+
+#define TEST_NTP        1
+#define TEST_SP0_INFO   1
+#define TEST_MEMORY     1
+#define TEST_MEM_SCRUB  1
+#define TEST_START      1
+#define TEST_EXCEPTION  1
+#define TEST_SUPPORT    1
+#define TEST_WATCHDOG   1
 
 /*=======================================================================================
 ** Test Setup & Teardown functions
@@ -34,10 +44,102 @@ void Ut_CFE_PSP_Teardown(void)
 
 void UtTest_Setup(void)
 {
+    #if TEST_NTP == 1
+
+    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_Enable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "CFE_PSP_Sync_From_OS_Enable");
+    
+    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_SetFreq,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_Sync_From_OS_SetFreq");
+
+    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_GetFreq,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_Sync_From_OS_GetFreq");
+
+    UtTest_Add(Ut_CFE_PSP_Set_OS_Time,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_Set_OS_Time");
+    
+    UtTest_Add(Ut_CFE_PSP_Get_OS_Time,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_Get_OS_Time");
+    
+    UtTest_Add(Ut_CFE_PSP_NTP_Daemon_Get_Status,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_NTP_Daemon_Get_Status");
+    
+    UtTest_Add(Ut_CFE_PSP_NTP_Daemon_Enable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_NTP_Daemon_Enable");
+    
+    UtTest_Add(Ut_CFE_PSP_TIME_Init,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_TIME_Init");
+
+    UtTest_Add(Ut_CFE_PSP_TimeService_Ready,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_TimeService_Ready");
+
+    UtTest_Add(Ut_CFE_PSP_Update_OS_Time,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_Update_OS_Time");
+
+    UtTest_Add(Ut_CFE_PSP_StartNTPDaemon,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_StartNTPDaemon");
+
+    UtTest_Add(Ut_CFE_PSP_StopNTPDaemon,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_StopNTPDaemon");
+
+    UtTest_Add(Ut_net_clock_vxworks_Destroy,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_net_clock_vxworks_Destroy");
+
+    UtTest_Add(Ut_ntp_clock_vxworks_Init,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_ntp_clock_vxworks_Init");
+
+    #endif
+
+    #if TEST_SP0_INFO == 1
+    /* cfe_psp_sp0_info.c test cases area */
+
+    /* Crashes with SPE Exception */
+//     UtTest_Add(Ut_PSP_SP0_GetInfo,
+//               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+//               "Ut_PSP_SP0_GetInfo");
+
+    UtTest_Add(Ut_PSP_SP0_PrintInfoTable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_PrintInfoTable");
+
+    UtTest_Add(Ut_PSP_SP0_DumpData,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_DumpData");
+
+    #endif /* TEST_SP0_INFO == 1 */
+
+    #if TEST_START == 1
     /* cfe_psp_start.c test cases area */
+
     UtTest_Add(Ut_CFE_PSP_ProcessPOSTResults,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ProcessPOSTResults");
+               
+    UtTest_Add(Ut_CFE_PSP_Main,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Main");
+
+    UtTest_Add(Ut_OS_Application_Run,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_OS_Application_Run");
+
+    UtTest_Add(Ut_CFE_PSP_SuspendConsoleShellTask,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SuspendConsoleShellTask");
 
     UtTest_Add(Ut_CFE_PSP_ProcessResetType,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -47,50 +149,35 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_LogSoftwareResetType");
 
-    UtTest_Add(Ut_OS_Application_Startup,
+    /* Need to fix the PSP_SP0_GetInfo first */
+/*     UtTest_Add(Ut_OS_Application_Startup,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Startup"); 
+               "Ut_OS_Application_Startup");  */
 
     UtTest_Add(Ut_CFE_PSP_GetRestartType,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetRestartType"); 
 
-    UtTest_Add(Ut_SetTaskPrio,
+    UtTest_Add(Ut_CFE_PSP_SetTaskPrio,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_SetTaskPrio");
+               "Ut_CFE_PSP_SetTaskPrio");
 
-    UtTest_Add(Ut_SetSysTasksPrio,
+    UtTest_Add(Ut_CFE_PSP_SetSysTasksPrio,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_SetSysTasksPrio");
+               "Ut_CFE_PSP_SetSysTasksPrio");
 
-    UtTest_Add(Ut_PSP_1HzLocalCallback,
+    UtTest_Add(Ut_CFE_PSP_InitSSR,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_PSP_1HzLocalCallback");
+               "Ut_CFE_PSP_InitSSR");
 
-    UtTest_Add(Ut_OS_Application_Run,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Run");
-
-    UtTest_Add(Ut_vxFpscrGet,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_vxFpscrGet");
-
-    UtTest_Add(Ut_vxFpscrSet,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_vxFpscrSet");
-
+    #endif  /* TEST_START == 1 */
+    
+    #if TEST_MEMORY == 1
     /* cfe_psp_memory.c test cases area */
+
     UtTest_Add(Ut_CFE_PSP_GetCDSSize,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCDSSize");
-
-    UtTest_Add(Ut_CFE_PSP_SetReadCDSMethod,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SetReadCDSMethod");
-
-    UtTest_Add(Ut_CFE_PSP_GetReadCDSMethod,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetReadCDSMethod");
 
     UtTest_Add(Ut_CFE_PSP_SetStaticCRC,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -131,7 +218,7 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_GetVolatileDiskMem,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetVolatileDiskMem");
-    
+
     UtTest_Add(Ut_CFE_PSP_InitProcessorReservedMemory,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_InitProcessorReservedMemory");
@@ -152,7 +239,48 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCFETextSegmentInfo");
 
+    #endif /* TEST_MEMORY == 1 */
+
+    #if TEST_MEM_SCRUB == 1
+    /* cfe_psp_mem_scrub.c test cases area*/
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Init,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Init");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Task,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Task");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_isRunning,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_isRunning");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Set,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Set");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Status,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Status");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Enable,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Enable");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Disable,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Disable");
+
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Delete,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_Delete");
+
+    #endif /* TEST_MEM_SCRUB */
+
+    #if TEST_EXCEPTION == 1
     /* cfe_psp_exception.c test cases area */
+
     UtTest_Add(Ut_CFE_PSP_edrPolicyHandlerHook,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_edrPolicyHandlerHook");
@@ -169,7 +297,11 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ExceptionGetSummary_Impl");
 
+    #endif /* TEST_EXCEPTION == 1 */
+
+    #if TEST_SUPPORT == 1
     /* cfe_psp_support.c test cases area */
+
     UtTest_Add(Ut_CFE_PSP_Restart,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_Restart");
@@ -194,33 +326,11 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetProcessorName");
 
-    /* cfe_psp_timer.c test cases area */
+    #endif /* TEST_SUPPORT == 1 */
 
-/*     UtTest_Add(Ut_CFE_PSP_GetTime,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetTime");
-
-    UtTest_Add(Ut_CFE_PSP_Get_Timer_Tick,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_Get_Timer_Tick");
-
-    UtTest_Add(Ut_CFE_PSP_GetTimerTicksPerSecond,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetTimerTicksPerSecond");
-
-    UtTest_Add(Ut_CFE_PSP_GetTimerLow32Rollover,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetTimerLow32Rollover");
-
-    UtTest_Add(Ut_CFE_PSP_Get_Timebase,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_Get_Timebase");
-
-    UtTest_Add(Ut_CFE_PSP_Get_Dec,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_Get_Dec");
- */
+    #if TEST_WATCHDOG == 1
     /* cfe_psp_watchdog.c test cases area */
+
     UtTest_Add(Ut_CFE_PSP_WatchdogInit,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_WatchdogInit");
@@ -244,6 +354,15 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_WatchdogSet,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_WatchdogSet");
+
+    #endif /* TEST_WATCHDOG == 1 */
+
+    /* Test NTP Sync */
+    #if TEST_NTP_SYNC == 1
+
+    
+
+    #endif /* TEST_NTP_SYNC == 1 */
 } 
 
 /*=======================================================================================

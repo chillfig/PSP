@@ -10,6 +10,13 @@
 #define MAX_OS_PRINTF_MESSAGES      50
 #define MAX_LOGMSG_MESSAGES      50
 
+/* ERROR CODES for IPCOM, used with (at least) CFE_PSP_StartNTPDaemon(void) */
+#define IPCOM_SUCCESS               (0)     // Generic Success
+/* Why is below error code causing undefined error? */
+#define IPCOM_ERROR                 (-1)    // Generic Error
+#define IPCOM_ERR_ALREADY_STARTED   (-2)    // Error, IPCOM Already Started
+#define IPCOM_ERR_NOT_STARTED       (-3)    // Error, IPCOM Not Started
+
 /* Global array for OS_printf messages */
 char OS_printfMsgList[MAX_OS_PRINTF_MESSAGES][OS_BUFFER_SIZE];
 uint8   ucOS_printfMessageCounts = 0;
@@ -17,6 +24,15 @@ uint8   ucOS_printfMessageCounts = 0;
 /* Global array for logMsg messages */
 char logMsgList[MAX_LOGMSG_MESSAGES][OS_BUFFER_SIZE];
 uint8   ucLogMsgCounts = 0;
+
+STATUS remove(const char * name)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(remove);
+
+    return iStatus;
+}
 
 int open(const char * file, int oflag, ...)
 {
@@ -44,7 +60,6 @@ int close(int fd)
 
     return iStatus;
 }
-
 
 int read(int fd, void * buf, size_t n)
 {
@@ -130,6 +145,39 @@ bool Ut_OS_printfHistoryWithText(const char *pcText)
     }
 
     return bResult;
+}
+
+/**
+ ** \brief Prints the whole array of strings printed using OS_printf
+ ** \par Description:
+ ** DEBUG Helper function Print all OS_printf messages
+ ** \param[in] quite - When True, it will only return the number of messages
+ ** in the OS_printf array
+ */
+void Ut_OS_printfPrint(void)
+{
+    uint16 uiIdx;
+    bool quite = false;
+
+    if (quite == false)
+    {
+        printf("OS_printf Queue [%d]\n",ucOS_printfMessageCounts);
+        for (uiIdx = 0; uiIdx < ucOS_printfMessageCounts; ++uiIdx)
+        {
+            printf("%s ",OS_printfMsgList[uiIdx]);
+        }
+        printf("\n");
+    }
+}
+
+
+/**
+ ** \brief Gives the number of messages printed
+ ** \return uint8
+ */
+uint8   Ut_OS_printf_MsgCount(void)
+{
+    return ucOS_printfMessageCounts;
 }
 
 void logMsg(const char *pcString, ...)
@@ -260,11 +308,98 @@ uint32 sysTimestampFreq(void)
     return uiStatus;
 }
 
-uint32 vxDecGet (void)
+int32 taskNameToId(const char *name) 
 {
-    uint32 uiStatus;
+    int32 iStatus;
 
-    uiStatus = UT_DEFAULT_IMPL(vxDecGet);
+    iStatus = UT_DEFAULT_IMPL(taskNameToId);
 
-    return uiStatus;
+    return iStatus;
 }
+
+int32 taskSuspend(TASK_ID task_id) 
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(taskSuspend);
+
+    return iStatus;
+}
+
+int32 taskResume(TASK_ID task_id) 
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(taskResume);
+
+    return iStatus;
+}
+
+struct timespec {
+    uint32 tv_sec;
+    uint32 tv_nsec;
+};
+
+int clock_settime(int clk_id, struct timespec *t)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(clock_settime);
+
+    return iStatus;
+}
+
+int clock_gettime(int clk_id, struct timespec *t)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(clock_gettime);
+
+    return iStatus;
+}
+
+int ipcom_ipd_start(void)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(ipcom_ipd_start);
+
+    return iStatus;
+}
+
+/* ipcom_ipd_kill( ) - stops a daemon  */
+int ipcom_ipd_kill(void)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(ipcom_ipd_kill);
+
+    return iStatus;
+}
+
+int tempSensorRead (int8 sensor, uint8 dataType, float *temperature, bool talkative )
+{
+    int32 iStatus;
+    iStatus = UT_DEFAULT_IMPL(tempSensorRead);
+    *temperature = 25.5f;
+
+    return iStatus;
+}
+
+int volSensorRead(int8 sensor, uint8 dataType, float *voltage, bool talkative )
+{
+    int32 iStatus;
+    iStatus = UT_DEFAULT_IMPL(volSensorRead);
+    *voltage = 5.05f;
+
+    return iStatus;
+}
+
+/* GetUsecTime( ) – gets the time in micro-seconds since startup. */
+double GetUsecTime(void)
+{
+    /* OS_TaskDelay(500); */
+    /* Time in microseconds */
+    return (double)100.00;
+}
+

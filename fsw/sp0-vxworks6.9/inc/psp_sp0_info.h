@@ -95,7 +95,7 @@ typedef struct
     char safeModeUserData[SP0_SAFEMODEUSERDATA_BUFFER_SIZE];
     
     /** \brief Number of usec since startup */
-    double systemStartupUsecTime;
+    float systemStartupUsecTime;
     /** \brief Array of 4 temperatures on the SP0 computer */
     float temperatures[4];
     /** \brief Array of 6 voltages powering the SP0 */

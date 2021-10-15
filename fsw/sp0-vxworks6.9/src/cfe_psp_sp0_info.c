@@ -95,7 +95,7 @@ int32 PSP_SP0_GetInfo(void)
     uint64                      bitResult   = 0ULL;
     int                         iRetChar = 0;
     int32                       ret_code = CFE_PSP_SUCCESS;
-
+    
     OS_printf(SP0_PRINT_SCOPE "Collecting Data\n");
 
     /*
@@ -134,15 +134,15 @@ int32 PSP_SP0_GetInfo(void)
     /*
     Returns the time in micro-seconds since system startup. Rolls over after 3 years
     */
-    g_sp0_info_table.systemStartupUsecTime = GetUsecTime();
-
+    g_sp0_info_table.systemStartupUsecTime = (float) GetUsecTime();
+    
     /*
     Returns true if the SP0 is the CPCI system controller. The hardware register
     read is done only once. This is so that after operation, in case the hardware 
     fails, we do not suddenly change our configuration.
     */
     g_sp0_info_table.systemCpciSysCtrl = isCpciSysController();
-
+    
     /*
     Gets core clock speed in MHz
     Note: The Aitech defined setCoreClockSpeed() function actually does not
@@ -150,7 +150,7 @@ int32 PSP_SP0_GetInfo(void)
     with the Aitech provided API.
     */
     g_sp0_info_table.systemCoreClockSpeed = getCoreClockSpeed();
-
+    
     /*
     Gets last reset reason
     */
@@ -162,9 +162,9 @@ int32 PSP_SP0_GetInfo(void)
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n");
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
-
+    
     /* Do I need this: ReadSafeModeUserData() */
     status = ReadSafeModeUserData(&safeModeUserData,0);
     if (status == OS_SUCCESS)
@@ -192,7 +192,7 @@ int32 PSP_SP0_GetInfo(void)
         if ((iRetChar < 0) || (iRetChar >= SP0_SAFEMODEUSERDATA_BUFFER_SIZE))
         {
             OS_printf(SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData");
-            ret_code = OS_ERROR;
+            ret_code = CFE_PSP_ERROR;
         }
     }
     else
@@ -201,7 +201,7 @@ int32 PSP_SP0_GetInfo(void)
                             SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                             "OS_Error Retrieving SafeModeUserData");
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n");
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
 
     /*
@@ -252,10 +252,10 @@ int32 PSP_SP0_GetInfo(void)
         {
             OS_printf(SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n");
             g_sp0_info_table.temperatures[i] = FLT_MIN;
-            ret_code = OS_ERROR;
+            ret_code = CFE_PSP_ERROR;
         }
     }
-
+    
     /**** Read SP0 Voltages ****/
     for (i = 1; i < 7; i++)
     {
@@ -271,7 +271,7 @@ int32 PSP_SP0_GetInfo(void)
         {
             OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
             g_sp0_info_table.voltages[i - 1] = FLT_MIN;
-            ret_code = OS_ERROR;
+            ret_code = CFE_PSP_ERROR;
         }
     }
 
@@ -284,7 +284,7 @@ int32 PSP_SP0_GetInfo(void)
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n");
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
 
     /* This function returns the summary of the test results in a 64 bit packed word */
@@ -296,15 +296,15 @@ int32 PSP_SP0_GetInfo(void)
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n");
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
-
+    
     /* Output to local string buffer */
     g_iSP0DataDumpLength = snprintf(
         g_cSP0DataDump, 
         SP0_TEXT_BUFFER_MAX_SIZE,
         "SysModel: %s\nSysBspRev: %s\n"
-        "SysPhysMemTop: 0x%08X (%d MiB)\n"
+        "SysPhysMemTop: 0x%08X (%u MiB)\n"
         "sysProcNum: %d\n"
         "sysSlotId: %d\n"
         "sysStartupUsecTime: %0.3f\n"
@@ -362,14 +362,15 @@ int32 PSP_SP0_GetInfo(void)
     {
         /* This will make sure that we don't write garbage to file */
         g_iSP0DataDumpLength = -1;
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
     /* Check if it was truncated */
     if (g_iSP0DataDumpLength >= SP0_TEXT_BUFFER_MAX_SIZE)
     {
         /* Return error but don't do anything else. */
-        ret_code = OS_ERROR;
+        ret_code = CFE_PSP_ERROR;
     }
+
     return ret_code;
 }
 
@@ -427,7 +428,7 @@ int32 PSP_SP0_DumpData(void)
         iStatus = remove(filename);
 
         /* Create a new file for writing */
-        fd = creat(filename, O_RDWR);
+        fd = open(filename, O_CREAT | O_RDWR, 0644);
         /* If there are no errors */
         if (fd != ERROR) //UndCC_Line(SSET055) - returned by function
         {

@@ -10,28 +10,20 @@
 **    ---------- | ---------------- | ----------------------------------------------------
 **    2020-12-18 | Minh Luong       | Initial revision
 **=======================================================================================*/
-
 #ifndef UT_PSP_MEMORY_TESTCASES_H
 #define UT_PSP_MEMORY_TESTCASES_H
-
 /*=======================================================================================
 ** Includes
 **=======================================================================================*/
-
 #include <errno.h>
-
 #include "utassert.h"
-
 /*=======================================================================================
 ** External Global Variable Declarations
 **=======================================================================================*/
-
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
 void Ut_CFE_PSP_GetCDSSize(void);
-void Ut_CFE_PSP_SetReadCDSMethod(void);
-void Ut_CFE_PSP_GetReadCDSMethod(void);
 void Ut_CFE_PSP_SetStaticCRC(void);
 void Ut_CFE_PSP_GetStaticCRC(void);
 void Ut_CFE_PSP_CalculateCRC(void);
@@ -47,9 +39,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void);
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void);
 void Ut_CFE_PSP_GetKernelTextSegmentInfo(void);
 void Ut_CFE_PSP_GetCFETextSegmentInfo(void);
-
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
-
 /*=======================================================================================
 ** End of file psp_memory_testcases.h
 **=======================================================================================*/

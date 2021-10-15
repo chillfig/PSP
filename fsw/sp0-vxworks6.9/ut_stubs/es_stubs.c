@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "utstubs.h"
-#include "cfe_es.h"
+/* #include "cfe_es.h" */
 
 #define MAX_ES_WRITETOSYSLOG_MESSAGES      100
 #define ES_BUFFER_SIZE 172

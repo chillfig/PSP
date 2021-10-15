@@ -21,7 +21,8 @@
 
 /* #include "cfe.h" */
 #include "utstubs.h"
-/* #include "ut_support.h" */
+/* #include "ut_support.h" when away for the below ??? */
+#include "uttools.h"
 
 /*=======================================================================================
 ** Macro Definitions
@@ -62,6 +63,21 @@ int32   Ut_logMsg_hook(void *UserObj, int32 StubRetcode,
                        uint32 CallCount, const UT_StubContext_t *Context, va_list va);
 void    Ut_logMsg_Setup(void);
 bool    Ut_logMsgHistoryWithText(const char *cText);
+
+/**
+ ** \brief Prints the whole array of strings printed using OS_printf
+ ** \par Description:
+ ** DEBUG Helper function Print all OS_printf messages
+ ** \param[in] quite - When True, it will only return the number of messages
+ ** in the OS_printf array
+ */
+void    Ut_OS_printfPrint(void);
+
+/**
+ ** \brief Gives the number of messages printed
+ ** \return uint8
+ */
+uint8   Ut_OS_printf_MsgCount(void);
 
 #endif  /* _UT_PSP_UTILS_H_ */
 

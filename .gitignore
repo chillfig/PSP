@@ -1,3 +1,9 @@
 
 ### Unit Test temporary files
-tmp_code_coverage
+fsw/sp0-vxworks6.9/unit_test/tmp_code_coverage
+fsw/sp0-vxworks6.9/unit_test/*.zip
+fsw/sp0-vxworks6.9/unit_test/db
+fsw/sp0-vxworks6.9/unit_test/runs
+fsw/sp0-vxworks6.9/unit_test/html
+fsw/sp0-vxworks6.9/unit_test/tcl_scripts/~
+fsw/sp0-vxworks6.9/unit_test/payload
