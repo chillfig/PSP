@@ -45,15 +45,20 @@ extern "C" {
 #endif
 
 /**
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
+/**
  ** \brief List of MCHK Errors Messages
  */
 const char * g_pMachineCheckCause_msg[10];
 
 /**
-** \func Print Power On Self Test (POST) results to the console
+** \func Output POST results
 **
 ** \par Description:
-** None
+** This function prints the Power-On Self-Test (POST) results to the console.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -65,33 +70,10 @@ const char * g_pMachineCheckCause_msg[10];
 void CFE_PSP_ProcessPOSTResults(void);
 
 /**
-** \func Determines the reset type and subtype
+** \func Logs software reset type
 **
 ** \par Description:
-** Reset Types are defined in Aitech headers
-** Function will save reset types to the respective global static variables:
-** - g_uiResetType
-** - g_uiResetSubtype
-** Finally, function will print to console the reset type
-**
-** \par Assumptions, External Events, and Notes:
-** Output defines are defined in Aitech file scratchRegMap.h
-**
-** \param None
-**
-** \return RESET_SRC_POR 
-** \return RESET_SRC_WDT 
-** \return RESET_SRC_FWDT 
-** \return RESET_SRC_CPCI 
-** \return RESET_SRC_SWR 
-*/
-static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void);
-
-/**
-** \func Determines if started in safe mode and logs off nominal resets.
-**
-** \par Description:
-** None
+** This function determines if started in safe mode and logs off software reset type.
 **
 ** \par Assumptions, External Events, and Notes:
 ** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
@@ -103,13 +85,14 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void);
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc);
 
 /**
-** \func Application startup entry point from OSAL BSP.
+** \func OSAL startup entry point
 **
 ** \par Description:
-** SP0 Implementation Specific
+** This function serves as the OSAL startup entry point.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** This is an SP0-specific implementation so that we don't run the default
+** OSAL-equivalent function.
 **
 ** \param None
 **
@@ -118,14 +101,16 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc);
 void OS_Application_Startup(void);
 
 /**
-** \func Application Run entry point from OSAL BSP.
+** \func OSAL run entry point
 **
 ** \par Description:
-** SP0 Implementation Specific
+** This function serves as the PSP run entry point.
 **
 ** \par Assumptions, External Events, and Notes:
-** This function is declared but empty so that we don't run the default OSAL
-** equivalent function. The latter will actively suspend the console shell.
+** This is an SP0-specific implementation.
+** \n\n
+** This function is declared but empty so that we don't run the default
+** OSAL-equivalent function. The latter will actively suspend the console shell.
 **
 ** \param None
 **
@@ -134,10 +119,10 @@ void OS_Application_Startup(void);
 void OS_Application_Run(void);
 
 /**
- ** \func Function Suspend/Resume the Console Shell Task.
+ ** \func Suspend/Resume the Console Shell Task
  **
  ** \par Description:
- ** None
+ ** This function suspends/resumes the Console Shell task.
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -153,13 +138,12 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend);
 ** \func Get restart type
 **
 ** \par Description:
-** This function returns the last reset type.  If a pointer to a valid
-** memory space is passed in, it returns the reset sub-type in that memory.
-** Right now the reset types are application-specific. For the cFE, they
-** are defined in the cfe_es.h file.
+** This function returns the last reset type.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** If a pointer to a valid memory space is passed in, it returns the reset 
+** sub-type in that memory. Right now the reset types are application-specific. 
+** For the cFE, they are defined in the cfe_es.h file.
 **
 ** \param[out] resetSubType - Pointer to the variable that stores the returned reset sub-type
 **
@@ -168,10 +152,10 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend);
 uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
 
 /**
- ** \func Changes default task priority to a given priority
+ ** \func Set task priority
  **
  ** \par Description:
- ** None
+ ** This function sets the new task priority for a given task name.
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -185,11 +169,42 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
 int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
 
 /**
- ** \func Changes system task priorities so that they are lower than CFS system
- ** task priorities
+** \} <!-- End of group "psp_public_api" -->
+*/
+
+/**
+** \brief Get the reset type and subtype
+**
+** \par Description:
+** This function determines the reset type and subtype.
+**
+** \par Assumptions, External Events, and Notes:
+** Reset Types are defined in Aitech headers.
+** \n\n
+** Function will save reset types to the respective global static variables:
+** \li g_uiResetType
+** \li g_uiResetSubtype
+** \n\n
+** Finally, function will print to console the reset type.
+** \n\n
+** Output defines are defined in Aitech file scratchRegMap.h
+**
+** \param None
+**
+** \return RESET_SRC_POR 
+** \return RESET_SRC_WDT 
+** \return RESET_SRC_FWDT 
+** \return RESET_SRC_CPCI 
+** \return RESET_SRC_SWR 
+*/
+static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void);
+
+/**
+ ** \brief Change system task priorities
  **
  ** \par Description:
- ** None
+ ** This function changes the system task priorities so that they are 
+ ** lower than CFS system task priorities.
  **
  ** \par Assumptions, External Events, and Notes:
  ** tNet0 priority should be adjusted to be right below what ever

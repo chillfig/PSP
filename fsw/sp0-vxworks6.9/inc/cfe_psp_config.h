@@ -44,6 +44,11 @@ extern "C" {
 #endif
 
 /**
+** \addtogroup psp_config PSP Configurations
+** \{
+*/
+
+/**
  ** \brief Override OSAL OS_Application_Run
  ** \par Description:
  ** OSAL default OS_Application_Run suspends the shell task on VxWorks.
@@ -389,6 +394,10 @@ typedef struct
 #define NTPSYNC_DEFAULT_PRIORITY            60
 
 /** \} */
+
+/**
+** \} <!-- End of group "psp_config" -->
+*/
 
 #ifdef __cplusplus
 }

@@ -30,15 +30,19 @@ extern "C" {
 #endif
 
 /**
-** \func Change the previous calculated CRC value to new provided value
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
+/**
+** \func Set a new CRC value
 **
 ** \par Description:
-** This function change the previous calculated CRC value to new provided value.
-** This function is just for testing purpose by forcing the CRC mismatched and 
-** read CDS data from Flash.
+** This function sets the new CRC value.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** This function is just for testing purpose by forcing the CRC mismatched and 
+** read CDS data from Flash.
 **
 ** \param uiNewCRC - New CRC
 **
@@ -47,13 +51,14 @@ extern "C" {
 void CFE_PSP_SetStaticCRC(uint32 uiNewCRC);
 
 /**
-** \func Get the previous calculated CRC value
+** \func Get the previous CRC value
 **
 ** \par Description:
-** None
+** This function gets the previous CRC value.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** This function is just for testing purpose by forcing the CRC mismatched and 
+** read CDS data from Flash.
 **
 ** \param None
 **
@@ -62,18 +67,19 @@ void CFE_PSP_SetStaticCRC(uint32 uiNewCRC);
 uint32 CFE_PSP_GetStaticCRC(void);
 
 /**
- ** \func Calculate 16 bits CRC from input data
+ ** \func Calculate 16-bits CRC
  **
  ** \par Description:
- ** None
+ ** This function calculates the 16-bit CRC from input data.
  **
  ** \par Assumptions, External Events, and Notes:
  ** InputCRC allows the user to calculate the CRC of non-contiguous blocks as a
  ** single value. Nominally, the user should set this value to zero.
- **
+ ** \n\n
  ** CFE now includes a function to calculate the CRC.
- ** uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
- ** Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC
+ ** \li uint32 CFE_ES_CalculateCRC(void *pData, uint32 DataLength, uint32 InputCRC, uint32 TypeCRC);
+ ** \n\n 
+ ** Only CFE_MISSION_ES_CRC_16 is implemented as the TypeCRC.
  **
  ** \param[in] DataPtr  - Pointer to the input data buffer
  ** \param[in] DataLength  - Data buffer length
@@ -87,12 +93,10 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ** \func Read the whole CDS data from Flash
 **
 ** \par Description:
-** This function read the whole CDS data on Flash to reserved memory on RAM.
-**
-** \warning It took about 117ms to read 131072 bytes (128KB) whole CDS area from Flash. 
+** This function reads the whole CDS data on Flash to reserved memory on RAM.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** Warning: It took about 117ms to read 131072 bytes (128KB) whole CDS area from Flash.
 **
 ** \param puiReadBytes[out] - Number of read bytes
 **
@@ -108,7 +112,7 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
 ** This function write the whole CDS data from reserved memory on RAM to Flash.
 **
 ** \par Assumptions, External Events, and Notes:
-** It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash.
+** Warning: It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash.
 **
 ** \param puiWroteBytes[out] - Number of written bytes
 **
@@ -116,6 +120,10 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
 ** \return #CFE_PSP_ERROR
 */
 int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes);
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

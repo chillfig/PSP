@@ -33,6 +33,11 @@
 #include "common_types.h"
 #include "osapi.h"
 
+/**
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
 /*
 ** Macro Definitions
 */
@@ -180,11 +185,11 @@ void  CFE_PSP_Main(void);
 **
 ** \par Description:
 ** Sample/Read a monotonic platform clock with normalization
-**
+** \n\n
 ** Outputs an OS_time_t value indicating the time elapsed since an epoch.  The
 ** epoch is not defined, but typically represents the system boot time.  The
 ** value increases continuously over time and cannot be reset by software.
-**
+** \n\n
 ** This is similar to the CFE_PSP_Get_Timebase(), but additionally it normalizes
 ** the output value to an OS_time_t, thereby providing consistent units to
 ** the calling application.  Any OSAL-provided routine accepts OS_time_t inputs
@@ -205,19 +210,21 @@ void  CFE_PSP_GetTime(OS_time_t *LocalTime);
 **
 ** \par Description:
 ** This function is the entry point back to the BSP to restart the processor.
-** cFE calls this function to restart the processor.\n
-** Depending on the resetType, the function will reboot with the following 
-** restart type:\n
-** - resetType  = CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_CLEAR)
-** - resetType != CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_NORMAL)
+** cFE calls this function to restart the processor.
 **
 ** \par Assumptions, External Events, and Notes:
-** system restart types defined in sysLib.h:\n
-** - BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_\n
-** - BOOT_CLEAR _"clear memory"_
+** Depending on the resetType, the function will reboot with the following 
+** restart type:
+** \li resetType == CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_CLEAR)
+** \li resetType != CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_NORMAL)
+** \n\n
+** System restart types defined in sysLib.h:
+** \li BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_
+** \li BOOT_CLEAR _"clear memory"_
+** \n\n
 ** The following reboot options are not used.
-** - BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_\n
-** - BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
+** \li BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_
+** \li BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
 **
 ** \param[in] resetType - Type of cFE reset
 **
@@ -229,12 +236,11 @@ void  CFE_PSP_Restart(uint32 resetType);
 ** \func Get restart type
 **
 ** \par Description:
-** This function returns the last reset type.  If a pointer to a valid
-** memory space is passed in, it returns the reset sub-type in that memory.
-** Right now the reset types are application-specific.
+** This function returns the last reset type.  
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** If a pointer to a valid memory space is passed in, it returns the reset 
+** sub-type in that memory. Right now the reset types are application-specific.
 **
 ** \param[out] resetSubType - Pointer to the variable that stores the returned reset sub-type
 **
@@ -246,11 +252,12 @@ uint32  CFE_PSP_GetRestartType(uint32 *resetSubType );
 ** \func Flush memory caches
 **
 ** \par Description:
-** This function flushes the processor caches. This function is in the PSP
-** because it is sometimes implemented in hardware and sometimes taken 
-** care of by the OS.
+** This function flushes the processor caches. 
 **
 ** \par Assumptions, External Events, and Notes:
+** This function is in the PSP because it is sometimes implemented in hardware 
+** and sometimes taken care of by the OS.
+** \n\n
 ** This function is not implemented for the SP0-vxworks6.9 PSP since it is 
 ** managed by the SP0 BSP/VxWorks OS.
 **
@@ -637,10 +644,11 @@ int32  CFE_PSP_InitSSR(uint32 bus, uint32 device, char *DeviceName );
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** For VxWorks, this function initializes the EDR policy handling. The handler is 
-** called for every exception that other handlers do not handle.  Note that the 
-** floating point exceptions are handled by the default floating point exception 
-** handler, which does a graceful recovery from floating point exceptions in the 
-** file speExcLib.c.
+** called for every exception that other handlers do not handle.
+** \n
+** Note that the floating point exceptions are handled by the default floating 
+** point exception handler, which does a graceful recovery from floating point 
+** exceptions in the file speExcLib.c.
 **
 ** \param None
 **
@@ -1188,14 +1196,14 @@ const char *CFE_PSP_GetVersionString(void);
  ** \func Obtain the version code name
  **
  ** \par Description:
- ** This retrieves the PSP code name.\n This is a compatibility indicator for the
- ** overall NASA CFS ecosystem.\n All modular components which are intended to
- ** interoperate should report the same code name.
+ ** This retrieves the PSP code name.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** This is a compatibility indicator for the overall cFS ecosystem. 
+ ** All modular components which are intended to interoperate should 
+ ** report the same code name.
  **
- ** \returns Code name.  This is a fixed string and cannot be NULL.
+ ** \returns Code name. This is a fixed string and cannot be NULL.
  */
 const char *CFE_PSP_GetVersionCodeName(void);
 
@@ -1204,23 +1212,19 @@ const char *CFE_PSP_GetVersionCodeName(void);
  **
  ** \par Description:
  ** This retrieves the numeric PSP version identifier as an array of 4 uint8 values.
- ** \n
+ **
+ ** \par Assumptions, External Events, and Notes:
  ** The array of numeric values is in order of precedence:
- ** [0] = Major Number
- ** [1] = Minor Number
- ** [2] = Revision Number
- ** [3] = Mission Revision
+ ** \li [0] = Major Number
+ ** \li [1] = Minor Number
+ ** \li [2] = Revision Number
+ ** \li[3] = Mission Revision
  ** \n
  ** The "Mission Revision" (last output) also indicates whether this is an
  ** official release, a patched release, or a development version.
- ** 0 indicates an official release
- ** 1-254 local patch level (reserved for mission use)
- ** 255 indicates a development build
- ** 
- ** 
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
+ ** \li 0 indicates an official release
+ ** \li 1-254 local patch level (reserved for mission use)
+ ** \li 255 indicates a development build
  **
  ** \param[out] VersionNumbers  A fixed-size array to be filled with the version numbers
  **
@@ -1234,18 +1238,19 @@ void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4]);
  ** \par Description:
  ** The build number is a monotonically increasing number that (coarsely)
  ** reflects the number of commits/changes that have been merged since the
- ** epoch release. During development cycles this number should increase
- ** after each subsequent merge/modification.
- ** \n
- ** Like other version information, this is a fixed number assigned at compile time.
+ ** epoch release. 
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** During development cycles this number should increase after each 
+ ** subsequent merge/modification.  Like other version information, this 
+ ** is a fixed number assigned at compile time.
  **
- ** \returns The OSAL library build number
+ ** \returns The PSP library build number
  */
 uint32 CFE_PSP_GetBuildNumber(void);
 
-
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #endif  /* _cfe_psp_ */

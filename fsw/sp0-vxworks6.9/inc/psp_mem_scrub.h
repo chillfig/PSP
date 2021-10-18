@@ -33,6 +33,11 @@ extern "C" {
 #endif
 
 /**
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
+/**
  ** \brief Default Memory Scrubbing pre-print string 
  ** \par Description:
  ** This string is printed before every print related to Memory Scrubbing API.
@@ -173,6 +178,10 @@ void  CFE_PSP_MEM_SCRUB_Enable(void);
 ** \return None
 */
 void  CFE_PSP_MEM_SCRUB_Disable(void);
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

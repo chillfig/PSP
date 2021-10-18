@@ -32,6 +32,11 @@ extern "C" {
 #endif
 
 /**
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
+/**
  ** \brief SP0_TEXT_BUFFER_MAX_SIZE
  ** \par Description:
  ** This is the maximum size of the SP0 char array table.
@@ -150,6 +155,10 @@ void  PSP_SP0_PrintInfoTable(void);
  ** \return #CFE_PSP_ERROR
  */
 int32 PSP_SP0_DumpData(void);
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

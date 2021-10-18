@@ -36,6 +36,11 @@ extern "C" {
 #endif
 
 /**
+** \addtogroup psp_public_api PSP Public APIs
+** \{
+*/
+
+/**
 ** \func Initialize the CFE PSP Time Task synchronizing with the NTP server
 **
 ** \par Description:
@@ -249,6 +254,10 @@ int32  CFE_PSP_StopNTPDaemon(void);
 ** \return #CFE_PSP_ERROR
 */
 int32  CFE_PSP_NTP_Daemon_Enable(bool enable);
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

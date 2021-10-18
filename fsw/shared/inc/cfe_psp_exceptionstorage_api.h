@@ -62,7 +62,8 @@ struct CFE_PSP_Exception_LogData;
  ** The pointer to storage memory is directly returned. 
  **
  ** \par Assumptions, External Events, and Notes:
- ** It is not cleared or modified, and no checks are performed to determine if the sequence number is valid.
+ ** It is not cleared or modified, and no checks are performed to determine 
+ ** if the sequence number is valid.
  **
  ** \param[in] seq - Sequence number
  **

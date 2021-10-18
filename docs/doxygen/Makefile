@@ -12,4 +12,4 @@ html:
 
 pdf:
 	cd latex; make
-	mv latex/refman.pdf "../SP0_VXWORKS6.9_sdd_s5.pdf"
+	mv latex/refman.pdf "../PSP_SP0-VXWORKS6.9_sdd_s5.pdf"

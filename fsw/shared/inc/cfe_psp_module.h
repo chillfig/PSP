@@ -105,19 +105,21 @@ typedef const struct
  ** This function initializes the include PSP modules.
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function is an optional part of the PSP and some PSP implementations may not use it.
- **
- ** Note 1: This function should only be called during PSP initialization before the system is operational.
- ** It is not intended to be called from application code after cFE has started.  The 
- ** function is not necessarily be thread-safe and should be called before any child threads
- ** are created.
- ** 
+ ** This function is an optional part of the PSP and some PSP implementations 
+ ** may not use it.
+ ** \n\n
+ ** Note 1: This function should only be called during PSP initialization before
+ ** the system is operational. It is not intended to be called from application 
+ ** code after cFE has started. The function is not necessarily be thread-safe 
+ ** and should be called before any child threads are created.
+ ** \n\n
  ** Note 2: This function does _not_ return any status.
- ** If a failure occurs during initialization that would make normal operation impossible,
- ** then the module itself will call CFE_PSP_Panic() and this will not return.  Otherwise,
- ** benign/recoverable failures are expected to be just that, and the calling code will not
- ** need to take any special action either way.
- ** In short, if this function returns, then it means the system is good enough to continue.
+ ** If a failure occurs during initialization that would make normal operation 
+ ** impossible, then the module itself will call CFE_PSP_Panic() and this will 
+ ** not return. Otherwise, benign/recoverable failures are expected to be just 
+ ** that, and the calling code will not need to take any special action either 
+ ** way. In short, if this function returns, then it means the system is good 
+ ** enough to continue.
  **
  ** \param None
  **

@@ -130,11 +130,15 @@ void CFE_PSP_SetupReservedMemoryMap(void);
  **
  ** \par Description:
  ** This function initializes all of the memory in the BSP that is preserved on 
- ** a processor reset. The memory includes the Critical Data Store, the ES Reset Area,
- ** the Volatile Disk Memory and the User Reserved Memory. Options include 
- ** #CFE_PSP_RST_TYPE_PROCESSOR, #CFE_PSP_RST_TYPE_POWERON, #CFE_PSP_RST_TYPE_MAX
+ ** a processor reset.
  **
  ** \par Assumptions, External Events, and Notes:
+ ** The memory includes the Critical Data Store, the ES Reset Area,
+ ** the Volatile Disk Memory and the User Reserved Memory. Options include:
+ ** \li #CFE_PSP_RST_TYPE_PROCESSOR
+ ** \li #CFE_PSP_RST_TYPE_POWERON
+ ** \li #CFE_PSP_RST_TYPE_MAX
+ ** \n\n
  ** This initializes based on the reset type.  Typically, the information
  ** is preserved on a processor reset, and cleared/reinitialized on a power-on
  ** reset.
