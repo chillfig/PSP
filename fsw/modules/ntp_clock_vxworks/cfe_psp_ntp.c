@@ -272,31 +272,36 @@ bool CFE_PSP_NTP_Daemon_Get_Status(void)
  ** Function will attempt to delete the task. Usually this function will be 
  ** called when exiting cFS.
  ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** When this function is called, no matter what it's return status is,
+ ** the g_iEnableGetTimeFromOS_flag will be set to false.
+ ** 
  ** \return #CFE_PSP_SUCCESS 
  ** \return #CFE_PSP_ERROR
  */
 int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
-    int32       return_value = CFE_PSP_SUCCESS;
-    int32       ret = CFE_PSP_ERROR;
+    int32      iReturnValue = CFE_PSP_SUCCESS;
 
-    /* Disable time update */
+    /*
+    ** Whether or not we succesfully delete PSP NTP Task, we
+    ** cannot be sure if we still have the ability to get time from OS.
+    ** So, we will set global get time flag to false without concern
+    ** for success/failure of OS_TaskDelete return status
+    */
     g_iEnableGetTimeFromOS_flag = false;
-    
-    /* Delete task */
-    ret = OS_TaskDelete(g_uiPSPNTPTask_id);
 
-    if (ret == OS_SUCCESS)
+    if (OS_TaskDelete(g_uiPSPNTPTask_id) == OS_SUCCESS)
     {
         g_uiPSPNTPTask_id = 0;
     }
     else
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "Could not kill the NTP Sync task\n");
-        return_value = CFE_PSP_ERROR;
+        iReturnValue = CFE_PSP_ERROR;
     }
 
-    return return_value;
+    return iReturnValue;
 }
 
 /**
@@ -306,7 +311,8 @@ int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of 
  ** None
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** Will initialize regardless of g_iEnableGetTimeFromOS_flag value.
+ ** PSP Module ID is not used in the SP0 implementation
  **
  ** \param[in] PspModuleId - Unused
  **
@@ -314,11 +320,16 @@ int32 net_clock_vxworks_Destroy(void)  //UndCC_Line(SSET106) Func. name part of 
  */
 void ntp_clock_vxworks_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
-    g_iEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
-
-    if (g_iEnableGetTimeFromOS_flag)
+    if (CFE_MISSION_TIME_SYNC_OS_ENABLE == true)
     {
-        CFE_PSP_TIME_Init();
+        if (CFE_PSP_TIME_Init() == OS_SUCCESS)
+        {
+            g_iEnableGetTimeFromOS_flag = CFE_MISSION_TIME_SYNC_OS_ENABLE;
+        }
+        else
+        {
+            g_iEnableGetTimeFromOS_flag = false;
+        }
     }
 }
 
@@ -357,29 +368,36 @@ uint16 CFE_PSP_Sync_From_OS_GetFreq(void)
 */
 int32 CFE_PSP_Sync_From_OS_SetFreq(uint16 new_frequency_sec)
 {
-    int32       return_value = CFE_PSP_SUCCESS;
-
-    /* Set a new value of g_usOSTimeSync_Sec */
-    /* Update frequency with new value */
-    g_usOSTimeSync_Sec = new_frequency_sec;
+    int32 iReturnValue = CFE_PSP_ERROR;
 
     /* Kill the NTP Sync task */
-    return_value = net_clock_vxworks_Destroy();
-
-    if (return_value != CFE_PSP_ERROR)
+    if (net_clock_vxworks_Destroy() == CFE_PSP_SUCCESS)
     {
-        /* Reinitialize timer with new updated value */
-        /* The ModuleID is not used in the SP0 implementation */
+        /* Update OST Time Sync with new frequency */
+        g_usOSTimeSync_Sec = new_frequency_sec;
+
+        /*
+        ** Reinitialize timer with new updated frequency
+        ** NOTE: The Module ID is not used in the SP0 implementation
+        */
         ntp_clock_vxworks_Init((uint32)0);
 
-        /* If the task did not start, report error */
-        if (g_uiPSPNTPTask_id == 0)
+        /* Verify ability to get time from OS */
+        if (g_iEnableGetTimeFromOS_flag == CFE_MISSION_TIME_SYNC_OS_ENABLE)
         {
-            return_value = CFE_PSP_ERROR;
+            iReturnValue = CFE_PSP_SUCCESS;
+        }
+        else
+        {
+            OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Unable to reinitialize clock");
         }
     }
+    else
+    {
+        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Unable to Set Frequency");
+    }
 
-    return return_value;
+    return iReturnValue;
 }
 
 /**

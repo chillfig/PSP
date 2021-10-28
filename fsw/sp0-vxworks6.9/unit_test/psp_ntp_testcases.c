@@ -94,21 +94,27 @@ void Ut_CFE_PSP_Sync_From_OS_SetFreq(void)
     int32 iReturnValue;
     g_uiPSPNTPTask_id = 1234;
     g_iEnableGetTimeFromOS_flag = 0;
+    char cMsg[256] = {};
 
     /* ----- Test case #2 - net_clock_vxworks_Destroy failure ----- */
     /* Set additional variables */
     UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR Unable to Set Frequency");
     new_frequency_sec = 0x0001;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_ERROR);
     /* Execute test */
     iReturnValue = CFE_PSP_Sync_From_OS_SetFreq(new_frequency_sec);
     /* Verify results */
-    UtAssert_True(g_usOSTimeSync_Sec == new_frequency_sec, "_CFE_PSP_Sync_From_OS_SetFreq - 1/3: Unable to delete task");
     UtAssert_True(iReturnValue == CFE_PSP_ERROR, "_CFE_PSP_Sync_From_OS_SetFreq - 1/3: Unable to delete task");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Sync_From_OS_SetFreq - 1/3: Unable to delete task");
 
-        /* ----- Test case #1 - Nominal ----- */
+    /* ----- Test case #1 - Nominal ----- */
     /* Set additional variables */
+    UT_ResetState(0);
     new_frequency_sec = 0x0001;
+    g_uiPSPNTPTask_id = 1234;
+    g_iEnableGetTimeFromOS_flag = 0;
     OS_TaskCreate(&g_uiPSPNTPTask_id,
                     NTPSYNC_TASK_NAME,
                     CFE_PSP_Update_OS_Time,
@@ -127,6 +133,8 @@ void Ut_CFE_PSP_Sync_From_OS_SetFreq(void)
     /* ----- Test case #3 - ntp_clock_vxowrks_Init failure ----- */
     /* Set additional variables */
     UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR Unable to reinitialize clock");
     OS_TaskCreate(&g_uiPSPNTPTask_id,
                         NTPSYNC_TASK_NAME,
                         CFE_PSP_Update_OS_Time,
@@ -141,8 +149,8 @@ void Ut_CFE_PSP_Sync_From_OS_SetFreq(void)
     iReturnValue = CFE_PSP_Sync_From_OS_SetFreq(new_frequency_sec);
     /* Verify results */
     UtAssert_True(g_usOSTimeSync_Sec == new_frequency_sec, "_CFE_PSP_Sync_From_OS_SetFreq - 3/3: Unable to re initialize timer");
-    // UtAssert_True(iReturnValue == CFE_PSP_ERROR, "_CFE_PSP_Sync_From_OS_SetFreq - 3/3: Unable to re initialize timer");
-    UtAssert_NA("_CFE_PSP_Sync_From_OS_SetFreq - 3/3: Return value should be CFE_PSP_ERROR Unable to re initialize timer");
+    UtAssert_True(iReturnValue == CFE_PSP_ERROR, "_CFE_PSP_Sync_From_OS_SetFreq - 3/3: Unable to re initialize timer");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Sync_From_OS_SetFreq - 3/3: Unable to re initialize timer");
 }
 
 /*=======================================================================================
