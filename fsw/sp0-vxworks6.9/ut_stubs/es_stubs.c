@@ -11,6 +11,12 @@
 char    gcES_WriteToSysLogMsgList[MAX_ES_WRITETOSYSLOG_MESSAGES][ES_BUFFER_SIZE];
 uint8   gucES_WriteToSysLogMsgCounts = 0;
 
+typedef struct CFE_TIME_SysTime
+{
+    uint32 Seconds;    /**< \brief Number of seconds since epoch */
+    uint32 Subseconds; /**< \brief Number of subseconds since epoch (LSB = 2^(-32) seconds) */
+} CFE_TIME_SysTime_t;
+
 /*****************************************************************************/
 /**
 ** \brief CFE_ES_WriteToSysLog stub function
@@ -33,79 +39,23 @@ uint8   gucES_WriteToSysLogMsgCounts = 0;
 **        Returns CFE_SUCCESS.
 **
 ******************************************************************************/
-int32 CFE_ES_WriteToSysLog(const char *SpecStringPtr, ...)
+
+uint32 CFE_TIME_Micro2SubSecs(uint32 MicroSeconds)
 {
-    UT_Stub_RegisterContext(UT_KEY(CFE_ES_WriteToSysLog), SpecStringPtr);
+    int32 iStatus;
 
-    int32   status;
-    va_list va;
-
-    va_start(va,SpecStringPtr);
-    status = UT_DEFAULT_IMPL_VARARGS(CFE_ES_WriteToSysLog, va);
-    va_end(va);
-
-    if (status >= 0)
+    iStatus = UT_DEFAULT_IMPL(CFE_TIME_Micro2SubSecs);
+    
+    if (iStatus == OK)
     {
-        UT_Stub_CopyFromLocal(UT_KEY(CFE_ES_WriteToSysLog), (const uint8*)SpecStringPtr, strlen(SpecStringPtr));
+        return 1000;
     }
-
-    return status;
+    return 0;
 }
 
-int32 Ut_ES_WriteToSysLog_Hook(void *UserObj, int32 StubRetcode,
-        uint32 CallCount, const UT_StubContext_t *Context, va_list va)
+void CFE_TIME_SetTime(CFE_TIME_SysTime_t NewTime)
 {
-    char cTestText[ES_BUFFER_SIZE];
-    const char *cString;
-    cTestText[0] = 0;
+    int32 iStatus;
+    iStatus = UT_DEFAULT_IMPL(CFE_TIME_SetTime);
 
-    /*
-     * The CFE_ES_WriteToSysLog stub passes the SpecStringPtr as the
-     * first context argument.
-     */
-    if (Context->ArgCount > 0)
-    {
-        cString = UT_Hook_GetArgValueByName(Context, "SpecStringPtr", const char *);
-        if (cString != NULL)
-        {
-            vsnprintf(cTestText, sizeof(cTestText), cString, va);
-        }
-        strcpy(gcES_WriteToSysLogMsgList[gucES_WriteToSysLogMsgCounts], cTestText);
-        gucES_WriteToSysLogMsgCounts++;
-    }
-
-    return StubRetcode;
 }
-
-/*
- * Helper function to set up for event checking
- * This attaches the hook function to CFE_ES_WriteToSysLog
- */
-void Ut_ES_WriteToSysLog_Setup(void)
-{
-    /* Set function hook, reset internal storage */
-    UT_SetVaHookFunction(UT_KEY(CFE_ES_WriteToSysLog), Ut_ES_WriteToSysLog_Hook, NULL);
-    memset(gcES_WriteToSysLogMsgList, 0, sizeof(gcES_WriteToSysLogMsgList));
-    gucES_WriteToSysLogMsgCounts = 0;
-}
-
-/* 
- * Helper function for asserting agains CFE_ES_WriteToSysLog. Used to compare string
- */
-bool Ut_ES_WriteToSysLogWithText(const char *cText)
-{
-    bool bResult = false;
-    uint16 uiIdx;
-
-    for (uiIdx = 0; uiIdx < gucES_WriteToSysLogMsgCounts; ++uiIdx)
-    {
-        if (strcmp(gcES_WriteToSysLogMsgList[uiIdx], cText) == 0)
-        {
-            bResult = true;
-            break;
-        }
-    }
-
-    return bResult;
-}
-

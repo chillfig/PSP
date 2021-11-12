@@ -32,6 +32,7 @@
 void Ut_PSP_SP0_GetInfo(void);
 void Ut_PSP_SP0_PrintInfoTable(void);
 void Ut_PSP_SP0_DumpData(void);
+void Ut_PSP_SP0_GetDiskFreeSize(void);
 
 #endif  /* UT_PSP_SP0_INFO_TESTCASES_H */
 

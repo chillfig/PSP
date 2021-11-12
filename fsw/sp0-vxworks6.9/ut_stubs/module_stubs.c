@@ -40,15 +40,15 @@ MODULE_ID moduleFindByName(const char *moduleName)
 
 int moduleInfoGet(MODULE_ID moduleId, MODULE_INFO *pModuleInfo)
 {
-    UT_Stub_RegisterContext(UT_KEY(moduleInfoGet), pModuleInfo);
     int32 iStatus;
+
+    UT_Stub_RegisterContext(UT_KEY(moduleInfoGet), pModuleInfo);
 
     iStatus = UT_DEFAULT_IMPL(moduleInfoGet);
 
     if (iStatus >= 0)       
     {
         UT_Stub_CopyToLocal(UT_KEY(moduleInfoGet), (MODULE_INFO *)pModuleInfo, sizeof(*pModuleInfo));
-
     }
 
     return iStatus;

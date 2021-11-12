@@ -74,7 +74,7 @@ typedef struct
     char * systemModel;
     /** \brief Pointer to the string identifing the system BSP Revision */
     char * systemBspRev;
-    /** \brief Top of the System Physical Memmory */
+    /** \brief Top of the System Physical Memory */
     uint32 systemPhysMemTop;
     /** \brief Number of Processors */
     int systemProcNum;
@@ -155,6 +155,23 @@ void  PSP_SP0_PrintInfoTable(void);
  ** \return #CFE_PSP_ERROR
  */
 int32 PSP_SP0_DumpData(void);
+
+/**
+ ** \func Get disk free disk space
+ ** 
+ ** \par Description:
+ ** Function uses the statfs64 to gather statistics about the file system.
+ ** It works with both RAM and FLASH file systems such as "/ram0" and "/ffx0"
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] ram_disk_root_path 
+ **
+ ** \return int64_t - Size of free space in disk in bytes
+ ** \return CFE_PSP_ERROR - If statfs returned error
+ */
+int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

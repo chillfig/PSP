@@ -72,6 +72,8 @@ add_executable(${UT_NAME}_ut ${UT_SRCS})
 target_compile_definitions(${UT_NAME}_ut PRIVATE
     OS_Application_Startup=UT_OS_Application_Startup
     OS_Application_Run=UT_OS_Application_Run
+    OS_BSPMain=PCS_OS_BSPMain
+    snprintf=PCS_snprintf
 )
 
 # To support the starting and killing of NTP daemon process (NTP Sync Module)
@@ -80,19 +82,12 @@ include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
 
-
 include_directories(${IMPL_DIR}/ut_stubs)
 include_directories(${IMPL_DIR}/unit_test)
 include_directories(${MISSION_SOURCE_DIR}/cfe/modules/core_api/fsw/inc/)
-#include_directories(${IMPL_DIR}/inc)
-#include_directories(${WIND_HOME}/vxworks-6.9/target/3rdparty/aitech/sp0)
 
 target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
-    #${IMPL_DIR}/inc
-    #${IMPL_DIR}/unit_test
-    #${IMPL_DIR}/ut_stubs
     ${WIND_HOME}/vxworks-6.9/target/3rdparty/aitech/sp0
-    #$<TARGET_PROPERTY:psp-${CFE_PSP_TARGETNAME}-shared,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:psp_module_api,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:time,INTERFACE_INCLUDE_DIRECTORIES>
@@ -100,11 +95,9 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
 
 add_test(${UT_NAME}_ut ${UT_NAME}_ut)
 
-#install(TARGETS ${UT_NAME}_ut DESTINATION ./)
 
 target_link_libraries(${UT_NAME}_ut 
     ut_assert
     ut_osapi_stubs
     psp_module_api
-    #psp-${CFE_PSP_TARGETNAME}-shared
     )

@@ -96,7 +96,7 @@ void Ut_CFE_PSP_Sync_From_OS_SetFreq(void)
     g_iEnableGetTimeFromOS_flag = 0;
     char cMsg[256] = {};
 
-    /* ----- Test case #2 - net_clock_vxworks_Destroy failure ----- */
+    /* ----- Test case #1 - net_clock_vxworks_Destroy failure ----- */
     /* Set additional variables */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -158,15 +158,14 @@ void Ut_CFE_PSP_Sync_From_OS_SetFreq(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_Set_OS_Time(void)
 {
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-
     uint32 ts_sec;
     uint32 ts_nsec;
     int32 return_status;
     uint32 BASE_ts_sec;
     uint32 BASE_ts_nsec;
     char cMsg[256] = {};
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal clock set ----- */
     /* Set additional variables */
@@ -209,13 +208,18 @@ void Ut_CFE_PSP_Set_OS_Time(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_Get_OS_Time(void)
 {
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     int32 return_code;
+    char cMsg[256] = {};
+
+    /* Used for clock_gettime */
+    struct timespec getTimeReturnStruct;
+    getTimeReturnStruct.tv_nsec = 0;
+
     CFE_TIME_SysTime_t myT;
     myT.Seconds = 0;
     myT.Subseconds = 0;
-    char cMsg[256] = {};
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test #1 - &myT == NULL ----- */
     /* Set additional variables */
@@ -232,8 +236,7 @@ void Ut_CFE_PSP_Get_OS_Time(void)
     /* Set additional variables */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    // UT_SetDeferredRetcode(UT_KEY(clock_gettime), 1, ERROR);
-    UT_SetDeferredRetcode(UT_KEY(clock_gettime), 1, CFE_PSP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
     /* Execute test */
     return_code = CFE_PSP_Get_OS_Time(&myT);
@@ -244,12 +247,17 @@ void Ut_CFE_PSP_Get_OS_Time(void)
     UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_Get_OS_Time - 2/4: myT.Subseconds did not change");
 
     /* ----- Test #3 - &myT != NUll, clock_gettime success, unixTime > CFE...UNIX_DIFF ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), OK);
+    /* Execute test */
+    return_code = CFE_PSP_Get_OS_Time(&myT);
     /* Not necessarily a failed test. Is there anyway to set variables from clock_gettime? */
-    UtAssert_NA("_CFE_PSP_Get_OS_Time - 3/4:NEED TO SET unixTime.tv_sec > CFE_...UNIX_DIFF");
-
-    /* ----- Test #4 - myT (p_myT) != NUll, clock_gettime success, unixTime <= CFE...UNIX_DIFF ----- */
-    /* Not necessarily a failed test. Is there anyway to set variables from clock_gettime? */
-    UtAssert_NA("_CFE_PSP_Get_OS_Time - 4/4:NEED TO SET unixTime.tv_sec <= CFE_...UNIX_DIFF");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_Get_OS_Time - 3/4: clock_gettime success");
+    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_Get_OS_Time - 3/4: myT.Seconds changed");
 }
 
 /*=======================================================================================
@@ -282,7 +290,6 @@ void Ut_CFE_PSP_NTP_Daemon_Get_Status(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_NTP_Daemon_Enable(void)
 {
-    UT_ResetState(0);
     int32 return_code;
     bool enable;
 
@@ -294,7 +301,6 @@ void Ut_CFE_PSP_NTP_Daemon_Enable(void)
     /* Execute test */
     return_code = CFE_PSP_NTP_Daemon_Enable(enable);
     /* Verify results */
-    // printf("\nReturn code: %d\n", return_code);
     UtAssert_True(return_code == IPCOM_SUCCESS, "_CFE_PSP_NTP_Daemon_Enable - 1/4: NTP Daemon enabled successfully");
 
     /* ----- Test case #2 - Fail to start NTP Daemon ----- */
@@ -309,7 +315,6 @@ void Ut_CFE_PSP_NTP_Daemon_Enable(void)
     /* Execute test */
     return_code = CFE_PSP_NTP_Daemon_Enable(enable);
     /* Verify results */
-    // printf("\nReturn code: %d\n", return_code);
     UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_NTP_Daemon_Enable - 2/4: NTP Daemon failed to enable");
 
     /* ----- Test case #3 - Succesfully Stop NTP Daemon ----- */
@@ -321,7 +326,6 @@ void Ut_CFE_PSP_NTP_Daemon_Enable(void)
     /* Execute test */
     return_code = CFE_PSP_NTP_Daemon_Enable(enable);
     /* Verify results */
-    // printf("\nReturn code: %d\n", return_code);
     UtAssert_True(return_code == IPCOM_SUCCESS, "_CFE_PSP_NTP_Daemon_Enable - 3/4: NTP Daemon disabled successfully");
 
      /* ----- Test case #4 - Fail to stop NTP Daemon ----- */
@@ -333,7 +337,6 @@ void Ut_CFE_PSP_NTP_Daemon_Enable(void)
     /* Execute test */
     return_code = CFE_PSP_NTP_Daemon_Enable(enable);
     /* Verify results */
-    // printf("\nReturn code: %d\n", return_code);
     UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_NTP_Daemon_Enable - 4/4: NTP Daemon failed to disable");
 
 }
@@ -346,7 +349,7 @@ void Ut_CFE_PSP_TIME_Init(void)
     char cMsg[256] = {};
     uint16 timer_frequency_sec;
     int32 status;
-    UT_ResetState(0);
+
     Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal  ----- */
@@ -365,7 +368,6 @@ void Ut_CFE_PSP_TIME_Init(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "Failed to create task\n");
-    // TODO: DO we need to be tracking other return codes, other than OS_ERROR?
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     /* Execute test */
     status = CFE_PSP_TIME_Init();
@@ -390,10 +392,10 @@ void Ut_CFE_PSP_TimeService_Ready(void)
     /* Verify results */
     UtAssert_True(return_code == false, "_CFE_PSP_TimeService_Ready - 1/2: taskNameToId failed");
 
+    UT_ResetState(0);
+
     /* ----- Test case #2 - taskNameToId did not fail ----- */
     /* Set additional variables */
-    UT_ResetState(0);
-    // UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, OS_SUCCESS);
     /* Execute test */
     return_code = CFE_PSP_TimeService_Ready();
@@ -406,35 +408,90 @@ void Ut_CFE_PSP_TimeService_Ready(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_Update_OS_Time(void)
 {  
+    /* Used for clock_gettime */
+    struct timespec getTimeReturnStruct;
+    getTimeReturnStruct.tv_nsec = 0;
+
+    char cMsg_ready[] = {NTPSYNC_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n"};
+    char cMsg_get_os_time_failed[] = {NTPSYNC_PRINT_SCOPE "OS has not sync with NTP server yet, trying again later.\n"};
+    char cMsg_task_delay_error[] = {NTPSYNC_PRINT_SCOPE "OS_TaskDelay error\n"};
+    char cMsg_not_ready[] = {NTPSYNC_PRINT_SCOPE "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n"};
+    char cMsg_exit_loop[] = {NTPSYNC_PRINT_SCOPE "NTP Sync encountered an error that caused the main task to exit\n"};
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1: Nominal - with premature exit ----- */
+    /* ----- Test case #1: CFE_PSP_Get_OS_Time error ----- */
+    /* ----- Test case #1: TimeService not ready ----- */
+
+    /* Set additional variables */
+    /* Make CFE_PSP_TimeService_Ready return false right away */
+    UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 4, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 4, OS_ERROR);
+    /* Go inside while loop */
+    g_iEnableGetTimeFromOS_flag = true;
+    /* Setup CFE_PSP_Get_OS_Time */
+    UT_SetDeferredRetcode(UT_KEY(clock_gettime), 1, OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    UT_SetDeferredRetcode(UT_KEY(clock_gettime), 4, ERROR);
+    /* Setup CFE_PSP_Set_OS_Time */
+    UT_SetDefaultReturnValue(UT_KEY(clock_settime), OK);
+    g_usOSTimeSync_Sec = 1;
+    /* Execute Test */
+    CFE_PSP_Update_OS_Time();
+    /* Varify results */
+    UtAssert_OS_print(cMsg_ready, "_CFE_PSP_Update_OS_TIME - 1/4: CFE Time Service has started - message\n");
+    UtAssert_OS_print(cMsg_get_os_time_failed, "_CFE_PSP_Update_OS_TIME - 1/4: Get OS Time failed - message\n");
+    UtAssert_OS_print(cMsg_task_delay_error, "_CFE_PSP_Update_OS_TIME - 1/4: Task Delay failed - message\n");
+    UtAssert_OS_print(cMsg_exit_loop, "_CFE_PSP_Update_OS_TIME - 1/4: Exit Loop - message\n");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();    
+    /* ----- Test case #2: g_iEnableGetTimeFromOS_flag not set ----- */
+    /* Set additional variables */
+    /* Make CFE_PSP_TimeService_Ready return false right away */
+    UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 4, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 4, OS_ERROR);
+    /* Don't go inside while loop */
+    g_iEnableGetTimeFromOS_flag = false;
+    /* Execute Test */
+    CFE_PSP_Update_OS_Time();
+    /* Varify results */
+    UtAssert_OS_print(cMsg_ready, "_CFE_PSP_Update_OS_TIME - 2/4: CFE Time Service has started - message\n");
+    UtAssert_OS_print(cMsg_task_delay_error, "_CFE_PSP_Update_OS_TIME - 2/4: Task Delay failed - message\n");
+    UtAssert_OS_print(cMsg_exit_loop, "_CFE_PSP_Update_OS_TIME - 2/4: Exit Loop - message\n");
+
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    char cMsg[256] = {};
 
-    UtAssert_NA("_CFE_PSP_Update_OS_Time - 1/1: Function will cause significant delays or will wait until deleted");
-
-    /**
-     * @brief Infinite Loop
-     * 
-     * This task will run forever or until it's task is deleted
-     * 
-     * or
-     * 
-     * This task will require significant delay times via OS_TaskDelay(500) x 120
-     * 
-     */
-
-    /* ----- Test case #1: TimeService not ready ----- */
+    /* ----- Test case #3: CFE Time Service did not start on time ----- */
     /* Set additional variables */
-    // UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_TimeService_Ready), false);
-    // sprintf(cMsg, NTPSYNC_PRINT_SCOPE
-    //             "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n");
-    // /* Execute Test */
-    // CFE_PSP_Update_OS_Time();
-    // /* Varify results */
-    // UtAssert_OS_print(cMsg, "_CFE_PSP_Update_OS_TIME - 1/#:" NTPSYNC_PRINT_SCOPE
-    //             "(ERROR) CFE TIME Service did not start for 60 seconds - Shutting down NTP Sync\n");
-    
-    /* ----- Other testing for this will result in infinite loop ----- */
+    /* Make CFE_PSP_TimeService_Ready return false right away */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), CFE_PSP_ERROR);
+    /* UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS); */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    /* Execute Test */
+    CFE_PSP_Update_OS_Time();
+    /* Varify results */
+    UtAssert_OS_print(cMsg_not_ready, "_CFE_PSP_Update_OS_TIME - 3/4: CFE Time Service never started - message\n");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #4: task delay returns error ----- */
+    /* Set additional variables */
+    /* Make CFE_PSP_TimeService_Ready return false right away */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), CFE_PSP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_ERROR);
+    /* Execute Test */
+    CFE_PSP_Update_OS_Time();
+    /* Varify results */
+    UtAssert_OS_print(cMsg_task_delay_error, "_CFE_PSP_Update_OS_TIME - 4/4: Task Delay error - message\n");
 }
 
 /*=======================================================================================
@@ -442,14 +499,10 @@ void Ut_CFE_PSP_Update_OS_Time(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_StartNTPDaemon(void)
 {
-    /**
-     * @brief VERIFY WORKING AS INTENDED
-     * 
-     */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     char cMsg[256] = {};
     int32 return_code;
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #1: ipcom success, taskNameToId success ----- */
     /* Set additional variables */
@@ -510,8 +563,6 @@ void Ut_CFE_PSP_StartNTPDaemon(void)
     /* Execute test */
     return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    // printf("\n%s\n", cMsg);
-    // printf("\nReturn Code: %d\n", return_code);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
     UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 5/5: NTP Daemon did not start, check error code");
 
@@ -521,10 +572,10 @@ void Ut_CFE_PSP_StartNTPDaemon(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_StopNTPDaemon(void)
 {
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     char cMsg[256] = {};
     int32 return_code;
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #1: ipcom success ----- */
     /* Set additional variables */
@@ -639,24 +690,31 @@ void Ut_net_clock_vxworks_Destroy(void)
 **=======================================================================================*/
 void Ut_ntp_clock_vxworks_Init(void)
 {
+    char cMsg_task_initialized[] = {NTPSYNC_PRINT_SCOPE "Task Initialized\n"};
+    char cMsg_failed_to_create[] = {NTPSYNC_PRINT_SCOPE "Failed to create task\n"};
+
     uint32 PspModuleId = 0x00000000; // Has no affect
+    
+    Ut_OS_printf_Setup();
 
     /* ----- Test #1 - Nominal clock vxworks init, true check----- */
     /* Set additional input */
-    g_iEnableGetTimeFromOS_flag = true;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute test */
     ntp_clock_vxworks_Init(PspModuleId);
     /* Verify results */
-    UtAssert_True(true == true, "_ntp_clock_vxworks_Init - 1/2: Nominal g_iEnableGetTimeFromOS_flag is true");
+    UtAssert_OS_print(cMsg_task_initialized, "_ntp_clock_vxworks_Init - 1/2: Nominal - task initialized - message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
 
     /* ----- Test #1 - Nominal clock vxworks init, false check----- */
     /* Set additional input */
-    UT_ResetState(0);
-    g_iEnableGetTimeFromOS_flag = false;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     /* Execute test */
     ntp_clock_vxworks_Init(PspModuleId);
     /* Verify results */
-    UtAssert_True(false == false, "_ntp_clock_vxworks_Init - 2/2: Nominal g_iEnableGetTimeFromOS_flag is false");
+    UtAssert_OS_print(cMsg_failed_to_create, "_ntp_clock_vxworks_Init - 2/2: failed to create task - message");
 }
 
 /*=======================================================================================

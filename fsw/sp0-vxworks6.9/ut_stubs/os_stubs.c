@@ -299,14 +299,6 @@ void vxTimeBaseGet(uint32 *uiU, uint32 *uiL)
     *uiL = 0;
 }
 
-uint32 sysTimestampFreq(void)
-{
-    uint32 uiStatus;
-
-    uiStatus = UT_DEFAULT_IMPL(sysTimestampFreq);
-
-    return uiStatus;
-}
 
 int32 taskNameToId(const char *name) 
 {
@@ -355,6 +347,11 @@ int clock_gettime(int clk_id, struct timespec *t)
 
     iStatus = UT_DEFAULT_IMPL(clock_gettime);
 
+    if (iStatus >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(clock_gettime), (struct timespec *) t, sizeof(*t));
+    }
+
     return iStatus;
 }
 
@@ -398,8 +395,15 @@ int volSensorRead(int8 sensor, uint8 dataType, float *voltage, bool talkative )
 /* GetUsecTime( ) – gets the time in micro-seconds since startup. */
 double GetUsecTime(void)
 {
-    /* OS_TaskDelay(500); */
     /* Time in microseconds */
     return (double)100.00;
 }
 
+STATUS scrubMemory(uint32_t startAddr, uint32_t endAddr, uint32_t *pNumPagesScrubbed)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(scrubMemory);
+
+    return iStatus;
+}

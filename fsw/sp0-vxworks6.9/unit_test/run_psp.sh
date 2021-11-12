@@ -3,7 +3,10 @@
 # author: claudio.olmi@nasa.gov
 #
 
-RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [CERT_TESTBED_ROOT_PATH] [TARGET_IP] [KERNEL_FILE_PATH]\n"
+RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]\n"
+
+SCRIPT_ROOT=$(readlink -f $(dirname $0))
+CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))
 
 # Check that the WindRiver environment is enabled
 if ! command -v tgtsvr &> /dev/null
@@ -21,29 +24,21 @@ then
     exit 1
 fi
 
-# Check if the user provided the cert_testbed root path
-if [ -z $1 ]; then
-    echo -e "Missing the cert_testbed root path [CERT_TESTBED_ROOT_PATH]\n"
-    echo -e $RUN_PSP_HELP
-    exit 1
-fi
-CERT_TESTBED_ROOT=$1
-
 # Check if user specified the flight computer
-if [ -z $2 ]; then
+if [ -z $1 ]; then
     echo -e "Which flight computer to connect to? [TARGET_IP]\n"
     echo -e $RUN_PSP_HELP
     exit 1
 fi
-TARGET_IP=$2
+TARGET_IP=$1
 
 # Check if user specified the flight computer
-if [ -z $3 ]; then
+if [ -z $2 ]; then
     echo -e "Where is the Kernel file that is loaded on the target? [KERNEL_FILE_PATH]\n"
     echo -e $RUN_PSP_HELP
     exit 1
 fi
-TARGET_KERNEL=$3
+TARGET_KERNEL=$2
 
 TARGET_NAME="PSP_UT_FC"
 

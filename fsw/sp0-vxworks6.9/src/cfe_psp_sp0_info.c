@@ -32,6 +32,7 @@
 #include <ioLib.h>
 #include <vxWorks.h>
 #include <float.h>
+#include <stat.h>
 
 /* Aitech BSP Specific */
 #include <aimonUtil.h>
@@ -463,4 +464,38 @@ int32 PSP_SP0_DumpData(void)
 
 PSP_SP0_DumpData_Exit_TAG:
     return ret_code;
+}
+
+/**
+ ** \func Get disk free disk space in Mibytes
+ ** 
+ ** \par Description:
+ ** Function uses the statfs64 to gather statistics about the file system.
+ ** It works with both RAM and FLASH file systems such as "/ram0" and "/ffx0"
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] ram_disk_root_path 
+ **
+ ** \return int64_t - Size of free space in disk in bytes
+ ** \return CFE_PSP_ERROR - If statfs returned error
+ */
+int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
+{
+    int64_t free_size_bytes = CFE_PSP_ERROR;
+    long block_size = 0;
+    int64_t blocks_available = 0;
+    struct statfs ram_disk_stats = {};
+
+    if ((ram_disk_root_path != NULL) && memchr(ram_disk_root_path, (int) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH))
+    {
+        if (statfs(ram_disk_root_path, &ram_disk_stats) == OK)
+        {
+            block_size = ram_disk_stats.f_bsize;
+            blocks_available = ram_disk_stats.f_bavail;
+            free_size_bytes = block_size * blocks_available;
+        }
+    }
+    return free_size_bytes;
 }

@@ -46,7 +46,6 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
 
     /* ----- Test case #0 - TaskCreate Fails ----- */
     /* Setup additional inputs */
-    UT_ResetState(0);
     Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
@@ -55,7 +54,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Init();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 1/3: Error Creating Task");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 1/3: Error Creating Task - message");
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
@@ -70,7 +69,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Init();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 2/3: Nominal");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 2/3: Nominal - Task Started - message");
 
     /* ----- Test case #2 - Nominal - Already Running ----- */
     /* NOTE: Expects the task to be running in mem_scrub from the previous test case */
@@ -82,7 +81,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Init();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 3/3: Nominal - Task Already Running");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Init - 3/3: Nominal - Task Already Running - message");
 }
 
 /*=======================================================================================
@@ -90,54 +89,35 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Task(void)
 {
-    char cMsg[256] = {};
+    char cMsg_scrub_error[] = {MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n"};
     osal_id_t mem_scrub_id = 0;
     int32 status;
+    uint32_t testPages;
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Invalid end address ----- */
     /* Setup additional inputs */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     g_uiMemScrubEndAddr = 0xFFFFFFFF;
     g_uiEndOfRam = 0;
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Task();
     /* Verify outputs */
-    UtAssert_True(true,"_CFE_PSP_MEM_SCRUB_Task - 1/3: End scrub address past end of RAM");
+    UtAssert_NoOS_print(cMsg_scrub_error, "_CFE_PSP_MEM_SCRUB_Task - 1/3: End address past end of RAM - no message");
 
-/**
- * @brief Below test cases will not exit during UT
- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #2 - scrubMemory returns error status ----- */
-    // TODO: VERIFY
     /* Set additional inputs */
-    // UT_ResetState(0);
-    // Ut_OS_printf_Setup();
-    // g_uiMemScrubEndAddr = 0x0001FFFF;
-    // g_uiEndOfRam = 0x0001FFFF;
-    // sprintf(cMsg, "PSP MEM SCRUB: Unexpected ERROR during scrubMemory call\n");
-    // UT_SetDeferredRetcode(UT_KEY(scrubMemory), 1, CFE_PSP_ERROR);
-    // /* Execute test */
-    // CFE_PSP_MEM_SCRUB_Task();
-    // /* Verify outputs */
-    // UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Task - 2/3: scrubMemory failed");
-
-    /* ----- Test case #3 - scrubMemory does not returns error status ----- */
-    // TODO: VERIFY
-    /* Set additional inputs */
-    // UT_ResetState(0);
-    // Ut_OS_printf_Setup();
-    // g_uiMemScrubEndAddr = 0x0000000F;
-    // g_uiEndOfRam = 0x000000FF;
-    // g_uiMemScrubTotalPages = 0x00000000;
-    // g_uiMemScrubCurrentPage = 0x00000001;
-    // UT_SetDeferredRetcode(UT_KEY(scrubMemory), 1, CFE_PSP_ERROR);
-    // /* Execute test */
-    // CFE_PSP_MEM_SCRUB_Task();
-    // /* Verify outputs */
-    // uint32 correct_value = g_uiMemScrubTotalPages + g_uiMemScrubCurrentPage;
-    // UtAssert_True(g_uiMemScrubTotalPages == correct_value, "_CFE_PSP_MEM_SCRUB_TASK - 3/3: scrubMemory did not fail, correctly calculated mem_scrub scrub total pages");    
-    
+    g_uiMemScrubEndAddr = 0x0001FFFF;
+    g_uiEndOfRam = 0x0001FFFF;
+    UT_SetDeferredRetcode(UT_KEY(scrubMemory), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(scrubMemory), 1, OS_ERROR);
+    /* Execute test */
+    CFE_PSP_MEM_SCRUB_Task();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_scrub_error, "_CFE_PSP_MEM_SCRUB_Task - 2/3: scrubMemory failed - message");
 }
 
 /*=======================================================================================
@@ -149,24 +129,20 @@ void Ut_CFE_PSP_MEM_SCRUB_isRunning(void)
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_SUCCESS);
     /* Execute test */
     ret = CFE_PSP_MEM_SCRUB_isRunning();
     /* Verify outputs */
-    UtAssert_True(ret,"_CFE_PSP_MEM_SCRUB_isRunning - 1/2: Nominal");
+    UtAssert_True(ret,"_CFE_PSP_MEM_SCRUB_isRunning - 1/2: Nominal - return value");
 
     /* ----- Test case #2 - No task found ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
-    Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     ret = CFE_PSP_MEM_SCRUB_isRunning();
     /* Verify outputs */
-    UtAssert_True(ret == false,"_CFE_PSP_MEM_SCRUB_isRunning - 2/2: No task found");
-
+    UtAssert_True(ret == false,"_CFE_PSP_MEM_SCRUB_isRunning - 2/2: No task found - return value");
 }
 
 /*=======================================================================================
@@ -174,9 +150,6 @@ void Ut_CFE_PSP_MEM_SCRUB_isRunning(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Set(void)
 {
-
-    /* TODO Bug fixes */
-
     char cMsg[256] = {};
     uint32 startAdr;
     uint32 endAdr;
@@ -184,10 +157,10 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     uint32 real_endOfRam = (uint32) sysPhysMemTop();
     int32 iReturnCode;
 
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal no change of Priority ----- */
     /* Setup additional inputs */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     startAdr = 0;
     endAdr = 1000;
     taskpriority = MEMSCRUB_DEFAULT_PRIORITY;
@@ -196,14 +169,13 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
     /* Verify outputs */
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 1/8: Nominal no change of priority");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 1/7: Nominal - change of priority - no message");
     UtAssert_True(
         (taskpriority == MEMSCRUB_DEFAULT_PRIORITY), 
-        "_CFE_PSP_MEM_SCRUB_Set - 1/8: Nominal no change of priority");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 1/8: Nominal no change of priority");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 1/8: Nominal no change of priority");
-    // UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 1/8: Return Code Nominal no change of priority");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 1/8: Return Code Nominal no change of priority");
+        "_CFE_PSP_MEM_SCRUB_Set - 1/7: Nominal - confirm no change of priority");
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 1/7: Nominal - priority same - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 1/7: Nominal - priority same - confirm end addr");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 1/7: Nominal - priority same - return value");
 
     /* ----- Test case #2 - Nominal with change of Priority ----- */
     /* Setup additional inputs */
@@ -219,13 +191,13 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
     /* Verify outputs */
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 2/8: Nominal with change of priority");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal - priority changed - no message");
     UtAssert_True(
         (taskpriority == g_uiMemScrubTaskPriority), 
-        "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal with change of priority");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 2/8: Nominal with change of priority");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 2/8: Nominal with change of priority");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 2/8: Return Code Nominal with change of priority");
+        "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal - confirm change of priority");
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal - priority changed - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal - priority changed - confirm end addr");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 2/7: Nominal - priority changes - return value");
 
     /* ----- Test case #3 - Nominal with change of Priority outside range max ----- */
     /* Setup additional inputs */
@@ -235,22 +207,19 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     endAdr = 1000;
     taskpriority = 255;
     g_uiMemScrubTaskPriority = 0;
-    sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Priority is outside range, using default `%u`\n", MEMSCRUB_DEFAULT_PRIORITY);
     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, CFE_PSP_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, CFE_PSP_SUCCESS);
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
     /* Verify outputs */
-    // Ut_OS_printfPrint();
-    //UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 3/8: Nominal with change of priority outside range max");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 3/8: Nominal with change of priority outside range max");
-    // UtAssert_True(
-    //     g_uiMemScrubTaskPriority, == MEMSCRUB_DEFAULT_PRIORITY 
-    //     "_CFE_PSP_MEM_SCRUB_Set - 3/7: Nominal with change of priority outside range max");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 3/8: NA - No way to test this with current config. Nominal with change of priority outside range max");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 3/8: Nominal with change of priority outside range max");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 3/8: Nominal with change of priority outside range max");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 3/8: Return Code Nominal with change of priority outside range max");
+    if (taskpriority > MEMSCRUB_PRIORITY_UP_RANGE)
+    {
+        UtAssert_True(g_uiMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY,
+            "_CFE_PSP_MEM_SCRUB_Set - 3/7: Nominal - priority changed set to default");
+    }
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 3/7: Nominal - priority changed max - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 3/7: Nominal - priority changed max - confirm end addr");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 3/7: Nominal - priority changes max - return value");
 
     /* ----- Test case #4 - Nominal with change of Priority outside range min ----- */
     /* Setup additional inputs */
@@ -266,12 +235,12 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 4/8: Nominal with change of priority outside range min");
-    UtAssert_True(g_uiMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY, 
-        "_CFE_PSP_MEM_SCRUB_Set - 4/8: Nominal with change of priority outside range min");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 4/8: Nominal with change of priority outside range min");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 4/8: Nominal with change of priority outside range min");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 4/8: Return Code Nominal with change of priority outside range min");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Set - 4/7: Nominal - priority outside range min - message");
+    UtAssert_True(g_uiMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY,
+        "_CFE_PSP_MEM_SCRUB_Set - 4/7: Nominal - priority changed set to default");
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 4/7: Nominal - priority changed min - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 4/7: Nominal - priority changed min - confirm end addr");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 4/7: Nominal - priority changes max - return value");
 
     /* ----- Test case #5 - New end addr past  has not been initialized ----- */
     /* Setup additional inputs */
@@ -289,11 +258,10 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     /* Verify outputs */
     UtAssert_True(
         g_uiEndOfRam == (uint32)sysPhysMemTop(),
-        "_CFE_PSP_MEM_SCRUB_Set - 5/8: Top of RAM not initialized");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 5/8: Top of RAM not initialized");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 5/8: Top of RAM not initialized");
-    // UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 5/8: Return Code Top of RAM not initialized");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 5/8: Return Code Top of RAM not initialized");
+        "_CFE_PSP_MEM_SCRUB_Set - 5/7: Nominal - top of RAM init changed");
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 5/7: Nominal - top of RAM init - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 5/7: Nominal - top of RAM init - confirm end addr");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 5/7: Nominal - top of RAM init - return value");
     
     /* ----- Test case 6 - Nominal with global end of ram too large ----- */
     /* Setup additional inputs */
@@ -312,48 +280,22 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
     /* Verify outputs */
     UtAssert_True(
         g_uiEndOfRam == (uint32) sysPhysMemTop(),
-        "_CFE_PSP_MEM_SCRUB_Set - 6/8: New end address too large");
-    UtAssert_True(g_uiMemScrubEndAddr == g_uiEndOfRam, "_CFE_PSP_MEM_SCRUB_Set - 6/8: New end address too large");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 6/8: New end address too large");
-    // UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 6/8: New end address too large");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 6/8: Check return code - New end address too large");
+        "_CFE_PSP_MEM_SCRUB_Set - 6/7: Nominal - end address too large");
+    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 6/7: Nominal - start address too large - confirm start addr");
+    UtAssert_True(g_uiMemScrubEndAddr == g_uiEndOfRam, "_CFE_PSP_MEM_SCRUB_Set - 6/7: Nominal - end address changed to default");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 6/7:Nominal - end address too large - return value");
 
-    /* ----- Test case #7 - Nominal task already running - Task Restarted ----- */
+
+    /* ----- Test case #9 - newStartAddr is larger than newEndAddr ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
-    startAdr = 0;
-    endAdr = 1000;
+    startAdr = 1000;
+    endAdr = 10;
     taskpriority = 245;
-    UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, CFE_PSP_SUCCESS);
-    UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, CFE_PSP_SUCCESS);
-    taskpriority = MEMSCRUB_DEFAULT_PRIORITY;
-    g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
     /* Verify outputs */
-    UtAssert_True(g_uiMemScrubTaskPriority == taskpriority, "_CFE_PSP_MEM_SCRUB_Set - 7/8: global mem scrub task correctly set");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 7/8: global mem scrub task correctly set");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 7/8: global mem scrub task correctly set");
-    // UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Set - 7/8: Return Code global mem scrub task correctly set");
-    UtAssert_NA("_CFE_PSP_MEM_SCRUB_Set - 7/8: Return Code global mem scrub task correctly set");
-
-    /* ----- Test case #8 - Nominal task already running - Fail Task Restart ----- */
-    /* Setup additional inputs */
-    UT_ResetState(0);
-    startAdr = 0;
-    endAdr = 1000;
-    taskpriority = 245;
-    UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, CFE_PSP_ERROR);
-    UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, CFE_PSP_ERROR);
-    taskpriority = MEMSCRUB_DEFAULT_PRIORITY;
-    g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
-    /* Execute test */
-    iReturnCode = CFE_PSP_MEM_SCRUB_Set(startAdr, endAdr, taskpriority);
-    /* Verify outputs */
-    UtAssert_True(g_uiMemScrubTaskPriority == taskpriority, "_CFE_PSP_MEM_SCRUB_Set - 8/8: global mem scrub task correctly set");
-    UtAssert_True(g_uiMemScrubStartAddr == startAdr, "_CFE_PSP_MEM_SCRUB_Set - 8/8: global mem scrub task correctly set");
-    UtAssert_True(g_uiMemScrubEndAddr == endAdr, "_CFE_PSP_MEM_SCRUB_Set - 8/8: global mem scrub task correctly set");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Set - 8/8: Return Codeglobal mem scrub task correctly set");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Set - 7/7: Check return value error");
 }
 
 /*=======================================================================================
@@ -361,19 +303,17 @@ void Ut_CFE_PSP_MEM_SCRUB_Set(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Status(void)
 {
+    char cMsg_not_running[] = {MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n"};
     char cMsg[256] = {};
-    
-    UT_ResetState(0);
-    
+
     /* ----- Test case #1 - Nominal - Task ID = 0 ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     g_uiMemScrubTaskId = 0;
-    snprintf(cMsg, 256, MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Status();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Status - 1/2: Nominal");
+    UtAssert_OS_print(cMsg_not_running, "_CFE_PSP_MEM_SCRUB_Status - 1/2: Nominal - scrub task not running - message");
 
     /* ----- Test case #1 - Nominal - Task ID valid and larger than 0 ----- */
     /* Setup additional inputs */
@@ -388,18 +328,18 @@ void Ut_CFE_PSP_MEM_SCRUB_Status(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Status();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Status - 2/2: Task ID not found");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Status - 2/2: Task ID not found - message");
 }
 /*=======================================================================================
 ** Ut_CFE_PSP_MEM_SCRUB_Enable(void) test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Enable(void)
 {
-    char cMsg[256] = {};
+    char cMsg_already_running[] = {MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n"};
+    char cMsg_starting[] = {MEM_SCRUB_PRINT_SCOPE "Starting Active Memory Scrubbing\n"};
     uint32 g_uiMemScrubTaskId_backup;
 
-    UT_ResetState(0);
-
+    Ut_OS_printf_Setup();
     /* ----- Test case #1 - Nominal - Task Created ----- */
     /* Setup additional inputs */
     g_uiMemScrubTaskId = 0;
@@ -408,18 +348,16 @@ void Ut_CFE_PSP_MEM_SCRUB_Enable(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Enable();
     /* Verify outputs */
-    UtAssert_True(true == true, "_CFE_PSP_MEM_SCRUB_Enable - 2/2: Nominal Task Init");
+    UtAssert_OS_print(cMsg_starting, "_CFE_PSP_MEM_SCRUB_Enable - 1/2: Nominal - Task Init - message");
 
     /* ----- Test case #2 - Nominal - Task already running ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     g_uiMemScrubTaskId = 10;
-    snprintf(cMsg, 256, MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n");
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Enable();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Enable - 2/2: Nominal Task already running");
-
+    UtAssert_OS_print(cMsg_already_running, "_CFE_PSP_MEM_SCRUB_Enable - 2/2: Nominal - Task already running - message");
 }
 
 /*=======================================================================================
@@ -427,22 +365,21 @@ void Ut_CFE_PSP_MEM_SCRUB_Enable(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
 {
-    char cMsg[256] = {};
-
+    char cMsg_not_found[] = {MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n"};
+    char cMsg_deleted[] = {MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Deleted\n"};
     /* ----- Test case #1 - Nominal - Task not found ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     g_uiMemScrubTaskId = 0;
-    // snprintf(cMsg, 256, MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
-    sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Disable();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Disable - 2/2: Nominal Task Not Found");
+    UtAssert_OS_print(cMsg_not_found, "_CFE_PSP_MEM_SCRUB_Disable - 1/2: Nominal - Task Not Found - message");
 
     /* ----- Test case #1 - Nominal - Task Deleted ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    Ut_OS_printf_Setup();
     g_uiMemScrubTaskId = 1234;
     OS_TaskCreate(&g_uiMemScrubTaskId, 
                     MEMSCRUB_TASK_NAME, 
@@ -456,7 +393,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Disable();
     /* Verify outputs */
-    UtAssert_True(true == true, "_CFE_PSP_MEM_SCRUB_Disable - Nominal Task Deleted");
+    UtAssert_OS_print(cMsg_deleted, "_CFE_PSP_MEM_SCRUB_Disable - 2/2: Nominal - Task Deleted - message");
 }
 
 /*=======================================================================================
@@ -464,7 +401,8 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
 {
-    char cMsg[256] = {};
+    char cMsg_deleted[] = {MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Deleted\n"};
+    char cMsg_error[] = {MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Error\n"};
 
     /* ----- Test case #1 - Nominal Task Deleted ----- */
     /* Setup additional inputs */
@@ -478,12 +416,11 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
                     g_uiMemScrubTaskPriority, 
                     0
                     );
-    snprintf(cMsg, 256, "PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelete), OS_SUCCESS);
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Delete();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Delete - 1/2: Nominal Task Deleted");
+    UtAssert_OS_print(cMsg_deleted, "_CFE_PSP_MEM_SCRUB_Delete - 1/2: Nominal - Task Deleted - message");
 
     /* ----- Test case #1 - Nominal Task Not Deleted ----- */
     /* Setup additional inputs */
@@ -497,12 +434,11 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
                     0
                     );
     Ut_OS_printf_Setup();
-    snprintf(cMsg, 256, "PSP MEM SCRUB: Memory Scrubbing Task Deleted\n");
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelete), OS_ERROR);
     /* Execute test */
     CFE_PSP_MEM_SCRUB_Delete();
     /* Verify outputs */
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Delete - 2/2: Nominal Task Not Found");
+    UtAssert_OS_print(cMsg_error, "_CFE_PSP_MEM_SCRUB_Delete - 2/2: Nominal - Task Not Found - message");
    
 }
 /*=======================================================================================

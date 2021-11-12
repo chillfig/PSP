@@ -103,7 +103,7 @@ static uint32 g_uiMemScrubTotalPages = 0;
 */
 int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
-    int32 iReturnCode = CFE_PSP_ERROR;
+    int32 iReturnCode = CFE_PSP_SUCCESS;
 
     /* Verify start and end address */
     if (newStartAddr < newEndAddr)
@@ -150,6 +150,11 @@ int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priorit
             iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
         }
     }
+    else
+    {
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "[ERR] End address larger than Start address\n");
+        iReturnCode = CFE_PSP_ERROR;
+    }
 
     return iReturnCode;
 } /* end CFE_PSP_MEM_SCRUB_Set */
@@ -192,7 +197,7 @@ void CFE_PSP_MEM_SCRUB_Delete(void)
 **
 ** \par Assumptions, External Events, and Notes:
 ** Start memory address is usually 0. End memory address is usually set to the 
-** last value of RAM address. Note that a page is 4098 bytes.
+** last value of RAM address. Note that a page is 4096 bytes.
 **
 ** \param None
 **
@@ -244,6 +249,7 @@ void CFE_PSP_MEM_SCRUB_Task(void)
             if (status == CFE_PSP_ERROR)
             {
                 OS_printf(MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n");
+                break;
             }
             else
             {

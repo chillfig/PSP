@@ -85,3 +85,7 @@ int edrPolicyHandlerHookAdd(void * pPtrFunc)
     return iStatus;
 }
 
+void CFE_PSP_ModuleInit(void)
+{   
+    
+}

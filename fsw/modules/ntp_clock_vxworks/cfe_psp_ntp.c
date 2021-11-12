@@ -562,7 +562,16 @@ void CFE_PSP_Update_OS_Time(void)
     while (CFE_PSP_TimeService_Ready() == false)
     {
         error_counter += 1;
-        OS_TaskDelay(NTPSYNC_INITIAL_TIME_DELAY);
+        ret = OS_TaskDelay(NTPSYNC_INITIAL_TIME_DELAY);
+        /* If Task Delay returns error, exit from the function */
+        if (ret == OS_ERROR)
+        {
+            OS_printf(NTPSYNC_PRINT_SCOPE "OS_TaskDelay error\n");
+            /* Set to maximum value + 1 */
+            error_counter = NTPSYNC_MAX_ITERATION_TIME_DELAY + 1;
+            /* Exit loop */
+            break;
+        }
         if (error_counter > NTPSYNC_MAX_ITERATION_TIME_DELAY)
         {
             OS_printf(
@@ -576,7 +585,8 @@ void CFE_PSP_Update_OS_Time(void)
     if (error_counter < NTPSYNC_MAX_ITERATION_TIME_DELAY)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "CFE TIME Service is ready - Starting NTP Sync\n");
-        /* This method is run on an independent thread and will continue to run until the thread is deleted */
+        /* This method is run on an independent thread and will continue to run until the thread is deleted or 
+        the OS_TaskDelay function returns and error */
         while (1)
         {
             if (ret == OS_SUCCESS)
@@ -602,11 +612,18 @@ void CFE_PSP_Update_OS_Time(void)
             else
             {
                 OS_printf(NTPSYNC_PRINT_SCOPE "OS_TaskDelay error\n");
+                /* If the OS_TaskDelay function returns an error, there is a chance that this
+                while loop will consume too many resources. It should be terminated. */
+                break;
             }
-
             sleep_time = g_usOSTimeSync_Sec * 1000U;
             ret = OS_TaskDelay(sleep_time);
         }
+        /* The only way to get here is if there was a major error and the while 
+        loop needed to be stopped. From here we need to clean up and get it ready
+        to start again. */
+        g_iEnableGetTimeFromOS_flag = false;
+        OS_printf(NTPSYNC_PRINT_SCOPE "NTP Sync encountered an error that caused the main task to exit\n");
     }
 }
 

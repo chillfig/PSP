@@ -44,6 +44,9 @@
 extern "C" {
 #endif
 
+/* MACRO to perform a bitwise AND operation */
+#define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
+
 /**
 ** \addtogroup psp_public_api PSP Public APIs
 ** \{

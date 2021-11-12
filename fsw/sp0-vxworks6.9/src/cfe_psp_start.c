@@ -358,7 +358,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     {
         for (ucIndex = 0u; ucIndex < ucMaxIterations; ucIndex++)
         {
-            if (g_safeModeUserData.mckCause && (1 << ucIndex))
+            if (CHECK_BIT((g_safeModeUserData.mckCause), (ucIndex)))
             {
                 OS_printf("PSP %s\n", g_pMachineCheckCause_msg[ucIndex]);
             }
@@ -433,8 +433,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     /* Initialize the reserved memory */
     if (CFE_PSP_InitProcessorReservedMemory(g_uiResetType) != OS_SUCCESS)
     {
-        OS_printf("PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n",
-                  status);
+        OS_printf("PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n", status);
         goto OS_Application_Startup_Exit_Tag;
     }
 
@@ -593,6 +592,7 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
 {
     int32 tid = CFE_PSP_ERROR;
+    int32 curPriority = 0;
     uint8 curPrio = 0;
     uint8 newPrio = 0;
     int32 status = CFE_PSP_ERROR;
@@ -604,8 +604,9 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
         tid = taskNameToId((char *)tName);
         if (tid != TASK_ID_ERROR)
         {
-            if (taskPriorityGet(tid, (int *)&curPrio) != ERROR) //UndCC_Line(SSET055) - returned by function
+            if (taskPriorityGet(tid, &curPriority) != ERROR) //UndCC_Line(SSET055) - returned by external function
             {
+                curPrio = (uint8) curPriority;
                 if (taskPrioritySet(tid, newPrio) == OK)
                 {
                     OS_printf("PSP: Setting %s priority from %u to %u\n",

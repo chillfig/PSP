@@ -39,8 +39,8 @@
 void Ut_CFE_PSP_Restart(void)
 {
     uint32  uiResetType = CFE_PSP_RST_TYPE_POWERON;
-    CFE_PSP_ReservedMemoryBootRecord_t localBootRecord[200];
-    CFE_PSP_ReservedMemoryMap.BootPtr = (CFE_PSP_ReservedMemoryBootRecord_t *) localBootRecord;
+    CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
+    CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
 
     /* ----- Test case #1 - Nominal Power on reboot ----- */
     /* Setup additional inputs */
@@ -81,7 +81,6 @@ void Ut_CFE_PSP_Panic(void)
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    // Ut_OS_printfPrint();
     UtAssert_logMsg(cMsg, "_CFE_PSP_Panic - 1/1: Nominal Panic log string found");
 }
 

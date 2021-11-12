@@ -12,8 +12,6 @@
 **    2020-12-21 | Minh Luong        | Initial Revision
 **=======================================================================================*/
 
-#ifndef _UT_PSP_UTILS_H_
-#define _UT_PSP_UTILS_H_
 
 /*=======================================================================================
 ** Includes
@@ -21,8 +19,10 @@
 
 /* #include "cfe.h" */
 #include "utstubs.h"
-/* #include "ut_support.h" when away for the below ??? */
 #include "uttools.h"
+
+#ifndef _UT_PSP_UTILS_H_
+#define _UT_PSP_UTILS_H_
 
 /*=======================================================================================
 ** Macro Definitions
@@ -79,8 +79,20 @@ void    Ut_OS_printfPrint(void);
  */
 uint8   Ut_OS_printf_MsgCount(void);
 
+int32 taskPriorityGet(int32 iTid, int32 *piCurPrio);
+int32 taskPrioritySet(int32 iTid, int32 iNewPrio);
+char * taskName(TASK_ID tid);
+int aimonGetBITResults(uint64 *pulResult, int iValue);
+int aimonGetBITExecuted(uint64 *pulRun, int iValue);
+char *sysModel(void);
+uint32 getCoreClockSpeed(void);
+int returnSelectedBootFlash(void);
+
+int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
+int PCS_OS_BSPMain(void);
+
 #endif  /* _UT_PSP_UTILS_H_ */
 
 /*=======================================================================================
-** End of file ut_vsm_stubs.h
+** End of file ut_psp_stubs.h
 **=======================================================================================*/

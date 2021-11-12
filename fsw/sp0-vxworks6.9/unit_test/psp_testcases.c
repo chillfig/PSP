@@ -107,10 +107,9 @@ void UtTest_Setup(void)
     #if TEST_SP0_INFO == 1
     /* cfe_psp_sp0_info.c test cases area */
 
-    /* Crashes with SPE Exception */
-//     UtTest_Add(Ut_PSP_SP0_GetInfo,
-//               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-//               "Ut_PSP_SP0_GetInfo");
+    UtTest_Add(Ut_PSP_SP0_GetInfo,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_GetInfo");
 
     UtTest_Add(Ut_PSP_SP0_PrintInfoTable,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -119,6 +118,10 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_PSP_SP0_DumpData,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_PSP_SP0_DumpData");
+
+    UtTest_Add(Ut_PSP_SP0_GetDiskFreeSize,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_GetDiskFreeSize");
 
     #endif /* TEST_SP0_INFO == 1 */
 
@@ -149,10 +152,9 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_LogSoftwareResetType");
 
-    /* Need to fix the PSP_SP0_GetInfo first */
-/*     UtTest_Add(Ut_OS_Application_Startup,
+    UtTest_Add(Ut_OS_Application_Startup,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Startup");  */
+               "Ut_OS_Application_Startup"); 
 
     UtTest_Add(Ut_CFE_PSP_GetRestartType,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

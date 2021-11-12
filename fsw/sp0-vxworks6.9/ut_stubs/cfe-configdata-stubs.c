@@ -28,6 +28,8 @@ void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char
  */
 void SystemNotify(void);
 
+CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] = {{NULL}};
+
 Target_CfeConfigData GLOBAL_CFE_CONFIGDATA =
 {
         /**
@@ -52,7 +54,8 @@ Target_ConfigData GLOBAL_CONFIGDATA =
         .Default_CpuName = "UnitTestCpu",
         .Default_CpuId = 1,
         .Default_SpacecraftId = 0x42,
-        .CfeConfig = &GLOBAL_CFE_CONFIGDATA
+        .CfeConfig = &GLOBAL_CFE_CONFIGDATA,
+        .PspModuleList = NULL
 };
 
 

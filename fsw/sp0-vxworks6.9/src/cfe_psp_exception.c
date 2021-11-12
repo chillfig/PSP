@@ -294,7 +294,7 @@ void CFE_PSP_AttachExceptions(void)
 void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
     /* Currently using the default VxWorks exception environment for the SP0 */
-    OS_printf("PSP SetDefaultExceptionEnvironment not implemented\n");
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "SetDefaultExceptionEnvironment not implemented\n");
 }
 
 /**
@@ -343,12 +343,12 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer
         
         if (iRetChar < 0)
         {
-            OS_printf("PSP Exception: Could not save exception reason on buffer\n");
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save exception reason on buffer\n");
             ret_code = CFE_PSP_ERROR;
         }
         if (iRetChar >= ReasonSize)
         {
-            OS_printf("PSP Exception: Could not save the whole exception reason string on buffer\n");
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save the whole exception reason string on buffer\n");
             ret_code = CFE_PSP_ERROR;
         }
     }

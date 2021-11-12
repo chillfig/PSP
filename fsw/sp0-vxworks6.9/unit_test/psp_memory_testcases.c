@@ -59,7 +59,7 @@ void Ut_CFE_PSP_GetCDSSize(void)
     /* Execute test */
     iRetCode = CFE_PSP_GetCDSSize(puiSizeOfCDS);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "CFE_PSP_GetCDSSize() - 1/2: Argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "CFE_PSP_GetCDSSize() - 2/2: Argument is NULL");
 }
 
 /*=======================================================================================
@@ -74,7 +74,7 @@ void Ut_CFE_PSP_SetStaticCRC(void)
     /* Execute test */
     CFE_PSP_SetStaticCRC(uiNewCRC);
     /* Verify outputs */
-    UtAssert_True(g_uiCDSCrc = uiNewCRC, "_CFE_PSP_SetStaticCRC - 1/1:Nominal");
+    UtAssert_True(g_uiCDSCrc = uiNewCRC, "_CFE_PSP_SetStaticCRC - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -114,7 +114,7 @@ void Ut_CFE_PSP_CalculateCRC(void)
     /* Execute test */
     uiRetCode = CFE_PSP_CalculateCRC(pData, sizeof(pData), 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode = uiCrcCode, "_CFE_PSP_CalculateCRC - 1/1:Nominal");
+    UtAssert_True(uiRetCode = uiCrcCode, "_CFE_PSP_CalculateCRC - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -158,7 +158,7 @@ void Ut_CFE_PSP_ReadCDSFromFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadCDSFromFlash(puiReadBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 3/6: Failed to open the CDS file");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 3/6: Failed to open the CDS file - message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadCDSFromFlash() - 3/6: Failed case for open()");
 
     /* ----- Test case #4 - Read CDS file failed ----- */
@@ -172,7 +172,7 @@ void Ut_CFE_PSP_ReadCDSFromFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadCDSFromFlash(puiReadBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 4/6: Failed to read the CDS file");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 4/6: Failed to read the CDS file - message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadCDSFromFlash() - 4/6: Failed case for read()");
     UtAssert_True(*puiReadBytes == 0, "_CFE_PSP_ReadCDSFromFlash() - 4/6: Failed case for read()");
 
@@ -188,7 +188,7 @@ void Ut_CFE_PSP_ReadCDSFromFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadCDSFromFlash(puiReadBytes);
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFomFlash() - 5/6: Read less than expected");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFomFlash() - 5/6: Read less than expected - message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadCDSFomFlash() - 5/6: Read less than expected");
     UtAssert_True(*puiReadBytes == 0, "_CFE_PSP_ReadCDSFomFlash() - 5/6: Read less than expected");
 
@@ -204,7 +204,7 @@ void Ut_CFE_PSP_ReadCDSFromFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadCDSFromFlash(puiReadBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 6/6: Unable to close file descriptor");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadCDSFromFlash() - 6/6: Unable to close file descriptor - message");
 }
 
 /*=======================================================================================
@@ -212,13 +212,13 @@ void Ut_CFE_PSP_ReadCDSFromFlash(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_WriteCDSToFlash(void)
 {
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
     int32 iRetCode = 0;
     char cMsg[256] = {};
     uint32 *puiWriteBytes = NULL;
     uint32  uiWriteBytes = 100;
     g_bCorruptedCDSFlash = true;
+
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
@@ -230,7 +230,6 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteCDSToFlash() - 1/5: Nominal");
     UtAssert_True(*puiWriteBytes == (uint32)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_WriteCDSToFlash() - 1/5: Nominal");
-    // UtAssert_True(g_bCorruptedCDSFlash == false, "_CFE_PSP_WriteCDSToFlash() - 1/4: Nominal");
 
     /* ----- Test case #2 - Input argument is NULL ----- */
     /* Setup additional inputs */
@@ -252,7 +251,7 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_WriteCDSToFlash(puiWriteBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 3/5: Failed to open the CDS file");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 3/5: Failed to open the CDS file - message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_WriteCDSToFlash() - 3/5: Failed case for open()");
     UtAssert_True(g_bCorruptedCDSFlash == true,  "_CFE_PSP_WriteCDSToFlash() - 3/5: Failed case for open()");
     UtAssert_True(*puiWriteBytes == 0, "_CFE_PSP_WriteCDSToFlash() - 3/5: Failed case for open()");
@@ -269,7 +268,7 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_WriteCDSToFlash(puiWriteBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 4/5: Failed to write the CDS file");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 4/5: Failed to write the CDS file - message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_WriteCDSToFlash() - 4/4: Failed case for write()");
     UtAssert_True(*puiWriteBytes == 0, "_CFE_PSP_WriteCDSToFlash() - 4/5: Failed case for write()");
     UtAssert_True(g_bCorruptedCDSFlash == true, "_CFE_PSP_WriteCDSToFlash() - 4/5: Failed case for write()");
@@ -286,7 +285,7 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
     /* Execute test */
     iRetCode = CFE_PSP_WriteCDSToFlash(puiWriteBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 5/5: Unable to close file descriptor");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteCDSToFlash() - 5/5: Unable to close file descriptor - message");
 }
 
 /*=======================================================================================
@@ -294,17 +293,17 @@ void Ut_CFE_PSP_WriteCDSToFlash(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_WriteToCDS(void)
 {
-    int32 iRetCode = 0;
+    int32   iRetCode = 0;
     char    cMsg[256] = {};
     uint8   uiBuffer[100] = {};
     uint8   *pucData = NULL;
     uint32  uiCDSOffset = 0;
     uint32  uiNumBytes = 100;
 
-    uint8   localCDSBuffer[2000];
+    uint8   localCDSBuffer[200];
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
-    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 2000;
-    memset(localCDSBuffer, '1',2000);
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 200;
+    memset(localCDSBuffer, '1', 200);
     memset(uiBuffer, '1',uiNumBytes);
 
     /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
@@ -370,12 +369,6 @@ void Ut_CFE_PSP_WriteToCDS(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_ReadFromCDS(void)
 {
-    /**
-     * TODO: Pickup from here
-     * 
-     * CFE_PSP_ReadFromCDS received revamp, may need to scrap below
-     */
-    UT_ResetState(0);
     int32 iRetCode = 0;
     char cMsg[256] = {};
     uint8   uiBuffer[100] = {};
@@ -384,14 +377,18 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     uint32  uiNumBytes = 100;
     uint32  uiTempCrc = 0;
     uint8   ucIdx = 0;
-    // uint8   blockBuffer[500];
+
     g_bCorruptedCDSFlash = false;
 
-    // uint8   localCDSBuffer[2000];
     uint8   localCDSBuffer[100];
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
-    // CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 2000;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 100;
+
+    /* Modify first 100 bytes from CDSMemory for testing */
+    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
@@ -400,11 +397,6 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     g_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes);
-    /* Modify first 100 bytes from CDSMomory for testing */
-    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
-    {
-        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
-    }
     /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
     uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                         CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
@@ -412,11 +404,11 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal Read the data from Flash");
-    UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal New CRC codes was updated");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - Read the data from Flash - message");
+    UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - New CRC codes was updated");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_ReadFromCDS() - 1/7: Nominal Read data is matched with CDSMemory data");
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal");
+                    "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - Read data is matched with CDSMemory data");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - return value");
 
     /* ----- Test case #2 - Unable to read from flash ----- */
     /* Setup additional inputs */
@@ -425,11 +417,6 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     pucData = uiBuffer;
     g_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
-    /* Modify first 100 bytes from CDSMomory for testing */
-    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
-    {
-        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
-    }
     /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
     uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                         CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
@@ -437,7 +424,7 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 2/7: Read CDS From Flash failure");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 2/7: Read CDS From Flash failure - message");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
                     "_CFE_PSP_ReadFromCDS() - 2/7: Read CDS From Flash failure");
 
@@ -445,11 +432,6 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = uiBuffer;
-    /* Modify first 100 bytes from CDSMomory for testing */
-    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
-    {
-        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
-    }
     /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
     uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                         CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
@@ -460,10 +442,9 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
                     "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
-    // UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
-    UtAssert_NA("_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure - return value");
 
-    /* ----- Test case #4 - Nominal Always read from Flash ----- */
+    /* ----- Test case #4 - Nominal read from Flash ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = uiBuffer;
@@ -486,7 +467,7 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 5/7: Input argument is NULL");
 
-    /* ----- Test case #6 - Dara offset is larger than CDSMemory block size ----- */
+    /* ----- Test case #6 - Data offset is larger than CDSMemory block size ----- */
     /* Setup additional inputs */
     pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
     uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 1;
@@ -495,14 +476,9 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 6/7: Failed data offset is larger than CDSMemory block size");
 
-    /* ----- Test case #7 - Date offset plus number of changed bytes is larger than CDSMemory block size ----- */
+    /* ----- Test case #7 - tempCRC and CDS CRC don't match ----- */
     /* Setup additional inputs */
-    pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
-    uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize - 99;
-    /* Execute test */
-    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
-    /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 7/7: Failed data offset plus number of changed bytes is larger than CDSMemory block size");
+
 }
 
 /*=======================================================================================
@@ -528,10 +504,10 @@ void Ut_CFE_PSP_GetResetArea(void)
     uiRetCode = CFE_PSP_GetResetArea(puiBlockAddress, puiBlockSize);
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(uiBlockAddress, (uint32)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 0, 
-                           "_CFE_PSP_GetResetArea - 1/3:Nominal ResetMemory block address is matched");
+                           "_CFE_PSP_GetResetArea - 1/3: Nominal ResetMemory block address is matched");
     UtAssert_IntegerCmpAbs(uiBlockSize, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 0, 
-                           "_CFE_PSP_GetResetArea - 1/3:Nominal ResetMemory block size is matched");
-    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetResetArea - 1/3:Nominal");
+                           "_CFE_PSP_GetResetArea - 1/3: Nominal ResetMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetResetArea - 1/3: Nominal");
 
     /* ----- Test case #2 - Block address pointer is NULL ----- */
     /* Setup additional inputs */
@@ -571,10 +547,10 @@ void Ut_CFE_PSP_GetUserReservedArea(void)
     uiRetCode = CFE_PSP_GetUserReservedArea(puiUserArea, puiUserAreaSize);
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(uiUserArea, (uint32)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0, 
-                           "_CFE_PSP_GetUserReservedArea - 1/3:Nominal UserReservedMemory block address is matched");
+                           "_CFE_PSP_GetUserReservedArea - 1/3: Nominal UserReservedMemory block address is matched");
     UtAssert_IntegerCmpAbs(uiUserAreaSize, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, 0, 
-                           "_CFE_PSP_GetUserReservedArea - 1/3:Nominal UserReservedMemory block size is matched");
-    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3:Nominal");
+                           "_CFE_PSP_GetUserReservedArea - 1/3: Nominal UserReservedMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3: Nominal");
 
     /* ----- Test case #2 - UserArea address pointer is NULL ----- */
     /* Setup additional inputs */
@@ -614,10 +590,10 @@ void Ut_CFE_PSP_GetVolatileDiskMem(void)
     uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(uiVolDisk, (uint32)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0, 
-                           "_CFE_PSP_GetVolatileDiskMem - 1/3:Nominal VolatileDiskMemory block address is matched");
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block address is matched");
     UtAssert_IntegerCmpAbs(uiVolDiskSize, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, 0, 
-                           "_CFE_PSP_GetVolatileDiskMem - 1/3:Nominal VolatileDiskMemory block size is matched");
-    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3:Nominal");
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block size is matched");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetUserReservedArea - 1/3: Nominal");
 
     /* ----- Test case #2 - Block address pointer is NULL ----- */
     /* Setup additional inputs */
@@ -650,26 +626,21 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uint32 uiNumBytes = 100;
     uint32 uiTempCRC = 0;
 
-    // uint8 localReservedMemBlock[300];
     uint8 localReservedMemBlock[uiMemBlockSize];
     g_ReservedMemBlock.BlockPtr = (void *)localReservedMemBlock;
-    // g_ReservedMemBlock.BlockSize = 300;
     g_ReservedMemBlock.BlockSize = uiMemBlockSize;
 
-    // uint8   localCDSBuffer[2000];
     uint8   localCDSBuffer[uiMemBlockSize];
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
-    // CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 2000;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = uiMemBlockSize;
 
     CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
     CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
 
-    /* ----- Test case #1 - Nominal Read the exist CDS file ----- */
+    /* ----- Test case #1 - Nominal Read the existing CDS file ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
-    // UT_SetDeferredRetcode(UT_KEY(read), 1, uiNumBytes); 
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize); 
     uiTempCRC = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
@@ -678,12 +649,29 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
     /* Verify outputs */
     sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Cleared processor reserved memory");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/7: Cleared processor reserved memory - message");
     sprintf(cMsg, "CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiNumBytes);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Read from existed CDS file");
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Nominal ");
-    UtAssert_True(uiTempCRC == g_uiCDSCrc, "_CFE_PSP_InitProcessorReservedMemory - 1/5: Nominal CRC Calculation");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 1/7: Read from existed CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 1/7: Nominal");
+    UtAssert_True(uiTempCRC == g_uiCDSCrc, "_CFE_PSP_InitProcessorReservedMemory - 1/7: Nominal CRC Calculation");
 
+    /* ----- Test case #1.5 - Nominal Read the existing CDS file but could not close the file ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize); 
+    uiTempCRC = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+    UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/7: Cleared processor reserved memory - message");
+    sprintf(cMsg, "CFE_PSP: Read %d bytes of CDS data from Flash.\n", uiNumBytes);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/7: Read from existed CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 2/7: Nominal");
+    UtAssert_True(uiTempCRC == g_uiCDSCrc, "_CFE_PSP_InitProcessorReservedMemory - 2/7: Nominal CRC Calculation");
 
     /* ----- Test case #2 - Nominal Create new CDS file ----- */
     /* Setup additional inputs */
@@ -695,10 +683,26 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
     /* Verify outputs */
     sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Cleared processor reserved memory");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/7: Cleared processor reserved memory - message");
     sprintf(cMsg, "CFE_PSP: Created the CDS file.\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Created new CDS file");
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 2/5: Nominal ");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/7: Created new CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory - 3/7: Nominal ");
+
+    /* ----- Test case #2.5 - Nominal Create new CDS file but could not close it ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(creat), 1, CFE_PSP_SUCCESS); 
+    UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
+    /* Execute test */
+    uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    /* Verify outputs */
+    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/7: Cleared processor reserved memory - message");
+    sprintf(cMsg, "CFE_PSP: Created the CDS file.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/7: Created new CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 4/7: Nominal ");
 
     /* ----- Test case #3 - Failed Read the exist CDS file ----- */
     /* Setup additional inputs */
@@ -711,10 +715,10 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
     /* Verify outputs */
     sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/5: No clear processor reserved memory");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 5/7: No clear processor reserved memory");
     sprintf(cMsg, "CFE_PSP: Failed to read the CDS data on Flash.\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 3/5: Failed to read from existed CDS file");
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 3/5: Return error code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 5/7: Failed to read from existed CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 5/7: Return error code");
 
     /* ----- Test case #4 - Nominal Unable to create new CDS file ----- */
     /* Setup additional inputs */
@@ -726,10 +730,10 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
     /* Verify outputs */
     sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/5: No clear processor reserved memory");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 6/7: No clear processor reserved memory");
     sprintf(cMsg, "CFE_PSP: Failed to create the CDS file(/ffx0/CDS) on Flash.\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 4/5: Failed to create new CDS file");
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 4/5: Return error code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory - 6/7: Failed to create new CDS file - message");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 6/7: Return error code");
 
     /* ----- Test case #5 - Failed Reserved block size is greater than the reserved memory ----- */
     /* Setup additional inputs */
@@ -740,7 +744,7 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     uiRetCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 5/5: Failed Reserved block size is greater than reserved memory");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory - 7/7: Failed Reserved block size is greater than reserved memory");
 }
 
 /*=======================================================================================
@@ -748,23 +752,30 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_SetupReservedMemoryMap(void)
 {
+    char cMsg[256] = {};
+
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs - None */
-    UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, OS_SUCCESS);
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify outputs */
-    UtAssert_True(TRUE, "_CFE_PSP_SetupReservedMemoryMap - 1/2: Nominal");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 4, "_CFE_PSP_SetupReservedMemoryMap - 1/2: Nominal");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #2 - Error setting up memory range ----- */
     /* Setup additional inputs - None */
-    UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, OS_ERROR);
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify outputs */
-    UtAssert_True(TRUE, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range");
+    snprintf(cMsg, 256, "CFE_PSP_MemRangeSet returned error\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range - message");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 5, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range");
 }
 
 /*=======================================================================================
@@ -772,9 +783,13 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void)
 {
+    char cMsg[256] = {"CFE_PSP: Aitech does not currently support Reserved Memory (waiting for updated bootloader)\n"};
+    Ut_OS_printf_Setup();
+
     /* Nothing to test */
     CFE_PSP_DeleteProcessorReservedMemory();
-    UtAssert_NA("No code in this function");
+
+    UtAssert_OS_print(cMsg, "_CFE_PSP_DeleteProcessorReservedMemory 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -797,6 +812,8 @@ void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
     /* Verify outputs */
     UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/2:Nominal");
 
+    UT_ResetState(0);
+
     /* ----- Test case #2 - Kernel segement size pointer is NULL ----- */
     /* Setup additional inputs */
     puiKernelSegment = &uiKernelSegment;
@@ -817,23 +834,28 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     cpuaddr *pCFESegment = NULL;
     uint32  uiSizeOfCFESegment = 0;
     uint32  *puiSizeOfCFESegment = NULL;
+    char task_name[] = "test";
     MODULE_ID  moduleID;
     MODULE_INFO moduleInfo;
 
+    moduleInfo.segInfo.textAddr = task_name;
+    moduleInfo.segInfo.textSize = strlen(task_name);
+  
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
     puiSizeOfCFESegment = &uiSizeOfCFESegment;
     UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, (uint32)&moduleID);
+    
+    UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(moduleInfo), true);
     UT_SetDeferredRetcode(UT_KEY(moduleInfoGet), 1, OS_SUCCESS);
     /* Execute test */
-    // printf("CFESegment: %u - uiSizeOfCFESegment: %u\n", CFESegment, uiSizeOfCFESegment);
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
-    // printf("CFESegment: %u - uiSizeOfCFESegment: %u\n", CFESegment, uiSizeOfCFESegment);
     /* Verify outputs */
-    // UtAssert_True(CFESegment != 0, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: CFESegment was changed");
-    UtAssert_NA("_CFE_PSP_GetCFETextSegmentInfo - 1/5: CFESegment was changed");
+    UtAssert_True(pCFESegment != 0, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: CFESegment was changed");
     UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: Nominal");
+
+    UT_ResetState(0);
 
     /* ----- Test case #2 - Nominal moduleInfoGet return error ----- */
     /* Setup additional inputs */
@@ -847,6 +869,8 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: CFESegment was not changed");
     UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: Nominal moduleInfoGet returned error");
 
+    UT_ResetState(0);
+
     /* ----- Test case #3 - CFE Segement size pointer is NULL ----- */
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
@@ -856,6 +880,8 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Verify outputs */
     UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/5: Failed because CFE Segement size pointer is NULL");
 
+    UT_ResetState(0);
+
     /* ----- Test case #4 - moduleFindByName return NULL pointer ----- */
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
@@ -864,6 +890,8 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
     UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/5: Failed because moduleFindByName returned NULL");
+
+    UT_ResetState(0);
 
     /* ----- Test Case #5 - SizeOfCFESegment != NULL and moduleFindByName return NULL ptr ----- */
     /* Setup Inputs */

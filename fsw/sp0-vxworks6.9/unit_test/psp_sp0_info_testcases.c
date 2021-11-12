@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <target_config.h>
+
 #include "uttest.h"
 #include "utstubs.h"
 #include "ut_psp_utils.h"
@@ -25,9 +26,11 @@
 #include "psp_sp0_info_testcases.h"
 #include "../src/cfe_psp_sp0_info.c"
 
+
 /*=======================================================================================
 ** External Global Variable Declarations
 **=======================================================================================*/
+extern int       PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 
 /*=======================================================================================
 ** Function definitions
@@ -44,13 +47,13 @@ void Ut_PSP_SP0_GetInfo(void)
     /* Set "Marching Address Test(L)" result for failed and "Marching Address Test(W)" for passed */
     uint64 bitResult   = 1ULL;
 
-    char cMsg_readreset[200] = {SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n"};
-    char cMsg_safemode_nowrite[200] = {SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData"};
-    char cMsg_safemode_retrieve[200] = {SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n"};
-    char cMsg_temp[200] = {SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n"};
-    char cMsg_volt[200] = {SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n"};
-    char cMsg_aimongetbitexec[200] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n"};
-    char cMsg_aimongetbitres[200] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n"};
+    char cMsg_readreset[] = {SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n"};
+    char cMsg_safemode_nowrite[] = {SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData"};
+    char cMsg_safemode_retrieve[] = {SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n"};
+    char cMsg_temp[] = {SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n"};
+    char cMsg_volt[] = {SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n"};
+    char cMsg_aimongetbitexec[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n"};
+    char cMsg_aimongetbitres[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n"};
 
     uint32 uiResetSrc = 0;
 
@@ -65,49 +68,70 @@ void Ut_PSP_SP0_GetInfo(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
-    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 1/10: Nominal");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 1/13: Nominal SP0s");
 
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #2 - ReadResetSourceReg failed ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_ERROR);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
+
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), true);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_readreset,"_PSP_SP0_GetInfo - 2/10: ReadResetSourceReg failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 2/10: Failed return code");
+    UtAssert_OS_print(cMsg_readreset,"_PSP_SP0_GetInfo - 2/13: ReadResetSourceReg failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 2/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #3 - ReadSafeModeUserData failed ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -116,42 +140,58 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_ERROR);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_retrieve,"_PSP_SP0_GetInfo - 3/10: ReadSafeModeUserData failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 3/01: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_retrieve,"_PSP_SP0_GetInfo - 3/13: ReadSafeModeUserData failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 3/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #4 - ReadSafeModeUserData - Nominal with REMOTE SBC ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
-    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+    
     smud.sbc = SM_REMOTE_SBC;
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), 1);
+
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 4/10: Nominal with REMOTE SBC");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 4/13: Nominal with REMOTE SBC");
     
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #5 - ReadSafeModeUserData - snprintf failed ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -160,20 +200,56 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_ERROR);
+
     /* Execute test */
-/*     ret = PSP_SP0_GetInfo(); */
+    ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-/*     UtAssert_OS_print(cMsg_safemode_nowrite,"_PSP_SP0_GetInfo - 5/10: ReadSafeModeUserData snprintf failed");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 5/10: Failed return code"); */
+    UtAssert_OS_print(cMsg_safemode_nowrite,"_PSP_SP0_GetInfo - 5/13: ReadSafeModeUserData snprintf failed");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 5/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
+
+    /* ----- Test case # - 5.5 returnSelectedBootFlash 2nd boot ----- */
+    /* Setup additional inputs */
+    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 2);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
+    /* Execute test */
+    ret = PSP_SP0_GetInfo();
+    /* Verify outputs */
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 6/13: Nominal 2nd boot device");
+
+    Ut_OS_printf_Setup();
+
 
     /* ----- Test case #6 - Temperature Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -182,20 +258,55 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_temp,"_PSP_SP0_GetInfo - 6/10: Temperature failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 6/10: Failed return code");
+    UtAssert_OS_print(cMsg_temp,"_PSP_SP0_GetInfo - 7/13: Temperature failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 7/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
+
+    /* ----- Test case #6.5 - Temperature Fail ----- */
+    /* Setup additional inputs */
+    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 1);
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
+    /* Execute test */
+    ret = PSP_SP0_GetInfo();
+    /* Verify outputs */
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 8/13: Nominal SP0");
+
+    Ut_OS_printf_Setup();
+
 
     /* ----- Test case #7 - Voltage Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -204,20 +315,27 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_volt,"_PSP_SP0_GetInfo - 7/10: Voltage failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 7/10: Failed return code");
+    UtAssert_OS_print(cMsg_volt,"_PSP_SP0_GetInfo - 9/13: Voltage failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 9/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #8 - aimonGetBITExecute Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_ERROR);
@@ -226,20 +344,27 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitexec,"_PSP_SP0_GetInfo - 8/10: aimonGetBITExecute failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 8/10: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitexec,"_PSP_SP0_GetInfo - 10/13: aimonGetBITExecute failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 10/13: Failed return code");
 
     Ut_OS_printf_Setup();
+
 
     /* ----- Test case #9 - aimonGetBITResults Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -248,20 +373,27 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitres,"_PSP_SP0_GetInfo - 9/10: aimonGetBITResults failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 9/10: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitres,"_PSP_SP0_GetInfo - 11/13: aimonGetBITResults failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 11/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #10 - g_iSP0DataDumpLength too long ----- */
+
+    /* ----- Test case #12 - g_iSP0DataDumpLength too long ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 1);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
@@ -270,14 +402,46 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-/*     ret = PSP_SP0_GetInfo(); */
+    ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-/*     UtAssert_OS_print(cMsg_aimongetbitres,"_PSP_SP0_GetInfo - 10/10: g_iSP0DataDumpLength too long");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 10/10: Failed return code"); */
+    UtAssert_True(g_iSP0DataDumpLength > SP0_TEXT_BUFFER_MAX_SIZE, "_PSP_SP0_GetInfo - 12/13: g_cSP0DataLength larger than max buffer");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 12/13: g_cSP0DataDump too small error return code");
+
+    /* ----- Test case #13 - last snprintf error ----- */
+    /* Setup additional inputs */
+    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 1);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
+
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
+
+    /* Execute test */
+    ret = PSP_SP0_GetInfo();
+    /* Verify outputs */
+    UtAssert_True(g_iSP0DataDumpLength == -1, "_PSP_SP0_GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 13/13: snprintf error return code");
 }
 
 /*=======================================================================================
@@ -291,7 +455,7 @@ void Ut_PSP_SP0_PrintInfoTable(void)
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     /* Set the content of the output data to a fixed value for testing */
-    // snprintf(g_cSP0DataDump, SP0_TEXT_BUFFER_MAX_SIZE, "0123456789");
+    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     /* Execute test */
     PSP_SP0_PrintInfoTable();
     /* Verify outputs */
@@ -299,7 +463,6 @@ void Ut_PSP_SP0_PrintInfoTable(void)
      * Corresponding code does not use OS_printf(...)
      */
     UtAssert_NA("_PSP_SP0_PrintInfoTable - 1/1: N/A");
-    /* UtAssert_OS_print(cMsg,"_PSP_SP0_PrintInfoTable - 1/1: Nominal"); */
 }
 
 /*=======================================================================================
@@ -322,7 +485,6 @@ void Ut_PSP_SP0_DumpData(void)
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    /* UT_ResetState(0); */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), OK);
@@ -333,9 +495,11 @@ void Ut_PSP_SP0_DumpData(void)
     /* Verify outputs */
     UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_PSP_SP0_DumpData - 1/5: Nominal");
 
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #2 - Could not create dump file ----- */
     /* Setup additional inputs */
-    /* UT_ResetState(0); */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), ERROR);
@@ -346,9 +510,11 @@ void Ut_PSP_SP0_DumpData(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_creat, "_PSP_SP0_DumpData - 2/5: Could not create dump file");
 
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #3 - Could not write to dump file ----- */
     /* Setup additional inputs */
-    /* UT_ResetState(0); */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), OK);
@@ -359,9 +525,11 @@ void Ut_PSP_SP0_DumpData(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_write, "_PSP_SP0_DumpData - 3/5: Could not write to dump file");
 
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #4 - Could not close dump file ----- */
     /* Setup additional inputs */
-    /* UT_ResetState(0); */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), OK);
@@ -372,9 +540,11 @@ void Ut_PSP_SP0_DumpData(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_close, "_PSP_SP0_DumpData - 4/5: Could not close dump file");
 
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #5 - Data not available ----- */
     /* Setup additional inputs */
-    /* UT_ResetState(0); */
     /* Set the content of the output data to a fixed value for testing */
     g_iSP0DataDumpLength = -1;
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
@@ -385,6 +555,42 @@ void Ut_PSP_SP0_DumpData(void)
     PSP_SP0_DumpData();
     /* Verify outputs */
     UtAssert_OS_print(cMsg_nodump, "_PSP_SP0_DumpData - 5/5: Data not available");
+}
+
+/*=======================================================================================
+** Ut_PSP_SP0_GetRAMDiskFreeSize(void) test cases
+**=======================================================================================*/
+void Ut_PSP_SP0_GetDiskFreeSize(void)
+{
+    char        ram_disk_path_ram[] = "/ram0";
+    char        ram_disk_path_flash[] = "/ffx0";
+    char        ram_disk_path_bad[] = "/f";
+    char        ram_disk_path_too_long[200];
+    int64_t     return_value = 0;
+
+    /* Function is not stubbed */
+    /* Execute test */
+    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_ram);
+    /* Verify outputs */
+    UtAssert_True(return_value > 0, "_PSP_SP0_GetDiskFreeSize - 1/4: Nominal");
+
+    /* Function is not stubbed */
+    /* Execute test */
+    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_bad);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 2/4: Bad path");
+
+    /* Function is not stubbed */
+    /* Execute test */
+    return_value = PSP_SP0_GetDiskFreeSize(NULL);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 3/4: NULL path");
+
+    memset(ram_disk_path_too_long,0x11,sizeof(ram_disk_path_too_long));
+    /* Execute test */
+    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_too_long);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 4/4: Path too long");
 }
 
 /*=======================================================================================
