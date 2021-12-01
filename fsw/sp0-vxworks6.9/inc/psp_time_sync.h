@@ -31,6 +31,8 @@
 #ifndef _PSP_TIME_SYNC_H_
 #define _PSP_TIME_SYNC_H_
 
+#include "osapi.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,65 +49,102 @@ extern "C" {
 ** This function intializes the cFE PSP Time sync task with the NTP server.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** Function will return CFE_PSP_SUCCESS if there is already an NTP Sync
+** task running and will NOT attempt to start another
 **
 ** \param None
 ** 
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_SUCCESS - If successfully started NTP Sync task
+** \return #CFE_PSP_ERROR - If unsuccessfully started NTP Sync task
 */
-int32  CFE_PSP_TIME_Init(void);
+int32  CFE_PSP_TIME_NTPSync_Task_Enable(void);
 
 /**
-** \func Enable/disable time sync
+** \func Disables the CFE PSP Time Task synchronizing with the NTP server
 **
 ** \par Description:
-** This function sets the enabling/disabling of time sync.
+** This function disable the cFE PSP Time sync task with the NTP server.
 **
 ** \par Assumptions, External Events, and Notes:
-** When the flag is true, the NTP Sync task actively trys to sync clocks.
-** When the flag is false, the NTP Sync task will remain active without sync.
+** Function will return CFE_PSP_SUCCESS if there is no NTP Sync
+** task running
 **
-** \param[in] enable - Boolean flag for sync or not sync
+** \param None
 ** 
-** \return True - If synchronized
-** \return False - If not synchronized
+** \return #CFE_PSP_SUCCESS - If successfully started NTP Sync task
+** \return #CFE_PSP_ERROR - If unsuccessfully started NTP Sync task
 */
-int32  CFE_PSP_Sync_From_OS_Enable(bool enable);
+int32  CFE_PSP_TIME_NTPSync_Task_Disable(void);
+
+/** 
+ ** \func Check if the NTP Sync task is running
+ **
+ ** \par Description:
+ ** This function checks on whether or not
+ ** the NTP Sync task is running
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Will check via OS_TaskGetIdByName using NTPSYNC_TASK_NAME
+ ** as the name of NTP sync task
+ **
+ ** \param None
+ **
+ ** \return true - If NTP Sync Task is running
+ ** \return false - If NTP Sync Task is not running
+ */
+bool CFE_PSP_TIME_NTPSync_Task_isRunning(void);
 
 /**
-** \func Get the NTP daemon status
+ ** \func Set the NTP Sync task priority
+ **
+ ** \par Description:
+ ** This function sets the NTP Sync task priority
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** New priority must be between NTPSYNC_PRIORITY_DOWN_RANGE
+ ** and NTPSYNC_PRIORITY_UP_RANGE. If the new priority is not
+ ** within this range, the default priority will be assigned.
+ **
+ ** \param[in] opPriority - The new task priority
+ **
+ ** \return #CFE_PSP_SUCCESS - If successfully set new priority
+ ** \return #CFE_PSP_ERROR - If unsuccessfully set new priority
+ */
+int32  CFE_PSP_TIME_NTPSync_Task_Priority_Set(osal_priority_t opPriority);
+
+/**
+** \func Check if the NTP Daemon is running
 **
 ** \par Description:
-** This function checks if the VxWorks NTP client task is running. It does not
-** check if the task has successfully synchronized with an NTP server.
+** This function checks if the vxworks NTP client task is running
 **
 ** \par Assumptions, External Events, and Notes:
-** The task name for the VxWorks NTP client is the default "ipntpd".
+** This function will not check if the task has successfully syncronized with
+** an NTP server
 **
 ** \param None
 ** 
 ** \return True - If NTP client task is running
 ** \return False - If NTP client task is not running
 */
-bool  CFE_PSP_NTP_Daemon_Get_Status(void);
+bool  CFE_PSP_TIME_NTP_Daemon_isRunning(void);
 
 /**
-** \func Gracefully shutdown NTP Sync Module 
-** 
-** \par Description:
-** Function will attempt to delete the task. Usually this function will be 
-** called when exiting cFS.
-**
-** \par Assumptions, External Events, and Notes:
-** The task name for the VxWorks NTP client is the default "ipntpd".
-**
-** \param None
-** 
-** \return #CFE_PSP_SUCCESS 
-** \return #CFE_PSP_ERROR
-*/
-int32 net_clock_vxworks_Destroy(void);
+ ** \func Gracefully shutdown NTP Sync Module 
+ ** 
+ ** \par Description:
+ ** Function will attempt to delete the NTP Sync task
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** When this function is called, no matter what it's return status is,
+ ** the g_bEnableGetTimeFromOS_flag will be set to false.
+ ** Intended only for use upon module initialization, not for
+ ** 'normal' use during starting/stopping of NTP Sync task
+ ** 
+ ** \return #CFE_PSP_SUCCESS 
+ ** \return #CFE_PSP_ERROR
+ */
+int32 ntp_clock_vxworks_Destroy(void);
 
 /**
 ** \func Get the currently set sync frequency
@@ -120,7 +159,7 @@ int32 net_clock_vxworks_Destroy(void);
 ** 
 ** \return Current frequency
 */
-uint16 CFE_PSP_Sync_From_OS_GetFreq(void);
+uint16 CFE_PSP_TIME_NTPSync_GetFreq(void);
 
 /**
 ** \func Change the sync frequency
@@ -131,18 +170,15 @@ uint16 CFE_PSP_Sync_From_OS_GetFreq(void);
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param[in] new_frequency_sec - The new frequency, in seconds
-** 
-** \return #CFE_PSP_SUCCESS - If successfully changed
-** \return #CFE_PSP_ERROR
+** \param[in] uiNewFreqSec - The new frequency, in seconds
 */
-int32 CFE_PSP_Sync_From_OS_SetFreq(uint16 new_frequency_sec);
+void CFE_PSP_TIME_NTPSync_SetFreq(uint16 uiNewFreqSec);
 
 /**
 ** \func Set the OS time
 **
 ** \par Description:
-** This function sets the VxWorks OS time.
+** This function sets the vxworks OS time.
 **
 ** \par Assumptions, External Events, and Notes:
 ** The changes do not occur if the NTP client is setup to synchronize with an NTP server.
@@ -155,13 +191,13 @@ int32 CFE_PSP_Sync_From_OS_SetFreq(uint16 new_frequency_sec);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
+int32  CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
 
 /**
-** \func Gets the current time from VxWorks OS
+** \func Gets the current time from vxworks OS
 **
 ** \par Description:
-** This function gets the current VxWorks OS time.
+** This function gets the current vxworks OS time.
 **
 ** \par Assumptions, External Events, and Notes:
 ** This function is used by the NTP Sync task to grab the current OS time.
@@ -173,7 +209,7 @@ int32  CFE_PSP_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT);
+int32  CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT);
 
 /**
 ** \brief Check if CFS Time Service is up and running
@@ -188,29 +224,13 @@ int32  CFE_PSP_Get_OS_Time(CFE_TIME_SysTime_t *myT);
 ** \return true - CFE Time Service is ready
 ** \return false - CFE Time Service is not ready
 */
-bool CFE_PSP_TimeService_Ready(void);
-
-/**
-** \func Update cFE time
-** 
-** \par Description:
-** This function updates the time used by the cFE Time service.
-**
-** \par Assumptions, External Events, and Notes:
-** This method is run on an independent thread and will continue to run until 
-** the thread is deleted using net_clock_linux_destroy
-** 
-** \param None
-**
-** \return None
-*/
-void  CFE_PSP_Update_OS_Time(void);
+bool CFE_PSP_TIME_CFETimeService_isRunning(void);
 
 /**
 ** \func Start the NTP client
 ** 
 ** \par Description:
-** This function starts the NTP client task, ipntpd, on VxWorks.
+** This function starts the NTP client task, ipntpd, on vxworks.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -220,13 +240,13 @@ void  CFE_PSP_Update_OS_Time(void);
 ** \return NTP client Task ID
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_StartNTPDaemon(void);
+int32  CFE_PSP_TIME_StartNTPDaemon(void);
 
 /**
 ** \func Stop the NTP client
 ** 
 ** \par Description:
-** This function stops the NTP client task, ipntpd, on VxWorks.
+** This function stops the NTP client task, ipntpd, on vxworks.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -236,24 +256,7 @@ int32  CFE_PSP_StartNTPDaemon(void);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_StopNTPDaemon(void);
-
-/**
-** \func Enable/disable the NTP client
-** 
-** \par Description:
-** This function enables/disables the NTP client task, ipntpd, on VxWorks.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-** 
-** \param[in] enable - Boolean flag for enable or disable
-**
-** \return NTP client task ID - If successfully starts the NTP clien task
-** \return #CFE_PSP_SUCCESS - If successfully stops the NTP client task
-** \return #CFE_PSP_ERROR
-*/
-int32  CFE_PSP_NTP_Daemon_Enable(bool enable);
+int32  CFE_PSP_TIME_StopNTPDaemon(void);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

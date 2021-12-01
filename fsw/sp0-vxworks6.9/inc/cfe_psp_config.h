@@ -393,6 +393,22 @@ typedef struct
 */
 #define NTPSYNC_DEFAULT_PRIORITY            60
 
+/**
+ ** \brief NTP Sync maximum allowed Task priority
+ **
+ ** \par Description:
+ ** Set the active NTP Sync task up range allowable priority.
+ */
+#define NTPSYNC_PRIORITY_UP_RANGE           255
+
+/**
+ ** \brief NTP Sync maximum allowed Task priority
+ **
+ ** \par Description:
+ ** Set the active NTP Sync task down range allowable priority.
+ */
+#define NTPSYNC_PRIORITY_DOWN_RANGE           60
+
 /** \} */
 
 /**

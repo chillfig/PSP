@@ -171,7 +171,10 @@ Kernel must include the following services:
   - CFE_MISSION_TIME_SYNC_OS_ENABLE
   - NTPSYNC_TASK_NAME
   - NTPSYNC_DEFAULT_PRIORITY
+  - NTPSYNC_PRIORITY_UP_RANGE
+  - NTPSYNC_PRIORITY_DOWN_RANGE
   - NTPSYNC_PRINT_SCOPE
+  - CFE_MISSION_TIME_SYNC_TIME_ON_STARTUP
 
 - Static Variables
   - g_uiPSPNTPTask_id
@@ -179,19 +182,24 @@ Kernel must include the following services:
   - g_iEnableGetTimeFromOS_flag
   - g_usOSTimeSync_Sec
 
+- Static Functions
+  - CFE_PSP_TIME_NTPSync_Task
+
 - Functions (include psp_time_sync.h)
-  - CFE_PSP_TIME_Init
-  - CFE_PSP_Update_OS_Time
-  - CFE_PSP_StartNTPDaemon
-  - CFE_PSP_StopNTPDaemon
-  - CFE_PSP_TimeService_Ready
-  - CFE_PSP_Sync_From_OS_Enable
-  - CFE_PSP_Sync_From_OS_GetFreq
-  - CFE_PSP_Sync_From_OS_SetFreq
-  - CFE_PSP_Set_OS_Time
-  - CFE_PSP_Get_OS_Time
-  - CFE_PSP_NTP_Daemon_Get_Status
-  - CFE_PSP_NTP_Daemon_Enable
+  - ntp_clock_vxworks_Destroy
+  - ntp_clock_vxworks_Init
+  - CFE_PSP_TIME_NTPSync_Task_Enable
+  - CFE_PSP_TIME_NTPSync_Task_Disable
+  - CFE_PSP_TIME_NTPSync_Task_isRunning
+  - CFE_PSP_TIME_NTPSync_Task_Priority_Set
+  - CFE_PSP_TIME_NTPSync_GetFreq
+  - CFE_PSP_TIME_NTPSync_SetFreq
+  - CFE_PSP_TIME_Set_OS_Time
+  - CFE_PSP_TIME_Get_OS_Time
+  - CFE_PSP_TIME_CFETimeService_isRunning
+  - CFE_PSP_TIME_NTP_Daemon_isRunning
+  - CFE_PSP_TIME_StartNTPDaemon
+  - CFE_PSP_TIME_StopNTPDaemon
 
 ### Watchdog
 

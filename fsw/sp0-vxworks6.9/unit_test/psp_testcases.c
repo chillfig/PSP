@@ -45,58 +45,62 @@ void Ut_CFE_PSP_Teardown(void)
 void UtTest_Setup(void)
 {
     #if TEST_NTP == 1
-
-    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_Enable,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "CFE_PSP_Sync_From_OS_Enable");
     
-    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_SetFreq,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_SetFreq,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_Sync_From_OS_SetFreq");
+              "Ut_CFE_PSP_TIME_NTPSync_SetFreq");
 
-    UtTest_Add(Ut_CFE_PSP_Sync_From_OS_GetFreq,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_GetFreq,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_Sync_From_OS_GetFreq");
+              "Ut_CFE_PSP_TIME_NTPSync_GetFreq");
 
-    UtTest_Add(Ut_CFE_PSP_Set_OS_Time,
+    UtTest_Add(Ut_CFE_PSP_TIME_Set_OS_Time,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_Set_OS_Time");
+              "Ut_CFE_PSP_TIME_Set_OS_Time");
     
-    UtTest_Add(Ut_CFE_PSP_Get_OS_Time,
+    UtTest_Add(Ut_CFE_PSP_TIME_Get_OS_Time,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_Get_OS_Time");
+              "Ut_CFE_PSP_TIME_Get_OS_Time");
     
-    UtTest_Add(Ut_CFE_PSP_NTP_Daemon_Get_Status,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTP_Daemon_isRunning,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_NTP_Daemon_Get_Status");
+              "Ut_CFE_PSP_TIME_NTP_Daemon_isRunning");
     
-    UtTest_Add(Ut_CFE_PSP_NTP_Daemon_Enable,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Enable,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_NTP_Daemon_Enable");
-    
-    UtTest_Add(Ut_CFE_PSP_TIME_Init,
+              "Ut_CFE_PSP_TIME_NTPSync_Task_Enable");
+        
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Disable,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_Init");
+              "Ut_CFE_PSP_TIME_NTPSync_Task_Disable");
 
-    UtTest_Add(Ut_CFE_PSP_TimeService_Ready,
+    UtTest_Add(Ut_CFE_PSP_TIME_CFETimeService_isRunning,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TimeService_Ready");
+              "Ut_CFE_PSP_TIME_CFETimeService_isRunning");
 
-    UtTest_Add(Ut_CFE_PSP_Update_OS_Time,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_Update_OS_Time");
+              "Ut_CFE_PSP_TIME_NTPSync_Task");
 
-    UtTest_Add(Ut_CFE_PSP_StartNTPDaemon,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_isRunning,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_StartNTPDaemon");
+              "Ut_CFE_PSP_TIME_NTPSync_Task_isRunning");
 
-    UtTest_Add(Ut_CFE_PSP_StopNTPDaemon,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Priority_Set,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_StopNTPDaemon");
+              "Ut_CFE_PSP_TIME_NTPSync_Task_Priority_Set");
 
-    UtTest_Add(Ut_net_clock_vxworks_Destroy,
+    UtTest_Add(Ut_CFE_PSP_TIME_StartNTPDaemon,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_net_clock_vxworks_Destroy");
+              "Ut_CFE_PSP_TIME_StartNTPDaemon");
+
+    UtTest_Add(Ut_CFE_PSP_TIME_StopNTPDaemon,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_TIME_StopNTPDaemon");
+
+    UtTest_Add(Ut_ntp_clock_vxworks_Destroy,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_ntp_clock_vxworks_Destroy");
 
     UtTest_Add(Ut_ntp_clock_vxworks_Init,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
