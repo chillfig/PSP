@@ -66,6 +66,15 @@ extern unsigned int GetWrsKernelTextStart(void);
 extern unsigned int GetWrsKernelTextEnd(void);
 
 /*
+** Static functions
+**
+** See function definitions for details
+*/
+static int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
+static int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes);
+static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC);
+
+/*
 ** Global variables
 */
 /* Temporary solution which declared a CDS file to store all apps' CDS data 
@@ -108,6 +117,11 @@ CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap; //UndCC_Line(SSET056) Nam
 /** \brief Pointer to the reserved memory block */
 static CFE_PSP_MemoryBlock_t g_ReservedMemBlock;
 
+/**
+ ** \brief Flag used to track sync CDS to FLASH status
+ */
+static bool g_bCDSSyncFlash_flag = PSP_CDS_SYNC_TO_FLASH_DEFAULT;
+
 /*
 *********************************************************************************
 ** CDS related functions
@@ -141,44 +155,6 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 }
 
 /**
-** \func Change the previous calculated CRC value to new provided value
-**
-** \par Description:
-** This function change the previous calculated CRC value to new provided value.
-** This function is just for testing purpose by forcing the CRC mismatched and 
-** read CDS data from Flash.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param uiNewCRC - New CRC
-**
-** \return None
-*/
-void CFE_PSP_SetStaticCRC(uint32 uiNewCRC)
-{
-    g_uiCDSCrc = uiNewCRC;
-}
-
-/**
-** \func Get the previous calculated CRC value
-**
-** \par Description:
-** None
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return Calculated CRC value
-*/
-uint32 CFE_PSP_GetStaticCRC(void)
-{
-    return g_uiCDSCrc;
-}
-
-/**
  ** \func Calculate 16 bits CRC from input data
  **
  ** \par Description:
@@ -198,7 +174,7 @@ uint32 CFE_PSP_GetStaticCRC(void)
  **
  ** \return Calculated CRC value
  */
-uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
+static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC)
 {
     uint32      i = 0;
     int16       Index = 0;
@@ -280,7 +256,7 @@ uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 Input
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
+static int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 {
     int32   iCDSFd = -1;
     int32   iReturnCode = CFE_PSP_ERROR;
@@ -344,7 +320,7 @@ int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
+static int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
 {
     int32   iCDSFd = -1;
     int32   iReturnCode = CFE_PSP_ERROR;
@@ -442,10 +418,13 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
                 g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
                                                     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
 
-                /* Write whole CDS memory to Flash */
-                if(CFE_PSP_WriteCDSToFlash(&iWroteBytes) == CFE_PSP_SUCCESS)
+                if (g_bCDSSyncFlash_flag == true)
                 {
-                    OS_printf("CFE_PSP: Wrote %d bytes to FLASH CDS file\n", iWroteBytes);
+                    /* Attempt to write to FLASH CDS file */
+                    if (CFE_PSP_WriteCDSToFlash(&iWroteBytes) != CFE_PSP_SUCCESS)
+                    {
+                        OS_printf("CFE_PSP: Failed to write CDS to flash\n");
+                    }
                 }
             }
         }
@@ -494,20 +473,22 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataFromRead, uint32 CDSOffset, uint32 NumB
                 OS_printf("CFE_PSP: CRC mismatched (uiCalculatedCrc = 0x%08X, g_uiCDSCrc = 0x%08X)\n", 
                         uiTempCrc, 
                         g_uiCDSCrc);
-
-                iReturnCode = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
-                if(iReturnCode == CFE_PSP_SUCCESS)
+                
+                if (g_bCDSSyncFlash_flag == true)
                 {
-                    /* Update the static CRC variable with new read CDS data from Flash */
-                    g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+                    iReturnCode = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
+                    if(iReturnCode == CFE_PSP_SUCCESS)
+                    {
+                        /* Update the static CRC variable with new read CDS data from Flash */
+                        g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
+                    }
+                    else
+                    {
+                        /* Return ERROR because CRC does not match and cannot be verified */
+                        OS_printf("CFE_PSP: Cannot read from FLASH\n");
+                    }
                 }
-                else
-                {
-                    /* Return ERROR because CRC does not match and cannot be verified */
-                    OS_printf("CFE_PSP: Cannot read from FLASH\n");
-                }
-        
             }
             else
             {
@@ -1000,4 +981,41 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
     }
 
     return(iReturnCode);
+}
+
+/**
+ ** \func Enable CDS sync to FLASH
+ **
+ ** \par Description:
+ ** This function will enable CDS syncing to FLASH
+ **
+ ** \par Assumptions, External Events, and Notes:
+ **
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_MEMORY_SYNC_Enable(void)
+{
+    g_bCorruptedCDSFlash = true;
+    g_bCDSSyncFlash_flag = true;
+}
+
+/**
+ ** \func Disable CDS sync to FLASH
+ **
+ ** \par Description:
+ ** This function will disable CDS syncing to FLASH
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This will not cancel/stop any in-progress syncing
+ **
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_MEMORY_SYNC_Disable(void)
+{
+    g_bCorruptedCDSFlash = true;
+    g_bCDSSyncFlash_flag = false;
 }

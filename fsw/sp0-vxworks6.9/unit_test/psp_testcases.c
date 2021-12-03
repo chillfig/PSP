@@ -185,14 +185,6 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCDSSize");
 
-    UtTest_Add(Ut_CFE_PSP_SetStaticCRC,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SetStaticCRC");
-
-    UtTest_Add(Ut_CFE_PSP_GetStaticCRC,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetStaticCRC");
-
     UtTest_Add(Ut_CFE_PSP_CalculateCRC,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_CalculateCRC");
@@ -244,6 +236,14 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_GetCFETextSegmentInfo,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCFETextSegmentInfo");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Enable,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Enable");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Disable,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Disable");
 
     #endif /* TEST_MEMORY == 1 */
 

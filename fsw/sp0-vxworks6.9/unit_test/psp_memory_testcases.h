@@ -24,8 +24,6 @@
 ** Function Declarations
 **=======================================================================================*/
 void Ut_CFE_PSP_GetCDSSize(void);
-void Ut_CFE_PSP_SetStaticCRC(void);
-void Ut_CFE_PSP_GetStaticCRC(void);
 void Ut_CFE_PSP_CalculateCRC(void);
 void Ut_CFE_PSP_ReadCDSFromFlash(void);
 void Ut_CFE_PSP_WriteCDSToFlash(void);
@@ -39,6 +37,8 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void);
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void);
 void Ut_CFE_PSP_GetKernelTextSegmentInfo(void);
 void Ut_CFE_PSP_GetCFETextSegmentInfo(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Enable(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Disable(void);
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
 /*=======================================================================================
 ** End of file psp_memory_testcases.h

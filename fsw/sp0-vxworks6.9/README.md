@@ -131,21 +131,26 @@ Kernel must include the following services:
 
 - Defines
   - CFE_PSP_CFE_FLASH_FILEPATH `*`
+  - PSP_CDS_SYNC_TO_FLASH_DEFAULT
+
 
 - Static Variables
   - g_cCDSFileName    "The full file path where the CDS file will be saved"
   - g_uiCDSCrc        "CDS CRC value"
   - g_bCorruptedCDSFlash "Identify if the CDS file in Flash memory is corrupted of not"
+  - g_bCDSSyncFlash_flag   "Identify if we intended to sync CDS to FLASH"
 
-- Functions
-  - CFE_PSP_SetStaticCRC
-  - CFE_PSP_GetStaticCRC
-  - CFE_PSP_CalculateCRC
+- Static Functions
   - CFE_PSP_ReadCDSFromFlash
   - CFE_PSP_WriteCDSToFlash
+  - CFE_PSP_CalculateCRC
+
+- Functions
   - CFE_PSP_GetCDSSize `$`
   - CFE_PSP_WriteToCDS `$`
   - CFE_PSP_ReadFromCDS `$`
+  - CFE_PSP_MEMORY_SYNC_Enable
+  - CFE_PSP_MEMORY_SYNC_Disable
 
 ### SP0 Info
 

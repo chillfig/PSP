@@ -63,37 +63,6 @@ void Ut_CFE_PSP_GetCDSSize(void)
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_SetStaticCRC() test cases
-**=======================================================================================*/
-void Ut_CFE_PSP_SetStaticCRC(void)
-{
-    uint32 uiNewCRC = 10;
-
-    /* ----- Test case #1 - Nominal ----- */
-    /* Setup additional inputs - None */
-    /* Execute test */
-    CFE_PSP_SetStaticCRC(uiNewCRC);
-    /* Verify outputs */
-    UtAssert_True(g_uiCDSCrc = uiNewCRC, "_CFE_PSP_SetStaticCRC - 1/1: Nominal");
-}
-
-/*=======================================================================================
-** Ut_CFE_PSP_GetStaticCRC() test cases
-**=======================================================================================*/
-void Ut_CFE_PSP_GetStaticCRC(void)
-{
-    uint32 uiRetCode = 0;
-
-    /* ----- Test case #1 - Nominal ----- */
-    /* Setup additional inputs  */
-    g_uiCDSCrc = 20;
-    /* Execute test */
-    uiRetCode = CFE_PSP_GetStaticCRC();
-    /* Verify outputs */
-    UtAssert_True(uiRetCode = g_uiCDSCrc, "_CFE_PSP_GetStaticCRC - 1/1:Nominal");
-}
-
-/*=======================================================================================
 ** Ut_CFE_PSP_CalculateCRC() test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_CalculateCRC(void)
@@ -309,14 +278,16 @@ void Ut_CFE_PSP_WriteToCDS(void)
     /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
     /* Setup additional inputs */
     pucData = uiBuffer;
+    g_bCDSSyncFlash_flag = true;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 1/6: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 1/7: Nominal No changed since the data buffer unchanged");
 
     /* ----- Test case #2 - Memcmp indicates we need to write, successful write to Flash ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
     memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes);
     uiBuffer[10] = uiBuffer[10] + 1;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
@@ -324,11 +295,26 @@ void Ut_CFE_PSP_WriteToCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 2/6: Nominal");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 2/7: Nominal");
+
+    /* ----- Test case #3 - Sync CDS to FLASH disabled ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_bCDSSyncFlash_flag = false;
+    memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes);
+    uiBuffer[10] = uiBuffer[10] + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToCDS() - 3/7: Correct return code");
 
     /* ----- Test case #3 - Write CDS To Flash failure ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, "CFE_PSP: Failed to write CDS to flash\n");
+    g_bCDSSyncFlash_flag = true;
     memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes);
     uiBuffer[10] = uiBuffer[10] + 1;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
@@ -336,32 +322,35 @@ void Ut_CFE_PSP_WriteToCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 3/6: Write CDS to flash failure");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToCDS() - 4/7: Write CDS to flash failure - message");
+    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_WriteToCDS() - 4/7: Write CDS to flash failure");
 
-    
     /* ----- Test case #4 - Input argument is NULL ----- */
     /* Setup additional inputs */
     pucData = NULL;
+    g_bCDSSyncFlash_flag = true;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 4/6: Input argument is NULL");
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 5/7: Input argument is NULL");
 
     /* ----- Test case #5 - Data offset is larger than CDSMemory block size ----- */
     /* Setup additional inputs */
+    g_bCDSSyncFlash_flag = true;
     uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 1;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 5/6: Failed data offset is larger than CDSMemory block size");
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 6/7: Failed data offset is larger than CDSMemory block size");
     
     /* ----- Test case #6- Data offset plus number of changed bytes is larger than CDSMemory block size ----- */
     /* Setup additional inputs */
+    g_bCDSSyncFlash_flag = true;
     uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize - 99;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 6/6: Failed data offset plus number of changed bytes is larger than CDSMemory block size");
+    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_WriteToCDS() - 7/7: Failed data offset plus number of changed bytes is larger than CDSMemory block size");
 }
 
 /*=======================================================================================
@@ -393,6 +382,7 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
+    g_bCDSSyncFlash_flag = true;
     pucData = uiBuffer;
     g_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
@@ -408,12 +398,27 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - New CRC codes was updated");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
                     "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - Read data is matched with CDSMemory data");
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - return value");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromCDS() - 1/7: Nominal - return value");
+
+    /* ----- Test case #2 - Sync CDS to flash disabled ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    g_bCDSSyncFlash_flag = false;
+    pucData = uiBuffer;
+    /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
+    uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
+                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
+    g_uiCDSCrc = 0;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
+    /* Verify results */
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadFromCDS() - 2/7: CRC Mismatch, unable to use FLASH memory");
 
     /* ----- Test case #2 - Unable to read from flash ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+    g_bCDSSyncFlash_flag = true;
     pucData = uiBuffer;
     g_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
@@ -424,13 +429,14 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 2/7: Read CDS From Flash failure - message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure - message");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_ReadFromCDS() - 2/7: Read CDS From Flash failure");
+                    "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
 
     /* ----- Test case #3 - Temp CDS and global CRC match ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
     pucData = uiBuffer;
     /* Calculate the CRC code for current CDSMemory data. This value needs for next OS_printf assert string */
     uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
@@ -439,14 +445,15 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
+    UtAssert_True(g_uiCDSCrc == uiTempCrc, "_CFE_PSP_ReadFromCDS() - 4/7: Read CDS From Flash failure");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
                     "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure");
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 3/7: Read CDS From Flash failure - return value");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadFromCDS() - 4/7: Read CDS From Flash failure - return value");
 
     /* ----- Test case #4 - Nominal read from Flash ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
     pucData = uiBuffer;
     g_uiCDSCrc = 0;
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
@@ -456,29 +463,27 @@ void Ut_CFE_PSP_ReadFromCDS(void)
     /* Verify outputs */
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiNumBytes, 
                     "_CFE_PSP_ReadFromCDS() - 4/7: Nominal Read data is matched with CDSMemory data");
-    UtAssert_True(iRetCode == OS_SUCCESS, "_CFE_PSP_ReadFromCDS() - 4/7: Nominal");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromCDS() - 5/7: Nominal");
 
     /* ----- Test case #5 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
     pucData = NULL;
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 5/7: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadFromCDS() - 6/7: Input argument is NULL");
 
     /* ----- Test case #6 - Data offset is larger than CDSMemory block size ----- */
     /* Setup additional inputs */
+    g_bCDSSyncFlash_flag = true;
     pucData = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
     uiCDSOffset = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 1;
     /* Execute test */
     iRetCode = CFE_PSP_ReadFromCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == OS_ERROR, "_CFE_PSP_ReadFromCDS() - 6/7: Failed data offset is larger than CDSMemory block size");
-
-    /* ----- Test case #7 - tempCRC and CDS CRC don't match ----- */
-    /* Setup additional inputs */
-
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ReadFromCDS() - 7/7: Failed data offset is larger than CDSMemory block size");
 }
 
 /*=======================================================================================
@@ -901,8 +906,59 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify Output */
     UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 5/5: Failed because *sizeOfCFESegment != NULL and moduleFindByName returned NULL");
-
 }
+
+/*=======================================================================================
+** Ut_CFE_PSP_GetCFETextSegmentInfo() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_MEMORY_SYNC_Enable(void)
+{
+    /* ----- Test case #1 - Nominal enable sync, currently disabled ----- */
+    /* Set additional inputs */
+    g_bCDSSyncFlash_flag = false;
+    g_bCorruptedCDSFlash = true;
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Enable();
+    /* Verify results */
+    UtAssert_True(g_bCDSSyncFlash_flag == true, "_CFE_PSP_MEMORY_SYNC_Enable - 1/2: CDS sync flag set correctly");
+    UtAssert_True(g_bCorruptedCDSFlash == true, "_CFE_PSP_MEMORY_SYNC_Enable - 1/2: Corrupted CDS flash value set");
+
+    /* ----- Test case #2 - Nominal enable sync, currently enabled ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
+    g_bCorruptedCDSFlash = true;
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Enable();
+    /* Verify results */
+    UtAssert_True(g_bCDSSyncFlash_flag == true, "_CFE_PSP_MEMORY_SYNC_Enable - 2/2: CDS sync flag set correctly");
+    UtAssert_True(g_bCorruptedCDSFlash == true, "_CFE_PSP_MEMORY_SYNC_Enable - 2/2: Corrupted CDS flash value set");
+}
+
+void Ut_CFE_PSP_MEMORY_SYNC_Disable(void)
+{
+    /* ----- Test case #1 - Nominal disable sync, currently disabled ----- */
+    /* Set additional inputs */
+    g_bCDSSyncFlash_flag = false;
+    g_bCorruptedCDSFlash = true;
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Disable();
+    /* Verify results */
+    UtAssert_True(g_bCDSSyncFlash_flag == false, "_CFE_PSP_MEMORY_SYNC_Disable - 1/2: CDS sync flag set correctly");
+    UtAssert_True(g_bCorruptedCDSFlash == true, "_CFE_PSP_MEMORY_SYNC_Disable - 1/2: Corrupted CDS flash value set");
+
+    /* ----- Test case #2 - Nominal disable sync, currently enabled ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    g_bCDSSyncFlash_flag = true;
+    g_bCorruptedCDSFlash = true;
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Disable();
+    /* Verify results */
+    UtAssert_True(g_bCDSSyncFlash_flag == false, "_CFE_PSP_MEMORY_SYNC_Disable - 2/2: CDS sync flag set correctly");
+    UtAssert_True(g_bCorruptedCDSFlash == true, "_CFE_PSP_MEMORY_SYNC_Disable - 2/2: Corrupted CDS flash value set");
+}
+
 /*=======================================================================================
 ** End of file psp_memory_testcases.c
 **=======================================================================================*/

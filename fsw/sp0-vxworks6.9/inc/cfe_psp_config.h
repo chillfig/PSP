@@ -390,8 +390,17 @@ typedef struct
  ** \par Limits:
  ** Value must be above NTP Daemon task and below Mem Scrub task
  **
-*/
+ */
 #define NTPSYNC_DEFAULT_PRIORITY            60
+
+/**
+ ** \brief CDS sync to FLASH
+ **
+ ** \par Description:
+ ** Default option used to determine to sync
+ ** CDS to FLASH or not
+ */
+#define PSP_CDS_SYNC_TO_FLASH_DEFAULT       true
 
 /**
  ** \brief NTP Sync maximum allowed Task priority
