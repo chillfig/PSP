@@ -35,6 +35,7 @@ void Ut_CFE_PSP_WatchdogDisable(void);
 void Ut_CFE_PSP_WatchdogService(void);
 void Ut_CFE_PSP_WatchdogGet(void);
 void Ut_CFE_PSP_WatchdogSet(void);
+void Ut_CFE_PSP_WatchdogStatus(void);
 
 #endif  /* UT_PSP_WATCHDOG_TESTCASES_H */
 

@@ -361,6 +361,10 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_WatchdogSet");
 
+    UtTest_Add(Ut_CFE_PSP_WatchdogStatus,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_WatchdogStatus");
+
     #endif /* TEST_WATCHDOG == 1 */
 
     /* Test NTP Sync */

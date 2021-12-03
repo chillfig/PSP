@@ -215,6 +215,7 @@ Kernel must include the following services:
 
 - Static Variables
   - g_uiCFE_PSP_WatchdogValue_ms
+  - g_bWatchdogStatus
 
 - Functions
   - CFE_PSP_WatchdogInit `$`

@@ -601,6 +601,24 @@ uint32  CFE_PSP_WatchdogGet(void);
 */
 void  CFE_PSP_WatchdogSet(uint32 watchDogValue_ms);
 
+
+/**
+ ** \func Check if watchdog is enabled or disabled
+ **
+ ** \par Description:
+ ** This functions returns the status of the Watchdog
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will return true of watchdog is enabled or false if
+ ** watchdog is disabled
+ **
+ ** \param None
+ **
+ ** \return true - if Watchdog is currently enabled
+ ** \return false - if Watchdog is current disabled
+ */
+bool CFE_PSP_WatchdogStatus(void);
+
 /**
 ** \func Abort cFE startup
 **

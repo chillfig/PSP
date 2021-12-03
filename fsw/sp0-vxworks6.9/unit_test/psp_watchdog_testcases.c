@@ -57,16 +57,24 @@ void Ut_CFE_PSP_WatchdogEnable(void)
     char cMsg[256] = {};
     sprintf(cMsg, "PSP Watchdog: Could not enable FPGA Watchdog\n");
 
+    /* ----- Test case #1 - Successfully enable watchdog ----- */
+    /* Set additional inputs */
     Ut_OS_printf_Setup();
-
+    sprintf(cMsg, "PSP Watchdog: Watchdog successfully enabled\n");
     UT_SetDefaultReturnValue(UT_KEY(sysEnableFpgaWdt), OK);
+    /* Execute test */
     CFE_PSP_WatchdogEnable();
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_WatchdogEnable() - 1/2: Nominal");
+    /* Verify results */
+    UtAssert_True(g_bWatchdogStatus == true, "_CFE_PSP_WatchdogEnable - 1/2: Nominal");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogEnable - 1/2: Nominal - message");
 
+    /* ----- Test case #2 - Unsuccessfully enable watchdog ----- */
+    /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(sysEnableFpgaWdt), ERROR);
+    /* Execute test */
     CFE_PSP_WatchdogEnable();
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogEnable() - 2/2: Could not enable Watchdog");
-    
+    /* Verify results */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogEnable - 2/2: Could not enable Watchdog");   
 }
 
 /*=======================================================================================
@@ -75,17 +83,29 @@ void Ut_CFE_PSP_WatchdogEnable(void)
 void Ut_CFE_PSP_WatchdogDisable(void)
 {
     char cMsg[256] = {};
-    sprintf(cMsg, "PSP Watchdog: Could not disable FPGA Watchdog\n");
 
+    /* ----- Test case #1 - Successfully disable watchdog ----- */
+    /* Set additional inputs */
     Ut_OS_printf_Setup();
-
+    sprintf(cMsg, "PSP Watchdog: Successfully disabled watchdog\n");
+    /* Execute test */
     UT_SetDefaultReturnValue(UT_KEY(sysDisableFpgaWdt), OK);
     CFE_PSP_WatchdogDisable();
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_WatchdogDisable() - 1/2: NA");
+    /* Verify results */
+    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 1/2: Successfully disable watchdog");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 1/2: Successfully disable watchdog");
 
+    /* ----- Test case #2 - Unsuccessfully disable watchdog */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, "PSP Watchdog: Could not disable FPGA Watchdog\n");
     UT_SetDefaultReturnValue(UT_KEY(sysDisableFpgaWdt), ERROR);
+    /* Execute test */
     CFE_PSP_WatchdogDisable();
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable() - 2/2: NA");
+    /* Verify results */
+    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
 }
 
 /*=======================================================================================
@@ -142,11 +162,37 @@ void Ut_CFE_PSP_WatchdogSet(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), ERROR);
+    g_uiCFE_PSP_WatchdogValue_ms = 99;
+    BASE_g_uiCFE_PSP_WatchdogValue_ms = 3;
     /* Execute test */
     CFE_PSP_WatchdogSet(BASE_g_uiCFE_PSP_WatchdogValue_ms);
     /* Verify outputs */
-    UtAssert_IntegerCmpAbs(g_uiCFE_PSP_WatchdogValue_ms, BASE_g_uiCFE_PSP_WatchdogValue_ms, 0, "_CFE_PSP_WatchdogSet() - 2/2: Nominal");
+    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms != BASE_g_uiCFE_PSP_WatchdogValue_ms, "_CFE_PSP_WatchdogSet() - 2/2: Nominal");
     UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogSet() - 2/2: Nominal Error Print");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_WatchdogStatus(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_WatchdogStatus(void)
+{
+    bool bReturnValue;
+
+    /* ----- Test case #1 - Watchdog is currently disabled ----- */
+    /* Set additional inputs */
+    g_bWatchdogStatus = false;
+    /* Execute test */
+    bReturnValue = CFE_PSP_WatchdogStatus();
+    /* Verify results */
+    UtAssert_True(bReturnValue == false, "_CFE_PSP_WatchdogStatus - 1/2: Watchdog currently disabled - return code");
+
+    /* ----- Test case #2 - Watchdog is currently enabled ----- */
+    /* Set additional inputs */
+    g_bWatchdogStatus = true;
+    /* Execute test */
+    bReturnValue = CFE_PSP_WatchdogStatus();
+    /* Verify results */
+    UtAssert_True(bReturnValue == true, "_CFE_PSP_WatchdogStatus - 2/2: Watchdog currently enabled - return code");
 }
 
 /*=======================================================================================

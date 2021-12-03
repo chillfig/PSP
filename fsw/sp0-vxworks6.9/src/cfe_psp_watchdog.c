@@ -43,6 +43,8 @@
 /** \brief Watchdog current millisecond value */
 static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
 
+/** \brief Watchdog current status */
+static bool g_bWatchdogStatus = false;
 
 /**
 ** \func Initialize the watchdog timer
@@ -81,19 +83,23 @@ void CFE_PSP_WatchdogInit(void)
 */
 void CFE_PSP_WatchdogEnable(void)
 {
-    int ret_code = OK;
+    int iStatus = OK;
 
     /*
     ** TRUE (allows slave SBC's WDT failure to reset all SBCs)
     ** FALSE (slave SBC's WDT failure resets slave SBC only)
     */
-    ret_code = sysEnableFpgaWdt(true);
-    if (ret_code != OK)
+    iStatus = sysEnableFpgaWdt(true);
+    if (iStatus != OK)
     {
         OS_printf("PSP Watchdog: Could not enable FPGA Watchdog\n");
     }
+    else
+    {
+        g_bWatchdogStatus = true;
+        OS_printf("PSP Watchdog: Watchdog successfully enabled\n");
+    }
 }
-
 
 /**
 ** \func Disable the watchdog timer
@@ -110,16 +116,20 @@ void CFE_PSP_WatchdogEnable(void)
 */
 void CFE_PSP_WatchdogDisable(void)
 {
-    int ret_code = OK;
+    int iStatus = OK;
+    g_bWatchdogStatus = false;
 
-    ret_code = sysDisableFpgaWdt();
+    iStatus = sysDisableFpgaWdt();
 
-    if (ret_code != OK)
+    if (iStatus != OK)
     {
         OS_printf("PSP Watchdog: Could not disable FPGA Watchdog\n");
     }
+    else
+    {
+        OS_printf("PSP Watchdog: Successfully disabled watchdog\n");
+    }
 }
-
 
 /**
 ** \func Service the watchdog timer
@@ -180,20 +190,45 @@ uint32 CFE_PSP_WatchdogGet(void)
 */
 void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
 {
-    int   ret_code = OK;
+    int   iStatus = OK;
     float fRate = 0.0f;
-
-    g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;  /* input already in msecs */
 
     /*Rate is in seconds*/
     fRate = (((float)watchDogValue_ms) * 0.001f);
 
-    ret_code = sysSetFpgaWdt(fRate);
+    iStatus = sysSetFpgaWdt(fRate);
 
-    if (ret_code != OK)
+    if (iStatus != OK)
     {
         OS_printf("PSP Watchdog: Could not set FPGA Watchdog rate\n");
     }
+    else
+    {
+        /*
+        ** sysSetFpgaWdt was successful, set new watchdog value
+        **
+        ** Input already in msecs
+        */
+        g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;
+    }
 }
 
-
+/**
+ ** \func Check if watchdog is enabled ro disabled
+ **
+ ** \par Description:
+ ** This functions returns the status of the Watchdog
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will return true of watchdog is enabled or false if
+ ** watchdog is disabled
+ **
+ ** \param None
+ **
+ ** \return true - if Watchdog is currently enabled
+ ** \return false - if Watchdog is current disabled
+ */
+bool CFE_PSP_WatchdogStatus(void)
+{
+    return g_bWatchdogStatus;
+}
