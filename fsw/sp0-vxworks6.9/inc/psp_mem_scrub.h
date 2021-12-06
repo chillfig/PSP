@@ -42,7 +42,37 @@ extern "C" {
  ** \par Description:
  ** This string is printed before every print related to Memory Scrubbing API.
 */
-#define MEM_SCRUB_PRINT_SCOPE   "PSP MEM SCRUB: "
+#define MEM_SCRUB_PRINT_SCOPE           "PSP MEM SCRUB: "
+
+/**
+ ** \brief Start mem scrub on startup option 
+ ** \par Description:
+ ** This option can be set to indicate if PSP should start 
+ ** mem scrub task on startup.
+ ** 0 = Do not start task during startup
+ ** 1 = Start task during startup
+*/
+#define MEM_SCRUB_TASK_START_ON_STARTUP      true
+
+/**
+ ** \brief Memory Scrubbign information struct
+ ** \par Description:
+ ** Memory scrubbing struct containing useful information:
+ **     - uiMemScrubStartAddr
+ **     - uiMemScrubEndAddr
+ **     - uiMemScrubCurrentPage
+ **     - uiMemScrubTotalPages
+ **     - opMemScrubTaskPriority
+ **     - bIsRunning
+*/
+typedef struct MEM_SCRUB_STATUS_s
+{
+    uint32              uiMemScrubStartAddr;
+    uint32              uiMemScrubEndAddr;
+    uint32              uiMemScrubCurrentPage;
+    uint32              uiMemScrubTotalPages;
+    osal_priority_t     opMemScrubTaskPriority;
+} MEM_SCRUB_STATUS_t;
 
 /**
 ** \func Set the Memory Scrubbing parameters
@@ -96,9 +126,10 @@ bool  CFE_PSP_MEM_SCRUB_isRunning(void);
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully deleted
+** \return #CFE_PSP_ERROR - If unsuccessfully deleted
 */
-void  CFE_PSP_MEM_SCRUB_Delete(void);
+int32  CFE_PSP_MEM_SCRUB_Delete(void);
 
 /**
 ** \func Print the Memory Scrubbing statistics
@@ -110,27 +141,13 @@ void  CFE_PSP_MEM_SCRUB_Delete(void);
 ** \par Assumptions, External Events, and Notes:
 ** Start memory address is usually 0. End memory address is usually set to the 
 ** last value of RAM address. Note that a page is 4098 bytes.
+** 
+** \param[out] mss_Status - Pointer to struct containing mem scrub info
+** \param[in] talk - Print out the status values
 **
-** \param None
-**
-** \return None
+** \return MEM_SCRUB_STATUS_t - Struct containing status values
 */
-void  CFE_PSP_MEM_SCRUB_Status(void);
-
-/**
-** \func Memory Scrubbing task
-**
-** \par Description:
-** This function performs the Memory Scrubbing steps.
-**
-** \par Assumptions, External Events, and Notes:
-** The scrubMemory function implemented by AiTech may never return an error.
-**
-** \param None
-**
-** \return None
-*/
-void  CFE_PSP_MEM_SCRUB_Task(void);
+void  CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk);
 
 /**
 ** \func Initialize the Memory Scrubbing task
@@ -143,9 +160,10 @@ void  CFE_PSP_MEM_SCRUB_Task(void);
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successful initialization
+** \return #CFE_PSP_ERROR - If unsuccessful initialization
 */
-void  CFE_PSP_MEM_SCRUB_Init(void);
+int32  CFE_PSP_MEM_SCRUB_Init(void);
 
 /**
 ** \func Enable the Memory Scrubbing task
@@ -159,9 +177,10 @@ void  CFE_PSP_MEM_SCRUB_Init(void);
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
+** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
 */
-void  CFE_PSP_MEM_SCRUB_Enable(void);
+int32  CFE_PSP_MEM_SCRUB_Enable(void);
 
 /**
 ** \func Disable the Memory Scrubbing task
@@ -175,9 +194,10 @@ void  CFE_PSP_MEM_SCRUB_Enable(void);
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully disabled memory scrub task
+** \return #CFE_PSP_ERROR - If unsuccessfully disabled memory scrub task
 */
-void  CFE_PSP_MEM_SCRUB_Disable(void);
+int32  CFE_PSP_MEM_SCRUB_Disable(void);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

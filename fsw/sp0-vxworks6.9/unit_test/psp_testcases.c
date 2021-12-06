@@ -254,6 +254,7 @@ void UtTest_Setup(void)
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MEM_SCRUB_Init");
 
+    /* Below test will never exit unless task is deleted */
     UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Task,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MEM_SCRUB_Task");

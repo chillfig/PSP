@@ -107,6 +107,8 @@ Kernel must include the following services:
   - MEMSCRUB_PRIORITY_DOWN_RANGE `*`
   - MEMSCRUB_TASK_NAME `*`
   - MEM_SCRUB_PRINT_SCOPE
+  - PSP_MEM_SCRUB_BSEM_NAME
+  - MEM_SCRUB_TASK_START_ON_STARTUP
 
 - Static Variables
   - g_uiMemScrubTaskPriority
@@ -115,14 +117,19 @@ Kernel must include the following services:
   - g_uiMemScrubEndAddr
   - g_uiMemScrubCurrentPage
   - g_uiMemScrubTotalPages
+  - g_uiStartOfRam
   - g_uiEndOfRam
+  - g_semUpdateMemAddr_id
+  - g_bScrubAddrUpdates_flag
+
+- Static Functions
+  - CFE_PSP_MEM_SCRUB_Task
 
 - Functions
   - CFE_PSP_MEM_SCRUB_Set
   - CFE_PSP_MEM_SCRUB_Status
-  - CFE_PSP_MEM_SCRUB_Task
-  - CFE_PSP_MEM_SCRUB_Init
   - CFE_PSP_MEM_SCRUB_isRunning
+  - CFE_PSP_MEM_SCRUB_Init
   - CFE_PSP_MEM_SCRUB_Delete
   - CFE_PSP_MEM_SCRUB_Enable
   - CFE_PSP_MEM_SCRUB_Disable

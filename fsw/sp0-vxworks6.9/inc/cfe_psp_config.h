@@ -393,6 +393,9 @@ typedef struct
  */
 #define NTPSYNC_DEFAULT_PRIORITY            60
 
+/** \brief MEM SCRUB Binary semaphore name */
+#define PSP_MEM_SCRUB_BSEM_NAME             "PSP_BSEM_NAME"
+
 /**
  ** \brief CDS sync to FLASH
  **

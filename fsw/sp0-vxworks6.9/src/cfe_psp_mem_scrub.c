@@ -33,6 +33,13 @@
 #include "psp_mem_scrub.h"
 #include "cfe_psp_config.h"
 
+/*
+** Static function declarations
+**
+** See function definition for details
+*/
+static void CFE_PSP_MEM_SCRUB_Task(void);
+
 /* Defined in cfe_psp_memory.c */
 extern uint32 g_uiEndOfRam;
 
@@ -77,6 +84,34 @@ static uint32 g_uiMemScrubCurrentPage = 0;
 static uint32 g_uiMemScrubTotalPages = 0;
 
 /**
+ ** \brief Binary semaphore id used for mem scrub addresses changes
+ ** \par Description:
+ ** It is possible for multiple threads to be altering global mem scrub start
+ ** address variable and global mem scrub end address variable. In order
+ ** to protect against disjoint mem address setting due to context switching 
+ ** between threads, we implement a semaphore to check before assigning new
+ ** mem scrub start/end address values.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Cannot initialize static variable to non-constant expression. I believe
+ ** compiler is interpreting OS_OBJECT_ID_UNDEFINED as non constant expression
+ ** because of type cast in preprocessor macro. Instead, assign variable to
+ ** OS_OBJECT_ID_UNDEFINED in CFE_PSP_MEM_SCRUB_Init. Since CFE_PSP_MEM_SCRUB_Init
+ ** will be the first mem scrub-related function to be called and below variable
+ ** is static, this will be safe. 
+ */
+static osal_id_t g_semUpdateMemAddr_id = 0;
+
+/**
+ ** \brief Boolean flag to indicate scrub addresses have been udpated
+ ** \par Description:
+ ** See above g_semUpdateMemAddr_id for more information.
+ ** We use this flag for optimization sake; use this flag to check
+ ** if scrub addresses need to be updated. See ...SCRUB_Task
+ */
+static bool g_bScrubAddrUpdates_flag = false;
+
+/**
 ** \func Set the Memory Scrubbing parameters
 ** 
 ** \par Description:
@@ -103,57 +138,88 @@ static uint32 g_uiMemScrubTotalPages = 0;
 */
 int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
-    int32 iReturnCode = CFE_PSP_SUCCESS;
+    int32 iReturnCode = CFE_PSP_ERROR;
 
-    /* Verify start and end address */
-    if (newStartAddr < newEndAddr)
+    /*
+    ** Take binary semaphore
+    */
+    if (g_semUpdateMemAddr_id == OS_OBJECT_ID_UNDEFINED)
     {
-        g_uiMemScrubStartAddr = newStartAddr;
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Binary semaphore not created\n");
+    }
+    else if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
+    {
+        /* Verify start and end address */
+        if (newStartAddr < newEndAddr)
+        {
+            /* Indicate that address values are being updated */
+            g_bScrubAddrUpdates_flag = true;
 
-        /* If top of memory has not been initialized, then initialize it */
-        if (g_uiEndOfRam == 0)
-        {
-            g_uiEndOfRam = (uint32) sysPhysMemTop();
-        }
+            g_uiMemScrubStartAddr = newStartAddr;
 
-        if (newEndAddr > g_uiEndOfRam)
-        {
-            g_uiMemScrubEndAddr = g_uiEndOfRam;
-            OS_printf(MEM_SCRUB_PRINT_SCOPE "Invalid newEndAddr. Range set to end of RAM\n");
-        }
-        else
-        {
-            g_uiMemScrubEndAddr = newEndAddr;
-        }
-
-        /*
-        If the task priority is different from the currently set value,
-        then change it as long as it is within the allowed range
-        */
-        if (task_priority != g_uiMemScrubTaskPriority)
-        {
-            /* If the Task Priority is set outside the range, use default range and 
-            report error */
-            if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
+            /* If top of memory has not been initialized, then initialize it */
+            if (g_uiEndOfRam == 0)
             {
-                /* Apply default priority */
-                g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
-                OS_printf(MEM_SCRUB_PRINT_SCOPE "Priority is outside range, using default `%u`\n",
-                          g_uiMemScrubTaskPriority);
+                g_uiEndOfRam = (uint32) sysPhysMemTop();
+            }
+
+            if (newEndAddr > g_uiEndOfRam)
+            {
+                g_uiMemScrubEndAddr = g_uiEndOfRam;
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Invalid newEndAddr. Range set to end of RAM\n");
             }
             else
             {
-                /* Apply new priority */
-                g_uiMemScrubTaskPriority = task_priority;
+                g_uiMemScrubEndAddr = newEndAddr;
             }
+            
+            /*
+            * Task Priority does not need to be changed
+            */
+            if (task_priority == g_uiMemScrubTaskPriority)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            /*
+            * If the Task Priority is different from current value and is within
+            * the allowed range, change it
+            */
+            else
+            {
+                /*
+                * If the Task Priority is set outside the range, use default priority and
+                * report error
+                */
+                if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
+                {
+                    /* Apply default priority */
+                    g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+                    /* Report error */
+                    OS_printf(MEM_SCRUB_PRINT_SCOPE "Priority is outside range, using default `%u`\n",
+                            g_uiMemScrubTaskPriority);
+                }
+                else
+                {
+                    /* Apply new priority */
+                    g_uiMemScrubTaskPriority = task_priority;
+                }
 
-            iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
+                iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
+            }
+        }
+        else
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "[ERR] Start address after end address\n");
+        }
+        if(OS_BinSemGive(g_semUpdateMemAddr_id) != OS_SUCCESS)
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to give semaphore\n");
+            iReturnCode = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "[ERR] End address larger than Start address\n");
-        iReturnCode = CFE_PSP_ERROR;
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to take binary semaphore\n");
     }
 
     return iReturnCode;
@@ -163,31 +229,58 @@ int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priorit
 ** \func Stop the memory scrubbing task
 **
 ** \par Description:
-** This function deletes the Memory Scrubbing task.  
-** The task is deleted and the statistics are reset.
+** This function resets all memory scrub related variables,
+** then call CFE_PSP_MEM_SCRUB_Disable to delete the memory scrubbing
+** task.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** None
+** This function should only be used for shutdown/reset. To stop/delete
+** memory scrub task for other situations, use SCRUB_Disable
 **
 ** \param - None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully deleted
+** \return #CFE_PSP_ERROR - If unsuccessfully deleted
 */
-void CFE_PSP_MEM_SCRUB_Delete(void)
+int32 CFE_PSP_MEM_SCRUB_Delete(void)
 {
-    if (OS_TaskDelete(g_uiMemScrubTaskId) == OS_SUCCESS)
+    int32 iReturnCode = CFE_PSP_ERROR;
+
+    if (CFE_PSP_MEM_SCRUB_Disable() == CFE_PSP_SUCCESS)
     {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Deleted\n");
+        /* Reset all memory scrub related values to default */
+        g_uiMemScrubTaskId = 0;
+        g_uiMemScrubCurrentPage = 0;
+        g_uiMemScrubTotalPages = 0;
+        g_uiMemScrubStartAddr = 0;
+        g_uiMemScrubEndAddr = g_uiEndOfRam;
+        g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+
+        /* Attempt to delete semaphore */
+        if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
+        {
+            if (OS_BinSemDelete(g_semUpdateMemAddr_id) == OS_SUCCESS)
+            {
+                g_semUpdateMemAddr_id = OS_OBJECT_ID_UNDEFINED;
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            else
+            {
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to delete semaphore\n");
+            }
+        }
+        else
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to take semaphore\n");
+        }
     }
     else
     {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Memory Scrubbing Task Error\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to disable mem scrub task\n");
     }
-    /* Reset task stats and ID */
-    g_uiMemScrubTotalPages = 0;
-    g_uiMemScrubTaskId = 0;
-}
 
+    return iReturnCode;
+}
 /**
 ** \func Print the Memory Scrubbing statistics
 ** 
@@ -197,26 +290,32 @@ void CFE_PSP_MEM_SCRUB_Delete(void)
 **
 ** \par Assumptions, External Events, and Notes:
 ** Start memory address is usually 0. End memory address is usually set to the 
-** last value of RAM address. Note that a page is 4096 bytes.
+** last value of RAM address. Note that a page is 4098 bytes.
+** 
+** \param[out] mss_Status - Pointer to struct containing mem scrub info
+** \param[in] talk - Print out the status values
 **
-** \param None
-**
-** \return None
+** \return MEM_SCRUB_STATUS_t - Struct containing status values
 */
-void CFE_PSP_MEM_SCRUB_Status(void)
+void CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk)
 {
-    if (g_uiMemScrubTaskId > 0)
+    mss_Status->uiMemScrubStartAddr = g_uiMemScrubStartAddr;
+    mss_Status->uiMemScrubEndAddr = g_uiMemScrubEndAddr;
+    mss_Status->uiMemScrubCurrentPage = g_uiMemScrubCurrentPage;
+    mss_Status->uiMemScrubTotalPages = g_uiMemScrubTotalPages;
+    mss_Status->opMemScrubTaskPriority = g_uiMemScrubTaskPriority;
+
+    if (talk == true)
     {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "StartAdr: 0x%08X - EndAdr: 0x%08X - CurrentPages: %u - TotalPages: %u\n",
-                g_uiMemScrubStartAddr,
-                g_uiMemScrubEndAddr,
-                g_uiMemScrubCurrentPage,
-                g_uiMemScrubTotalPages
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "StartAdr: 0x%08X - EndAdr: 0x%08X\n" \
+                                        "CurrentPages: %u - TotalPages: %u\n" \
+                                        "Scrub Task Priority: %u\n",
+                mss_Status->uiMemScrubStartAddr,
+                mss_Status->uiMemScrubEndAddr,
+                mss_Status->uiMemScrubCurrentPage,
+                mss_Status->uiMemScrubTotalPages,
+                mss_Status->opMemScrubTaskPriority
                 );
-    }
-    else
-    {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
     }
 }
 
@@ -229,32 +328,60 @@ void CFE_PSP_MEM_SCRUB_Status(void)
 ** \par Assumptions, External Events, and Notes:
 ** The scrubMemory function implemented by AiTech may never return an error.
 ** The function may never exit, the task is meant to be deleted using 
-** CFE_PSP_MEM_SCRUB_Delete
+** CFE_PSP_MEM_SCRUB_Delete. Additionally, changes to global Mem Scrub
+** start and end address (by some other thread/task) will not have an affect
+** on the thread running this scrub task.
+** Global scrub memory start/end addresses should only be set via ...SCRUB_Set
+** This function is function should not be part of mem scrub public API
 ** 
 ** \param None
 **
 ** \return None
 */
-void CFE_PSP_MEM_SCRUB_Task(void)
+static void CFE_PSP_MEM_SCRUB_Task(void)
 {
     STATUS status = CFE_PSP_ERROR;
 
-    if (g_uiMemScrubEndAddr <= g_uiEndOfRam)
-    {
-        while(1)
-        {
-            /* Call the active memory scrubbing function */
-            status = scrubMemory(g_uiMemScrubStartAddr, g_uiMemScrubEndAddr, &g_uiMemScrubCurrentPage);
+    uint32 uiLocalMemScrubStartAddr = 0;
+    uint32 uiLocalMemScrubEndAddr = 0;
 
-            if (status == CFE_PSP_ERROR)
+    while(1)
+    {
+        /* 
+        ** We do this boolean comparison over just semaphore + assignment
+        ** under the assumption that these values will updates
+        ** infrequently relative to scrubMemory function call
+        */
+        if (g_bScrubAddrUpdates_flag == true)
+        {
+            if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
             {
-                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n");
-                break;
+                uiLocalMemScrubStartAddr = g_uiMemScrubStartAddr;
+                uiLocalMemScrubEndAddr = g_uiMemScrubEndAddr;
+                g_bScrubAddrUpdates_flag = false;
+                if (OS_BinSemGive(g_semUpdateMemAddr_id) != OS_SUCCESS)
+                {
+                    OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to give semaphore\n");
+                    break;
+                }
             }
             else
             {
-                g_uiMemScrubTotalPages += g_uiMemScrubCurrentPage;
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to take semaphore\n");
+                break;
             }
+        }
+        /* Call the active memory scrubbing function */
+        status = scrubMemory(uiLocalMemScrubStartAddr, uiLocalMemScrubEndAddr, &g_uiMemScrubCurrentPage);
+
+        if (status == CFE_PSP_ERROR)
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n");
+            break;
+        }
+        else
+        {
+            g_uiMemScrubTotalPages += g_uiMemScrubCurrentPage;
         }
     }
 }
@@ -263,47 +390,64 @@ void CFE_PSP_MEM_SCRUB_Task(void)
 ** \func Initialize the Memory Scrubbing task
 **
 ** \par Description:
-** This function starts the Memory Scrubbing task as a child thread.
+** This function only initializes memory scrubbing-related variables, but
+** does not actually handle starting the task
 **
 ** \par Assumptions, External Events, and Notes:
-** The scrubMemory function implemented by AiTech may never return an error.
+** This function should only be called during startup. To handle
+** starting memory scrub task post startup, use CFE_PSP_MEM_Scrub_Enable
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successful initialization
+** \return #CFE_PSP_ERROR - If unsuccessful initialization
 */
-void CFE_PSP_MEM_SCRUB_Init(void)
+int32 CFE_PSP_MEM_SCRUB_Init(void)
 {
     /* Initialize */
-    int32 iStatus = CFE_PSP_ERROR;
+    int32 iReturnCode = CFE_PSP_ERROR;
+    g_semUpdateMemAddr_id = OS_OBJECT_ID_UNDEFINED;
 
-    /* If task is not running, create task */
-    if (CFE_PSP_MEM_SCRUB_isRunning() == false)
+    /*
+    ** Create binary semaphore
+    **
+    ** Note that OS_BinSemCreate will set g_semUpdateMemAddr_id
+    ** to a non-zero value
+    */
+    if (OS_BinSemCreate(&g_semUpdateMemAddr_id, PSP_MEM_SCRUB_BSEM_NAME, OS_SEM_FULL, 0) == OS_SUCCESS)
     {
-        /* Set the scrub settings to default */
-        CFE_PSP_MEM_SCRUB_Set(0, g_uiEndOfRam, g_uiMemScrubTaskPriority);
-
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Starting Active Memory Scrubbing\n");
-
-        iStatus = OS_TaskCreate(&g_uiMemScrubTaskId, 
-                                MEMSCRUB_TASK_NAME, 
-                                CFE_PSP_MEM_SCRUB_Task,
-                                OSAL_TASK_STACK_ALLOCATE, 
-                                OSAL_SIZE_C(1024), 
-                                g_uiMemScrubTaskPriority, 
-                                0
-                                );
-                                
-        if (iStatus != OS_SUCCESS)
+        if (MEM_SCRUB_TASK_START_ON_STARTUP == true)
         {
-            OS_printf(MEM_SCRUB_PRINT_SCOPE "Error creating task\n");
+            /*
+            ** Manually set memory scrub start/end addresses
+            **
+            ** We manually set these in initialization. We do not call
+            ** CFE_PSP_MEM_SCRUB_Set because that function will attempt
+            ** to set task priority when mem scrub task hasn't been started
+            ** yet, resulting in an error. We can ignore the error, but there are
+            ** other statements in CFE_PSP_MEM_SCRUB_Set that may elicit errors
+            **
+            ** When startup process reaches this point, g_uiEndOfRam should already
+            ** be initialized to physical end of RAM via CFE_PSP_SetupReservedMemoryMap()
+            */
+            g_uiMemScrubStartAddr = 0;
+            g_uiMemScrubEndAddr = g_uiEndOfRam;
+            if (CFE_PSP_MEM_SCRUB_Enable() == CFE_PSP_SUCCESS)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            else
+            {
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to enable mem scrub task\n");
+            }
         }
     }
     else
     {
-        /* If task is already runnning, notify user */
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Task already running\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to create semaphore\n");
     }
+
+    return iReturnCode;
 }
 
 /**
@@ -325,9 +469,9 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
     /* Initialize */
     bool        bReturnValue = true;
     int32       iStatus = OS_SUCCESS;
-    osal_id_t   mem_scurb_id = 0;
+    osal_id_t   mem_scrub_id = 0;
 
-    iStatus = OS_TaskGetIdByName(&mem_scurb_id, MEMSCRUB_TASK_NAME);
+    iStatus = OS_TaskGetIdByName(&mem_scrub_id, MEMSCRUB_TASK_NAME);
 
     if (iStatus == OS_ERR_NAME_NOT_FOUND)
     {
@@ -341,7 +485,7 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
 ** \func Enable the Memory Scrubbing task
 **
 ** \par Description:
-** This function enables the Memory Scrubbing task.
+** This function enables (starts) the Memory Scrubbing task.
 **
 ** \par Assumptions, External Events, and Notes:
 ** If the task is already running, do nothing. If the task is not running,
@@ -349,19 +493,46 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
+** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
 */
-void CFE_PSP_MEM_SCRUB_Enable(void)
+int32 CFE_PSP_MEM_SCRUB_Enable(void)
 {
-    /* If task is not running, initilize it */
-    if (g_uiMemScrubTaskId > 0)
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* Check if memory scrub task is already running */
+    if (CFE_PSP_MEM_SCRUB_isRunning() == true)
     {
+        /* Memory scrub task already running */
         OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n");
+    }
+    /* Check if semaphore has been created */
+    else if (g_semUpdateMemAddr_id == OS_OBJECT_ID_UNDEFINED)
+    {
+        /* Semaphore has not been created */
+        iReturnCode = CFE_PSP_ERROR;
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Must create binary semaphore before starting mem scrub task\n");
     }
     else
     {
-        CFE_PSP_MEM_SCRUB_Init();
+        /* Attempt to start memory scrubbing task */
+        iReturnCode = OS_TaskCreate(&g_uiMemScrubTaskId, 
+                                    MEMSCRUB_TASK_NAME, 
+                                    CFE_PSP_MEM_SCRUB_Task,
+                                    OSAL_TASK_STACK_ALLOCATE, 
+                                    OSAL_SIZE_C(1024), 
+                                    g_uiMemScrubTaskPriority, 
+                                    0);
+        
+        /* Check that task was successfully created */
+        if (iReturnCode != OS_SUCCESS)
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Error creating memory scrub task\n");
+            iReturnCode = CFE_PSP_ERROR;
+        }
     }
+
+    return iReturnCode;
 }
 
 /**
@@ -376,17 +547,52 @@ void CFE_PSP_MEM_SCRUB_Enable(void)
 **
 ** \param None
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - If successfully disabled memory scrub task
+** \return #CFE_PSP_ERROR - If unsuccessfully disabled memory scrub task
 */
-void CFE_PSP_MEM_SCRUB_Disable(void)
+int32 CFE_PSP_MEM_SCRUB_Disable(void)
 {
-    /* If task is running, delete it */
-    if (g_uiMemScrubTaskId > 0)
+    int32 iReturnCode = CFE_PSP_ERROR;
+
+    /* Check if memory scrub task is running */
+    if (CFE_PSP_MEM_SCRUB_isRunning() == true)
     {
-        CFE_PSP_MEM_SCRUB_Delete();
+        /* Attempt to take semaphore */
+        if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
+        {
+            /* Attempt to delete memory scrub task */
+            if (OS_TaskDelete(g_uiMemScrubTaskId) == OS_SUCCESS)
+            {
+                if (OS_BinSemGive(g_semUpdateMemAddr_id) == OS_SUCCESS)
+                {
+                    iReturnCode = CFE_PSP_SUCCESS;
+                }
+                else
+                {
+                    OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to release semaphore\n");
+                }
+            }
+            else
+            {
+                OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to delete memory scrub task\n");
+            }
+        }
+        else
+        {
+            OS_printf(MEM_SCRUB_PRINT_SCOPE "Unable to take semaphore\n");
+        }
     }
     else
     {
-        OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task could not be found\n");
+        OS_printf(MEM_SCRUB_PRINT_SCOPE "Memory scrub task is not running\n");
+        iReturnCode = CFE_PSP_SUCCESS;
     }
+
+    /*
+    ** No matter what happens, reset values
+    */
+    g_uiMemScrubTotalPages = 0;
+    g_uiMemScrubTaskId = 0;
+
+    return iReturnCode;
 }
