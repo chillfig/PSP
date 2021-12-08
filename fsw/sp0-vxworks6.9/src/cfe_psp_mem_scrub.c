@@ -40,6 +40,19 @@
 */
 static void CFE_PSP_MEM_SCRUB_Task(void);
 
+/* Defined in sysLib.c */
+//UndCC_Begin(SSET056)
+extern uint32_t    l2errTotal;
+extern uint32_t    l2errMult;
+extern uint32_t    l2errTagPar;
+extern uint32_t    l2errMBECC;
+extern uint32_t    l2errSBECC;
+extern uint32_t    l2errCfg;
+extern uint32_t    mchCause;
+extern uint32_t    mchkHook;
+//UndCC_End(SSET056)
+extern void ckCtrs(void);
+
 /* Defined in cfe_psp_memory.c */
 extern uint32 g_uiEndOfRam;
 
@@ -295,7 +308,7 @@ int32 CFE_PSP_MEM_SCRUB_Delete(void)
 ** \param[out] mss_Status - Pointer to struct containing mem scrub info
 ** \param[in] talk - Print out the status values
 **
-** \return MEM_SCRUB_STATUS_t - Struct containing status values
+** \return None
 */
 void CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk)
 {
@@ -595,4 +608,37 @@ int32 CFE_PSP_MEM_SCRUB_Disable(void)
     g_uiMemScrubTaskId = 0;
 
     return iReturnCode;
+}
+
+/**
+ ** \func Get the memory error statistics
+ **
+ ** \par Description:
+ ** This function will fill the provided MEM_SCRUB_ERRSTATS_t pointer with
+ ** memory error statistics
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** TBD what these individual values truely represent. From sysLib.c:
+ ** "The machine check ISR will update these counters"
+ **
+ ** \param errStats - Pointer to MEM_SCRUB_ERRSTATS_t structure
+ ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
+ **
+ ** \return None
+ */
+void CFE_PSP_MEM_SCRUB_ErrStats(MEM_SCRUB_ERRSTATS_t *errStats, bool talkative)
+{
+    if (talkative == true)
+    {
+        ckCtrs();
+    }
+
+    errStats->uil2errTotal = l2errTotal;
+    errStats->uil2errMult = l2errMult;
+    errStats->uil2errTagPar = l2errTagPar;
+    errStats->uil2errMBECC = l2errMBECC;
+    errStats->uil2errSBECC = l2errSBECC;
+    errStats->uil2errCfg = l2errCfg;
+    errStats->uimchCause = mchCause;
+    errStats->uimchkHook = mchkHook;
 }

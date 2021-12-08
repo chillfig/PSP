@@ -55,7 +55,8 @@ extern "C" {
 #define MEM_SCRUB_TASK_START_ON_STARTUP      true
 
 /**
- ** \brief Memory Scrubbign information struct
+ ** \brief Memory Scrubbing information struct
+ ** 
  ** \par Description:
  ** Memory scrubbing struct containing useful information:
  **     - uiMemScrubStartAddr
@@ -73,6 +74,36 @@ typedef struct MEM_SCRUB_STATUS_s
     uint32              uiMemScrubTotalPages;
     osal_priority_t     opMemScrubTaskPriority;
 } MEM_SCRUB_STATUS_t;
+
+/**
+ ** \brief Memory Error Statistics struct
+ **
+ ** \par Description:
+ ** Returns a structure containing information about
+ ** memory errors:
+ **     - uil2errTotal
+ **     - uil2errMult
+ **     - uil2errTagPar
+ **     - uil2errMBECC
+ **     - uil2errSBECC
+ **     - uil2errCfg
+ **     - uimchCause
+ **     - uimchkHook
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** From sysLib.c: "The machine check ISR will update these counters"
+ */
+typedef struct MEM_SCRUB_ERRSTATS_s
+{
+    uint32              uil2errTotal;
+    uint32              uil2errMult;
+    uint32              uil2errTagPar;
+    uint32              uil2errMBECC;
+    uint32              uil2errSBECC;
+    uint32              uil2errCfg;
+    uint32              uimchCause;
+    uint32              uimchkHook;
+} MEM_SCRUB_ERRSTATS_t;
 
 /**
 ** \func Set the Memory Scrubbing parameters
@@ -145,7 +176,7 @@ int32  CFE_PSP_MEM_SCRUB_Delete(void);
 ** \param[out] mss_Status - Pointer to struct containing mem scrub info
 ** \param[in] talk - Print out the status values
 **
-** \return MEM_SCRUB_STATUS_t - Struct containing status values
+** \return None
 */
 void  CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk);
 
@@ -198,6 +229,23 @@ int32  CFE_PSP_MEM_SCRUB_Enable(void);
 ** \return #CFE_PSP_ERROR - If unsuccessfully disabled memory scrub task
 */
 int32  CFE_PSP_MEM_SCRUB_Disable(void);
+
+/**
+ ** \func Get the memory error statistics
+ **
+ ** \par Description:
+ ** This function will fill the provided MEM_SCRUB_ERRSTATS_t pointer with
+ ** memory error statistics
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** TBD what these individual values truely represent
+ **
+ ** \param errStats - Pointer to MEM_SCRUB_ERRSTATS_t structure
+ ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
+ **
+ ** \return None
+ */
+void CFE_PSP_MEM_SCRUB_ErrStats(MEM_SCRUB_ERRSTATS_t *errStats, bool talkative);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

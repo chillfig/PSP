@@ -535,7 +535,7 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     /* ----- Test case #1: ipcom success, taskNameToId success ----- */
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, IPCOM_SUCCESS);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     /* Execute test */
     return_code = CFE_PSP_TIME_StartNTPDaemon();
@@ -546,7 +546,7 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     /* ----- Test case #2: ipcom success, taskNameToId failure ----- */
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, IPCOM_SUCCESS);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
     /* Execute test */
     return_code = CFE_PSP_TIME_StartNTPDaemon();
@@ -559,7 +559,7 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     Ut_OS_printf_Setup();
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, IPCOM_ERR_ALREADY_STARTED);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already started\n");
     /* Not sure what would/should be returned in real execution */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     /* Execute test */
@@ -573,7 +573,7 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     Ut_OS_printf_Setup();
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, IPCOM_ERR_ALREADY_STARTED);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already started\n");
     /* Not sure what would/should be returned in real execution */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
     /* Execute test */
@@ -587,7 +587,7 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     Ut_OS_printf_Setup();
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, CFE_PSP_ERROR);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)", CFE_PSP_ERROR);
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)\n", CFE_PSP_ERROR);
     /* Execute test */
     return_code = CFE_PSP_TIME_StartNTPDaemon();
     /* Verify results */
@@ -608,7 +608,7 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     /* ----- Test case #1: ipcom success ----- */
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, IPCOM_SUCCESS);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully\n");
     /* Execute test */
     return_code = CFE_PSP_TIME_StopNTPDaemon();
     /* Verify results */
@@ -620,7 +620,7 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     Ut_OS_printf_Setup();
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, IPCOM_ERR_NOT_STARTED);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped\n");
     /* Execute test */
     return_code = CFE_PSP_TIME_StopNTPDaemon();
     /* Verify results */
@@ -632,7 +632,7 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     Ut_OS_printf_Setup();
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, CFE_PSP_ERROR);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = %d)", CFE_PSP_ERROR);
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = %d)\n", CFE_PSP_ERROR);
     /* Execute test */
     return_code = CFE_PSP_TIME_StopNTPDaemon();
     /* Verify results */

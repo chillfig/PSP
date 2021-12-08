@@ -133,6 +133,7 @@ Kernel must include the following services:
   - CFE_PSP_MEM_SCRUB_Delete
   - CFE_PSP_MEM_SCRUB_Enable
   - CFE_PSP_MEM_SCRUB_Disable
+  - CFE_PSP_MEM_SCRUB_ErrStats
 
 ### Critical Device Storage (CDS)
 

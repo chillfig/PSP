@@ -283,6 +283,10 @@ void UtTest_Setup(void)
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MEM_SCRUB_Delete");
 
+    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_ErrStats,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MEM_SCRUB_ErrStats");
+
     #endif /* TEST_MEM_SCRUB */
 
     #if TEST_EXCEPTION == 1

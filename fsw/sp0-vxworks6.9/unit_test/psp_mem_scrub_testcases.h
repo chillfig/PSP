@@ -31,6 +31,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Status(void);
 void Ut_CFE_PSP_MEM_SCRUB_Enable(void);
 void Ut_CFE_PSP_MEM_SCRUB_Disable(void);
 void Ut_CFE_PSP_MEM_SCRUB_Delete(void);
+void Ut_CFE_PSP_MEM_SCRUB_ErrStats(void);
 #endif  /* UT_PSP_MEM_SCRUB_TESTCASES_H */
 /*=======================================================================================
 ** End of file psp_mem_scrub_testcases.h

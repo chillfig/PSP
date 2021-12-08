@@ -754,6 +754,40 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
     UtAssert_True(g_uiMemScrubEndAddr == g_uiEndOfRam, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub end address reset");
     UtAssert_True(g_uiMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub task priority reset");
 }
+
+/*=======================================================================================
+** Ut_CFE_PSP_MEM_SCRUB_Delete(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_MEM_SCRUB_ErrStats(void)
+{
+    /*
+    ** We are going to make the assumption that we won't
+    ** reach 99 or greater total errors during the course
+    ** of this unit test
+    */
+    MEM_SCRUB_ERRSTATS_t errStats = {0, 0, 0, 0, 0, 0, 0, 0};
+    bool talkative;
+   
+    /* ----- Test case #1 - Nominal no print ----- */
+    /* Set additional inputs */
+    talkative = false;
+    errStats.uil2errTotal = 99;
+    /* Execute test */
+    CFE_PSP_MEM_SCRUB_ErrStats(&errStats, talkative);
+    /* Verify results */
+    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MEM_SCRUB_ErrStats - 1/2: Single value check");
+
+    /* ----- Test case #2 - Nominal print ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    talkative = true;
+    errStats.uil2errTotal = 99;
+    /* Execute test */
+    CFE_PSP_MEM_SCRUB_ErrStats(&errStats, talkative);
+    /* Verify results */
+    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MEM_SCRUB_ErrStats - 1/2: Single value check");
+}
+
 /*=======================================================================================
 ** End of file psp_mem_scrub_testcases.c
 **=======================================================================================*/
