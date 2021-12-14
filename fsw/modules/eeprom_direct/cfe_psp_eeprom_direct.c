@@ -20,7 +20,7 @@
 */
 
 /*
-** File   :	cfe_psp_eeprom.c
+** File   :	cfe_psp_eeprom_direct.c
 **
 ** Author :	Ezra Yeheskeli
 **
@@ -69,8 +69,6 @@ void eeprom_direct_Init(uint32 PspModuleId)
  **
  ** Return Values:
  **	 CFE_PSP_SUCCESS
- **	 CFE_PSP_ERROR_TIMEOUT write operation did not go through after a specific
- **   timeout.
  **	 CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit addressing
  **   scheme.
  */
@@ -106,8 +104,6 @@ int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
  **
  ** Return Values:
  **   CFE_PSP_SUCCESS
- **	 CFE_PSP_ERROR_TIMEOUT write operation did not go through after a specific
- **   timeout.
  **   CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit addressing
  **   scheme.
  */
@@ -200,9 +196,8 @@ int32 CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
  **
  **
  ** Return Values:
- **   CFE_PSP_SUCCESS
- **	 CFE_PSP_ERROR_TIMEOUT write operation did not go through after a specific
- **   timeout.
+ ** CFE_PSP_SUCCESS
+ ** CFE_PSP_ERROR_AND_MISALIGNED
  */
 
 int32 CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue)

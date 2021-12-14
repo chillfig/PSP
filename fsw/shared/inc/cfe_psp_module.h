@@ -47,6 +47,13 @@
 #include "target_config.h"
 
 /**
+ ** \brief Maximum Module Name Length
+ ** \par Note: Currently not enfornced other than
+ ** in cfe_psp_module.c -> CFE_PSP_Module_FindByName
+ */
+#define CFE_PSP_MODULE_NAME_MAX_LENGTH          30
+
+/**
  ** \brief Enum Module Type
  ** \par Note:
  ** May be extended in the future

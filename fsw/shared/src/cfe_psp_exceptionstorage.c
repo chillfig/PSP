@@ -293,12 +293,25 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
 **
 ** \return The actual size of the copied data
 ** \return #CFE_PSP_NO_EXCEPTION_DATA
+** \return #CFE_PSP_INVALID_POINTER
 */
 int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize)
 {
     const CFE_PSP_Exception_LogData_t *Buffer;
     uint32                             SeqId;
     uint32                             ActualSize;
+
+    if (ContextBuf == NULL)
+    {
+        /* Invalid Context Buffer Pointer */
+        return CFE_PSP_INVALID_POINTER;
+    }
+
+    if (ContextLogId < CFE_PSP_EXCEPTION_ID_BASE)
+    {
+        /* Supplied ID is not valid */
+        return CFE_PSP_NO_EXCEPTION_DATA;
+    }
 
     SeqId = ContextLogId - CFE_PSP_EXCEPTION_ID_BASE;
     if (SeqId > OS_OBJECT_INDEX_MASK)

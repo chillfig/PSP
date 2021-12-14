@@ -75,6 +75,18 @@ PSP_VxWorks_Timebase_Global_t PSP_VxWorks_Timebase_Global;
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(timebase_vxworks);
 
+/******************************************************************************
+**  Function:  timebase_vxworks_Init()
+**
+**  Purpose:
+**    Prepare time-related data for use in other functions
+**
+**  Arguments:
+**    PsPModuleId - Not used
+**
+**  Return:
+**    None
+*/
 void timebase_vxworks_Init(uint32 PspModuleId)
 {
     uint64 TicksPerSec;
@@ -196,13 +208,18 @@ uint32 CFE_PSP_GetTimerLow32Rollover(void)
 **    sometimes taken care of by the RTOS.
 **
 **  Arguments:
+**    Tbu - Timebase upper 32 (whole second)
+**    Tbl - Timebase lower 32 (nanosecond)
 **
 **  Return:
-**  Timebase register value
+**    Timebase register value
 */
 void CFE_PSP_Get_Timebase(uint32 *Tbu, uint32 *Tbl)
 {
-    vxTimeBaseGet((UINT32 *)Tbu, (UINT32 *)Tbl);
+    if ((Tbu != NULL) && (Tbl != NULL))
+    {
+        vxTimeBaseGet((UINT32 *)Tbu, (UINT32 *)Tbl);
+    }
 }
 
 /******************************************************************************
@@ -223,30 +240,33 @@ void CFE_PSP_GetTime(OS_time_t *LocalTime)
     uint32 RegUpper;
     uint32 RegLower;
 
-    vxTimeBaseGet(&RegUpper, &RegLower);
+    if (LocalTime != NULL)
+    {
+        vxTimeBaseGet(&RegUpper, &RegLower);
 
-    /*
-     * Convert to a uint64 value.  Per the Power ISA definition, this
-     * register wraps at (2^60)-1.  However at the tick rate implemented
-     * here this would require running continuously (without a power
-     * cycle or reset) for over 2000 years to reach that point, so
-     * for all practical purposes it does not roll over.
-     */
-    NormalizedTicks = RegUpper;
-    NormalizedTicks <<= 32;
-    NormalizedTicks |= RegLower;
+        /*
+        * Convert to a uint64 value.  Per the Power ISA definition, this
+        * register wraps at (2^60)-1.  However at the tick rate implemented
+        * here this would require running continuously (without a power
+        * cycle or reset) for over 2000 years to reach that point, so
+        * for all practical purposes it does not roll over.
+        */
+        NormalizedTicks = RegUpper;
+        NormalizedTicks <<= 32;
+        NormalizedTicks |= RegLower;
 
-    /*
-     * Apply the pre-computed conversion to OS_time_t.
-     *
-     * This ratio has been reduced during init such that it should minimize
-     * the impact on overall range of the 64-bit value.
-     */
-    NormalizedTicks *= PSP_VxWorks_Timebase_Global.OSTimeConvNumerator;
-    NormalizedTicks /= PSP_VxWorks_Timebase_Global.OSTimeConvDenominator;
+        /*
+        * Apply the pre-computed conversion to OS_time_t.
+        *
+        * This ratio has been reduced during init such that it should minimize
+        * the impact on overall range of the 64-bit value.
+        */
+        NormalizedTicks *= PSP_VxWorks_Timebase_Global.OSTimeConvNumerator;
+        NormalizedTicks /= PSP_VxWorks_Timebase_Global.OSTimeConvDenominator;
 
-    /* Output the value as an OS_time_t */
-    *LocalTime = (OS_time_t) {NormalizedTicks};
+        /* Output the value as an OS_time_t */
+        *LocalTime = (OS_time_t) {NormalizedTicks};
+    }
 
 } /* end CFE_PSP_GetLocalTime */
 /* UndCC_End(*) */

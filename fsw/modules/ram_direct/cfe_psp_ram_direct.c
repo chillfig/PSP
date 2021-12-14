@@ -31,6 +31,20 @@
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(ram_direct);
 
+/*
+ ** Name: ram_direct_Init
+ **
+ ** Purpose:
+ **         Inform the user that this module is in use
+ **
+ **
+ ** Parameters: None
+ **
+ ** Global Inputs: None
+ **
+ ** Global Outputs: None
+ **
+ */
 void ram_direct_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */

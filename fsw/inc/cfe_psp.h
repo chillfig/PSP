@@ -740,6 +740,7 @@ int32  CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, cha
 **
 ** \return The actual size of the copied data
 ** \return #CFE_PSP_NO_EXCEPTION_DATA
+** \return #CFE_PSP_INVALID_POINTER
 */
 int32  CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize);
 
@@ -760,6 +761,8 @@ int32  CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint
 ** \param[out] ByteValue - Pointer to the variable that stores the one-byte value read
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_POINTER
+** \return #CFE_PSP_INVALID_MEM_ADDR
 */
 int32  CFE_PSP_PortRead8(cpuaddr PortAddress, uint8 *ByteValue);
 
@@ -776,6 +779,7 @@ int32  CFE_PSP_PortRead8(cpuaddr PortAddress, uint8 *ByteValue);
 ** \param[in] ByteValue - One-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_ADDR
 */
 int32  CFE_PSP_PortWrite8(cpuaddr PortAddress, uint8 ByteValue);
 
@@ -792,6 +796,9 @@ int32  CFE_PSP_PortWrite8(cpuaddr PortAddress, uint8 ByteValue);
 ** \param[out] uint16Value - Pointer to the variable that stores the two-byte value read
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_POINTER
+** \return #CFE_PSP_ERROR_ADD_MISALIGNED
+** \return #CFE_PSP_INVALID_MEM_ADDR
 */
 int32  CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value);
 
@@ -808,6 +815,8 @@ int32  CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value);
 ** \param[in] uint16Value - Two-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_ADDR
+** \return #CFE_PSP_ERROR_ADD_MISALIGNED
 */
 int32  CFE_PSP_PortWrite16(cpuaddr PortAddress, uint16 uint16Value);
 
@@ -824,6 +833,8 @@ int32  CFE_PSP_PortWrite16(cpuaddr PortAddress, uint16 uint16Value);
 ** \param[out] uint32Value - Pointer to the variable that stores the four-byte value read
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_POINTER
+** \return #CFE_PSP_ERROR_ADD_MISALIGNED
 */
 int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value);
 
@@ -840,6 +851,8 @@ int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value);
 ** \param[in] uint32Value - Four-byte value to be written
 **
 ** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_ADDR
+** \return #CFE_PSP_ERROR_ADD_MISALIGNED
 */
 int32  CFE_PSP_PortWrite32(cpuaddr PortAddress, uint32 uint32Value);
 

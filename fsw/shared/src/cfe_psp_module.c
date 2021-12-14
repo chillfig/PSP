@@ -106,7 +106,20 @@ void CFE_PSP_ModuleInit(void)
     /* First initialize the fixed set of modules for this PSP */
     CFE_PSP_ModuleInitList(CFE_PSP_BASE_MODULE_LIST);
 
-    /* Then initialize any user-selected extension modules */
+    /*
+    ** Then initialize any user-selected extension modules
+    ** 
+    ** Set CFE_PSP_ModuleCount to 0 beacuse each function
+    ** that uses CFE_PSP_ModuleCount only iterates
+    ** through GLOBAL_CONFIGDATA.PspModuleList with no consideration
+    ** for other module lists (i.e., no consideration for
+    ** CFE_PSP_BASE_MODULE_LIST)
+    **
+    ** See https://github.com/nasa/PSP/issues/319
+    ** "A complete module list should be used for APIs that include both
+    ** the built in and added"
+    */
+    CFE_PSP_ModuleCount = 0;
     CFE_PSP_ModuleInitList(GLOBAL_CONFIGDATA.PspModuleList);
 }
 
@@ -165,19 +178,27 @@ int32 CFE_PSP_Module_FindByName(const char *ModuleName, uint32 *PspModuleId)
     int32                        Result;
     CFE_StaticModuleLoadEntry_t *Entry;
 
-    Entry  = GLOBAL_CONFIGDATA.PspModuleList;
     Result = CFE_PSP_INVALID_MODULE_NAME;
-    i      = 0;
-    while (i < CFE_PSP_ModuleCount)
+
+    if ((ModuleName != NULL) && (PspModuleId != NULL))
     {
-        if (strcmp(Entry->Name, ModuleName) == 0)
+        Entry  = GLOBAL_CONFIGDATA.PspModuleList;
+        
+        if (Entry != NULL)
         {
-            *PspModuleId = CFE_PSP_MODULE_BASE | (i & CFE_PSP_MODULE_INDEX_MASK);
-            Result       = CFE_PSP_SUCCESS;
-            break;
+            i = 0;
+            while (i < CFE_PSP_ModuleCount)
+            {
+                if (strncmp(Entry->Name, ModuleName, CFE_PSP_MODULE_NAME_MAX_LENGTH) == 0)
+                {
+                    *PspModuleId = CFE_PSP_MODULE_BASE | (i & CFE_PSP_MODULE_INDEX_MASK);
+                    Result       = CFE_PSP_SUCCESS;
+                    break;
+                }
+                ++Entry;
+                ++i;
+            }
         }
-        ++Entry;
-        ++i;
     }
 
     return Result;

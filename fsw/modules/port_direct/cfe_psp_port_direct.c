@@ -31,6 +31,24 @@
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(port_direct);
 
+/*
+** Name: port_direct_Init
+**
+** Purpose:
+**  Inform the user that this module is in use
+**
+** Parameters:
+**  PspModuleId : Not used
+**
+** Global Inputs:
+**  None
+**
+** Global Outputs:
+**  None
+**
+** Return Values:
+**  None
+*/
 void port_direct_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */
@@ -42,65 +60,93 @@ void port_direct_Init(uint32 PspModuleId)
 */
 
 /*
-** Name: CFE_PSP_PortRead8
+** Name:
+**  CFE_PSP_PortRead8
 **
 ** Purpose:
-**         Read one byte of memory.
-**
+**  Read one byte of memory.
 **
 ** Parameters:
 **	PortAddress : Address to be read
-**  ByteValue  : The address content will be copied to the location pointed by
+**  ByteValue   : The address content will be copied to the location pointed by
 **            this argument
 **
-** Global Inputs: None
+** Global Inputs:
+**  None
 **
-** Global Outputs: None
+** Global Outputs:
+*   None
 **
-**
-**
-** Return Values: CFE_PSP_SUCCESS
+** Return Values:
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_POINTER
+**  CFE_PSP_INVALID_MEM_ADDR
 */
 int32 CFE_PSP_PortRead8(cpuaddr PortAddress, uint8 *ByteValue)
 {
+    int32 iReturnValue = CFE_PSP_SUCCESS;
 
-    (*ByteValue) = (uint8) * ((uint8 *)PortAddress);
+    /* Null check */
+    if (ByteValue == NULL)
+    {
+        iReturnValue = CFE_PSP_INVALID_POINTER;
+    }
+    /* Port Address check */
+    else if (PortAddress == 0x00000000)
+    {
+        iReturnValue = CFE_PSP_INVALID_MEM_ADDR;
+    }
+    else
+    {
+        (*ByteValue) = (uint8) * ((uint8 *)PortAddress);
+        iReturnValue = CFE_PSP_SUCCESS;
+    }
 
-    return (CFE_PSP_SUCCESS);
+    return iReturnValue;
 }
 
 /*
-** Name: CFE_PSP_PortWrite8
+** Name:
+**  CFE_PSP_PortWrite8
 **
 ** Purpose:
-**         Write one byte of memory.
-**
+**  Write one byte of memory.
 **
 ** Parameters:
 **	PortAddress : Address to be written to
-**  ByteValue  : The content pointed by this argument will be copied to the
+**  ByteValue   : The content pointed by this argument will be copied to the
 **            address
 **
-** Global Inputs: None
+** Global Inputs:
+**  None
 **
-** Global Outputs: None
-**
-**
+** Global Outputs:
+**  None
 **
 ** Return Values:
-**		CFE_PSP_SUCCESS
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_MEM_ADDR
 */
 int32 CFE_PSP_PortWrite8(cpuaddr PortAddress, uint8 ByteValue)
 {
-    *((uint8 *)PortAddress) = ByteValue;
-    return (CFE_PSP_SUCCESS);
+    int32 iReturnValue = CFE_PSP_INVALID_MEM_ADDR;
+
+    /* Address check */
+    if (PortAddress != 0x00000000)
+    {
+        *((uint8 *)PortAddress) = ByteValue;
+        iReturnValue = CFE_PSP_SUCCESS;
+    }
+
+    return iReturnValue;
 }
 
 /*
-** Name: CFE_PSP_PortRead16
+** Name:
+**  CFE_PSP_PortRead16
 **
 ** Purpose:
-**         Read  2 bytes of memory.
+**  Read 2 bytes of memory.
 **
 **
 ** Parameters:
@@ -108,127 +154,182 @@ int32 CFE_PSP_PortWrite8(cpuaddr PortAddress, uint8 ByteValue)
 **  uint16Value : The address content will be copied to the location pointed by
 **            this argument
 **
-** Global Inputs: None
+** Global Inputs:
+**  None
 **
-** Global Outputs: None
-**
-**
+** Global Outputs:
+**  None
 **
 ** Return Values:
-**		CFE_PSP_SUCCESS
-**		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
-**      addressing scheme.
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_POINTER
+**	CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+**  addressing scheme.
+**  CFE_PSP_INVALID_MEM_ADDR
 */
 int32 CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value)
 {
-    /* check 16 bit alignment  , check the 1st lsb */
-    if (PortAddress & 0x00000001)
+    int32 iReturnValue = CFE_PSP_SUCCESS;
+
+    /* NULL check */
+    if (uint16Value == NULL)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        iReturnValue = CFE_PSP_INVALID_POINTER;
     }
-    (*uint16Value) = *((uint16 *)PortAddress);
-    return (CFE_PSP_SUCCESS);
+    /* Port Address check */
+    else if (PortAddress == 0x00000000)
+    {
+        iReturnValue = CFE_PSP_INVALID_MEM_ADDR;
+    }
+    /* check 16 bit alignment  , check the 1st lsb */
+    else if (PortAddress & 0x00000001)
+    {
+        iReturnValue = CFE_PSP_ERROR_ADDRESS_MISALIGNED;
+    }
+    else
+    {
+        (*uint16Value) = *((uint16 *)PortAddress);
+    }
+
+    return iReturnValue;
 }
 
 /*
-** Name: CFE_PSP_PortWrite16
+** Name:
+**  CFE_PSP_PortWrite16
 **
 ** Purpose:
-**         Write 2 byte of memory.
-**
+**  Write 2 byte of memory.
 **
 ** Parameters:
 **	PortAddress : Address to be written to
 **  uint16Value : The content pointed by this argument will be copied to the
 **            address
 **
-** Global Inputs: None
+** Global Inputs:
+** None
 **
-** Global Outputs: None
-**
-**
+** Global Outputs:
+** None
 **
 ** Return Values:
-**      CFE_PSP_SUCCESS
-**		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_MEM_ADDR
+**	CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
 **      addressing scheme.
 */
 int32 CFE_PSP_PortWrite16(cpuaddr PortAddress, uint16 uint16Value)
 {
-    /* check 16 bit alignment  , check the 1st lsb */
-    if (PortAddress & 0x00000001)
+    int32 iReturnValue = CFE_PSP_SUCCESS;
+
+    /* Address check */
+    if (PortAddress != 0x00000000)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        iReturnValue = CFE_PSP_INVALID_MEM_ADDR;
     }
-    *((uint16 *)PortAddress) = uint16Value;
-    return (CFE_PSP_SUCCESS);
+    /* check 16 bit alignment  , check the 1st lsb */
+    else if (PortAddress & 0x00000001)
+    {
+        iReturnValue = CFE_PSP_ERROR_ADDRESS_MISALIGNED;
+    }
+    else
+    {
+        *((uint16 *)PortAddress) = uint16Value;
+    }
+
+    return iReturnValue;
 }
 
 /*
-** Name: CFE_PSP_PortRead32
+** Name:
+**  CFE_PSP_PortRead32
 **
 ** Purpose:
-**         Read 4 bytes of memory.
-**
+**  Read 4 bytes of memory.
 **
 ** Parameters:
 **	PortAddress : Address to be read
 **  uint32Value : The address content will be copied to the location pointed by
 **            this argument
 **
-** Global Inputs: None
+** Global Inputs:
+**  None
 **
-** Global Outputs: None
-**
-**
+** Global Outputs:
+**  None
 **
 ** Return Values:
-**		CFE_PSP_SUCCESS
-**		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_POINTER
+**	CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 32 bit
 **      addressing scheme.
 */
 int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value)
 {
-    /* check 32 bit alignment  */
-    if (PortAddress & 0x00000003)
+    int32 iReturnValue = CFE_PSP_SUCCESS;
+
+    /* NULL check */
+    if (uint32Value == NULL)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        iReturnValue = CFE_PSP_INVALID_POINTER;
     }
-    (*uint32Value) = *((uint32 *)PortAddress);
-    return (CFE_PSP_SUCCESS);
+    /* check 32 bit alignment  */
+    
+    else if (PortAddress & 0x00000003)
+    {
+        iReturnValue = CFE_PSP_ERROR_ADDRESS_MISALIGNED;
+    }
+    else
+    {
+        (*uint32Value) = *((uint32 *)PortAddress);
+    }
+
+    return iReturnValue;
 }
 
 /*
-** Name: CFE_PSP_PortWrite32
+** Name:
+**  CFE_PSP_PortWrite32
 **
 ** Purpose:
-**         Write 4 byte of memory.
-**
+**  Write 4 byte of memory.
 **
 ** Parameters:
 **	PortAddress : Address to be written to
 **  uint32Value : The content pointed by this argument will be copied to the
 **            address
 **
-** Global Inputs: None
+** Global Inputs:
+**  None
 **
-** Global Outputs: None
-**
-**
+** Global Outputs:
+**  None
 **
 ** Return Values:
-**		CFE_PSP_SUCCESS
-**		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+**  CFE_PSP_SUCCESS
+**  CFE_PSP_INVALID_MEM_ADDR
+**  CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 32 bit
 **      addressing scheme.
 */
 int32 CFE_PSP_PortWrite32(cpuaddr PortAddress, uint32 uint32Value)
-{
-    /* check 32 bit alignment  */
-    if (PortAddress & 0x00000003)
+{   
+    int32 iReturnValue = CFE_PSP_SUCCESS;
+
+    /* Address check */
+    if (PortAddress != 0x00000000)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        iReturnValue = CFE_PSP_INVALID_MEM_ADDR;
     }
-    *((uint32 *)PortAddress) = uint32Value;
-    return (CFE_PSP_SUCCESS);
+    /* check 32 bit alignment  */
+    else if (PortAddress & 0x00000003)
+    {
+        iReturnValue = CFE_PSP_ERROR_ADDRESS_MISALIGNED;
+    }
+    else
+    {
+        *((uint32 *)PortAddress) = uint32Value;
+    }
+
+    return iReturnValue;
 }
 /* UndCC_End(*) */

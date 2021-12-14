@@ -67,8 +67,15 @@
  */
 int32 CFE_PSP_MemCpy(void *dest, const void *src, uint32 size)
 {
-    memcpy(dest, src, size);
-    return (CFE_PSP_SUCCESS);
+    if ((dest != NULL) && (src != NULL))
+    {
+        memcpy(dest, src, size);
+        return (CFE_PSP_SUCCESS);
+    }
+    else
+    {
+        return CFE_PSP_ERROR;
+    }
 }
 
 /**
@@ -91,6 +98,13 @@ int32 CFE_PSP_MemCpy(void *dest, const void *src, uint32 size)
  */
 int32 CFE_PSP_MemSet(void *dest, uint8 value, uint32 size)
 {
-    memset(dest, (int)value, (size_t)size);
-    return (CFE_PSP_SUCCESS);
+    int32 iReturnValue = CFE_PSP_ERROR;
+
+    if (dest != NULL)
+    {
+        memset(dest, (int)value, (size_t)size);
+        iReturnValue = CFE_PSP_SUCCESS;
+    }
+
+    return iReturnValue;
 }
