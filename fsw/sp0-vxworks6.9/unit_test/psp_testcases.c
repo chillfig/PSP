@@ -115,9 +115,13 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_PSP_SP0_GetInfo");
 
-    UtTest_Add(Ut_PSP_SP0_PrintInfoTable,
+    UtTest_Add(Ut_PSP_SP0_PrintToBuffer,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_PrintInfoTable");
+              "Ut_PSP_SP0_PrintToBuffer");
+
+    UtTest_Add(Ut_PSP_SP0_GetInfoTable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_GetInfoTable");
 
     UtTest_Add(Ut_PSP_SP0_DumpData,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

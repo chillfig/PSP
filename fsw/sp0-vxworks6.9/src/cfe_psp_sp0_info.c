@@ -34,6 +34,9 @@
 #include <float.h>
 #include <stat.h>
 
+/* For supporting REALTIME clock */
+#include <timers.h>
+
 /* Aitech BSP Specific */
 #include <aimonUtil.h>
 #include <sys950Lib.h>
@@ -47,6 +50,14 @@
 #include "cfe_psp_config.h"
 #include "psp_sp0_info.h"
 
+/**
+ ** \brief Max number of Voltage and Temperature sensors per target generation
+ ** 
+ */
+#define SP0_UPGRADE_MAX_VOLTAGE_SENSORS     6
+#define SP0_ORIGINAL_MAX_VOLTAGE_SENSORS    0
+#define SP0_UPGRADE_MAX_TEMP_SENSORS        4
+#define SP0_ORIGINAL_MAX_TEMP_SENSORS       3
 
 /*
 ** Static Variables
@@ -83,21 +94,22 @@ int32 PSP_SP0_GetInfo(void)
 {
     RESET_SRC_REG_ENUM          resetSrc = 0;
     USER_SAFE_MODE_DATA_STRUCT  safeModeUserData = {};
-    uint32                      uiTotalMemory_MiB = 0;
-    char                        *pActiveBootString = NULL;
-    char                        active_boot_primary[] = "PRIMARY";
-    char                        active_boot_secondary[] = "SECONDARY";
     int32                       status = 0;
     float                       fTemperature = 0.0f;
     float                       fVoltage = 0.0f;
     int8                        i = 0;
-    uint8                       uiMaxTempSensors = 4;
+    uint8                       uiMaxTempSensors = SP0_UPGRADE_MAX_TEMP_SENSORS;
+    uint8                       uiMaxVoltageSensors = SP0_UPGRADE_MAX_VOLTAGE_SENSORS;
     uint64                      bitExecuted = 0ULL;
     uint64                      bitResult   = 0ULL;
     int                         iRetChar = 0;
     int32                       ret_code = CFE_PSP_SUCCESS;
     
     OS_printf(SP0_PRINT_SCOPE "Collecting Data\n");
+
+    /* Reset the structure to remove stale data */
+    memset(&g_sp0_info_table, 0x00, sizeof(g_sp0_info_table));
+    g_iSP0DataDumpLength = 0;
 
     /*
     This routine returns the model name of the CPU board. The returned string 
@@ -117,9 +129,6 @@ int32 PSP_SP0_GetInfo(void)
     physical memory with the macro LOCAL_MEM_SIZE in config.h.
     */
     g_sp0_info_table.systemPhysMemTop = (uint32) sysPhysMemTop();
-    
-    /* Coverts bytes to Mibytes */
-    uiTotalMemory_MiB = (g_sp0_info_table.systemPhysMemTop >> 20);
     
     /*
     This routine returns the processor number for the CPU board, which is set 
@@ -212,14 +221,6 @@ int32 PSP_SP0_GetInfo(void)
     alternative boot device.
     */
     g_sp0_info_table.active_boot = (uint8) returnSelectedBootFlash();
-    if (g_sp0_info_table.active_boot == 1)
-    {
-        pActiveBootString = active_boot_primary;
-    }
-    else
-    {
-        pActiveBootString = active_boot_secondary;
-    }
 
     /*
     This routine returns the system clock rate. The number of ticks per second 
@@ -233,16 +234,19 @@ int32 PSP_SP0_GetInfo(void)
     */
     g_sp0_info_table.systemAuxClkRateGet = sysAuxClkRateGet();
 
-    /* SP0s has 4 temperature sensors (default), older SP0 has 3 */
-    if (g_sp0_info_table.systemCoreClockSpeed == 333)
+    /*
+    uiMaxTempSensors is set by default to the SP0_UPGRADE target 
+    If it is the original target, update number of onboard temperature sensors
+    */
+    if (sysGetBoardGeneration(FALSE) == SP0_ORIGINAL)
     {
-        uiMaxTempSensors = 3;
+        uiMaxTempSensors = SP0_ORIGINAL_MAX_TEMP_SENSORS;
     }
     /* Read temperature sensors */
     for (i = 0; i < uiMaxTempSensors; i++)
     {
-        /* This function takes about 3msec each time */
-        status = tempSensorRead(i, 0, &fTemperature, 0);
+        /* This function takes about 3msec each time it is called */
+        status = tempSensorRead(i, CURRENT_TEMP, &fTemperature, false);
         /* If temperature is read successfully, save on table */
         if (status == OS_SUCCESS)
         {
@@ -258,21 +262,29 @@ int32 PSP_SP0_GetInfo(void)
     }
     
     /**** Read SP0 Voltages ****/
-    for (i = 1; i < 7; i++)
+    if (sysGetBoardGeneration(FALSE) == SP0_UPGRADE)
     {
-        /* This function takes about 3msec each time */
-        status = volSensorRead(i, 0, &fVoltage, 0);
-        /* If voltage is read successfully, save on table */
-        if (status == OS_SUCCESS)
+        /* Only SP0s DDR2 has Voltage Monitoring */
+        for (i = 0; i < uiMaxVoltageSensors; i++)
         {
-            g_sp0_info_table.voltages[i - 1] = fVoltage;
-        }
-        /* If voltage reading is unsuccessful, save lowest possible number to show error */
-        else
-        {
-            OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
-            g_sp0_info_table.voltages[i - 1] = FLT_MIN;
-            ret_code = CFE_PSP_ERROR;
+            /*
+            Voltage sensor index is +1 since 0 is a special condition used only for 
+            reading voltage statuses against the alarm. This is not implemented.
+            */
+           /* This function takes about 3msec each time it is called */
+            status = volSensorRead(i + 1, CURRENT_VOL, &fVoltage, false);
+            /* If voltage is read successfully, save on table */
+            if (status == OS_SUCCESS)
+            {
+                g_sp0_info_table.voltages[i] = fVoltage;
+            }
+            /* If voltage reading is unsuccessful, save lowest possible number to show error */
+            else
+            {
+                OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
+                g_sp0_info_table.voltages[i] = FLT_MIN;
+                ret_code = CFE_PSP_ERROR;
+            }
         }
     }
 
@@ -299,11 +311,65 @@ int32 PSP_SP0_GetInfo(void)
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n");
         ret_code = CFE_PSP_ERROR;
     }
+
+    /* Get real time clock from OS */
+    status = clock_gettime(CLOCK_REALTIME, &g_sp0_info_table.lastUpdatedUTC);
+    if (status != OK)
+    {
+        OS_printf(SP0_PRINT_SCOPE "Error getting local time\n");
+        ret_code = CFE_PSP_ERROR;
+    }
     
+    /* Print data to string */
+    if(PSP_SP0_PrintToBuffer())
+    {
+        OS_printf(SP0_PRINT_SCOPE "Could not print to buffer. Data is left in the structure.");
+        ret_code = CFE_PSP_ERROR_LEVEL_0;
+    }
+
+    return ret_code;
+}
+
+/**
+ ** \func Print the SP0 data to string buffer
+ ** 
+ ** \par Description:
+ ** Internal function to print the gathered data from SP0 to a string buffer.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 PSP_SP0_PrintToBuffer(void)
+{
+    uint32     uiTotalMemory_MiB = 0;
+    char       *pActiveBootString = NULL;
+    char       active_boot_primary[] = "PRIMARY";
+    char       active_boot_secondary[] = "SECONDARY";
+    int32      ret_code = CFE_PSP_SUCCESS;
+    
+    /* Coverts bytes to Mibytes */
+    uiTotalMemory_MiB = (g_sp0_info_table.systemPhysMemTop >> 20);
+
+    if (g_sp0_info_table.active_boot == 1)
+    {
+        pActiveBootString = active_boot_primary;
+    }
+    else
+    {
+        pActiveBootString = active_boot_secondary;
+    }
+
     /* Output to local string buffer */
     g_iSP0DataDumpLength = snprintf(
         g_cSP0DataDump, 
         SP0_TEXT_BUFFER_MAX_SIZE,
+        "UTC sec: %u\n"
         "SysModel: %s\nSysBspRev: %s\n"
         "SysPhysMemTop: 0x%08X (%u MiB)\n"
         "sysProcNum: %d\n"
@@ -327,6 +393,7 @@ int32 PSP_SP0_GetInfo(void)
         "V1P8: %.3f [Volts]\n"
         "V2P5: %.3f [Volts]\n"
         "V3P3: %.3f [Volts]\n",
+        g_sp0_info_table.lastUpdatedUTC.tv_sec,
         g_sp0_info_table.systemModel,
         g_sp0_info_table.systemBspRev,
         g_sp0_info_table.systemPhysMemTop,
@@ -376,19 +443,20 @@ int32 PSP_SP0_GetInfo(void)
 }
 
 /**
-** \func Collect SP0 Hardware and Firmware data
+** \func Get the structure containing the SP0 Hardware and Firmware data
 **
 ** \par Description:
-** This function prints the SP0 data to the output console
+** This function returns and print the structure containing the SP0 Hardware and Firmware
+** data.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** This function is only for debugging.
+** None
 **
-** \param None
+** \param print_to_console Print string buffer to console if True
 **
-** \return None
+** \return SP0_info_table_t structure containing all the collect info from SP0
 */
-void PSP_SP0_PrintInfoTable(void)
+SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console)
 {
     /* Output to console */
 
@@ -396,8 +464,16 @@ void PSP_SP0_PrintInfoTable(void)
     OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
     is usually much longer.
     */
-    // UndCC_NextLine(SSET134)
-    printf("\n\n%s\n\n", &g_cSP0DataDump);
+    if (print_to_console)
+    {
+        if (g_iSP0DataDumpLength > 0)
+        {
+            // UndCC_NextLine(SSET134)
+            printf("\n\n%s\n\n", &g_cSP0DataDump);
+        }
+    }
+
+    return g_sp0_info_table;
 }
 
 /**

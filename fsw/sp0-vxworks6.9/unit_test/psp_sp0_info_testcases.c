@@ -412,7 +412,7 @@ void Ut_PSP_SP0_GetInfo(void)
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
     UtAssert_True(g_iSP0DataDumpLength > SP0_TEXT_BUFFER_MAX_SIZE, "_PSP_SP0_GetInfo - 12/13: g_cSP0DataLength larger than max buffer");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 12/13: g_cSP0DataDump too small error return code");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
 
     /* ----- Test case #13 - last snprintf error ----- */
     /* Setup additional inputs */
@@ -441,15 +441,15 @@ void Ut_PSP_SP0_GetInfo(void)
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
     UtAssert_True(g_iSP0DataDumpLength == -1, "_PSP_SP0_GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 13/13: snprintf error return code");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 13/13: although snprintf return code success");
 }
 
 /*=======================================================================================
-** Ut_PSP_SP0_PrintInfoTable(void) test cases
+** Ut_PSP_SP0_PrintToBuffer(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_PrintInfoTable(void)
+void Ut_PSP_SP0_PrintToBuffer(void)
 {
-    char cMsg[SP0_TEXT_BUFFER_MAX_SIZE] = {};
+    int32 ret_code = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
@@ -457,12 +457,53 @@ void Ut_PSP_SP0_PrintInfoTable(void)
     /* Set the content of the output data to a fixed value for testing */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     /* Execute test */
-    PSP_SP0_PrintInfoTable();
+    ret_code = PSP_SP0_PrintToBuffer();
     /* Verify outputs */
-    /**
-     * Corresponding code does not use OS_printf(...)
-     */
-    UtAssert_NA("_PSP_SP0_PrintInfoTable - 1/1: N/A");
+
+    UtAssert_NA("_PSP_SP0_PrintToBuffer - 1/1: N/A");
+}
+
+/*=======================================================================================
+** Ut_PSP_SP0_GetInfoTable(void) test cases
+**=======================================================================================*/
+void Ut_PSP_SP0_GetInfoTable(void)
+{
+    SP0_info_table_t sp0_data;
+
+    /* ----- Test case #1 - Nominal with no console print ----- */
+    /* Setup additional inputs */
+    g_sp0_info_table.lastUpdatedUTC.tv_sec = 1000;
+    /* Execute test */
+    sp0_data = PSP_SP0_GetInfoTable(false);
+    /* Verify outputs */
+    UtAssert_True(
+        sp0_data.lastUpdatedUTC.tv_sec == g_sp0_info_table.lastUpdatedUTC.tv_sec,
+        "_PSP_SP0_GetInfoTable - 1/3: Nominal without console print"
+        );
+
+    /* ----- Test case #1 - Nominal with console print ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    /* Set the content of the output data to a fixed value for testing */
+    memset(g_cSP0DataDump,(int)1, 20);
+    g_iSP0DataDumpLength = 20;
+    /* Execute test */
+    sp0_data = PSP_SP0_GetInfoTable(true);
+    /* Verify outputs */
+
+    UtAssert_NA("_PSP_SP0_GetInfoTable - 2/3: Nominal with console print");
+
+    /* ----- Test case #1 - Nothing to print ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    /* Set the content of the output data to a fixed value for testing */
+    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
+    g_iSP0DataDumpLength = 0;
+    /* Execute test */
+    sp0_data = PSP_SP0_GetInfoTable(true);
+    /* Verify outputs */
+
+    UtAssert_NA("_PSP_SP0_GetInfoTable - 3/3: Nothing to print");
 }
 
 /*=======================================================================================

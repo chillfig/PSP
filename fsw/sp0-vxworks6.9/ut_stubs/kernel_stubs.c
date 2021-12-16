@@ -160,7 +160,7 @@ uint32 getCoreClockSpeed(void)
     iStatus = UT_DEFAULT_IMPL(getCoreClockSpeed);
     if (iStatus == 0)
     {
-        return 400;
+        return 399;
     }
     return 333;
 }

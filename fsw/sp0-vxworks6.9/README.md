@@ -172,9 +172,12 @@ Kernel must include the following services:
   - g_cSP0DataDump
   - g_iSP0DataDumpLength
 
+- Static Functions
+  - PSP_SP0_PrintToBuffer
+
 - Functions
   - PSP_SP0_GetInfo
-  - PSP_SP0_PrintInfoTable
+  - PSP_SP0_GetInfoTable
   - PSP_SP0_DumpData
 
 ### NTP Time Sync

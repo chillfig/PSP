@@ -94,7 +94,7 @@ extern STATUS edrErrorPolicyHookRemove(void);
  ** \name g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = FALSE;
+static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
  ** \name g_pDefaultedrPolicyHandlerHook
@@ -154,7 +154,7 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
-    BOOL returnStatus = FALSE;
+    BOOL returnStatus = false;
     EDR_TASK_INFO *pInfo = NULL;    //UndCC_Line(SSET_059_060_077_078)
     
     /*
@@ -190,7 +190,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 
         CFE_PSP_Exception_WriteComplete();
 
-        if (g_ucOverRideDefaultedrPolicyHandlerHook == FALSE)
+        if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {
             /*
             When using CFE_PSP_AttachExceptions, g_pDefaultedrPolicyHandlerHook is left to NULL

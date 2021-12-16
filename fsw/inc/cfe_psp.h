@@ -61,6 +61,7 @@
 #define CFE_PSP_INVALID_MODULE_NAME         (-28)  /**< \brief  Invalid Module Name */
 #define CFE_PSP_INVALID_MODULE_ID           (-29)  /**< \brief  Invalid Module ID */
 #define CFE_PSP_NO_EXCEPTION_DATA           (-30)  /**< \brief  No Exception Data */
+#define CFE_PSP_ERROR_LEVEL_0               (-31)  /**< \brief  Generic Error, but returned data is valid */
 /** \} */
 
 /* Definitions for PSP PANIC types */

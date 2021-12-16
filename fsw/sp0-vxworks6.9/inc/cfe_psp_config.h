@@ -55,7 +55,7 @@ extern "C" {
  ** If that behaviour is not wanted, set this define to TRUE. The PSP default
  ** function implementation is empty.
  */
-#define OVERRIDE_OSAL_OS_APPLICATION_RUN             TRUE
+#define OVERRIDE_OSAL_OS_APPLICATION_RUN             true
 
 
 /** \brief The list of VxWorks tasks that PSP is tasked to adjust its priorites

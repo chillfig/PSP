@@ -67,10 +67,11 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME} INTERFACE
     fsw/inc
 )
 
+# Figure out if the compiler is for a real target
+set(RUN_ON_TARGET 0)
+string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
+
 if (ENABLE_UNIT_TESTS)
-    # Figure out if the compiler is for a real target
-    set(RUN_ON_TARGET 0)
-    string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
     set(PSP_UT_PRE "PSP UT: ")
     if (RUN_ON_TARGET GREATER 0)
       # Prepare for Unit Test on Target
@@ -85,3 +86,15 @@ if (ENABLE_UNIT_TESTS)
     endif(RUN_ON_TARGET GREATER 0)
 endif (ENABLE_UNIT_TESTS)
 
+set(ENABLE_FUNCTIONAL_TESTS $ENV{ENABLE_FUNCTIONAL_TESTS} CACHE BOOL "Enable build of functional tests")
+if (ENABLE_FUNCTIONAL_TESTS)
+    set(PSP_UT_PRE "PSP FT: ")
+    if (RUN_ON_TARGET GREATER 0)
+        # Prepare for Functional Test on Target
+        message("Preparing for PSP Functional Test")
+        add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/functional_test)
+    else(RUN_ON_TARGET GREATER 0)
+        # Prepare for Functional Test on Linux
+        message(${PSP_UT_PRE} "Functional Test on Linux is not implemented!")
+    endif(RUN_ON_TARGET GREATER 0)
+endif (ENABLE_FUNCTIONAL_TESTS)

@@ -30,7 +30,8 @@
 ** Function Declarations
 **=======================================================================================*/
 void Ut_PSP_SP0_GetInfo(void);
-void Ut_PSP_SP0_PrintInfoTable(void);
+void Ut_PSP_SP0_GetInfoTable(void);
+void Ut_PSP_SP0_PrintToBuffer(void);
 void Ut_PSP_SP0_DumpData(void);
 void Ut_PSP_SP0_GetDiskFreeSize(void);
 

@@ -27,6 +27,9 @@
 #ifndef _PSP_SP0_INFO_H_
 #define _PSP_SP0_INFO_H_
 
+/* For supporting REALTIME clock */
+#include <timers.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,6 +73,8 @@ extern "C" {
 */
 typedef struct
 {
+    /** \brief UTC date time when the data was collected */
+    struct timespec lastUpdatedUTC;
     /** \brief Pointer to the string identifing the System Model */
     char * systemModel;
     /** \brief Pointer to the string identifing the system BSP Revision */
@@ -126,19 +131,37 @@ typedef struct
 int32  PSP_SP0_GetInfo(void);
 
 /**
-** \func Collect SP0 Hardware and Firmware data
+ ** \func Print the SP0 data to string buffer
+ ** 
+ ** \par Description:
+ ** Internal function to print the gathered data from SP0 to a string buffer.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 PSP_SP0_PrintToBuffer(void);
+
+/**
+** \func Get the structure containing the SP0 Hardware and Firmware data
 **
 ** \par Description:
-** This function prints the SP0 data to the output console
+** This function returns and print the structure containing the SP0 Hardware and Firmware
+** data.
 ** 
 ** \par Assumptions, External Events, and Notes:
 ** None
 **
-** \param None
+** \param print_to_console Print string buffer to console if True
 **
-** \return None
+** \return SP0_info_table_t structure containing all the collect info from SP0
 */
-void  PSP_SP0_PrintInfoTable(void);
+SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console);
 
 /**
  ** \func Function dumps the collected data to file
