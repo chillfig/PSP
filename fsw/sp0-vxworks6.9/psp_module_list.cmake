@@ -1,3 +1,4 @@
+soft_timebase
 timebase_vxworks
 eeprom_direct
 ram_direct

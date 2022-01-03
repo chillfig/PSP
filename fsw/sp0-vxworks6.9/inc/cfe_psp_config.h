@@ -102,6 +102,24 @@ extern "C" {
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
 /** \} */
 
+
+/**
+ ** \brief Soft Timebase Period
+ **
+ ** \par Description:
+ ** The tick period that will be configured in the RTOS for the simulated
+ ** time base, in microseconds.  This in turn is used to drive the 1hz clock
+ ** and other functions.
+ ** 
+ ** \par Note:
+ ** To minimize jitter in the resulting callbacks, it should be an even
+ ** divisor of 1000000 usec.
+ ** 10ms/100Hz is chosen to also allow this same timebase to be
+ ** used to drive the CFS SCH minor frame callbacks in its default config.
+ **
+ */
+#define CFE_PSP_SOFT_TIMEBASE_PERIOD        10000
+
 /** \brief Memory Table Size.
  ** 
  ** \par Descripion:
