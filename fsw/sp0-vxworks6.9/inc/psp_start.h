@@ -221,6 +221,22 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void);
  */
 static int32 CFE_PSP_SetSysTasksPrio(void);
 
+/**
+ ** \func Add a list of symbolic link mappings 
+ **
+ ** \par Description:
+ ** This function simply calls the OS_FileSysAddFixedMap multiple times
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id);
+
 #ifdef __cplusplus
 }
 #endif

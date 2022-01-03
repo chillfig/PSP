@@ -765,6 +765,29 @@ void Ut_CFE_PSP_SuspendConsoleShellTask(void)
 }
 
 /*=======================================================================================
+** Ut_CFE_PSP_SetFileSysAddFixedMap() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SetFileSysAddFixedMap(void)
+{
+    osal_id_t   fid;
+    int32       ret = CFE_PSP_SUCCESS;
+    char        cMsg[256] = {};
+
+    sprintf(cMsg, "PSP: Set 1 Virtual Path(s)\n");
+
+    /* ----- Test #1 - Nominal ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_FileSysAddFixedMap), 1, CFE_PSP_SUCCESS);
+    /* Execute test */
+    ret = CFE_PSP_SetFileSysAddFixedMap(&fid);
+    /* Verify results */
+    Ut_OS_printfPrint();
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SetFileSysAddFixedMap - 1/1: Virtual Mapping Returned Success");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetFileSysAddFixedMap - 1/1: Printed Nominal String");
+}
+
+/*=======================================================================================
 ** Ut_CFE_PSP_InitSSR() test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_InitSSR(void)

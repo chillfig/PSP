@@ -76,6 +76,18 @@ extern "C" {
                                                     {"ipcom_egd", 253},\
                                                     {"FTCMP00", 253}
 
+
+/**
+ ** \brief List of physical and virtual paths
+ **
+ ** \par Description:
+ ** This is used by PSP to push multiple file system mapping to the OSAL
+ ** function OS_FileSysAddFixedMap()
+ ** 
+ */
+#define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"}
+
+
 /**
  ** \name VxWorks timebase
  **
@@ -251,6 +263,28 @@ typedef struct
     uint8           VxWorksTaskPriority;
 
 } CFE_PSP_OS_Task_and_priority_t;
+
+
+/**
+ ** \brief Symbolic Link Mapping Structure
+ **
+ ** \par Description:
+ ** This structure is used by PSP to map physical paths to virtual paths
+ */
+typedef struct
+{
+    /**
+     ** \brief Physical Path
+     */
+    const char * fullpath_real;
+
+    /**
+     ** \brief Virtual Path
+     */
+    const char * fullpath_map;
+
+} CFE_PSP_SymbolicLinks_t;
+
 
 /** \name CDS File Location on FLASH */
 /** \{ */

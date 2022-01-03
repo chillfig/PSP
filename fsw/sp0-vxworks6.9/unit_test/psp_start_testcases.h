@@ -42,6 +42,7 @@ void Ut_OS_Application_Run(void);
 void Ut_CFE_PSP_Main(void);
 void Ut_OS_Application_Run(void);
 void Ut_CFE_PSP_SuspendConsoleShellTask(void);
+void Ut_CFE_PSP_SetFileSysAddFixedMap(void);
 void Ut_CFE_PSP_InitSSR(void);
 
 #endif  /* UT_PSP_START_TESTCASES_H */

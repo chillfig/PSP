@@ -176,6 +176,10 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_SetSysTasksPrio");
 
+    UtTest_Add(Ut_CFE_PSP_SetFileSysAddFixedMap,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetFileSysAddFixedMap");
+
     UtTest_Add(Ut_CFE_PSP_InitSSR,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_InitSSR");

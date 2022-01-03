@@ -100,6 +100,14 @@ const char *g_pMachineCheckCause_msg[] = {
     "Other machine check error"
 };
 
+/** \brief List Virtual FS Mappings
+ ** \par Note:
+ ** Values are defined in cfe_psp_config.h header.\n
+ */
+static CFE_PSP_SymbolicLinks_t g_SymbolicFolderLinks[] =
+{
+    OSAL_FS_SYMBOLIC_LINKS_MAPPING
+};
 
 /** \brief The list of VxWorks task to change the task priority to before finishing initialization.
  ** \par Note:
@@ -397,16 +405,12 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
         goto OS_Application_Startup_Exit_Tag;
     }
 
-    /*
-    ** Set up the virtual FS mapping for the "/cf" directory
-    ** On this platform it is will use the /ram0/cf physical device.
-    */
-    status = OS_FileSysAddFixedMap(&fs_id, "/ram0/cf", "/cf");
-    if (status != OS_SUCCESS)
+    /* Set up all the virtual FS mappings */
+    status = CFE_PSP_SetFileSysAddFixedMap(&fs_id);
+    if (status != CFE_PSP_SUCCESS)
     {
-        /* Print for informational purposes --
-         * startup can continue, but loads may fail later, depending on config. */
-        OS_printf("PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
+        /* Startup can continue, but it may fail later, depending on config */
+        OS_printf("PSP: Some or all Virtual FS Mapping has failed\n");
     }
 
     /* 
@@ -629,7 +633,6 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
     return status;
 }
 
-
 /**
  ** \func Changes system task priorities so that they are lower than CFS system
  ** task priorities
@@ -668,6 +671,53 @@ static int32 CFE_PSP_SetSysTasksPrio(void)
     }
 
     return status;
+}
+
+/**
+ ** \func Add a list of symbolic link mappings 
+ **
+ ** \par Description:
+ ** This function simply calls the OS_FileSysAddFixedMap multiple times
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
+{
+    int32   ret_code      = CFE_PSP_SUCCESS;
+    int32   status        = OS_SUCCESS;
+    int32   index         = 0;
+    int32   ret           = OS_ERROR;
+    int8    numberOfLinks = 0;
+
+    /* Get the number of structures in the symbolic links array */
+    numberOfLinks = sizeof(g_SymbolicFolderLinks) / sizeof(CFE_PSP_SymbolicLinks_t);
+
+    OS_printf("PSP: Set %d Virtual Path(s)\n", numberOfLinks);
+
+    for (index = 0; index < numberOfLinks; index++)
+    {
+        /* Set up the virtual FS mapping */
+        status = OS_FileSysAddFixedMap(fs_id,
+                                       g_SymbolicFolderLinks[index].fullpath_real,
+                                       g_SymbolicFolderLinks[index].fullpath_map);
+        if (status != OS_SUCCESS)
+        {
+            /*
+            Print for informational purposes --
+            startup can continue, but something else may fail later, depending on config.
+            */
+            OS_printf("PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)status);
+            ret_code = CFE_PSP_ERROR;
+        }
+    }
+
+    return ret_code;
 }
 
 /**
