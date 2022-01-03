@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /**
-** \addtogroup psp_public_api PSP Public APIs
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
 ** \{
 */
 
@@ -248,7 +248,7 @@ int32  CFE_PSP_MEM_SCRUB_Disable(void);
 void CFE_PSP_MEM_SCRUB_ErrStats(MEM_SCRUB_ERRSTATS_t *errStats, bool talkative);
 
 /**
-** \} <!-- End of group "psp_public_api" -->
+** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
 
 #ifdef __cplusplus

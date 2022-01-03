@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 /**
-** \addtogroup psp_public_api PSP Public APIs
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
 ** \{
 */
 
@@ -64,7 +64,7 @@ void CFE_PSP_MEMORY_SYNC_Enable(void);
 void CFE_PSP_MEMORY_SYNC_Disable(void);
 
 /**
-** \} <!-- End of group "psp_public_api" -->
+** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
 
 #ifdef __cplusplus

@@ -42,7 +42,7 @@
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
 
-/** \name Macros */
+/** \name Vehicle and Processor IDs */
 /** \{ */
 /** \brief CPU ID */
 #define CFE_PSP_CPU_ID               (GLOBAL_CONFIGDATA.Default_CpuId)

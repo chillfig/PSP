@@ -47,6 +47,11 @@
 #include "target_config.h"
 
 /**
+** \addtogroup psp_public_api PSP Public APIs - Common
+** \{
+*/
+
+/**
  ** \brief Maximum Module Name Length
  ** \par Note: Currently not enfornced other than
  ** in cfe_psp_module.c -> CFE_PSP_Module_FindByName
@@ -90,7 +95,7 @@ typedef const struct
 } CFE_PSP_ModuleApi_t;
 
 /**
- ** \name CFE_PSP_MODULE_DECLARE_SIMPLE
+ ** \brief CFE_PSP_MODULE_DECLARE_SIMPLE
  ** 
  ** \par Description:
  ** Macro to simplify declaration of the IO Driver API structure according to
@@ -177,4 +182,9 @@ int32  CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
  */
 extern CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[];
 
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
+
 #endif /* CFE_PSP_MODULE_H_ */
+

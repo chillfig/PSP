@@ -91,13 +91,13 @@ extern STATUS edrErrorPolicyHookRemove(void);
 */
 
 /**
- ** \name g_ucOverRideDefaultedrPolicyHandlerHook
+ ** \brief g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
 static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
- ** \name g_pDefaultedrPolicyHandlerHook
+ ** \brief g_pDefaultedrPolicyHandlerHook
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** The EDR_POLICY_HANDLER_HOOK is a function pointer defined

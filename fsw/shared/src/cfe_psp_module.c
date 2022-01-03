@@ -32,15 +32,15 @@
 #include "cfe_psp_module.h"
 
 /**
- ** \name CFE PSP Module Base and Index
+ ** \brief CFE PSP Module Base and Index
  ** \par Description:
  ** When using an OSAL that also supports "opaque object ids", choose values here
  ** that will fit in with the OSAL object ID values and not overlap anything.
  */
 #ifdef OS_OBJECT_TYPE_USER
- /** \name CFE_PSP_MODULE_BASE */
+ /** \brief CFE_PSP_MODULE_BASE */
  #define CFE_PSP_MODULE_BASE       ((OS_OBJECT_TYPE_USER + 0x100) << OS_OBJECT_TYPE_SHIFT)
- /** \name CFE_PSP_MODULE_INDEX_MASK */
+ /** \brief CFE_PSP_MODULE_INDEX_MASK */
  #define CFE_PSP_MODULE_INDEX_MASK OS_OBJECT_INDEX_MASK
 #else
  #define CFE_PSP_MODULE_BASE       0x01100000

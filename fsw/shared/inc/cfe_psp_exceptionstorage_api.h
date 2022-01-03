@@ -45,6 +45,11 @@
 #include "cfe_psp.h"
 
 /**
+** \addtogroup psp_public_api PSP Public APIs - Common
+** \{
+*/
+
+/**
  **  \brief Abstract types for exception storage.
  **  These are made concrete depending on PSP-specific config information.
  */
@@ -141,5 +146,8 @@ void  CFE_PSP_Exception_Reset(void);
  */
 extern int32 CFE_PSP_ExceptionGetSummary_Impl(const struct CFE_PSP_Exception_LogData *Buffer, char *ReasonBuf,
                                               uint32 ReasonSize);
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #endif /* CFE_PSP_EXCEPTIONSTORAGE_API_H_ */

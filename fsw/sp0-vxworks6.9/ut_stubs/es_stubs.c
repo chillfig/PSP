@@ -35,7 +35,7 @@ typedef struct CFE_TIME_SysTime
 ** \par Assumptions, External Events, and Notes:
 **        None
 **
-** \returns
+** \return
 **        Returns CFE_SUCCESS.
 **
 ******************************************************************************/

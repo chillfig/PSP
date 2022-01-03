@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /**
-** \addtogroup psp_public_api PSP Public APIs
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
 ** \{
 */
 
@@ -61,7 +61,7 @@ extern "C" {
 #define SP0_PRINT_SCOPE                     "PSP SP0: "
 
 /**
-** \name SP0 info structure
+** \brief SP0 info structure
 ** \par Description:
 ** The table includes values that changes only once during boot and others
 ** that changes at a regular interval.
@@ -197,7 +197,7 @@ int32 PSP_SP0_DumpData(void);
 int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
 
 /**
-** \} <!-- End of group "psp_public_api" -->
+** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
 
 #ifdef __cplusplus
@@ -205,3 +205,4 @@ int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
 #endif
 
 #endif /* _PSP_SP0_INFO_H_ */
+

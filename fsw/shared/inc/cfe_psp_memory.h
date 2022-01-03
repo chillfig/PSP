@@ -52,6 +52,11 @@
 #include "cfe_psp_exceptionstorage_types.h"
 
 /**
+** \addtogroup psp_public_api PSP Public APIs - Common
+** \{
+*/
+
+/**
 ** \brief Memory Table Type
 */
 typedef struct
@@ -180,5 +185,9 @@ void CFE_PSP_DeleteProcessorReservedMemory(void);
  ** None
  */
 extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #endif /* _cfe_psp_memory_ */

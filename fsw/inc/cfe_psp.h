@@ -34,7 +34,7 @@
 #include "osapi.h"
 
 /**
-** \addtogroup psp_public_api PSP Public APIs
+** \addtogroup psp_public_api PSP Public APIs - Common
 ** \{
 */
 
@@ -1220,7 +1220,9 @@ int32  CFE_PSP_EepromPowerDown(uint32 Bank);
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \returns Version string.  This is a fixed string and cannot be NULL.
+ ** \param None
+ **
+ ** \return Version string.  This is a fixed string and cannot be NULL.
  */
 const char *CFE_PSP_GetVersionString(void);
 
@@ -1235,7 +1237,9 @@ const char *CFE_PSP_GetVersionString(void);
  ** All modular components which are intended to interoperate should 
  ** report the same code name.
  **
- ** \returns Code name. This is a fixed string and cannot be NULL.
+ ** \param None
+ **
+ ** \return Code name. This is a fixed string and cannot be NULL.
  */
 const char *CFE_PSP_GetVersionCodeName(void);
 
@@ -1277,7 +1281,9 @@ void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4]);
  ** subsequent merge/modification.  Like other version information, this 
  ** is a fixed number assigned at compile time.
  **
- ** \returns The PSP library build number
+ ** \param None
+ **
+ ** \return The PSP library build number
  */
 uint32 CFE_PSP_GetBuildNumber(void);
 

@@ -1,0 +1,10 @@
+\section{S\-P0-\/\-Vx\-Works6.9 Platform Support Package Mission Configuration Parameters}
+\begin{large}
+None.
+\end{large}
+\section{S\-P0-\/\-Vx\-Works6.9 Platform Support Package Platform Configuration Parameters}
+\input{group__psp__sp0vx69__platcfg}
+\section{S\-P0-\/\-Vx\-Works6.9 Platform Support Package Application Programming Interfaces}
+\input{group__psp__public__api}
+\input{group__psp__public__api__sp0vx69}
+

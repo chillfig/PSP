@@ -50,6 +50,11 @@
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 
+/**
+** \addtogroup psp_public_api PSP Public APIs - Common
+** \{
+*/
+
 /** \brief Exception Log Data Struct */
 struct CFE_PSP_Exception_LogData
 {
@@ -79,5 +84,9 @@ typedef struct CFE_PSP_Exception_LogData CFE_PSP_Exception_LogData_t;
 
 /** \brief Exception Storage Type */
 typedef struct CFE_PSP_ExceptionStorage CFE_PSP_ExceptionStorage_t;
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #endif /* CFE_PSP_EXCEPTIONSTORAGE_TYPES_H_ */

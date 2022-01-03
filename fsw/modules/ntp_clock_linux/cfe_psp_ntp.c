@@ -32,7 +32,7 @@
 
 #include "psp_time_sync.h"
 
-/** \name NTP Sync Configuration */
+/** \name NTP Sync Configuration - Linux */
 /** \{ */
 /**
  *  \brief Default NTP Sync Start/Stop on Startup
@@ -69,13 +69,11 @@
 #ifndef NTPSYNC_DEFAULT_PRIORITY
 #define NTPSYNC_DEFAULT_PRIORITY    60
 #endif
-/** \} */
 
 /** \brief Default NTP Sync Task Priority Upper range */
 #ifndef NTPSYNC_PRIORITY_UP_RANGE
 #define NTPSYNC_PRIORITY_UP_RANGE    255
 #endif
-/** \} */
 
 /** \brief Default NTP Sync Task Priority Lower range */
 #ifndef NTPSYNC_PRIORITY_DOWN_RANGE
@@ -113,7 +111,7 @@ static void CFE_PSP_TIME_NTPSync_Task(void);
 /**** Global variables ****/
 
 /**
- * @brief Contains the NTP Sync Task ID
+ * \brief Contains the NTP Sync Task ID
  *        If 0, task is not running
  */
 static uint32 g_uiPSPNTPTask_id = 0;
@@ -144,25 +142,25 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(ntp_clock_linux);
 int32 ntp_clock_linux_Destroy(void);
 
 
-/**
-** \func Initialize the CFE PSP Time Task synchronizing with the NTP server
+/*
+** Purpose: Initialize the CFE PSP Time Task synchronizing with the NTP server
 **
-** \par Description:
+** Description:
 ** This function intializes the cFE PSP Time sync task with the NTP server.
 **
-** \par Assumptions, External Events, and Notes:
+** Assumptions, External Events, and Notes:
 ** None
 **
-** \param None
+** Param: None
 ** 
-** \return #OS_SUCCESS @copybrief OS_SUCCESS
-** \return #OS_INVALID_POINTER if any of the necessary pointers are NULL
-** \return #OS_ERR_INVALID_SIZE if the stack_size argument is zero
-** \return #OS_ERR_NAME_TOO_LONG name length including null terminator greater than #OS_MAX_API_NAME
-** \return #OS_ERR_INVALID_PRIORITY if the priority is bad @covtest
-** \return #OS_ERR_NO_FREE_IDS if there can be no more tasks created
-** \return #OS_ERR_NAME_TAKEN if the name specified is already used by a task
-** \return #OS_ERROR if an unspecified/other error occurs @covtest
+** Return: OS_SUCCESS @copybrief OS_SUCCESS
+**         OS_INVALID_POINTER if any of the necessary pointers are NULL
+**         OS_ERR_INVALID_SIZE if the stack_size argument is zero
+**         OS_ERR_NAME_TOO_LONG name length including null terminator greater than #OS_MAX_API_NAME
+**         OS_ERR_INVALID_PRIORITY if the priority is bad @covtest
+**         OS_ERR_NO_FREE_IDS if there can be no more tasks created
+**         OS_ERR_NAME_TAKEN if the name specified is already used by a task
+**         OS_ERROR if an unspecified/other error occurs @covtest
 */
 static int32 CFE_PSP_TIME_NTPSync_Task_Init(void)
 {
@@ -191,21 +189,21 @@ static int32 CFE_PSP_TIME_NTPSync_Task_Init(void)
     return iStatus;
 }
 
-/**
- ** \func Check if the NTP Sync task is running
+/*
+ ** Purpose: Check if the NTP Sync task is running
  **
- ** \par Description:
+ ** Description:
  ** This function checks on whether or not
  ** the NTP Sync task is running
  **
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  ** Will check via OS_TaskGetIdByName using NTPSYNC_TASK_NAME
  ** as the name of NTP sync task
  **
- ** \param - None
+ ** Param: None
  **
- ** \return true - If NTP Sync Task is running
- ** \return false - If NTP Sync Task is not running
+ ** Return: true - If NTP Sync Task is running
+ **         false - If NTP Sync Task is not running
  */
 bool CFE_PSP_TIME_NTPSync_Task_isRunning(void)
 {
@@ -224,21 +222,21 @@ bool CFE_PSP_TIME_NTPSync_Task_isRunning(void)
     return bReturnValue;
 }
 
-/**
- ** \func Set the NTP Sync task priority
+/*
+ ** Purpose: Set the NTP Sync task priority
  **
- ** \par Description:
+ ** Description:
  ** This function sets the NTP Sync task priority
  **
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  ** New priority must be between NTPSYNC_PRIORITY_DOWN_RANGE
  ** and NTPSYNC_PRIORITY_UP_RANGE. If the new priority is not
  ** within this range, the default priority will be assigned.
  **
- ** \param[in] newTaskPriority - The new task priority
+ ** Param - [in] newTaskPriority - The new task priority
  **
- ** \return #CFE_PSP_SUCCESS - If successfully set new priority
- ** \return #CFE_PSP_ERROR - If unsuccessfully set new priority
+ ** Return: CFE_PSP_SUCCESS - If successfully set new priority
+ **         CFE_PSP_ERROR - If unsuccessfully set new priority
  */
 int32  CFE_PSP_TIME_NTPSync_Task_Priority_Set(osal_priority_t opPriority)
 {
@@ -262,18 +260,18 @@ int32  CFE_PSP_TIME_NTPSync_Task_Priority_Set(osal_priority_t opPriority)
     return iReturnCode;
 }
 
-/**
- ** \func Enable/disable time sync
+/*
+ ** Purpse: Enable/disable time sync
  **
- ** \par Description:
+ ** Description:
  ** This function sets the enabling/disabling of time sync.
  **
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  **
- ** \param[in] bStatus - Boolean flag for sync or not sync
+ ** Param: [in] bStatus - Boolean flag for sync or not sync
  ** 
- ** \return CFE_PSP_SUCCESS - If successfully set status
- ** \return CFE_PSP_ERROR - If unsuccessfully set status
+ ** Return: CFE_PSP_SUCCESS - If successfully set status
+ **         CFE_PSP_ERROR - If unsuccessfully set status
  */
 int32 CFE_PSP_TIME_NTPSync_Set_Status(bool bStatus)
 {
@@ -316,19 +314,19 @@ bool CFE_PSP_TIME_NTP_Daemon_isRunning(void)
     return return_code;
 }
 
-/**
- ** \func Gracefully shutdown NTP Sync Module 
+/*
+ ** Purpose: Gracefully shutdown NTP Sync Module 
  ** 
- ** \par Description:
+ ** Description:
  ** Function will attempt to delete the NTP Sync task. Usually this function
  ** will be called called when exiting cFS.
  ** 
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  ** When this function is called, no matter what it's return status is,
  ** the g_bEnableGetTimeFromOS_flag will be set to false.
  ** 
- ** \return #CFE_PSP_SUCCESS 
- ** \return #CFE_PSP_ERROR
+ ** Return: CFE_PSP_SUCCESS 
+ **         CFE_PSP_ERROR
  */
 int32 ntp_clock_linux_Destroy()
 {
@@ -355,19 +353,19 @@ int32 ntp_clock_linux_Destroy()
     return iReturnValue;
 }
 
-/**
- ** \func Entry point for the module
+/*
+ ** Purpose: Entry point for the module
  ** 
- ** \par Description:
+ ** Description:
  ** None
  **
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  ** Will initialize regardless of g_bEnableGetTimeFromOS_flag value.
  ** PSP Module ID is not used in the SP0 implementation
  **
- ** \param[in] PspModuleId - Unused
+ ** Param: [in] PspModuleId - Unused
  **
- ** \return None
+ ** Return: None
  */
 void ntp_clock_linux_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
@@ -390,18 +388,18 @@ void ntp_clock_linux_Init(uint32 PspModuleId) //UndCC_Line(SSET106) Func. name p
     }
 }
 
-/**
-** \func Get the currently set sync frequency
+/*
+** Purpose: Get the currently set sync frequency
 **
-** \par Description:
+** Description:
 ** This function returns the NTP time synchronization frequency, in seconds.
 **
-** \par Assumptions, External Events, and Notes:
+** Assumptions, External Events, and Notes:
 ** None
 **
-** \param None
+** Param: None
 ** 
-** \return Current frequency
+** Return: Current frequency
 */
 uint16 CFE_PSP_TIME_NTPSync_GetFreq(void)
 {
@@ -409,16 +407,16 @@ uint16 CFE_PSP_TIME_NTPSync_GetFreq(void)
     return g_usOSTimeSync_Sec;
 }
 
-/**
- ** \func Change the sync frequency
+/*
+ ** Purpose: Change the sync frequency
  **
- ** \par Description:
+ ** Description:
  ** This function updates the NTP time synchronization frequency, in seconds.
  **
- ** \par Assumptions, External Events, and Notes:
+ ** Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[in] uiNewFreqSec - The new frequency, in seconds
+ ** Param: [in] uiNewFreqSec - The new frequency, in seconds
  */
 void CFE_PSP_TIME_NTPSync_SetFreq(uint16 uiNewFreqSec)
 {
@@ -449,11 +447,13 @@ int32 CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
     return return_status;
 }
 
-/**
- * @brief Function get the current time from the linux OS
+/*
+ * Purpose: Get the current time from the linux OS
  * 
- * @param myT Reference to CFE_TIME_SysTime_t time structure
- * @return int32 CFE_PSP_SUCCESS or CFE_PSP_ERROR
+ * Param: [inout] myT Reference to CFE_TIME_SysTime_t time structure
+ *
+ * Return: CFE_PSP_SUCCESS
+ *         CFE_PSP_ERROR
  */
 int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 {

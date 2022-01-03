@@ -48,7 +48,7 @@ extern "C" {
 #define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
 
 /**
-** \addtogroup psp_public_api PSP Public APIs
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
 ** \{
 */
 
@@ -172,7 +172,7 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
 int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
 
 /**
-** \} <!-- End of group "psp_public_api" -->
+** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
 
 /**

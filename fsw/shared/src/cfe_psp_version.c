@@ -55,7 +55,7 @@
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \returns Version string. This is a fixed string and cannot be NULL.
+ ** \return Version string. This is a fixed string and cannot be NULL.
  */
 const char *CFE_PSP_GetVersionString(void)
 {
@@ -73,7 +73,7 @@ const char *CFE_PSP_GetVersionString(void)
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \returns Code name.  This is a fixed string and cannot be NULL.
+ ** \return Code name.  This is a fixed string and cannot be NULL.
  */
 const char *CFE_PSP_GetVersionCodeName(void)
 {
@@ -129,7 +129,7 @@ void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \returns The OSAL library build number
+ ** \return The OSAL library build number
  */
 uint32 CFE_PSP_GetBuildNumber(void)
 {

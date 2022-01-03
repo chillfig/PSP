@@ -37,27 +37,27 @@
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
 
-/**
-** \func Validate memory range and type
+/*
+** Purpose: Validate memory range and type
 **
-** \par Description:
+** Description:
 ** This function validates the memory range and type using the global CFE_PSP_MemoryTable.
 ** 
-** \par Assumptions, External Events, and Notes:
+** Assumptions, External Events, and Notes:
 ** None
 **
-** \param[in] Address - A 32-bit starting address of the memory range
-** \param[in] Size - A 32-bit size of the memory range (Address+Size = End Address)
-** \param[in] MemoryType - The memory type to validate, including but not limited to:
-**                         CFE_PSP_MEM_RAM, CFE_PSP_MEM_EEPROM, or CFE_PSP_MEM_ANY.
-**                         Any defined CFE_PSP_MEM_* enumeration can be specified
+** Param: [in] Address - A 32-bit starting address of the memory range
+**        [in] Size - A 32-bit size of the memory range (Address+Size = End Address)
+**        [in] MemoryType - The memory type to validate, including but not limited to:
+**                          CFE_PSP_MEM_RAM, CFE_PSP_MEM_EEPROM, or CFE_PSP_MEM_ANY.
+**                          Any defined CFE_PSP_MEM_* enumeration can be specified
 **
-** \return #CFE_PSP_SUCCESS - Memory range and type information is valid and can be used.
-** \return #CFE_PSP_INVALID_MEM_ADDR - Starting address is not valid
-** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not 
-**                                     match the passed in type.
-** \return #CFE_PSP_INVALID_MEM_RANGE - The Memory range associated with the address is not
-**                                      large enough to contain Address+Size.
+** Return: CFE_PSP_SUCCESS - Memory range and type information is valid and can be used.
+**         CFE_PSP_INVALID_MEM_ADDR - Starting address is not valid
+**         CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not 
+**                                    match the passed in type.
+**         CFE_PSP_INVALID_MEM_RANGE - The Memory range associated with the address is not
+**                                     large enough to contain Address+Size.
 */
 int32 CFE_PSP_MemValidateRange(cpuaddr Address, size_t Size, uint32 MemoryType)
 {
@@ -151,31 +151,31 @@ int32 CFE_PSP_MemValidateRange(cpuaddr Address, size_t Size, uint32 MemoryType)
     return (ReturnCode);
 }
 
-/**
-** \func Get the number of memory ranges
+/*
+** Purpose: Get the number of memory ranges
 **
-** \par Description:
+** Description:
 ** This function fetches the number of memory ranges from the global CFE_PSP_MemoryTable.
 ** 
-** \par Assumptions, External Events, and Notes:
+** Assumptions, External Events, and Notes:
 ** None
 **
-** \param None
+** Param: None
 **
-** \return The number of entries in the CFE_PSP_MemoryTable
+** Return: The number of entries in the CFE_PSP_MemoryTable
 */
 uint32 CFE_PSP_MemRanges(void)
 {
     return (CFE_PSP_MEM_TABLE_SIZE);
 }
 
-/**
-** \func Set an entry in the memory range table
+/*
+** Purpose: Set an entry in the memory range table
 **
-** \par Description:
+** Description:
 ** This function populates one of the records in the CFE_PSP_MemoryTable.
 ** 
-** \par Assumptions, External Events, and Notes:
+** Assumptions, External Events, and Notes:
 ** Because the table is fixed size, the entries are set by using the integer index.
 ** No validation is done with the address or size.
 **

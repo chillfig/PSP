@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 /**
-** \addtogroup psp_config PSP Configurations
+** \addtogroup psp_sp0vx69_platcfg PSP Platform Configurations - SP0-VxWorks6.9
 ** \{
 */
 
@@ -89,7 +89,7 @@ extern "C" {
 
 
 /**
- ** \name VxWorks timebase
+ ** \name VxWorks timebase configuration parameters
  **
  ** \par Description:
  ** The SP0 uses the PowerPC decrementer register. The register is decremented
@@ -222,7 +222,7 @@ typedef struct
  */
 #define CFE_PSP_MAXIMUM_TASK_LENGTH         30
 
-/** \name Watchdog Settings */
+/** \name Watchdog Configuration Parameters */
 /** \{ */
 /** \brief Watchdog minimum ( in milliseconds ) */
 #define CFE_PSP_WATCHDOG_MIN                (0)
@@ -286,7 +286,7 @@ typedef struct
 } CFE_PSP_SymbolicLinks_t;
 
 
-/** \name CDS File Location on FLASH */
+/** \name CDS File Location on FLASH Configuration Parameters */
 /** \{ */
 /**
  ** \brief CDS FLASH Memory File Location
@@ -297,7 +297,7 @@ typedef struct
 /** \} */
 
 
-/** \name Memory Scrubbing Configuration */
+/** \name Memory Scrubbing Configuration Parameters */
 /** \{ */
 
 /**
@@ -338,7 +338,7 @@ typedef struct
 /** \} */
 
 
-/** \name SP0 Info Module */
+/** \name SP0 Info Configuration Parameters */
 /** \{ */
 
 /** \brief SP0 Data Dump Filepath
@@ -350,7 +350,7 @@ typedef struct
 /** \} */
 
 
-/** \name NTP Sync Configuration */
+/** \name NTP Sync Configuration Parameters */
 /** \{ */
 
 /**
@@ -476,7 +476,7 @@ typedef struct
 /** \} */
 
 /**
-** \} <!-- End of group "psp_config" -->
+** \} <!-- End of group "psp_sp0vx69_platcfg" -->
 */
 
 #ifdef __cplusplus
