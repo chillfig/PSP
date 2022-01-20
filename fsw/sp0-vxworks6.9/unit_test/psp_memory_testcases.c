@@ -767,7 +767,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify outputs */
-    UtAssert_True(Ut_OS_printf_MsgCount() == 4, "_CFE_PSP_SetupReservedMemoryMap - 1/2: Nominal");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 7, "_CFE_PSP_SetupReservedMemoryMap - 1/2: Nominal");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -780,7 +780,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Verify outputs */
     snprintf(cMsg, 256, "CFE_PSP_MemRangeSet returned error\n");
     UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range - message");
-    UtAssert_True(Ut_OS_printf_MsgCount() == 5, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 8, "_CFE_PSP_SetupReservedMemoryMap - 2/2: Error setting up memory range");
 }
 
 /*=======================================================================================
@@ -788,7 +788,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void)
 {
-    char cMsg[256] = {"CFE_PSP: Aitech does not currently support Reserved Memory (waiting for updated bootloader)\n"};
+    char cMsg[256] = {"CFE_PSP: Aitech does not support Non-Volatile User Reserved Memory\n"};
     Ut_OS_printf_Setup();
 
     /* Nothing to test */

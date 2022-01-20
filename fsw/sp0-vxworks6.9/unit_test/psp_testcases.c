@@ -44,6 +44,7 @@ void Ut_CFE_PSP_Teardown(void)
 
 void UtTest_Setup(void)
 {
+    /* Test NTP Sync */
     #if TEST_NTP == 1
     
     UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_SetFreq,
@@ -106,7 +107,7 @@ void UtTest_Setup(void)
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_ntp_clock_vxworks_Init");
 
-    #endif
+    #endif /* TEST_NTP_SYNC == 1 */
 
     #if TEST_SP0_INFO == 1
     /* cfe_psp_sp0_info.c test cases area */
@@ -316,6 +317,18 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ExceptionGetSummary_Impl");
 
+    UtTest_Add(Ut_CFE_PSP_edrLoadFromEEPROM,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_edrLoadFromEEPROM");
+
+    UtTest_Add(Ut_CFE_PSP_edrSaveToEEPROM,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_edrSaveToEEPROM");
+
+    UtTest_Add(Ut_CFE_PSP_edrClearEEPROM,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_edrClearEEPROM");
+
     #endif /* TEST_EXCEPTION == 1 */
 
     #if TEST_SUPPORT == 1
@@ -380,12 +393,6 @@ void UtTest_Setup(void)
 
     #endif /* TEST_WATCHDOG == 1 */
 
-    /* Test NTP Sync */
-    #if TEST_NTP_SYNC == 1
-
-    
-
-    #endif /* TEST_NTP_SYNC == 1 */
 } 
 
 /*=======================================================================================

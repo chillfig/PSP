@@ -67,6 +67,7 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
+#include "psp_exceptions.h"
 
 /*
 ** Defines
@@ -85,6 +86,9 @@ edrPolicyHandlerHookRemove
 
 /** \brief Declared in Aitech BSP 'bootrom.map' */
 extern STATUS edrErrorPolicyHookRemove(void);
+
+extern STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
+extern STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
 
 /*
 ** Global variables
@@ -110,6 +114,199 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 ** Local Function Prototypes
 */
 
+/**
+ ** \func Load ED&R data from EEPROM
+ ** 
+ ** \par Description:
+ ** During CFS startup, the ED&R data in RAM is cleared. This function will
+ ** first verify that the EEPROM user area contains valid ED&R data, then
+ ** recover it. Data is saved to EEPROM using #CFE_PSP_edrSaveToEEPROM.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function makes use of the onboard EEPROM user area with maximum usable
+ ** space of 20 kB. Read and Write access is slow.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS - If the EDR signature and data is found
+ ** \return #CFE_PSP_ERROR
+ */
+int32   CFE_PSP_edrLoadFromEEPROM(void)
+{
+    int32   iStatus = OK;
+    int32   iRet_code = CFE_PSP_SUCCESS;
+    int     *pEDR_size = NULL;
+    int     edr_pack_size = 7;
+    char    edr_word[] = "EDR";
+    uint32  num_exceptions_in_edr = 0;
+
+    /* EDR Signature is defined as { 'E', 'D', 'R', 0x00, 0x00, 0x00, 0x00 } */
+    char    edr_signature[7] = {};
+
+    /* Copy EDR signature and size in local memory */
+    iStatus = userNvRamGet(edr_signature, edr_pack_size, 0);
+
+    if (iStatus == OK)
+    {
+        /* Check if there is the EDR word in memory. This allows to skip loading in case NVRAM is empty. */
+        if (memcmp(edr_word, edr_signature, 3) == 0)
+        {
+            /* Extract EDR size from signature */
+            pEDR_size = (int *)(edr_signature + 3);
+
+            /* Prints the Signature Pack for debugging */
+            OS_printf(PSP_EXCEP_PRINT_SCOPE 
+                      "EDR Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
+                      edr_signature[0],
+                      edr_signature[1],
+                      edr_signature[2],
+                      edr_signature[3],
+                      edr_signature[4],
+                      edr_signature[5],
+                      edr_signature[6]
+            );
+
+            /* Load data from EEPROM to ED&R pointer */
+            iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr, *pEDR_size, edr_pack_size);
+
+            if (iStatus == OK)
+            {
+                /* Get the number of exceptions loaded from EEPROM */
+                num_exceptions_in_edr = CFE_PSP_Exception_GetCount();
+
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "EDR Data Recovered (%d bytes) - %u new exception(s)\n",
+                          *pEDR_size,
+                          num_exceptions_in_edr
+                );
+            }
+            else
+            {
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Data\n");
+                iRet_code = CFE_PSP_ERROR;
+            }
+        }
+        else
+        {
+            /* This section occurs when the NVRAM has not been initialized, or
+            the data is corrupted. */
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "No EDR Signature Pack found {0x%02X 0x%02X 0x%02X}\n", 
+                      edr_signature[0],
+                      edr_signature[1],
+                      edr_signature[2]
+            );
+            iRet_code = CFE_PSP_ERROR;
+        }
+    }
+    else
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Signature Pack\n");
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    return iRet_code;
+}
+
+/**
+ ** \func Save RAM ED&R in EEPROM
+ ** 
+ ** \par Description:
+ ** During CFS startup, the ED&R data in RAM is cleared. This function will
+ ** save the ED&R data in RAM to the EEPROM user area. It will also save a
+ ** simple signature to allow the #CFE_PSP_edrLoadFromEEPROM to validate the data.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function makes use of the onboard EEPROM user area with maximum usable
+ ** space of 20 kB. Read and Write access is slow.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32   CFE_PSP_edrSaveToEEPROM(void)
+{
+    int32   iStatus = OK;
+    int32   iRet_code = CFE_PSP_SUCCESS;
+    int     edr_pack_size = 0;
+    char    edr_signature_pack[7] = { 'E', 'D', 'R', 0x00, 0x00, 0x00, 0x00 };
+    int     *pEDR_size = NULL;
+
+    /* Assign the edr size pointer */
+    pEDR_size = (int *)(edr_signature_pack + 3);
+    /* Get size of edr signature pack */
+    edr_pack_size = sizeof(edr_signature_pack);
+
+    /*
+    Get the size of ED&R structure and save it in the signature pack.
+    The structure is defined in cfe_psp_exceptionstorage_types.h
+    */
+    *pEDR_size = (int) sizeof(CFE_PSP_ExceptionStorage_t);
+
+    /* Prints the Signature Pack for debugging */
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving EDR Signature Pack {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n", 
+              edr_signature_pack[0],
+              edr_signature_pack[1],
+              edr_signature_pack[2],
+              edr_signature_pack[3],
+              edr_signature_pack[4],
+              edr_signature_pack[5],
+              edr_signature_pack[6]);
+
+    /* Save the ED&R signature and size in memory */
+    iStatus = userNvRamSet(edr_signature_pack, edr_pack_size, 0);
+    
+    if (iStatus == OK)
+    {
+        /* Save the ED&R data to EEPROM */
+        iStatus = userNvRamSet((char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr, *pEDR_size, edr_pack_size);
+
+        if (iStatus == OK)
+        {
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving EDR Data to EEPROM (%u bytes)\n", *pEDR_size);
+        }
+        else
+        {
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Data\n");
+            iRet_code = CFE_PSP_ERROR;
+        }
+    }
+    else
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Signature\n");
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    return iRet_code;
+}
+
+
+/**
+ ** \func Clear EDR in EEPROM
+ ** 
+ ** \par Description:
+ ** Function reset to \0 the edr signature in EEPROM.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32   CFE_PSP_edrClearEEPROM(void)
+{
+    int32   iRet_code = CFE_PSP_SUCCESS;
+    char    edr_signature_pack[7] = {'\0'};
+
+    /* Write to EEPROM */
+    if(userNvRamSet(edr_signature_pack, sizeof(edr_signature_pack), 0) != OK)
+    {
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    return iRet_code;
+}
 
 /**
  ** \brief Makes the proper call to CFE_ES_ProcessCoreException
@@ -189,6 +386,9 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         speSave(&pBuffer->context_info.fp);
 
         CFE_PSP_Exception_WriteComplete();
+
+        /* After write complete, the EDR data in RAM is ready to be backup up on EEPROM */
+        CFE_PSP_edrSaveToEEPROM();
 
         if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {

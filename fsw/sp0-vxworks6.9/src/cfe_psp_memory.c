@@ -48,6 +48,7 @@
 
 /* For CFE_PSP_SetTaskPrio() */
 #include "psp_start.h"
+#include "psp_exceptions.h"
 #include "cfe_psp_memory.h"
 
 /*
@@ -640,9 +641,8 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
  ** #CFE_PSP_RST_TYPE_PROCESSOR, #CFE_PSP_RST_TYPE_POWERON, #CFE_PSP_RST_TYPE_MAX
  **
  ** \par Assumptions, External Events, and Notes:
- ** This initializes based on the reset type.  Typically, the information
- ** is preserved on a processor reset, and cleared/reinitialized on a power-on
- ** reset.
+ ** For SP0 target implementation, the User Reserved Memory is always preserved,
+ ** independently from Reset Type.
  **
  ** \param[in] RestartType - The reset type
  **
@@ -674,6 +674,12 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         iReturnCode = CFE_PSP_ERROR;
 
     }
+    /*
+    Depending on the RestartType, the User Reseverd Memory is recovered or deleted
+    from FLASH memory.
+    If the RestartType is CFE_PSP_RST_TYPE_POWERON erase all User Reserved Memory
+    else recover user reserved memory from FLASH.
+    */
     else if (RestartType != CFE_PSP_RST_TYPE_PROCESSOR)
     {
         OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
@@ -682,14 +688,22 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         */
         memset(g_ReservedMemBlock.BlockPtr, 0, g_ReservedMemBlock.BlockSize);
 
+        /* Clear EDR data in EEPROM */
+        CFE_PSP_edrClearEEPROM();
+
         /*
         ** Set the default reset type in case a watchdog reset occurs
         */
         CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
     }
-    /**** CDS File ****/
+
+    /**** Recover User Reserved Memory ****/
     if(iReturnCode == CFE_PSP_SUCCESS)
     {
+        /** Recover EDR data if available **/
+        CFE_PSP_edrLoadFromEEPROM();
+
+        /** Recover CDS data if available **/
         /* Open the CDS file */
         iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
         /* If the file was not opened, we need to create it */
@@ -795,9 +809,17 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     end_addr += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
 
+    OS_printf("CFE_PSP: Boot Block at 0x%08lx, Total Size = 0x%lx\n",
+              (unsigned long)CFE_PSP_ReservedMemoryMap.BootPtr,
+              (unsigned long)sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (CFE_PSP_ExceptionStorage_t *)end_addr;
     end_addr += sizeof(CFE_PSP_ExceptionStorage_t);
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
+
+    OS_printf("CFE_PSP: Exception Storage Block at 0x%08lx, Total Size = 0x%lx\n",
+              (unsigned long)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+              (unsigned long)sizeof(CFE_PSP_ExceptionStorage_t));
 
     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void *) end_addr;
     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->ResetAreaSize;
@@ -831,6 +853,10 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->UserReservedSize;
     end_addr += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
     end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
+
+    OS_printf("CFE_PSP: UserReservedMemory Block at 0x%08lx, Total Size = 0x%lx\n",
+              (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+              (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
 
     /* The total size of the entire block is the difference in address */
     g_ReservedMemBlock.BlockPtr = (void *) start_addr;
@@ -877,7 +903,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
  */
 void CFE_PSP_DeleteProcessorReservedMemory(void)
 {
-    OS_printf("CFE_PSP: Aitech does not currently support Reserved Memory (waiting for updated bootloader)\n");
+    OS_printf("CFE_PSP: Aitech does not support Non-Volatile User Reserved Memory\n");
 }
 
 /*

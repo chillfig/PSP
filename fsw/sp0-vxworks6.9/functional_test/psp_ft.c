@@ -35,6 +35,7 @@
 #include "cfe_psp_memory.h"
 #include "cfe_psp_config.h"
 #include "psp_start.h"
+#include "psp_exceptions.h"
 #include "psp_cds_flash.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
@@ -199,6 +200,18 @@ void ft_exception(void)
     CFE_PSP_AttachExceptions
     CFE_PSP_SetDefaultExceptionEnvironment
     */
+
+    ret_code = CFE_PSP_edrSaveToEEPROM();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Saving ED&R Data to EEPROM was Successful")
+
+    ret_code = CFE_PSP_edrLoadFromEEPROM();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Loading ED&R Data from EEPROM returned Success")
+
+    ret_code = CFE_PSP_edrClearEEPROM();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Clearing ED&R Data in EEPROM returned Success")
+
+    ret_code = CFE_PSP_edrLoadFromEEPROM();
+    FT_Assert_True(ret_code == CFE_PSP_ERROR, "Loading ED&R Data from EEPROM after Clear EDR returned Error")
 
     EDR_USER_FATAL_INJECT(true, "Test Fatal EDR Inject");
 

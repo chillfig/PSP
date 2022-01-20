@@ -33,6 +33,9 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void);
 void Ut_CFE_PSP_AttachExceptions(void);
 void Ut_CFE_PSP_SetDefaultExceptionEnvironment(void);
 void Ut_CFE_PSP_ExceptionGetSummary_Impl(void);
+void Ut_CFE_PSP_edrLoadFromEEPROM(void);
+void Ut_CFE_PSP_edrSaveToEEPROM(void);
+void Ut_CFE_PSP_edrClearEEPROM(void);
 
 #endif  /* UT_PSP_EXCEPTION_TESTCASES_H */
 

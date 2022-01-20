@@ -28,6 +28,7 @@
 extern int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug);
 extern void SystemNotify(void);
 extern Target_CfeConfigData GLOBAL_CFE_CONFIGDATA;
+
 /*=======================================================================================
 ** External Global Variable Declarations
 **=======================================================================================*/
@@ -244,6 +245,161 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_snprintf_error, "_CFE_PSP_ExceptionGetSummary_Impl() - 6/6: Nominal - snprintf error - Message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ExceptionGetSummary_Impl() - 6/6: snprintf error - Return code error");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_edrClearEEPROM(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_edrClearEEPROM(void)
+{
+    int32   iRetCode = 0;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrClearEEPROM();
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_edrClearEEPROM() - 1/2: Nominal - Return Code");
+
+    /* ----- Test case #2 - Error ----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrClearEEPROM();
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrClearEEPROM() - 2/2: userNvRamGet error - Return Code");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_edrLoadFromEEPROM(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_edrLoadFromEEPROM(void)
+{
+    int32   iRetCode = 0;
+    char    cMsg_good[] = PSP_EXCEP_PRINT_SCOPE "EDR Data Recovered (1512 bytes) - 0 new exception(s)\n";
+    char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Data\n";
+    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "No EDR Signature Pack found {0x00 0x00 0x00}\n";
+    char    cMsg_bad3[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Signature Pack\n";
+
+    char    edr_word[] = "EDR";
+    int     edr_data_size = sizeof(CFE_PSP_ExceptionStorage_t);
+
+    uint8   localEDRBuffer[sizeof(CFE_PSP_ExceptionStorage_t)];
+    memset(localEDRBuffer,0x00,sizeof(CFE_PSP_ExceptionStorage_t));
+    CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localEDRBuffer;
+
+    Ut_OS_printf_Setup();
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    memset(nvram,0x00,sizeof(nvram));
+    /* Write the EDR signature */
+    memcpy(nvram, edr_word, 3);
+    /* Write the EDR data size */
+    memcpy(nvram + 3, &edr_data_size, 4);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 2, 0);
+    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_Exception_GetCount), 1, 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrLoadFromEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 1/4: Nominal - EDR Data Recovered - Message");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 1/4: Nominal - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #2 - Error EDR Data ----- */
+    /* Setup additional inputs */
+    memset(nvram,0x00,sizeof(nvram));
+    /* Write the EDR signature */
+    memcpy(nvram, edr_word, 3);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, -1);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrLoadFromEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 2/4: Error EDR Data - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 2/4: Error EDR Data - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #3 - Error EDR Signature ----- */
+    /* Setup additional inputs */
+    memset(nvram,0x00,sizeof(nvram));
+    /* Write the EDR data size */
+    memcpy(nvram + 3, &edr_data_size, 4);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrLoadFromEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 3/4: Error EDR Signature - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 3/4: Error EDR Signature - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #4 - Error userNvRamGet ----- */
+    /* Setup additional inputs */
+    memset(nvram,0x00,sizeof(nvram));
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, -1);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrLoadFromEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad3, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 4/4: Error userNvRamGet - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrLoadFromEEPROM() - 4/4: Error userNvRamGet - Return Code");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_edrSaveToEEPROM(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_edrSaveToEEPROM(void)
+{
+    int32   iRetCode = 0;
+    char    cMsg_good[] = PSP_EXCEP_PRINT_SCOPE "Saving EDR Data to EEPROM (1512 bytes)\n";
+    char    cMsg_edrpack[] = PSP_EXCEP_PRINT_SCOPE "Saving EDR Signature Pack {0x45 0x44 0x52 0x00 0x00 0x05 0xE8}\n";
+    char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Data\n";
+    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Signature\n";
+
+    char    edr_word[] = "EDR";
+    int     edr_data_size = sizeof(CFE_PSP_ExceptionStorage_t);
+
+    uint8   localEDRBuffer[sizeof(CFE_PSP_ExceptionStorage_t)];
+    memset(localEDRBuffer,0x00,sizeof(CFE_PSP_ExceptionStorage_t));
+    CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localEDRBuffer;
+
+    Ut_OS_printf_Setup();
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 2, 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrSaveToEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_edrpack, "_Ut_CFE_PSP_edrSaveToEEPROM() - 1/3: EDR Pack Signature - Message");
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_edrSaveToEEPROM() - 1/3: Nominal - EDR Data Saved - Message");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_edrSaveToEEPROM() - 1/3: Nominal - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #2 -  ----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrSaveToEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_edrpack, "_Ut_CFE_PSP_edrSaveToEEPROM() - 2/3: EDR Pack Signature - Message");
+    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_edrSaveToEEPROM() - 2/3: userNvRamSet error EDR Data - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrSaveToEEPROM() - 2/3: userNvRamSet error - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #3 -  ----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
+    /* Execute test */
+    iRetCode = CFE_PSP_edrSaveToEEPROM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_edrpack, "_Ut_CFE_PSP_edrSaveToEEPROM() - 3/3: EDR Pack Signature - Message");
+    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_edrSaveToEEPROM() - 3/3: userNvRamSet error EDR Signature - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrSaveToEEPROM() - 3/3: Nominal - Return Code");
 }
 
 /*=======================================================================================

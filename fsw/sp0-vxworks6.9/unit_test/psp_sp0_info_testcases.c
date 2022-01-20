@@ -441,7 +441,7 @@ void Ut_PSP_SP0_GetInfo(void)
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
     UtAssert_True(g_iSP0DataDumpLength == -1, "_PSP_SP0_GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 13/13: although snprintf return code success");
+    UtAssert_True(ret == CFE_PSP_ERROR_LEVEL_0, "_PSP_SP0_GetInfo - 13/13: although snprintf return code success");
 }
 
 /*=======================================================================================

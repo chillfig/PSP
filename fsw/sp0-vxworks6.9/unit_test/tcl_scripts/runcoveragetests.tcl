@@ -22,7 +22,7 @@ set psp_priority    100
 # 
 set psp_options     0x04000003
 set psp_stack_addr  0
-set psp_stack_size  8192
+set psp_stack_size  16384
 set redirIn         0
 set redirOut        0
 set delay           100
