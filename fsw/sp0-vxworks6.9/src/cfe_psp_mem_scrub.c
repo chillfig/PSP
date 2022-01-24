@@ -443,8 +443,32 @@ int32 CFE_PSP_MEM_SCRUB_Init(void)
             ** When startup process reaches this point, g_uiEndOfRam should already
             ** be initialized to physical end of RAM via CFE_PSP_SetupReservedMemoryMap()
             */
-            g_uiMemScrubStartAddr = 0;
-            g_uiMemScrubEndAddr = g_uiEndOfRam;
+
+            /* Set memory scrub start address */
+            if (MEM_SCRUB_DEFAULT_START_ADDR == -1)
+            {
+                /* User indicates to use general case */
+                g_uiMemScrubStartAddr = 0;
+            }
+            else
+            {
+                /* User indicates to use configured start addr */
+                g_uiMemScrubStartAddr = (uint32)MEM_SCRUB_DEFAULT_START_ADDR;
+            }
+
+            /* Set memory scrub end address */
+            if (MEM_SCRUB_DEFAULT_END_ADDR == -1)
+            {
+                /* User indicates to use end of RAM */
+                g_uiMemScrubEndAddr = g_uiEndOfRam;
+            }
+            else
+            {
+                /* User indicates to use configured address */
+                g_uiMemScrubEndAddr = (uint32)MEM_SCRUB_DEFAULT_END_ADDR;
+            }
+
+            /* Attempt to enable memory scrub task */
             if (CFE_PSP_MEM_SCRUB_Enable() == CFE_PSP_SUCCESS)
             {
                 iReturnCode = CFE_PSP_SUCCESS;

@@ -55,6 +55,29 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
     #error "MEMSCRUB_DEFAULT_PRIORITY must be greater than or equal to MEMSCRUB_PRIORITY_DOWN_RANGE!"
 #endif
 
+/** \brief Verify that memory scrub start address defined, acceptable values */
+#ifndef MEM_SCRUB_DEFAULT_START_ADDR
+    #error "MEM_SCRUB_DEFAULT_START_ADDR must be defined"
+#endif
+
+#ifdef MEM_SCRUB_DEFAULT_START_ADDR
+    #if (MEM_SCRUB_DEFAULT_START_ADDR < -1)
+        #error "MEM_SCRUB_DEFAULT_START_ADDR must be larger than -1"
+    #endif
+#endif
+
+#ifdef MEM_SCRUB_DEFAULT_END_ADDR
+    #if (MEM_SCRUB_DEFAULT_END_ADDR < -1)
+        #error "MEM_SCRUB_DEFAULT_END_ADDR must be larger than -1"
+    #endif
+#endif
+
+
+/** \brief Verify that memory scrub end address defined */
+#ifndef MEM_SCRUB_DEFAULT_END_ADDR
+    #error "MEM_SCRUB_DEFAULT_END_ADDR must be defined"
+#endif
+
 
 /** \brief SP0 File Path Verification */
 #ifndef SP0_DATA_DUMP_FILEPATH
