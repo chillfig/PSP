@@ -5,6 +5,15 @@
 
 #define MAX_RDWR_SIZE       0x01000000  /* 16MB */
 
+int userMemAlloc(uint32 *addr, uint32 size, bool talk)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(userMemAlloc);
+
+    return iStatus;
+}
+
 int aimonGetBITExecuted(uint64 *pulRun, int iValue)
 {
     UT_Stub_RegisterContext(UT_KEY(aimonGetBITExecuted), pulRun);

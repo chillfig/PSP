@@ -42,6 +42,8 @@ if (CODE_COVERAGE)
     mergeFilesTo(
         psp_memory_testcases.c ${IMPL_DIR}/src/cfe_psp_memory.c "#include \"../src/cfe_psp_memory.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_memory_testcases.c)
     mergeFilesTo(
+        psp_flash_testcases.c ${IMPL_DIR}/src/cfe_psp_flash.c "#include \"../src/cfe_psp_flash.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_flash_testcases.c)
+    mergeFilesTo(
         psp_mem_scrub_testcases.c ${IMPL_DIR}/src/cfe_psp_mem_scrub.c "#include \"../src/cfe_psp_mem_scrub.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_mem_scrub_testcases.c)
     mergeFilesTo(
         psp_start_testcases.c ${IMPL_DIR}/src/cfe_psp_start.c "#include \"../src/cfe_psp_start.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_start_testcases.c)

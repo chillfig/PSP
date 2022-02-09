@@ -24,11 +24,22 @@
 ** Function Declarations
 **=======================================================================================*/
 void Ut_CFE_PSP_GetCDSSize(void);
+
+void Ut_CFE_PSP_GetRESETSize(void);
+void Ut_CFE_PSP_GetVOLATILEDISKSize(void);
+void Ut_CFE_PSP_GetUSERRESERVEDSize(void);
+void Ut_CFE_PSP_GetMemSize(void);
+void Ut_CFE_PSP_GetMemArea(void);
 void Ut_CFE_PSP_CalculateCRC(void);
-void Ut_CFE_PSP_ReadCDSFromFlash(void);
-void Ut_CFE_PSP_WriteCDSToFlash(void);
 void Ut_CFE_PSP_WriteToCDS(void);
 void Ut_CFE_PSP_ReadFromCDS(void);
+void Ut_CFE_PSP_MEMORY_WriteToRESET(void);
+void Ut_CFE_PSP_MEMORY_ReadFromRESET(void);
+void Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK(void);
+void Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK(void);
+void Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED(void);
+void Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED(void);
+void Ut_CFE_PSP_GetCDSArea(void);
 void Ut_CFE_PSP_GetResetArea(void);
 void Ut_CFE_PSP_GetUserReservedArea(void);
 void Ut_CFE_PSP_GetVolatileDiskMem(void);
@@ -37,8 +48,14 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void);
 void Ut_CFE_PSP_DeleteProcessorReservedMemory(void);
 void Ut_CFE_PSP_GetKernelTextSegmentInfo(void);
 void Ut_CFE_PSP_GetCFETextSegmentInfo(void);
-void Ut_CFE_PSP_MEMORY_SYNC_Enable(void);
-void Ut_CFE_PSP_MEMORY_SYNC_Disable(void);
+void Ut_CFE_PSP_MEMORY_RestoreRESET(void);
+void Ut_CFE_PSP_MEMORY_RestoreCDS(void);
+void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void);
+void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
+void Ut_CFE_PSP_MEMORY_WriteToRAM(void);
+void Ut_CFE_PSP_MEMORY_ReadFromRAM(void);
+void Ut_CFE_PSP_MEMORY_RestoreDATA(void);
+
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
 /*=======================================================================================
 ** End of file psp_memory_testcases.h

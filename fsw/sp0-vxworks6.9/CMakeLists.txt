@@ -23,6 +23,7 @@ add_compile_options(-Werror=conversion -Werror=sign-conversion -Werror=all)
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
     src/cfe_psp_memory.c
+    src/cfe_psp_flash.c
     src/cfe_psp_mem_scrub.c
     src/cfe_psp_start.c
     src/cfe_psp_support.c

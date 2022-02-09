@@ -50,6 +50,7 @@
 #include "psp_start.h"
 #include "psp_exceptions.h"
 #include "cfe_psp_memory.h"
+#include "psp_flash.h"
 
 /*
 ** Macro Definitions
@@ -57,6 +58,16 @@
 
 /** \brief Define cFE core loadable module name */
 #define CFE_MODULE_NAME "cfe-core.o"
+#define MEMORY_PRINT_SCOPE "PSP MEMORY: "
+
+/*
+** ENUM Definitions
+*/
+enum MEMORY_SECTION
+    {OP_CDS = 0,
+    OP_RESET = 1,
+    OP_VOLATILEDISK = 2,
+    OP_USERRESERVED = 3};
 
 /*
 **  External Declarations
@@ -71,10 +82,16 @@ extern unsigned int GetWrsKernelTextEnd(void);
 **
 ** See function definitions for details
 */
-static int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes);
-static int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes);
 static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC);
-
+static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op);
+static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEMORY_SECTION op);
+static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op);
+static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op);
+static int32 CFE_PSP_MEMORY_RestoreRESET(void);
+static int32 CFE_PSP_MEMORY_RestoreCDS(void);
+static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK(void);
+static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
+static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op);
 /*
 ** Global variables
 */
@@ -84,18 +101,8 @@ static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint3
    128MB to 1GB.
 */
 
-/**
- ** \brief CDS File name in File System
- ** \par Description:
- ** Fully qualified path of where the CDS file will be stored.
- */
-static char g_cCDSFilename[10] = CFE_PSP_CFE_FLASH_FILEPATH;
-
-/** \brief Stored calculated CRC for the whole CDS reserved memory */
-static uint32 g_uiCDSCrc = 0;
-
-/** \brief Flag to track corrupted CDS file in CDS flash memory */
-static bool g_bCorruptedCDSFlash = false;
+/** \brief Track total amount of allocated memory */
+static uint32 g_totalReservedAllocSize = 0;
 
 /**
  ** \brief Contains the address of the end of RAM
@@ -117,43 +124,6 @@ CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap; //UndCC_Line(SSET056) Nam
 
 /** \brief Pointer to the reserved memory block */
 static CFE_PSP_MemoryBlock_t g_ReservedMemBlock;
-
-/**
- ** \brief Flag used to track sync CDS to FLASH status
- */
-static bool g_bCDSSyncFlash_flag = PSP_CDS_SYNC_TO_FLASH_DEFAULT;
-
-/*
-*********************************************************************************
-** CDS related functions
-*********************************************************************************
-*/
-
-/**
-** \func Get the size of the Critical Data Store memory area
-**
-** \par Description:
-** This function fetches the size of the OS Critical Data Store memory area.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] SizeOfCDS - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
-{
-    int32 iReturnCode = CFE_PSP_ERROR;
-
-    if (SizeOfCDS != NULL)
-    {
-        *SizeOfCDS =  CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
-        iReturnCode = CFE_PSP_SUCCESS;
-    }
-    return(iReturnCode);
-}
 
 /**
  ** \func Calculate 16 bits CRC from input data
@@ -241,389 +211,6 @@ static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint3
 
 } /* End of CFE_PSP_CalculateCRC() */
 
-/**
-** \func Read the whole CDS data from Flash
-**
-** \par Description:
-** This function read the whole CDS data on Flash to reserved memory on RAM.
-**
-** \warning It took about 117ms to read 131072 bytes (128KB) whole CDS area from Flash. 
-**
-** \par Assumptions, External Events, and Notes:
-** A failed read does not necessarily indicate corrupted FLASH memory
-**
-** \param[out] puiReadBytes - Number of read bytes
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-static int32 CFE_PSP_ReadCDSFromFlash(uint32 *puiReadBytes)
-{
-    int32   iCDSFd = -1;
-    int32   iReturnCode = CFE_PSP_ERROR;
-    ssize_t readBytes = 0;
-    
-    /* Return error if the output parameter wasn't allocated */
-    if((puiReadBytes != NULL) && (g_bCorruptedCDSFlash != true))
-    {
-        /* Open the CDS file for read */
-        iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
-        if(iCDSFd < 0)
-        {
-            OS_printf("CFE_PSP: Failed to open the CDS file during READ\n");
-        }
-        else
-        {
-            readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-            if(readBytes < 0)
-            {
-                OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n");
-
-                /* Set the output parameter to 0 for read failed */
-                *puiReadBytes = 0;
-            }
-            else if (readBytes < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize)
-            {
-                OS_printf("CFE_PSP: Failed to read full block size. Read only %ld of %ld bytes.\n", 
-                            readBytes, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-                /* Set the output parameter to 0 for read failed */
-                *puiReadBytes = 0;
-            }
-            else
-            {
-                *puiReadBytes = (uint32) readBytes;
-                iReturnCode = CFE_PSP_SUCCESS;
-            }
-            /* Close the CDS file after opened and read */
-            /* Data was successfully read, no need to return an error */
-            if (close(iCDSFd) == CFE_PSP_ERROR)
-            {
-                OS_printf("CFE_PSP: Could not close CDS file descriptor during READ\n");
-            }
-        }
-    }
-
-    return iReturnCode;
-}
-
-/**
-** \func Write the whole CDS data on Flash
-**
-** \par Description:
-** This function write the whole CDS data from reserved memory on RAM to Flash.
-**
-** \par Assumptions, External Events, and Notes:
-** It took about 117ms to write 131072 bytes (128KB) whole CDS data to Flash.
-**
-** \param[out] puiWroteBytes - Number of written bytes
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-static int32 CFE_PSP_WriteCDSToFlash(uint32 *puiWroteBytes)
-{
-    int32   iCDSFd = -1;
-    int32   iReturnCode = CFE_PSP_ERROR;
-    ssize_t wroteBytes = 0;
-    
-    /* Return error if the output parameter wasn't allocated */
-    if(puiWroteBytes != NULL)
-    {
-        /* Open the CDS file for write */
-        iCDSFd = open(g_cCDSFilename, O_WRONLY, 0);
-        if(iCDSFd < 0)
-        {
-            OS_printf("CFE_PSP: Failed to open the CDS file during WRITE\n");
-            *puiWroteBytes = 0;
-            g_bCorruptedCDSFlash = true;
-        }
-        else
-        {
-            wroteBytes = write(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                               CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-
-            if (wroteBytes == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize)
-            {
-                *puiWroteBytes = (uint32) wroteBytes;
-                /* If the corrupted FLASH flag is true, but write did not return
-                an error, we could say that the FLASH memory is working again */
-                if (g_bCorruptedCDSFlash)
-                {
-                    g_bCorruptedCDSFlash = false;
-                    OS_printf("CFE_PSP: Corrupted FLASH memory has been reset after a successfully write\n");
-                }
-                iReturnCode = CFE_PSP_SUCCESS;
-            }
-            else
-            {
-                OS_printf("CFE_PSP: Failed to write the CDS data to Flash.\n");
-                /* Set the output parameter to 0 for write failed */
-                *puiWroteBytes = 0;
-                g_bCorruptedCDSFlash = true;
-            }
-
-            /* Close the CDS file after opened and write */
-            if (close(iCDSFd) == CFE_PSP_ERROR)
-            {
-                OS_printf("CFE_PSP: Could not close CDS file descriptor during WRITE\n");
-            }
-        }
-    }
-
-    return iReturnCode;
-}
-
-/**
-** \func Write to the Critical Data Store memory area
-**
-** \par Description:
-** This function write the specified data to the specified memory area of the CDS.
-** 
-** \par Assumptions, External Events, and Notes:
-** Inability to write to FLASH does not affect return code because the reserve memory
-** is the golden copy while flash is just a backup
-**
-** \param[in] PtrToDataToWrite - Pointer to the data buffer to be written
-** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
-** \param[in] NumBytes - Number of bytes to be written
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 NumBytes)
-{
-    uint8 *pCopyPtr = NULL;
-    int32  iReturnCode = CFE_PSP_ERROR;
-    int32  iWroteBytes = 0; 
-
-    if (PtrToDataToWrite != NULL)
-    {
-        if ((CDSOffset < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize) &&
-            ((CDSOffset + NumBytes) <= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize))
-        {
-            pCopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
-            pCopyPtr += CDSOffset;
-            
-            iReturnCode = CFE_PSP_SUCCESS;
-
-            /* Compare the original and user changed data. If not changes,
-            no overwriting CDS block on memory and no updating Flash */
-            if(memcmp((char *)pCopyPtr, (char *)PtrToDataToWrite, NumBytes) != 0)
-            {
-                /* Overwrite CDS block */
-                memcpy(pCopyPtr, (char *)PtrToDataToWrite, NumBytes);
-
-                /* Calculate the CRC for whole CDS memory and write to static variable 
-                    after updated new CDS data in reserved memory */
-                g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-
-                if (g_bCDSSyncFlash_flag == true)
-                {
-                    /* Attempt to write to FLASH CDS file */
-                    if (CFE_PSP_WriteCDSToFlash(&iWroteBytes) != CFE_PSP_SUCCESS)
-                    {
-                        OS_printf("CFE_PSP: Failed to write CDS to flash\n");
-                    }
-                }
-            }
-        }
-    } /* end if PtrToDataToWrite != NULL */
-    
-    return(iReturnCode);
-}
-
-/**
-** \func Read from the Critical Data Store memory area
-**
-** \par Description:
-** This function reads from the CDS memory area.
-** 
-** \par Assumptions, External Events, and Notes:
-** Inability to read from FLASH does not affect return code because the reserve memory
-** is the golden copy while flash is just a backup
-**
-** \param[out] PtrToDataFromRead - Pointer to the data buffer that stores the read data
-** \param[in] CDSOffset - Memory offset from the beginning of the CDS block
-** \param[in] NumBytes - Number of bytes to be read
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_ReadFromCDS(void *PtrToDataFromRead, uint32 CDSOffset, uint32 NumBytes)
-{
-    uint8   *pCopyPtr = NULL;
-    int32   iReturnCode = CFE_PSP_ERROR;
-    uint32  uiTempCrc = 0;
-    uint32  uiReadBytes = 0;
-    
-    if (PtrToDataFromRead != NULL)
-    {
-        if ((CDSOffset < CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize) &&
-            ((CDSOffset + NumBytes) <= CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize))
-        {
-
-            /* Calculate the CRC for whole CDS memory */
-            uiTempCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, uiTempCrc);
-
-            /* CRC isn't match; Re-read CDS data from Flash to memory */
-            if(uiTempCrc != g_uiCDSCrc)
-            {
-                OS_printf("CFE_PSP: CRC mismatched (uiCalculatedCrc = 0x%08X, g_uiCDSCrc = 0x%08X)\n", 
-                        uiTempCrc, 
-                        g_uiCDSCrc);
-                
-                if (g_bCDSSyncFlash_flag == true)
-                {
-                    iReturnCode = CFE_PSP_ReadCDSFromFlash(&uiReadBytes);
-                    if(iReturnCode == CFE_PSP_SUCCESS)
-                    {
-                        /* Update the static CRC variable with new read CDS data from Flash */
-                        g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                                        CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-                    }
-                    else
-                    {
-                        /* Return ERROR because CRC does not match and cannot be verified */
-                        OS_printf("CFE_PSP: Cannot read from FLASH\n");
-                    }
-                }
-            }
-            else
-            {
-                iReturnCode = CFE_PSP_SUCCESS;
-            }
-
-            if (iReturnCode == CFE_PSP_SUCCESS)
-            {
-                pCopyPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
-                pCopyPtr += CDSOffset;
-                memcpy((char *)PtrToDataFromRead, pCopyPtr, NumBytes);
-            }
-        }
-
-    } /* end if PtrToDataToWrite != NULL */
-
-    return(iReturnCode);
-}
-
-/*
-*********************************************************************************
-** ES Reset Area related functions
-*********************************************************************************
-*/
-
-/**
-** \func Get the location and size of the ES Reset memory area
-**
-** \par Description:
-** This function returns the location and size of the ES Reset memory area. This area 
-** is preserved during a processor reset and is used to store the ER Log, System Log 
-** and reset related variables.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] PtrToResetArea - Pointer to the variable that stores the returned memory address
-** \param[out] SizeOfResetArea - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_GetResetArea (cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
-{
-    int32   iReturnCode = CFE_PSP_ERROR;
-
-    if ((PtrToResetArea != NULL) && (SizeOfResetArea != NULL))
-    {
-        *PtrToResetArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr);
-        *SizeOfResetArea = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-        iReturnCode = CFE_PSP_SUCCESS;
-    }
-
-    return(iReturnCode);
-}
-
-/*
-*********************************************************************************
-** ES User Reserved Area related functions
-*********************************************************************************
-*/
-
-/**
-** \func Get the location and size of the cFE user-reserved memory area
-**
-** \par Description:
-** This function returns the location and size of the cFE user-reserved memory area.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] PtrToUserArea - Pointer to the variable that stores the returned memory address
-** \param[out] SizeOfUserArea - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea )
-{
-    int32   iReturnCode = CFE_PSP_ERROR;
-
-    if ((PtrToUserArea == NULL) || (SizeOfUserArea == NULL))
-    {
-        iReturnCode = CFE_PSP_ERROR;
-    }
-    else
-    {
-        *PtrToUserArea = (cpuaddr)(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr);
-        *SizeOfUserArea = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
-        iReturnCode = CFE_PSP_SUCCESS;
-    }
-
-    return(iReturnCode);
-    }
-
-/*
-*********************************************************************************
-** ES Volatile disk memory related functions
-*********************************************************************************
-*/
-
-/**
-** \func Get the location and size of the cFE volatile memory area
-**
-** \par Description:
-** This function returns the location and size of the cFE volatile memory area.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] PtrToVolDisk - Pointer to the variable that stores the returned memory address
-** \param[out] SizeOfVolDisk - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
-int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk )
-{
-    int32   iReturnCode = CFE_PSP_ERROR;
-
-    if ((PtrToVolDisk == NULL) || (SizeOfVolDisk == NULL))
-    {
-        iReturnCode = CFE_PSP_ERROR;
-    }
-    else
-    {
-        *PtrToVolDisk = (cpuaddr)(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr);
-        *SizeOfVolDisk = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
-        iReturnCode = CFE_PSP_SUCCESS;
-    }
-
-    return(iReturnCode);
-}
-
 
 /*
 *********************************************************************************
@@ -658,9 +245,9 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     ssize_t   readBytes = 0;  
     
     /* 
-    Returns the address and size of the user-reserved region
-    This is a Kernel function
-     */
+    ** Returns the address and size of the user-reserved region
+    ** This is a Kernel function
+    */
     userReservedGet((char **) &start_addr, &reserve_memory_size);
 
     /* If the VxWorks reserved memory size is smaller than the requested, print error */
@@ -679,6 +266,8 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     from FLASH memory.
     If the RestartType is CFE_PSP_RST_TYPE_POWERON erase all User Reserved Memory
     else recover user reserved memory from FLASH.
+
+    NOTE: This section will be refactored in upcoming JIRA story
     */
     else if (RestartType != CFE_PSP_RST_TYPE_PROCESSOR)
     {
@@ -686,7 +275,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         /*
         memset will always return the address of CFE_PSP_ReservedMemoryMap here
         */
-        memset(g_ReservedMemBlock.BlockPtr, 0, g_ReservedMemBlock.BlockSize);
+        // memset(g_ReservedMemBlock.BlockPtr, 0, g_ReservedMemBlock.BlockSize);
 
         /* Clear EDR data in EEPROM */
         CFE_PSP_edrClearEEPROM();
@@ -702,58 +291,11 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     {
         /** Recover EDR data if available **/
         CFE_PSP_edrLoadFromEEPROM();
-
-        /** Recover CDS data if available **/
-        /* Open the CDS file */
-        iCDSFd = open(g_cCDSFilename, O_RDONLY, 0);
-        /* If the file was not opened, we need to create it */
-        if(iCDSFd < 0)
-        {
-            /* If CDS file cannot be created, print error */
-            iCDSFd = creat(g_cCDSFilename, S_IRWXU);
-            if(iCDSFd < 0)
-            {
-                OS_printf("CFE_PSP: Failed to create the CDS file(%s) on Flash.\n", 
-                          g_cCDSFilename);
-                iReturnCode = CFE_PSP_ERROR;
-            }
-            /* If CDS file was create, print success message and close CDS file */
-            else
-            {
-                OS_printf("CFE_PSP: Created the CDS file.\n");
-                /* Close the CDS file after created */
-                if (close(iCDSFd) == CFE_PSP_ERROR)
-                {
-                    OS_printf("CFE_PSP: Could not close CDS file descriptor\n");
-                    iReturnCode = CFE_PSP_ERROR;
-                }
-            }
-        }
-        /* If the CDS file was opened at first attempt, read content */
-        else
-        {
-            readBytes = read(iCDSFd, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-            if(readBytes == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize)
-            {
-                OS_printf("CFE_PSP: Read %d bytes of CDS data from Flash.\n", readBytes);  
-                /* Calculate the CRC for whole CDS memory and write to static variable after read CDS from Flash */
-                g_uiCDSCrc = CFE_PSP_CalculateCRC(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 
-                                                  CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0);
-            }
-            else
-            {
-                OS_printf("CFE_PSP: Failed to read the CDS data on Flash.\n"); 
-                /* Return error if read failed */
-                iReturnCode = CFE_PSP_ERROR;
-            }
-            /* Close the CDS file after opened and read */
-            if (close(iCDSFd) == CFE_PSP_ERROR)
-            {
-                OS_printf("CFE_PSP: Could not close CDS file descriptor\n");
-                iReturnCode = CFE_PSP_ERROR;
-            }
-        }
+        
+        CFE_PSP_MEMORY_RestoreRESET();
+        CFE_PSP_MEMORY_RestoreCDS();
+        CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+        CFE_PSP_MEMORY_RestoreUSERRESERVED();
     }
 
    return(iReturnCode);
@@ -775,102 +317,145 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
     cpuaddr   start_addr = 0;
-    cpuaddr   end_addr = 0;
     uint32    reserve_memory_size = 0;
-    int32     status = OS_SUCCESS;
-
-    /*
-    ** Setup the pointer to the reserved area in vxWorks.
-    ** This must be done before any of the reset variables are used.
-    */
-    /*
-    ** Note: this uses a "cpuaddr" (integer address) as an intermediate
-    ** to avoid warnings about alignment.  The output of userReservedGet()
-    ** should be aligned to hold any data type, being the very start
-    ** of the memory space.
-    */
+    int32     iStatus = OS_SUCCESS;
+    STATUS    sStatus = OK;
     
     /* 
-    Returns the address and size of the user-reserved region
-    This is a Kernel function
+    ** Returns the address and size of the user-reserved region
+    ** This is a Kernel function
     */
     userReservedGet((char **) &start_addr, &reserve_memory_size);
-
-    end_addr = start_addr;
-
+    memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
     g_uiEndOfRam = (uint32)sysPhysMemTop();
 
-    /*
-    memset will always return the address of CFE_PSP_ReservedMemoryMap here
+    /* There are a handful of reserved memory sections that 
+    ** we need to setup, contained in (a struct) CFE_PSP_ReservedMemoryMap_t:
+    **      1. (CFE_PSP_ReservedMemoryBootRecord_t *)   Boot Ptr
+    **      2. (CFE_PSP_ExceptionStorage_t *)           Exception Storage Ptr
+    **      3. (CFE_PSP_MemoryBlock_t)                  Reset Memory
+    **      4. (CFE_PSP_MemoryBlock_t)                  Volatile Disk
+    **      5. (CFE_PSP_MemoryBlock_t)                  CDS
+    **      6. (CFE_PSP_MemoryBlock_t)                  User Reserved
     */
-    memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
 
-    CFE_PSP_ReservedMemoryMap.BootPtr = (CFE_PSP_ReservedMemoryBootRecord_t *)end_addr;
-    end_addr += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
+    /* 1. (CFE_PSP_ReservedMemoryBootRecord_t *) Boot Ptr */
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.BootPtr,
+                                (uint32)sizeof(CFE_PSP_ReservedMemoryBootRecord_t), 
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
 
-    OS_printf("CFE_PSP: Boot Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.BootPtr,
-              (unsigned long)sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
-
-    CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (CFE_PSP_ExceptionStorage_t *)end_addr;
-    end_addr += sizeof(CFE_PSP_ExceptionStorage_t);
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
-
-    OS_printf("CFE_PSP: Exception Storage Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-              (unsigned long)sizeof(CFE_PSP_ExceptionStorage_t));
-
-    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void *) end_addr;
+    /* 2. (CFE_PSP_ExceptionStorage_t *) Exception Storage Ptr */
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                                (uint32)sizeof(CFE_PSP_ExceptionStorage_t),
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += sizeof(CFE_PSP_ExceptionStorage_t);
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
+    
+    /* 3. (CFE_PSP_MemoryBlock_t Reset Memory */
     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->ResetAreaSize;
-    end_addr += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
-
-    OS_printf("CFE_PSP: Reset Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
-              (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-
-    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void *) end_addr;
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                                (uint32)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize,
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
+    
+    /* 4. (CFE_PSP_MemoryBlock_t) Volatile Disk */
     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize =
         GLOBAL_CONFIGDATA.CfeConfig->RamDiskSectorSize * GLOBAL_CONFIGDATA.CfeConfig->RamDiskTotalSectors;
-    end_addr += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
-    
-    OS_printf("CFE_PSP: Volatile Disk Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
-              (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                                (uint32)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
 
-    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void *) end_addr;
+    /* 5. (CFE_PSP_MemoryBlock_t) CDS */
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->CdsSize;
-    end_addr += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                                (uint32)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
 
-    OS_printf("CFE_PSP: CDS Memory Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
-              (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-
-    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void *) end_addr;
+    /* 6. (CFE_PSP_MemoryBlock_t) User Reserved */
     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->UserReservedSize;
-    end_addr += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
-    end_addr = (end_addr + CFE_PSP_MEMALIGN_MASK) & (~CFE_PSP_MEMALIGN_MASK);
-
-    OS_printf("CFE_PSP: UserReservedMemory Block at 0x%08lx, Total Size = 0x%lx\n",
-              (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
-              (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-
-    /* The total size of the entire block is the difference in address */
+    sStatus = userMemAlloc(   (uint32 *)&CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                                (uint32)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
+                                true);
+    if (sStatus == OK)
+    {
+        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+    }
+    else
+    {
+        OS_printf("usrMemAlloc Failed\n");
+    }
+    
+    /*
+    ** TODO: 
+    ** g_ReservedMemBlock.BlockPtr may not be meaninful now
+    ** Additionally, we do not have guarantee that our reserved memory
+    ** will be in a single, continuous block
+    */
     g_ReservedMemBlock.BlockPtr = (void *) start_addr;
-    g_ReservedMemBlock.BlockSize =  end_addr - start_addr;
+    g_ReservedMemBlock.BlockSize =  g_totalReservedAllocSize;
 
-    OS_printf("CFE_PSP: Reserved Memory Block at 0x%08lx with size 0x%lx, Total VxWorks Reserved Size=0x%lx\n",
-              (unsigned long)g_ReservedMemBlock.BlockPtr,
-              (unsigned long)g_ReservedMemBlock.BlockSize,
-              (unsigned long)reserve_memory_size);
+    /* Debug/Log printing */
+    OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemoryMap Info:\n");
+    OS_printf("\tRESET:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
+                (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                (unsigned long)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+    OS_printf("\tCDS:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
+                (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                (unsigned long)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+    OS_printf("\tVoDi:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
+                (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                (unsigned long)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    OS_printf("\tUsRe:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
+                (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
 
+    OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemoryMap Info: Reserved, according to kernel\n");
+    userMemAllocShow();
+    
     /*
      * Set up the "RAM" entry in the memory table.
+     *
+     * What is the purpose of this? Should we be more detailed with our set?
+     * We don't actually use all of RAM (nor should we at a cFS level?)
      */
-    status = CFE_PSP_MemRangeSet(
+    iStatus = CFE_PSP_MemRangeSet(
             0, 
             CFE_PSP_MEM_RAM, 
             0, 
@@ -878,12 +463,11 @@ void CFE_PSP_SetupReservedMemoryMap(void)
             CFE_PSP_MEM_SIZE_DWORD, 
             CFE_PSP_MEM_ATTR_READWRITE
     );
-    if (status != OS_SUCCESS)
+    if (iStatus != OS_SUCCESS)
     {
-        OS_printf("CFE_PSP_MemRangeSet returned error\n");
+        OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemory: MemRangeSet failed\n");
     }
 }
-
 
 /**
  ** \func Delete the processor's reserved memory
@@ -903,7 +487,34 @@ void CFE_PSP_SetupReservedMemoryMap(void)
  */
 void CFE_PSP_DeleteProcessorReservedMemory(void)
 {
+    /*
+    ** NOTE: We don't actually have a way to 'de allocate' our allocated
+    ** memory via kernel fucntion call
+    **
+    ** Just FLUSH and delete, but hold onto block Ptr.
+    */
+
     OS_printf("CFE_PSP: Aitech does not support Non-Volatile User Reserved Memory\n");
+
+    /* RESET */
+    memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 0,
+            CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_RESET_FLASH_FILEPATH);
+
+    /* CDS */
+    memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 0,
+            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
+
+    /* VOLATILE DISK */
+    memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0,
+            CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
+
+    /* User Reserved */
+    memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0,
+            CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
 }
 
 /*
@@ -1009,39 +620,766 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
     return(iReturnCode);
 }
 
-/**
- ** \func Enable CDS sync to FLASH
- **
- ** \par Description:
- ** This function will enable CDS syncing to FLASH
- **
- ** \par Assumptions, External Events, and Notes:
- **
- ** \param None
- **
- ** \return None
- */
-void CFE_PSP_MEMORY_SYNC_Enable(void)
+/**********************************************************
+ * 
+ * RESET MEMORY SECTION HANDLING
+ * 
+ **********************************************************/
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetRESETSize
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetRESETSize(uint32 *size)
 {
-    g_bCorruptedCDSFlash = true;
-    g_bCDSSyncFlash_flag = true;
+    return CFE_PSP_MEMORY_GetMemSize(size, OP_RESET);
 }
 
-/**
- ** \func Disable CDS sync to FLASH
- **
- ** \par Description:
- ** This function will disable CDS syncing to FLASH
- **
- ** \par Assumptions, External Events, and Notes:
- ** This will not cancel/stop any in-progress syncing
- **
- ** \param None
- **
- ** \return None
- */
-void CFE_PSP_MEMORY_SYNC_Disable(void)
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetResetArea
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 {
-    g_bCorruptedCDSFlash = true;
-    g_bCDSSyncFlash_flag = false;
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToResetArea, SizeOfResetArea, OP_RESET);
+
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ReadFromRESET
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_ReadFromRESET(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_RESET);
+}
+
+int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_RESET);
+}
+
+/*
+** \brief Restore RESET data from FLASH
+**
+** \par Description:
+** Restore RESET data from FLASH
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_RestoreRESET()
+{
+    return CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+}
+
+/**********************************************************
+ * 
+ * CDS MEMORY SECTION HANDLING
+ * 
+ **********************************************************/
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetCDSSize
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_GetMemSize(SizeOfCDS, OP_CDS);
+    
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetCDSArea
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetCDSArea(cpuaddr *p_area, uint32 *p_size)
+{
+    return CFE_PSP_MEMORY_GetMemArea(p_area, p_size, OP_CDS);
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ReadFromCDS
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_ReadFromCDS(void *PtrToDataFromRead, uint32 CDSOffset, uint32 NumBytes)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(PtrToDataFromRead, CDSOffset, NumBytes, OP_CDS);
+
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WriteToCDS
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 NumBytes)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(PtrToDataToWrite, CDSOffset, NumBytes, OP_CDS);
+
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+}
+
+/*
+** \brief Restore CDS data from FLASH
+**
+** \par Description:
+** Restore CDS data from FLASH (read)
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_RestoreCDS()
+{
+    return CFE_PSP_MEMORY_RestoreDATA(OP_CDS);
+}
+
+/**********************************************************
+ * 
+ * VOLATILE DISK MEMORY SECTION HANDLING
+ * 
+ **********************************************************/
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetVOLATILEDISKSize
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetVOLATILEDISKSize(uint32 *size)
+{
+    return CFE_PSP_MEMORY_GetMemSize(size, OP_VOLATILEDISK);   
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetVolatileDiskMem
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToVolDisk, SizeOfVolDisk, OP_VOLATILEDISK);
+    
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ReadFromVOLATILEDISK
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_VOLATILEDISK);
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_WriteToVOLATILEDISK
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_VOLATILEDISK);
+}
+
+/*
+** \brief Restore volatile disk data from FLASH
+**
+** \par Description:
+** Restore volatile disk data from FLASH (read)
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK()
+{
+    return CFE_PSP_MEMORY_RestoreDATA(OP_VOLATILEDISK);
+}
+
+/**********************************************************
+ * 
+ * USER RESERVED MEMORY SECTION HANDLING
+ * 
+ **********************************************************/
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetUSERRESERVEDSize
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetUSERRESERVEDSize(uint32 *size)
+{
+    return CFE_PSP_MEMORY_GetMemSize(size, OP_USERRESERVED);
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetUserReservedArea
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToUserArea, SizeOfUserArea, OP_USERRESERVED);
+
+    if (iReturnCode != CFE_PSP_SUCCESS)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_ReadFromUSERRESERVED
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_USERRESERVED);
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_WriteToUSERRESERVED
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
+{
+    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_USERRESERVED);
+}
+
+/*
+** \brief Restore user reserved data from FLASH
+**
+** \par Description:
+** Restore user reserved data from FLASH (read)
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED()
+{
+    return CFE_PSP_MEMORY_RestoreDATA(OP_USERRESERVED);
+}
+
+/**********************************************************
+ * 
+ * REUSABLE RESERVED MEMORY SECTION HANDLING
+ * 
+ **********************************************************/
+
+/*
+** \brief Get reserved memory size
+**
+** \par Description:
+** Get reserved memory area size
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[out] p_size - Size of data
+** \param[in] op - Reserved memory section option
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    if (p_size == NULL)
+    {
+        iReturnCode = CFE_PSP_INVALID_POINTER;
+        OS_printf(MEMORY_PRINT_SCOPE "GetMemSize: NULL Pointer\n");
+    }
+    else
+    {
+        switch (op)
+        {
+            case OP_CDS:
+                *p_size = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                break;
+
+            case OP_RESET:
+                *p_size = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+                break;
+
+            case OP_VOLATILEDISK:
+                *p_size = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+                break;
+
+            case OP_USERRESERVED:
+                *p_size = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+                break;
+            
+            default:
+                iReturnCode = CFE_PSP_ERROR;
+                *p_size = (size_t)0x00000000;
+                OS_printf(MEMORY_PRINT_SCOPE "GetMemSize: Invalid Memory Option\n");
+                break;
+        }
+    }
+
+    return iReturnCode;
+}
+
+/*
+** \brief Get reserved memory area
+**
+** \par Description:
+** Get reserved memory area size and pointer
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[out] p_area - Data pointer
+** \param[out] p_size - Size of data
+** \param[in] op - Reserved memory section option
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEMORY_SECTION op)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    if ((p_area == NULL) || (p_size == NULL))
+    {
+        iReturnCode = CFE_PSP_INVALID_POINTER;
+        OS_printf(MEMORY_PRINT_SCOPE "GetMemArea: NULL Pointer\n");
+    }
+    else
+    {
+        switch (op)
+        {
+            case OP_CDS:
+                *p_area = (cpuaddr)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+                *p_size = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                break;
+
+            case OP_RESET:
+                *p_area = (cpuaddr)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+                *p_size = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+                break;
+
+            case OP_VOLATILEDISK:
+                *p_area = (cpuaddr)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
+                *p_size = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+                break;
+
+            case OP_USERRESERVED:
+                *p_area = (cpuaddr)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
+                *p_size = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+                break;
+            
+            default:
+                iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
+                *p_area = (cpuaddr)0x00000000;
+                *p_size = (size_t)0x00000000;
+                OS_printf(MEMORY_PRINT_SCOPE "GetMemArea: Invalid Memory Option\n");
+                break;
+        }
+    }
+
+    return iReturnCode;
+}
+
+/*
+** \brief Read data from RAM
+**
+** \par Description:
+** Read data to a specific reserved memory section
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[out] p_data - Data buffer to receive data read from RAM
+** \param[in] offset - Data offset for read location
+** \param[in] size - Size of data read
+** \param[in] op - Reserved memory section option
+**
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
+{
+    uint8   *pCopyPtr       = NULL;
+    int32   iReturnCode     = CFE_PSP_SUCCESS;
+    uint32  uiReadBytes     = 0;
+
+    CFE_PSP_MemoryBlock_t memBlock = {0, 0};
+
+    if (p_data == NULL)
+    {
+        OS_printf(MEMORY_PRINT_SCOPE "ReadFromRAM: NULL Pointer\n");
+        iReturnCode = CFE_PSP_INVALID_POINTER;
+    }
+    else
+    {
+        switch (op)
+        {
+            case OP_RESET:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+                break;
+
+            case OP_CDS:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                break;
+
+            case OP_VOLATILEDISK:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+                break;
+
+            case OP_USERRESERVED:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+                break;
+
+            default:
+                memBlock.BlockPtr = NULL;
+                iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
+                break;
+        }
+
+        if (iReturnCode == CFE_PSP_INVALID_MEM_TYPE)
+        {
+            OS_printf(MEMORY_PRINT_SCOPE "ReadFromRAM: Invalid Memory Option\n");
+        }
+        else if (memBlock.BlockPtr == NULL)
+        {
+            iReturnCode = CFE_PSP_INVALID_POINTER;
+        }
+        else if ((offset + size) > memBlock.BlockSize)
+        {
+            iReturnCode = CFE_PSP_INVALID_MEM_RANGE;
+        }
+        else
+        {
+            iReturnCode = CFE_PSP_SUCCESS;
+
+            pCopyPtr = memBlock.BlockPtr;
+            pCopyPtr += offset;
+            memcpy((char *)p_data, pCopyPtr, size);
+        }
+    }
+
+    return iReturnCode;
+}
+
+/*
+** \brief Write data to RAM
+**
+** \par Description:
+** Write data to a specific reserved memory section
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param[in] p_data - Data to write to RAM
+** \param[in] offset - Data offset for write location
+** \param[in] size - Size of data to write
+** \param[in] op - Reserved memory section option
+**
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
+{
+    uint8 *pCopyPtr = NULL;
+    int32 iReturnCode = CFE_PSP_ERROR;
+
+    CFE_PSP_MemoryBlock_t memBlock = {0, 0};
+
+    if (p_data == NULL)
+    {
+        OS_printf(MEMORY_PRINT_SCOPE "WriteToRAM: NULL Pointer\n");
+        iReturnCode = CFE_PSP_INVALID_POINTER;
+    }
+    else
+    {
+        switch (op)
+        {
+            case OP_RESET:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+                break;
+
+            case OP_CDS:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                break;
+
+            case OP_VOLATILEDISK:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+                break;
+
+            case OP_USERRESERVED:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+                break;
+
+            default:
+                memBlock.BlockPtr = NULL;
+                iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
+                break;
+        }
+        
+        if (iReturnCode == CFE_PSP_INVALID_MEM_TYPE)
+        {
+            OS_printf(MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Memory Selection\n");
+        }
+        else if (memBlock.BlockPtr == NULL)
+        {
+            iReturnCode = CFE_PSP_INVALID_POINTER;
+        }
+        else if ((offset + size) > memBlock.BlockSize)
+        {
+            iReturnCode = CFE_PSP_INVALID_MEM_RANGE;
+            OS_printf(MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Mem Range\n");
+        }
+        else
+        {
+            iReturnCode = CFE_PSP_SUCCESS;
+
+            pCopyPtr = memBlock.BlockPtr;
+            pCopyPtr += offset;
+
+            /*
+            ** Compare the original and user changed data. If no changes,
+            ** don't do anything
+            */
+            if (memcmp((char *)pCopyPtr, (char *)p_data, size) != 0)
+            {
+                /* Overwrite memory (RAM) block */
+                memcpy(pCopyPtr, (char *)p_data, size);
+            }
+        }
+    }
+
+    return iReturnCode;
+}
+
+/*
+** \brief Restore DATA data from FLASH
+**
+** \par Description:
+** Restore DATA data from FLASH
+**
+** \par Assumptions, External Events, and Notes:
+** If file is not present on system, this function will 
+** attempt to create the file and write current DATA data
+** to file
+**
+** \param op - Memory selection
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_INVALID_MEM_TYPE
+** \return #CFE_PSP_INVALID_POINTER
+*/
+static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    char *p_caFilename = NULL;
+    CFE_PSP_MemoryBlock_t memBlock = {0, 0};
+
+    switch (op)
+    {
+        case OP_CDS:
+            memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
+            memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+            p_caFilename = CFE_PSP_CDS_FLASH_FILEPATH;
+            break;
+
+        case OP_RESET:
+            memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+            memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+            p_caFilename = CFE_PSP_RESET_FLASH_FILEPATH;
+            break;
+
+        case OP_VOLATILEDISK:
+            memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
+            memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+            p_caFilename = CFE_PSP_VOLATILEDISK_FLASH_FILEPATH;
+            break;
+
+        case OP_USERRESERVED:
+            memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
+            memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+            p_caFilename = CFE_PSP_USERRESERVED_FLASH_FILEPATH;
+            break;
+        
+        default:
+            iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
+            memBlock.BlockPtr = (void *)0x00000000;
+            memBlock.BlockSize = (size_t)0x00000000;
+            OS_printf(MEMORY_PRINT_SCOPE "RestoreDATA: Invalid Memory Option\n");
+            break;
+    }
+
+    if (p_caFilename == NULL)
+    {
+        iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
+    }
+    else
+    {
+        /* We have detected a valid memory option */
+        /* Check if file exists */
+        if (CFE_PSP_FLASH_CheckFile(p_caFilename) == false)
+        {
+            /* File does not exist on system. Create file */
+            iReturnCode = CFE_PSP_FLASH_CreateFile(p_caFilename);
+            if (iReturnCode == CFE_PSP_SUCCESS)
+            {
+                /* Indicate that we need to write to FLASH */
+                iReturnCode = CFE_PSP_MEM_INVALID;
+                /*
+                ** NOTE that a more appropriate code would
+                ** be something like CFE_PSP_FLASH_SYNC_REQD
+                */
+            }
+        }
+        else
+        {
+            /* File does exist on system */
+            if (CFE_PSP_FLASH_ReadFromFLASH(
+                                (uint32 *)memBlock.BlockPtr,
+                                memBlock.BlockSize,
+                                p_caFilename) != CFE_PSP_SUCCESS)
+            {
+                /*
+                ** Read error
+                ** 
+                ** Indicate we need to write current RAM
+                ** data to FLASH
+                */
+                iReturnCode = CFE_PSP_MEM_INVALID;
+                /*
+                ** NOTE that a more appropriate code would
+                ** be something like CFE_PSP_FLASH_SYNC_REQD
+                */
+            }
+        }
+        
+        /* Check if we want to write to FLASH */
+        if (iReturnCode == CFE_PSP_MEM_INVALID)
+        {
+            /* Write data to flash */
+            iReturnCode = CFE_PSP_FLASH_WriteToFLASH(
+                                (uint32 *)memBlock.BlockPtr,
+                                memBlock.BlockSize,
+                                p_caFilename);
+        }
+    }
+
+    return iReturnCode;
 }

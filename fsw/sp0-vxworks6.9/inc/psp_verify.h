@@ -85,8 +85,23 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 #endif
 
 /** \brief CDS File Path Verification */
-#ifndef CFE_PSP_CFE_FLASH_FILEPATH
-    #error "CFE_PSP_CFE_FLASH_FILEPATH must be defined"
+#ifndef CFE_PSP_CDS_FLASH_FILEPATH
+    #error "CFE_PSP_CDS_FLASH_FILEPATH must be defined"
+#endif
+
+/** \brief RESET File Path Verification */
+#ifndef CFE_PSP_RESET_FLASH_FILEPATH
+    #error "CFE_PSP_RESET_FLASH_FILEPATH must be defined"
+#endif
+
+/** \brief Volatile Disk File Path Verification */
+#ifndef CFE_PSP_VOLATILEDISK_FLASH_FILEPATH
+    #error "CFE_PSP_VOLATILEDISK_FLASH_FILEPATH must be defined"
+#endif
+
+/** \brief User Reserved File Path Verification */
+#ifndef CFE_PSP_USERRESERVED_FLASH_FILEPATH
+    #error "CFE_PSP_USERRESERVED_FLASH_FILEPATH must be defined"
 #endif
 
 /** \brief WatchDog Default Time Verification */

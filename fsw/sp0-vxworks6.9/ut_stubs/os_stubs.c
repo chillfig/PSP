@@ -79,6 +79,19 @@ int write(int fd, const void * buf, size_t n)
     return iStatus;
 }
 
+struct stat {
+    int value;
+};
+
+int stat(char *fname, struct stat *buf)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(stat);
+
+    return iStatus;
+}
+
 void reboot(int iBootType)
 {
     UT_DEFAULT_IMPL(reboot);

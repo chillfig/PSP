@@ -293,8 +293,17 @@ typedef struct
  ** \par Note:
  ** File will be overwritten every time CFS starts.
 */
-#define CFE_PSP_CFE_FLASH_FILEPATH          "/ffx0/CDS"
+#define CFE_PSP_CDS_FLASH_FILEPATH          "/ffx0/CDS"
 /** \} */
+
+/** \brief RESET File location on FLASH */
+#define CFE_PSP_RESET_FLASH_FILEPATH        "/ffx0/RRT"
+
+/** \brief Volatile Disk File location on FLASH */
+#define CFE_PSP_VOLATILEDISK_FLASH_FILEPATH        "/ffx0/RVD"
+
+/** \brief User Reserved File location on FLASH */
+#define CFE_PSP_USERRESERVED_FLASH_FILEPATH        "/ffx0/RUR"
 
 
 /** \name Memory Scrubbing Configuration Parameters */
