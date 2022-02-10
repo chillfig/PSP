@@ -36,6 +36,7 @@
 #include "cfe_psp_config.h"
 #include "psp_start.h"
 #include "psp_exceptions.h"
+#include "psp_support.h"
 #include "psp_cds_flash.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
@@ -156,6 +157,8 @@ void PSP_FT_Start(void)
 
     OS_printf("[START PSP Functional Test]\n\n");
 
+    ft_support();
+
     ft_sp0_info();
 
     ft_start();
@@ -181,13 +184,49 @@ void PSP_FT_Start(void)
               cnt_tests, cnt_pass, cnt_fail);
 }
 
+void ft_support(void)
+{
+    int32   ret_code = 0;
+    char    bs_original[200] = {'\0'};
+    char    bs_new[200] = "/ram0/test";
+    char    bs_confirm[200] = {'\0'};
+
+    OS_printf("[SUPPORT START]\n");
+
+    /* Get startup script */
+    ret_code = CFE_PSP_GetBootStartupString(bs_original, sizeof(bs_original), 0);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
+
+    /* Set new startup script */
+    ret_code = CFE_PSP_SetBootStartupString(bs_new, 0);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting new Boot Startup String Successful")
+    
+    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
+    /* The string comparison is using memcmp because I need to compare the null character too in case 
+    bs_original is 0 length */
+    FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) != 0, "Confirming string boot has changed compared to original")
+    FT_Assert_True(memcmp(bs_confirm, bs_new, strlen(bs_new)+1) == 0, "Confirming string boot is the new string")
+
+    /* Restore original value */
+    ret_code = CFE_PSP_SetBootStartupString(bs_original, 0);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting original Boot Startup String Successful")
+
+    /* Read again and confirm that it is the original string */
+    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
+    FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) == 0, "Confirming string boot has been restored to original")
+
+    OS_printf("[SUPPORT END]\n");
+}
+
 void ft_exception(void)
 {
     uint32    exceptionCount = 0;
     char      ReasonBuf[128];
     uint32    LogId = 0;
     osal_id_t TaskId;
-    uint32    ret_code = 0;
+    int32     ret_code = 0;
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
     uint32    value = 10;
 

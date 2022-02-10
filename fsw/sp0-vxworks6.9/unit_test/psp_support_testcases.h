@@ -35,6 +35,11 @@ void Ut_CFE_PSP_FlushCaches(void);
 void Ut_CFE_PSP_GetProcessorId(void);
 void Ut_CFE_PSP_GetSpacecraftId(void);
 void Ut_CFE_PSP_GetProcessorName(void);
+void Ut_CFE_PSP_GetBootStartupString(void);
+void Ut_CFE_PSP_SetBootStartupString(void);
+void Ut_CFE_PSP_GetBootStructure(void);
+void Ut_CFE_PSP_SetBootStructure(void);
+void Ut_CFE_PSP_PrintBootParameters(void);
 
 #endif  /* UT_PSP_SUPPORT_TESTCASES_H */
 

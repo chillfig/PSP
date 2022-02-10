@@ -26,6 +26,7 @@ CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] =
     {NULL}
 };
 
+void ft_support(void);
 void ft_exception(void);
 void ft_cds_flash(void);
 void ft_mem_scrub(void);

@@ -53,7 +53,7 @@ wtxContextResume CONTEXT_TASK $task_id
 #listEvents
 
 # Sleep to let test run, then detach
-# Waiting for 5 seconds until it ends
-msleep 30000
+# Waiting for 70 seconds until it ends
+msleep 70000
 # Disconnect from Target PSP_UT_FC
 wtxToolDetach

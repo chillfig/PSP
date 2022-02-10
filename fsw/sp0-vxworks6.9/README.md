@@ -97,6 +97,11 @@ Kernel must include the following services:
   - CFE_PSP_DeleteProcessorReservedMemory `$`
   - CFE_PSP_GetKernelTextSegmentInfo `$`
   - CFE_PSP_GetCFETextSegmentInfo `$`
+  - CFE_PSP_GetBootStartupString
+  - CFE_PSP_SetBootStartupString
+  - CFE_PSP_GetBootStructure
+  - CFE_PSP_SetBootStructure
+  - CFE_PSP_PrintBootParameters
 
 ### Active Memory Scrubbing
 

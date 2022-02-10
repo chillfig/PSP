@@ -420,3 +420,34 @@ STATUS scrubMemory(uint32_t startAddr, uint32_t endAddr, uint32_t *pNumPagesScru
 
     return iStatus;
 }
+
+STATUS sysNvRamGet(
+char *dat_ptr, /* pointer to data location */
+int nbytes, /* size of the buffer */
+int offset /* byte offset in EEPROM */
+)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(sysNvRamGet);
+
+    if (iStatus >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(sysNvRamGet), (char *) dat_ptr, nbytes);
+    }
+
+    return iStatus;
+}
+
+STATUS sysNvRamSet(
+char *dat_ptr, /* pointer to data location */
+int nbytes, /* size of the buffer */
+int offset /* byte offset in EEPROM */
+)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(sysNvRamSet);
+
+    return iStatus;
+}

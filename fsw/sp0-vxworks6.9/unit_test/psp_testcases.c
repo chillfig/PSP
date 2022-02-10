@@ -438,13 +438,34 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetProcessorId");
 
+    UtTest_Add(Ut_CFE_PSP_GetProcessorName,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetProcessorName");
+
     UtTest_Add(Ut_CFE_PSP_GetSpacecraftId,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetSpacecraftId");
 
-    UtTest_Add(Ut_CFE_PSP_GetProcessorName,
+    UtTest_Add(Ut_CFE_PSP_GetBootStartupString,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetProcessorName");
+               "Ut_CFE_PSP_GetBootStartupString");
+
+    UtTest_Add(Ut_CFE_PSP_SetBootStartupString,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetBootStartupString");
+
+    UtTest_Add(Ut_CFE_PSP_GetBootStructure,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetBootStructure");
+
+    UtTest_Add(Ut_CFE_PSP_SetBootStructure,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetBootStructure");
+
+    UtTest_Add(Ut_CFE_PSP_PrintBootParameters,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_PrintBootParameters");
+
 
     #endif /* TEST_SUPPORT == 1 */
 

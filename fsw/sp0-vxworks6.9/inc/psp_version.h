@@ -24,7 +24,7 @@
 
 
 #ifndef _PSP_VERSION_H_
-#define _PSP_VERSION_
+#define _PSP_VERSION_H_
 
 #ifdef __cplusplus
 extern "C" {

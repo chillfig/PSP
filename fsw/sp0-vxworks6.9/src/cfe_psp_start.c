@@ -682,7 +682,7 @@ static int32 CFE_PSP_SetSysTasksPrio(void)
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param None
+ ** \param[out] fs_id - Buffer to store the ID of the file system mapping
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR

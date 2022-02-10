@@ -87,7 +87,13 @@ edrPolicyHandlerHookRemove
 /** \brief Declared in Aitech BSP 'bootrom.map' */
 extern STATUS edrErrorPolicyHookRemove(void);
 
+/**
+ ** \brief This function allows the user to read data from the user area of the non-volatile boot EEPROM
+ */
 extern STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
+/**
+ ** \brief This function allows the user to write data to the user area of the non-volatile boot EEPROM
+ */
 extern STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
 
 /*
