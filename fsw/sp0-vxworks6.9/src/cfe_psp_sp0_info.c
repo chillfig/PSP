@@ -256,7 +256,7 @@ int32 PSP_SP0_GetInfo(void)
         else
         {
             OS_printf(SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n");
-            g_sp0_info_table.temperatures[i] = FLT_MIN;
+            g_sp0_info_table.temperatures[i] = (float)FLT_MIN;
             ret_code = CFE_PSP_ERROR;
         }
     }
@@ -282,7 +282,7 @@ int32 PSP_SP0_GetInfo(void)
             else
             {
                 OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
-                g_sp0_info_table.voltages[i] = FLT_MIN;
+                g_sp0_info_table.voltages[i] = (float)FLT_MIN;
                 ret_code = CFE_PSP_ERROR;
             }
         }

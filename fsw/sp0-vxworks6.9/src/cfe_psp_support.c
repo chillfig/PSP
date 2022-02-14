@@ -373,7 +373,7 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
  **
  ** @internal
  */
-void    CFE_PSP_PrintBootParameters(BOOT_PARAMS * target_boot_parameters)
+void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
 {
     OS_printf(
         "[\n"
