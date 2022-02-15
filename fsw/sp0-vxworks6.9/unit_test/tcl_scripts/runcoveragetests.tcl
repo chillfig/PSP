@@ -1,17 +1,20 @@
-
 # Sleep for a bit to let target servers come up
 msleep 500
 
 # Attach to target1
-# Connecting to Target PSP_UT_FC
-wtxToolAttach PSP_UT_FC psp_ut_codecoverage
+# Connecting to Target PSP_UT
+if [catch "wtxToolAttach PSP_UT psp_ut_codecoverage" target_attach_error] {
+    puts stdout "Could not connect to Target"
+    puts $target_attach_error
+    return "ERROR"
+}
 
 # Load and run tests (call OS_BSPMain())
 # Loading PSP_UT
-# wtxObjModuleLoad LOAD_ALL_SYMBOLS scripts/ut_on_target/payload/psp_ut.exe
-if [catch "wtxObjModuleLoad LOAD_ALL_SYMBOLS ../payload/psp_ut.exe" sym] {
+if [catch "wtxObjModuleLoad LOAD_ALL_SYMBOLS ../payload/psp_ut.exe" module_load_error] {
     puts stdout "Could not load psp_ut"
-    error $sym
+    puts stdout $module_load_error
+    return "ERROR"
 }
 
 set symbol_info [wtxSymFind -name OS_BSPMain]
@@ -27,33 +30,66 @@ set redirIn         0
 set redirOut        0
 set delay           100
 
-# Running OS_BSPMain() entry point
-#if [catch "wtxFuncCall $coverageTestAddress" sym] {
-#    error $sym
-#}
-
-if [ catch "set task_id [wtxContextCreate CONTEXT_TASK psp_ut $psp_priority $psp_options $psp_stack_addr $psp_stack_size $coverageTestAddress $redirIn $redirOut $delay]" sym ] {
+# Create a suspended context (process) with above options
+if [ catch "set task_id [wtxContextCreate CONTEXT_TASK psp_ut $psp_priority $psp_options $psp_stack_addr $psp_stack_size $coverageTestAddress $redirIn $redirOut $delay]" context_create_error] {
     puts stdout "Could not Create Context"
-    error $sym
+    puts stdout $context_create_error
+    return "ERROR"
 }
 
-# Add Event notifications
-#wtxEventpointAdd tacc [symbol OS_BSPMain] task "$ctxId $ctxSubId"
-#wtxEventpointAdd cexit $coverageTestAddress task "$ctxId $ctxSubId"
-
 #Register to receive all events
-#wtxRegisterForEvent .*
+puts stdout "Registering events"
+wtxRegisterForEvent USER.*
 
-#proc listEvents {} {while {[set event [wtxEventGet]] != ""} {puts $event}}
-#listEvents
+puts stdout [wtxEventpointListGet]
+
+# Find Module ID so we can kill it later
+set task_info [wtxObjModuleInfoGet psp_ut.exe]
+set moduleID [lindex $task_info 0]
 
 # Resume task
 wtxContextResume CONTEXT_TASK $task_id
 
-#listEvents
+puts stdout "Waiting for Unit Test to complete"
 
+# Set maximum number of seconds to wait to 100 sec
+set max_wait 100
+set waiting_for 0
+# Wait until done by listening to a special USER event
+while {([set event [wtxEventGet]] == "") && ($waiting_for < $max_wait)} {
+    msleep 1000
+    incr waiting_for
+}
+
+# If we received an event message, print it
+if {($event != "")} {
+    puts stdout $event
+}
+
+# If we waited for max_wait seconds, kill process
+if {($waiting_for == $max_wait)} {
+    puts stdout "Timeout waiting for Unit Test"
+    puts stdout "Killing Task"
+    wtxContextKill $moduleID
+}
+
+# If we waited less than max_wait seconds, nothing to do?
+if {($waiting_for < $max_wait)} {
+    puts stdout "Unit Tested for $waiting_for seconds"
+    puts stdout "Closing"
+    # Give it another second for printing on target
+    msleep 1
+    return "OK"
+}
+
+<<<<<<< HEAD
+<<<<<<< HEAD
 # Sleep to let test run, then detach
 # Waiting for 70 seconds until it ends
 msleep 70000
+=======
+>>>>>>> Added Event Message to UT script
+=======
+>>>>>>> 35ff842fa826c63d68c569682335f079289c1aa1
 # Disconnect from Target PSP_UT_FC
 wtxToolDetach

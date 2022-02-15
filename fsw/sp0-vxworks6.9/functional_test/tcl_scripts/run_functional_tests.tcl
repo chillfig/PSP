@@ -3,13 +3,18 @@ msleep 500
 
 # Attach to target1
 # Connecting to Target PSP_FT
-wtxToolAttach PSP_FT psp_ft
+if [catch "wtxToolAttach PSP_UT psp_ft" target_attach_error] {
+    puts stdout "Could not connect to Target"
+    puts $target_attach_error
+    return "ERROR"
+}
 
 # Load and run tests (call PSP_FT_Start())
 # Loading PSP_FT
-if [catch "wtxObjModuleLoad LOAD_ALL_SYMBOLS ../payload/psp_ft.exe" sym] {
+if [catch "wtxObjModuleLoad LOAD_ALL_SYMBOLS ../payload/psp_ft.exe" module_load_error] {
     puts stdout "Could not load psp_ft"
-    error $sym
+    puts stdout $module_load_error
+    return "ERROR"
 }
 
 set symbol_info [wtxSymFind -name PSP_FT_Run]
@@ -25,33 +30,29 @@ set redirIn         0
 set redirOut        0
 set delay           100
 
-# Running OS_BSPMain() entry point
-#if [catch "wtxFuncCall $coverageTestAddress" sym] {
-#    error $sym
-#}
-
-if [ catch "set task_id [wtxContextCreate CONTEXT_TASK psp_ft $psp_priority $psp_options $psp_stack_addr $psp_stack_size $coverageTestAddress $redirIn $redirOut $delay]" sym ] {
+# Create a suspended context (process) with above options
+if [ catch "set task_id [wtxContextCreate CONTEXT_TASK psp_ft $psp_priority $psp_options $psp_stack_addr $psp_stack_size $coverageTestAddress $redirIn $redirOut $delay]" context_create_error ] {
     puts stdout "Could not Create Context"
-    error $sym
+    puts stdout $context_create_error
+    return "ERROR"
 }
 
-# Add Event notifications
-#wtxEventpointAdd tacc [symbol OS_BSPMain] task "$ctxId $ctxSubId"
-#wtxEventpointAdd cexit $coverageTestAddress task "$ctxId $ctxSubId"
-
 #Register to receive all events
-#wtxRegisterForEvent .*
+puts stdout "Registering events"
+wtxRegisterForEvent USER.*
 
-#proc listEvents {} {while {[set event [wtxEventGet]] != ""} {puts $event}}
-#listEvents
+puts stdout [wtxEventpointListGet]
+
+# Find Module ID so we can kill it later
+set task_info [wtxObjModuleInfoGet psp_ut.exe]
+set moduleID [lindex $task_info 0]
 
 # Resume task
 wtxContextResume CONTEXT_TASK $task_id
 
-#listEvents
-
 # Sleep to let test run, then detach
-# Waiting for 5 seconds until it ends
-msleep 5000
+# Waiting for 15 seconds until it ends
+msleep 15000
+
 # Disconnect from Target PSP_FT_FC
 wtxToolDetach

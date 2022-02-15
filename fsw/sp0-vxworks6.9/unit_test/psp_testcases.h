@@ -44,6 +44,7 @@
 void Ut_CFE_PSP_Setup(void);
 void Ut_CFE_PSP_Teardown(void);
 void Ut_CFE_PSP_InitEvent(void);
+void Ut_CFE_PSP_EndTests(void);
 
 #endif  /* UT_PSP_TESTCASES_H */
 

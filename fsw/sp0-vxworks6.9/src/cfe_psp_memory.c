@@ -57,7 +57,6 @@
 */
 
 /** \brief Define cFE core loadable module name */
-#define CFE_MODULE_NAME "cfe-core.o"
 #define MEMORY_PRINT_SCOPE "PSP MEMORY: "
 
 /*
@@ -584,40 +583,71 @@ int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *Size
 */
 int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFESegment)
 {
-    int32       iReturnCode = CFE_PSP_ERROR;
-    STATUS      status = CFE_PSP_ERROR;
+    int32       return_code = CFE_PSP_ERROR;
+    STATUS      status = OK;
     MODULE_ID   cFEModuleId = NULL;
     MODULE_INFO cFEModuleInfo = {};
+    cpuaddr     GetModuleIdAddr = 0;
+    MODULE_ID   (*GetModuldIdFunc)(void) = NULL;
 
-    if ((SizeOfCFESegment == NULL) || (PtrToCFESegment == NULL))
+    if ((PtrToCFESegment == NULL) || (SizeOfCFESegment == NULL))
     {
-        iReturnCode = CFE_PSP_ERROR;
+        return_code = CFE_PSP_ERROR;
     }
     else
     {
-        cFEModuleId = moduleFindByName(CFE_MODULE_NAME);
+        /*
+         * First attempt to call a function called GetCfeCoreModuleID().
+         *
+         * If CFE core was started via the "startCfeCore" routine, this
+         * provides the actual module ID that was loaded by that routine,
+         * no matter what it is actually named.  This is provided by the
+         * support/integration code compiled directly into the VxWorks kernel
+         * image.
+         *
+         * The prototype should be:
+         *     MODULE_ID GetCfeCoreModuleID(void);
+         */
+        cFEModuleId     = NULL;
+        GetModuleIdAddr = 0;
+        return_code     = OS_SymbolLookup(&GetModuleIdAddr, "GetCfeCoreModuleID");
+        if ((return_code == OS_SUCCESS) && (GetModuleIdAddr != 0))
+        {
+            GetModuldIdFunc = (MODULE_ID(*)(void))GetModuleIdAddr;
+            cFEModuleId     = GetModuldIdFunc();
+        }
+
+        /*
+         * If the above did not yield a valid module ID,
+         * then attempt to find the module ID by name.
+         * This assumes the core executable name as built by CMake
+         */
+        if (cFEModuleId == NULL)
+        {
+            cFEModuleId = moduleFindByName((char *)GLOBAL_CONFIGDATA.Default_CoreFilename);
+        }
 
         if (cFEModuleId == NULL)
         {
-            iReturnCode = CFE_PSP_ERROR;
+            return_code = CFE_PSP_ERROR;
         }
         else
         {
             status = moduleInfoGet(cFEModuleId, &cFEModuleInfo);
-            if (status != ERROR) //UndCC_Line(SSET055) - returned by function
+            if (status == OK)
             {
-                *PtrToCFESegment = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
-                *SizeOfCFESegment = (uint32) (cFEModuleInfo.segInfo.textSize);
-                iReturnCode = CFE_PSP_SUCCESS;
+                *PtrToCFESegment  = (cpuaddr)(cFEModuleInfo.segInfo.textAddr);
+                *SizeOfCFESegment = (uint32)(cFEModuleInfo.segInfo.textSize);
+                return_code       = CFE_PSP_SUCCESS;
             }
             else
             {
-                iReturnCode = CFE_PSP_ERROR;
+                return_code = CFE_PSP_ERROR;
             }
         }
     }
 
-    return(iReturnCode);
+    return (return_code);
 }
 
 /**********************************************************

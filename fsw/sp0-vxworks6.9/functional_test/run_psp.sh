@@ -3,6 +3,11 @@
 # author: claudio.olmi@nasa.gov
 #
 
+ERROR=`tput setaf 1`
+SUCCESS=`tput setaf 2`
+INFO=`tput setaf 4`
+RESET=`tput sgr0`
+
 RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]\n"
 
 SCRIPT_ROOT=$(readlink -f $(dirname $0))
@@ -38,6 +43,10 @@ if [ -z $2 ]; then
     echo -e $RUN_PSP_HELP
     exit 1
 fi
+if [ ! -f $2 ]; then
+    echo -e "${ERROR}Provided Kernel file does not exists\n${RESET}"
+    exit 1
+fi
 TARGET_KERNEL=$2
 
 TARGET_NAME="PSP_FT"
@@ -45,7 +54,7 @@ TARGET_NAME="PSP_FT"
 WTXREGD=`ps ax | grep wtxregd | grep workbench`
 if [ -z "$WTXREGD" ]
 then
-    echo "WTX Register Daemon not found."
+    echo "${ERROR}WTX Register Daemon not found${RESET}"
     echo "Run: $ wtxregd start"
     exit
 fi
@@ -69,14 +78,15 @@ cd $TCL_SCRIPT_ROOT
 # Start the target servers
 tgtsvr -V -n $TARGET_NAME -RW -Bt 3 -c $TARGET_KERNEL $TARGET_IP &
 
-echo "Starting tests on $TARGET_NAME"
+echo "${INFO}Starting tests on $TARGET_NAME${RESET}"
 # Call tcl script that downloads the object modules from the
 # target and runs the tests
 wtxtcl run_functional_tests.tcl
 
-echo "Waiting to complete..."
+echo "${INFO}Waiting to complete...${RESET}"
 sleep 2
 
+echo "${INFO}Kill tgtsvr...${RESET}"
 # Shutdown the target servers
 wtxtcl kill_target_service.tcl
 

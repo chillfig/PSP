@@ -47,7 +47,6 @@ Kernel must include the following services:
   - CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR `*`
   - CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR `*`
   - CFE_PSP_MEMALIGN_MASK `*`
-  - CFE_MODULE_NAME
   - CFE_PSP_CPU_ID `$`
   - CFE_PSP_CPU_NAME `$`
   - CFE_PSP_SPACECRAFT_ID `$`

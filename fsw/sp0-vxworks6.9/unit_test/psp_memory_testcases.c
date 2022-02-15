@@ -509,69 +509,96 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     MODULE_ID  moduleID;
     MODULE_INFO moduleInfo;
 
+    extern cpuaddr GetModuleId(void);
+
     moduleInfo.segInfo.textAddr = task_name;
     moduleInfo.segInfo.textSize = strlen(task_name);
-  
+
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
     puiSizeOfCFESegment = &uiSizeOfCFESegment;
-    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, (uint32)&moduleID);
-    
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &GetModuleId, sizeof(&GetModuleId), false);
+    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(moduleInfo), true);
-    UT_SetDeferredRetcode(UT_KEY(moduleInfoGet), 1, OS_SUCCESS);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
     UtAssert_True(pCFESegment != 0, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: CFESegment was changed");
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: Nominal");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: Nominal return code");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
+    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleInfoGet, 1);
+    UtAssert_STUB_COUNT(GetModuleId, 1);
 
+    Ut_OS_printf_Setup();
     UT_ResetState(0);
 
     /* ----- Test case #2 - Nominal moduleInfoGet return error ----- */
     /* Setup additional inputs */
     CFESegment = 0;
     pCFESegment = &CFESegment;
-    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, (uint32)&moduleID);
-    UT_SetDeferredRetcode(UT_KEY(moduleInfoGet), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    /* UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &moduleID, sizeof(moduleID), false); */
+    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), ERROR);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: CFESegment was not changed");
     UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: Nominal moduleInfoGet returned error");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
+    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleInfoGet, 1);
 
+    Ut_OS_printf_Setup();
     UT_ResetState(0);
 
-    /* ----- Test case #3 - CFE Segement size pointer is NULL ----- */
+    /* ----- Test case #3 - puiSizeOfCFESegment pointer is NULL ----- */
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
     puiSizeOfCFESegment = NULL;
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/5: Failed because CFE Segement size pointer is NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/5: puiSizeOfCFESegment pointer is NULL");
+    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 3/5: CFESegment was not changed");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 0);
+    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleInfoGet, 0);
 
+    Ut_OS_printf_Setup();
     UT_ResetState(0);
 
-    /* ----- Test case #4 - moduleFindByName return NULL pointer ----- */
+    /* ----- Test case #4 - pCFESegment pointer is NULL ----- */
     /* Setup additional inputs */
-    pCFESegment = &CFESegment;
-    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, 0);
+    pCFESegment = NULL;
+    puiSizeOfCFESegment = &uiSizeOfCFESegment;
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/5: Failed because moduleFindByName returned NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/5: pCFESegment pointer is NULL");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 0);
+    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleInfoGet, 0);
 
+    Ut_OS_printf_Setup();
     UT_ResetState(0);
 
-    /* ----- Test Case #5 - SizeOfCFESegment != NULL and moduleFindByName return NULL ptr ----- */
-    /* Setup Inputs */
-    puiSizeOfCFESegment = &uiSizeOfCFESegment;
-    UT_SetDeferredRetcode(UT_KEY(moduleFindByName), 1, 0);
+    /* ----- Test case #5 - moduleFindByName return NULL pointer ----- */
+    /* Setup additional inputs */
+    pCFESegment = &CFESegment;
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), 0);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
-    /* Verify Output */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 5/5: Failed because *sizeOfCFESegment != NULL and moduleFindByName returned NULL");
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 5/5: Failed because moduleFindByName returned NULL");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
+    UtAssert_STUB_COUNT(moduleFindByName, 1);
+    UtAssert_STUB_COUNT(moduleInfoGet, 0);
 }
 
 /*=======================================================================================

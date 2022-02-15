@@ -3,6 +3,11 @@
 # author: claudio.olmi@nasa.gov
 #
 
+ERROR=`tput setaf 1`
+SUCCESS=`tput setaf 2`
+INFO=`tput setaf 4`
+RESET=`tput sgr0`
+
 RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]\n"
 
 SCRIPT_ROOT=$(readlink -f $(dirname $0))
@@ -11,7 +16,7 @@ CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))
 # Check that the WindRiver environment is enabled
 if ! command -v tgtsvr &> /dev/null
 then
-    echo "Please enable WindRiver environment"
+    echo "${ERROR}Please enable WindRiver environment${RESET}"
     exit 1
 fi
 
@@ -38,14 +43,18 @@ if [ -z $2 ]; then
     echo -e $RUN_PSP_HELP
     exit 1
 fi
+if [ ! -f $2 ]; then
+    echo -e "${ERROR}Provided Kernel file does not exists\n${RESET}"
+    exit 1
+fi
 TARGET_KERNEL=$2
 
-TARGET_NAME="PSP_UT_FC"
+TARGET_NAME="PSP_UT"
 
 WTXREGD=`ps ax | grep wtxregd | grep workbench`
 if [ -z "$WTXREGD" ]
 then
-    echo "WTX Register Daemon not found."
+    echo "${ERROR}WTX Register Daemon not found${RESET}"
     echo "Run: $ wtxregd start"
     exit
 fi
@@ -69,7 +78,7 @@ cd $TCL_SCRIPT_ROOT
 # Start the target servers
 tgtsvr -V -n $TARGET_NAME -RW -Bt 3 -c $TARGET_KERNEL $TARGET_IP &
 
-echo "Starting tests on $TARGET_NAME"
+echo "${INFO}Starting tests on $TARGET_NAME${RESET}"
 # Call tcl script that downloads the object modules from the
 # target and runs the tests
 wtxtcl runcoveragetests.tcl
@@ -79,25 +88,33 @@ rm -f $SCRIPT_ROOT/psp_ut*.zip
 rm -f $RUNS_ROOT/*
 rm -f $SCRIPT_ROOT/html/*
 
-echo "Waiting to complete..."
+echo "${INFO}Waiting to complete...${RESET}"
 sleep 2
 
+
+echo "${INFO}Download from Target Coverage Data...${RESET}"
 # Use coverageupload to upload the coverage data from the targets
 coverageupload -configuration ~/pne_vxworks_69_Config -t $TARGET_NAME -f $RUNS_ROOT/psp_ut_coverage.run -p $SCRIPT_ROOT/vx_code_coverage.prj -d 3 -data ~
+
+echo "${INFO}Kill tgtsvr...${RESET}"
 
 # Shutdown the target servers
 wtxtcl killtgtsvrs.tcl
 
 sleep 2
 
+echo "${INFO}Preparing HTML output...${RESET}"
+
 # Merge the coverage results into one run
 coverageconvert -configuration ~/pne_vxworks_69_Config -f $RUNS_ROOT/psp_ut_coverage.run -b -c -n -m $RUNS_ROOT/psp_ut_report.run -l $HTML_ROOT
+
+echo "${INFO}Preparing ZIP of HTML output...${RESET}"
 
 cd $SCRIPT_ROOT
 
 # Pack all html files into a single zip file
 if [ $DO_ZIP == 1 ]; then
-    echo "Packing HTML folder to psp_ut_html_report.zip"
+    echo "${SUCCESS}Packing HTML folder to psp_ut_html_report.zip${RESET}"
     zip -r -q psp_ut_html_report.zip html
 fi
 

@@ -16,6 +16,7 @@
 **=======================================================================================*/
 
 #include <unistd.h>
+#include <wdb/wdbLib.h>
 #include "uttest.h"
 #include "utstubs.h"
 #include "psp_testcases.h"
@@ -29,6 +30,7 @@
 #define TEST_EXCEPTION  1
 #define TEST_SUPPORT    1
 #define TEST_WATCHDOG   1
+
 
 /*=======================================================================================
 ** Test Setup & Teardown functions
@@ -502,7 +504,20 @@ void UtTest_Setup(void)
 
     #endif /* TEST_WATCHDOG == 1 */
 
+    UtTest_Add(Ut_CFE_PSP_EndTests,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_EndTests");
 } 
+
+/**
+ ** \brief Special function to send WDB Event Message to calling WTX Script
+ ** 
+ */
+void Ut_CFE_PSP_EndTests(void)
+{
+    if (wdbUserEvtPost ("End of Tests") != OK)
+        OS_printf ("Can't send message to host tools");
+}
 
 /*=======================================================================================
 ** End of file psp_testcases.c
