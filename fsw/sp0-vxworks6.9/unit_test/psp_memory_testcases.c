@@ -348,12 +348,39 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     uint8 uiToCompareMemBlock_ZERO[uiMemBlockSize];
     memset(uiToCompareMemBlock_ZERO, 0, uiMemBlockSize);
 
-    uint8 localReservedMemBlock[uiMemBlockSize];
-    g_ReservedMemBlock.BlockPtr = (void *)localReservedMemBlock;
-    g_ReservedMemBlock.BlockSize = uiMemBlockSize;
+    g_uiTotalReservedAllocSize = uiMemBlockSize;
 
     CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
     CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
+
+    uint32 uiZEROBuf[10];
+
+    uint32 uiLocalCDSBuf[10];
+    uint32 uiLocalCDSBufSize = 10;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = uiLocalCDSBuf;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = uiLocalCDSBufSize;
+    
+    uint32 uiLocalRESETBuf[10];
+    uint32 uiLocalRESETBufSize = 10;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = uiLocalRESETBuf;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = uiLocalRESETBufSize;
+
+    uint32 uiLocalVOLATILEDISKBuf[10];
+    uint32 uiLocalVOLATILEDISKBufSize = 10;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = uiLocalVOLATILEDISKBuf;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = uiLocalVOLATILEDISKBufSize;
+
+    uint32 uiLocalUSERRESERVEDBuf[10];
+    uint32 uiLocalUSERRESERVEDBufSize = 10;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = uiLocalUSERRESERVEDBuf;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = uiLocalUSERRESERVEDBufSize;
+
+    memset(uiZEROBuf, 0, 10);
+    memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+
 
     cpuaddr start_addr = 0;
     uint32 reserve_memory_size;
@@ -362,38 +389,57 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
 
     /* ----- Test case #1 - Reserved Mem Block too large ----- */
     /* Set additional inputs */
-    g_ReservedMemBlock.BlockSize = (size_t)0xFFFFFFFF;
+    g_uiTotalReservedAllocSize = (size_t)0xFFFFFFFF;
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 1/3: Invalid Block Size");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 1/4: Invalid Block Size");
 
-    /* ----- Test case #2 - Restart type != Processor Reset ----- */
+    /* ----- Test case #2 - Restart type CFE_PSP_RST_TYPE_POWERON ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
-    g_ReservedMemBlock.BlockSize = uiMemBlockSize;
-    memset(g_ReservedMemBlock.BlockPtr, 1, g_ReservedMemBlock.BlockSize);
+    g_uiTotalReservedAllocSize = (size_t)0x00000000;
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
     /* Execute test */
-    iReturnCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_POWERON);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/3: Not processor reset - return code");
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_InitProcessorReservedMemory 2/3: Not processor reset - boot reset type check");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 2/3: Not processor reset - message check");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/4: Not processor reset - return code");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_InitProcessorReservedMemory 2/4: Not processor reset - boot reset type check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: CDS Block Check ");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: Reset Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: Volatile Disk Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: User Reserved Block Check");
 
-    /* ----- Test case #3 - Restore Data ----- */
+    /* ----- Test case #3 - Restore Data DEFAULT SUCCESS ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    g_ReservedMemBlock.BlockSize = uiMemBlockSize;
-    memset(g_ReservedMemBlock.BlockPtr, 1, g_ReservedMemBlock.BlockSize);
+    memset(uiZEROBuf, 0, 10);
+    memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
     /* Execute test */
-    iReturnCode = CFE_PSP_InitProcessorReservedMemory(uiRestartType);
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 3/3: Not processor reset - return code");
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_InitProcessorReservedMemory 3/3: Data restoration, Not processor reset - boot reset type check");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 3/4: Not processor reset - return code");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 3/4: Reset Block Check");
+
+    /* ----- Test case #3 - Restore Data DEFAULT ERROR ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    memset(uiZEROBuf, 0, 10);
+    memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
+    /* Execute test */
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 4/4: Not processor reset - return code");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: CDS Block Check ");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: Reset Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: Volatile Disk Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: User Reserved Block Check");
 }
 
 /*=======================================================================================
@@ -424,18 +470,18 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify results */
-    UtAssert_True(totalAllocSize == g_totalReservedAllocSize, "_CFE_PSP_SetupReservedMemoryMap 1/3: Successfully allocate memory -  Memory alloc size check");
+    UtAssert_True(totalAllocSize == g_uiTotalReservedAllocSize, "_CFE_PSP_SetupReservedMemoryMap 1/3: Successfully allocate memory -  Memory alloc size check");
 
     /* ----- Test case #2 - Fail to allocate space ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    g_totalReservedAllocSize = 0;
+    g_uiTotalReservedAllocSize = 0;
     UT_SetDefaultReturnValue(UT_KEY(userMemAlloc), ERROR);
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, CFE_PSP_SUCCESS);
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify results */
-    UtAssert_True(g_totalReservedAllocSize == 0, "_CFE_PSP_SetupReservedMemoryMap 2/3: Fail to allocate memory - Memory alloc size check");
+    UtAssert_True(g_uiTotalReservedAllocSize == 0, "_CFE_PSP_SetupReservedMemoryMap 2/3: Fail to allocate memory - Memory alloc size check");
 
     /* ----- Test case #3 - Mem Range Set failure ----- */
     /* Set additional inputs */

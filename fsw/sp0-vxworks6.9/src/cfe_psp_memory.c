@@ -101,7 +101,7 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op);
 */
 
 /** \brief Track total amount of allocated memory */
-static uint32 g_totalReservedAllocSize = 0;
+static uint32 g_uiTotalReservedAllocSize = 0;
 
 /**
  ** \brief Contains the address of the end of RAM
@@ -242,6 +242,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     int32     iReturnCode = CFE_PSP_SUCCESS;
     int32     iCDSFd = -1;
     ssize_t   readBytes = 0;  
+    int32     iStatus = 0;
     
     /* 
     ** Returns the address and size of the user-reserved region
@@ -249,32 +250,35 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     */
     userReservedGet((char **) &start_addr, &reserve_memory_size);
 
-    /* If the VxWorks reserved memory size is smaller than the requested, print error */
-    if(g_ReservedMemBlock.BlockSize > reserve_memory_size)
+    /* 
+    ** If the VxWorks reserved memory size is smaller than the 
+    ** requested, print error
+    */
+    if(g_uiTotalReservedAllocSize > reserve_memory_size)
     {
         OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
                   "Total Size = 0x%lx, "
                   "VxWorks Reserved Size=0x%lx\n",
-                  (unsigned long)g_ReservedMemBlock.BlockSize,
+                  (unsigned long)g_uiTotalReservedAllocSize,
                   (unsigned long)reserve_memory_size);
         iReturnCode = CFE_PSP_ERROR;
-
     }
-    /*
-    Depending on the RestartType, the User Reseverd Memory is recovered or deleted
-    from FLASH memory.
-    If the RestartType is CFE_PSP_RST_TYPE_POWERON erase all User Reserved Memory
-    else recover user reserved memory from FLASH.
 
-    NOTE: This section will be refactored in upcoming JIRA story
+    /*
+    ** Depending on the restart type, the User Reserved Memory is recovered or deleted
+    ** from FLASH memory.
+    **
+    ** IF   the restart type is CFE_PSP_RST_TYPE_POWERON, erase all User Reserved Memory
+    ** ELSE recover user reserved memory from FLASH
     */
-    else if (RestartType != CFE_PSP_RST_TYPE_PROCESSOR)
+    else if (RestartType == CFE_PSP_RST_TYPE_POWERON)
     {
-        OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
         /*
-        memset will always return the address of CFE_PSP_ReservedMemoryMap here
+        ** POWERON RESET Detected
+        ** 
+        ** Erase all user reserved memory.
+        ** Clear from RAM, FLASH
         */
-        // memset(g_ReservedMemBlock.BlockPtr, 0, g_ReservedMemBlock.BlockSize);
 
         /* Clear EDR data in EEPROM */
         CFE_PSP_edrClearEEPROM();
@@ -283,18 +287,93 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         ** Set the default reset type in case a watchdog reset occurs
         */
         CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
-    }
 
-    /**** Recover User Reserved Memory ****/
-    if(iReturnCode == CFE_PSP_SUCCESS)
+        memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+                0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize,
+                                    CFE_PSP_RESET_FLASH_FILEPATH);
+
+        /* CDS MEMORY */
+        memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
+                                    CFE_PSP_CDS_FLASH_FILEPATH);
+
+        /* VOLATILE DISK MEMORY */
+        memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
+                                    CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+
+        /* USER RESERVERED MEMORY */
+        memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
+                                    CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+    }
+    else if (RestartType == CFE_PSP_RST_TYPE_PROCESSOR)
     {
-        /** Recover EDR data if available **/
-        CFE_PSP_edrLoadFromEEPROM();
+        /*
+        ** PROCESSOR RESET Detected
+        ** 
+        ** Volatile disk, Critical Data Store and User Reserved
+        ** memory could still be valid
+        **
+        ** Attempt to restore above memory sections
+        */
         
-        CFE_PSP_MEMORY_RestoreRESET();
-        CFE_PSP_MEMORY_RestoreCDS();
-        CFE_PSP_MEMORY_RestoreVOLATILEDISK();
-        CFE_PSP_MEMORY_RestoreUSERRESERVED();
+        /* Recover EDR data if available */
+        CFE_PSP_edrLoadFromEEPROM();
+
+        /* RESET MEMORY - Not sure if still valid */
+        memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+                                    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
+                                    CFE_PSP_RESET_FLASH_FILEPATH);
+
+        /* CDS MEMORY */
+        iStatus = CFE_PSP_MEMORY_RestoreCDS();
+        
+        if (iStatus != CFE_PSP_SUCCESS)
+        {
+            OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore CDS data\n");
+            memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                    0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
+                                    CFE_PSP_CDS_FLASH_FILEPATH);
+        }
+
+        /* VOLATILE DISK MEMORY */
+        iStatus = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+
+        if (iStatus != CFE_PSP_SUCCESS)
+        {
+            OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore Volatile Disk data\n");
+            memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                    0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
+                                    CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+        }
+
+        /* USER RESERVED MEMORY */
+        iStatus = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+
+        if (iStatus != CFE_PSP_SUCCESS)
+        {
+            OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore User Reserved data\n");
+            memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                    0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                                    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
+                                    CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+        }
     }
 
    return(iReturnCode);
@@ -344,7 +423,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+        g_uiTotalReservedAllocSize += sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
     }
     else
     {
@@ -357,7 +436,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += sizeof(CFE_PSP_ExceptionStorage_t);
+        g_uiTotalReservedAllocSize += sizeof(CFE_PSP_ExceptionStorage_t);
     }
     else
     {
@@ -371,7 +450,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+        g_uiTotalReservedAllocSize += CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
     }
     else
     {
@@ -386,7 +465,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+        g_uiTotalReservedAllocSize += CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
     }
     else
     {
@@ -400,7 +479,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+        g_uiTotalReservedAllocSize += CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
     }
     else
     {
@@ -414,22 +493,13 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                                 true);
     if (sStatus == OK)
     {
-        g_totalReservedAllocSize += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+        g_uiTotalReservedAllocSize += CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
     }
     else
     {
         OS_printf("usrMemAlloc Failed\n");
     }
     
-    /*
-    ** TODO: 
-    ** g_ReservedMemBlock.BlockPtr may not be meaninful now
-    ** Additionally, we do not have guarantee that our reserved memory
-    ** will be in a single, continuous block
-    */
-    g_ReservedMemBlock.BlockPtr = (void *) start_addr;
-    g_ReservedMemBlock.BlockSize =  g_totalReservedAllocSize;
-
     /* Debug/Log printing */
     OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemoryMap Info:\n");
     OS_printf("\tRESET:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
@@ -444,9 +514,6 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     OS_printf("\tUsRe:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
                 (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                 (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-
-    OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemoryMap Info: Reserved, according to kernel\n");
-    userMemAllocShow();
     
     /*
      * Set up the "RAM" entry in the memory table.
