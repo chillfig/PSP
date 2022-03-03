@@ -60,6 +60,11 @@
 #define SP0_ORIGINAL_MAX_TEMP_SENSORS       3
 
 /*
+** Static Function Declarations
+*/
+static int32 PSP_SP0_PrintToBuffer(void);
+
+/*
 ** Static Variables
 */
 /** \name SP0 Information String Buffer */
@@ -75,21 +80,13 @@ static int g_iSP0DataDumpLength;
  */
 static SP0_info_table_t g_sp0_info_table;
 
-/**
-** \func Collect SP0 Hardware and Firmware data
-**
-** \par Description:
-** This function collects the SP0 hardware and firmware data and saves it
-** in the g_sp0_info_table object, as well as a string in the g_cSP0DataDump object.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**********************************************************
+ * 
+ * Function: PSP_SP0_GetInfo
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 PSP_SP0_GetInfo(void)
 {
     RESET_SRC_REG_ENUM          resetSrc = 0;
@@ -339,7 +336,6 @@ int32 PSP_SP0_GetInfo(void)
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
@@ -442,20 +438,13 @@ static int32 PSP_SP0_PrintToBuffer(void)
     return ret_code;
 }
 
-/**
-** \func Get the structure containing the SP0 Hardware and Firmware data
-**
-** \par Description:
-** This function returns and print the structure containing the SP0 Hardware and Firmware
-** data.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param print_to_console Print string buffer to console if True
-**
-** \return SP0_info_table_t structure containing all the collect info from SP0
-*/
+/**********************************************************
+ * 
+ * Function: PSP_SP0_GetInfoTable
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console)
 {
     /* Output to console */
@@ -476,20 +465,13 @@ SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console)
     return g_sp0_info_table;
 }
 
-/**
- ** \func Function dumps the collected data to file
- **
- ** \par Description:
- ** Saves data dump to location defined by #SP0_DATA_DUMP_FILEPATH
- ** 
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: PSP_SP0_DumpData
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 PSP_SP0_DumpData(void)
 {
     char    filename[] = SP0_DATA_DUMP_FILEPATH;
@@ -542,21 +524,13 @@ PSP_SP0_DumpData_Exit_TAG:
     return ret_code;
 }
 
-/**
- ** \func Get disk free disk space in Mibytes
- ** 
- ** \par Description:
- ** Function uses the statfs64 to gather statistics about the file system.
- ** It works with both RAM and FLASH file systems such as "/ram0" and "/ffx0"
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] ram_disk_root_path 
- **
- ** \return int64_t - Size of free space in disk in bytes
- ** \return CFE_PSP_ERROR - If statfs returned error
- */
+/**********************************************************
+ * 
+ * Function: PSP_SP0_GetDiskFreeSize
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
 {
     int64_t free_size_bytes = CFE_PSP_ERROR;

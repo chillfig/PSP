@@ -67,59 +67,38 @@
  **                 (Functions used only within the PSP itself)
  ***************************************************************************/
 
-/*
- ** Purpose: Reset the exception storage buffer counter
- **
- ** Description:
- ** This function resets the state of exception processing.
- **
- ** Assumptions, External Events, and Notes:
- ** None
- **
- ** Param: None
- **
- ** Return: None
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_Reset
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_Exception_Reset(void)
 {
     /* just reset the counter */
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumRead = CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumWritten;
 }
 
-/*
- ** Purpose: Get the next buffer for exception buffer corresponding to sequence
- ** 
- ** Description:
- ** This function obtains a storage buffer corresponding to the given sequence number. 
- ** The pointer to storage memory is directly returned. 
- **
- ** Assumptions, External Events, and Notes:
- ** It is not cleared or modified, and no checks are performed to determine if the sequence number is valid.
- **
- ** Param: [in] seq - Sequence number
- **
- ** Return: Pointer to buffer.
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_GetBuffer
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetBuffer(uint32 seq)
 {
     return &CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->Entries[seq & CFE_PSP_MAX_EXCEPTION_ENTRY_MASK];
 }
 
-/*
- ** Purpose: Get the next buffer for exception context storage
- **
- ** Description:
- ** This function is invoked by the low level exception handler (typically an ISR/signal)
- ** to obtain a buffer for context capture.
- **
- ** Assumptions, External Events, and Notes:
- ** The buffer is cleared (memset zero) before returning to the caller.
- **
- ** Param: None
- **
- ** Return: Pointer to buffer - If successful
- **         NULL - If storage is full
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_GetNextContextBuffer
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetNextContextBuffer(void)
 {
     CFE_PSP_Exception_LogData_t *Buffer;
@@ -140,21 +119,13 @@ CFE_PSP_Exception_LogData_t *CFE_PSP_Exception_GetNextContextBuffer(void)
     return Buffer;
 }
 
-/*
- ** Purpose: Wrap up the storage of exception data
- **
- ** Description:
- ** This function is invoked by the low level exception handler (typically an ISR/signal)
- ** once the exception context capture is complete.
- **
- ** Assumptions, External Events, and Notes:
- ** This should be invoked after a successful call to CFE_PSP_Exception_GetNextContextBuffer()
- ** to commit the information to the log.
- **
- ** Param: None
- **
- ** Return: None
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_WriteComplete
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_Exception_WriteComplete(void)
 {
     CFE_PSP_Exception_LogData_t *Buffer;
@@ -183,42 +154,26 @@ void CFE_PSP_Exception_WriteComplete(void)
  **                   (Functions used by CFE or PSP)
  ***************************************************************************/
 
-/*
-** Purpose: Get the exception count
-**
-** Description:
-** This function fetches the exception count.
-** 
-** Assumptions, External Events, and Notes:
-** None
-**
-** Param: None
-**
-** Return: The exception count
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_GetCount
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 uint32 CFE_PSP_Exception_GetCount(void)
 {
     return (CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumWritten -
             CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumRead);
 }
 
-/*
-** Purpose: Translate a stored exception log entry into a summary string
-**
-** Description:
-** This function takes a stored exception-log entry and converts it into a summary string.
-** 
-** Assumptions, External Events, and Notes:
-** None
-**
-** Param: [out] ContextLogId - Pointer to the variable that stores the returned log ID
-**        [out] TaskId - Pointer to the variable that stores the returned OSAL task ID
-**        [out] ReasonBuf - The buffer that stores the returned string
-**        [in]  ReasonSize - The maximum length of the buffer, ReasonBuf
-**
-** Return: CFE_PSP_SUCCESS
-**         CFE_PSP_NO_EXCEPTION_DATA
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_GetSummary
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char *ReasonBuf, uint32 ReasonSize)
 {
     const CFE_PSP_Exception_LogData_t *Buffer;
@@ -278,23 +233,13 @@ int32 CFE_PSP_Exception_GetSummary(uint32 *ContextLogId, osal_id_t *TaskId, char
     return CFE_PSP_SUCCESS;
 }
 
-/*
-** Purpose: Translate a stored exception log entry into a summary string
-**
-** Description:
-** This function takes a stored exception-log entry and converts it into a summary string.
-** 
-** Assumptions, External Events, and Notes:
-** None
-**
-** Param: [in]  ContextLogId - The stored exception log ID
-**        [out] ContextBuf - Pointer to the variable that stores the copied data
-**        [in]  ContextSize - The maximum length of the buffer, ContextBuf
-**
-** Return: The actual size of the copied data
-**         CFE_PSP_NO_EXCEPTION_DATA
-**         CFE_PSP_INVALID_POINTER
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Exception_CopyContext
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_Exception_CopyContext(uint32 ContextLogId, void *ContextBuf, uint32 ContextSize)
 {
     const CFE_PSP_Exception_LogData_t *Buffer;

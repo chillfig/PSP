@@ -46,67 +46,37 @@
 #include "cfe_psp.h"
 #include "psp_version.h"
 
-/**
- ** \func Obtain the PSP version/baseline identifier string
- **
- ** \par Description:
- ** This retrieves the PSP version identifier string without extra info.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \return Version string. This is a fixed string and cannot be NULL.
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetVersionString
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 const char *CFE_PSP_GetVersionString(void)
 {
     return CFE_PSP_IMPL_VERSION;
 }
 
-/**
- ** \func Obtain the version code name
- **
- ** \par Description:
- ** This retrieves the PSP code name.\n This is a compatibility indicator for the
- ** overall NASA CFS ecosystem.\n All modular components which are intended to
- ** interoperate should report the same code name.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \return Code name.  This is a fixed string and cannot be NULL.
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetVersionCodeName
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 const char *CFE_PSP_GetVersionCodeName(void)
 {
     return CFE_PSP_IMPL_CODENAME;
 }
 
-/**
- ** \func Obtain the PSP numeric version numbers as uint8 values
- **
- ** \par Description:
- ** This retrieves the numeric PSP version identifier as an array of 4 uint8 values.
- ** \n
- ** The array of numeric values is in order of precedence:
- ** [0] = Major Number
- ** [1] = Minor Number
- ** [2] = Revision Number
- ** [3] = Mission Revision
- ** \n
- ** The "Mission Revision" (last output) also indicates whether this is an
- ** official release, a patched release, or a development version.
- ** 0 indicates an official release
- ** 1-254 local patch level (reserved for mission use)
- ** 255 indicates a development build
- ** 
- ** 
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[out] VersionNumbers  A fixed-size array to be filled with the version numbers
- **
- ** \return None
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetVersionNumber
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
 {
     VersionNumbers[0] = CFE_PSP_IMPL_MAJOR_VERSION;
@@ -115,22 +85,13 @@ void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
     VersionNumbers[3] = CFE_PSP_IMPL_MISSION_REV;
 }
 
-/**
- ** \func Obtain the PSP library numeric build number
- **
- ** \par Description:
- ** The build number is a monotonically increasing number that (coarsely)
- ** reflects the number of commits/changes that have been merged since the
- ** epoch release. During development cycles this number should increase
- ** after each subsequent merge/modification.
- ** \n
- ** Like other version information, this is a fixed number assigned at compile time.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \return The OSAL library build number
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetBuildNumber
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 uint32 CFE_PSP_GetBuildNumber(void)
 {
     return CFE_PSP_IMPL_BUILD_NUMBER;

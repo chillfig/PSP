@@ -120,23 +120,13 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 ** Local Function Prototypes
 */
 
-/**
- ** \func Load ED&R data from EEPROM
- ** 
- ** \par Description:
- ** During CFS startup, the ED&R data in RAM is cleared. This function will
- ** first verify that the EEPROM user area contains valid ED&R data, then
- ** recover it. Data is saved to EEPROM using #CFE_PSP_edrSaveToEEPROM.
- **
- ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS - If the EDR signature and data is found
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_edrLoadFromEEPROM
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_edrLoadFromEEPROM(void)
 {
     int32   iStatus = OK;
@@ -212,23 +202,13 @@ int32   CFE_PSP_edrLoadFromEEPROM(void)
     return iRet_code;
 }
 
-/**
- ** \func Save RAM ED&R in EEPROM
- ** 
- ** \par Description:
- ** During CFS startup, the ED&R data in RAM is cleared. This function will
- ** save the ED&R data in RAM to the EEPROM user area. It will also save a
- ** simple signature to allow the #CFE_PSP_edrLoadFromEEPROM to validate the data.
- **
- ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_edrSaveToEEPROM
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_edrSaveToEEPROM(void)
 {
     int32   iStatus = OK;
@@ -286,20 +266,13 @@ int32   CFE_PSP_edrSaveToEEPROM(void)
 }
 
 
-/**
- ** \func Clear EDR in EEPROM
- ** 
- ** \par Description:
- ** Function reset to \0 the edr signature in EEPROM.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_edrClearEEPROM
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_edrClearEEPROM(void)
 {
     int32   iRet_code = CFE_PSP_SUCCESS;
@@ -426,24 +399,13 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
     return returnStatus;
 }
 
-/**
-** \func Initialize exception handling
-**
-** \par Description:
-** This function sets up the exception environment for a particular platform.
-** It is called by CFE_ES_Main() in cfe_es_start.c 
-** 
-** \par Assumptions, External Events, and Notes:
-** For VxWorks, this function initializes the EDR policy handling. The handler is 
-** called for every exception that other handlers do not handle.  Note that the 
-** floating point exceptions are handled by the default floating point exception 
-** handler, which does a graceful recovery from floating point exceptions in the 
-** file speExcLib.c.
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_AttachExceptions
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_AttachExceptions(void)
 {
     /* The old PSP used excHookAdd instead of the EDR&R facility for handling
@@ -482,43 +444,26 @@ void CFE_PSP_AttachExceptions(void)
     }
 }
 
-/**
-** \func Initialize default exception handling
-**
-** \par Description:
-** This function sets up a default exception environment for a particular platform.
-** 
-** \par Assumptions, External Events, and Notes:
-** For VxWorks, the exception environment is local to each task. Therefore, this
-** must be called for each task that wants to do floating point and catch exceptions.
-** Currently, this is automatically called from OS_TaskRegister() for every task.
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SetDefaultExceptionEnvironment
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
     /* Currently using the default VxWorks exception environment for the SP0 */
     OS_printf(PSP_EXCEP_PRINT_SCOPE "SetDefaultExceptionEnvironment not implemented\n");
 }
 
-/**
- ** \func Translate the exception context data into a string
- **
- ** \par Description:
- ** This function translates the exception context data into a user-friendly "reason" string.
- **
- ** \par Assumptions, External Events, and Notes:
- ** This is called in an application context to determine the cause of the exception.
- **
- ** \param[in] Buffer - Pointer to the Buffer Context data previously stored by ISR/signal handler
- ** \param[out] ReasonBuf - Buffer to store string
- ** \param[in] ReasonSize - Size of string buffer
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ExceptionGetSummary_Impl
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
     int32       ret_code = CFE_PSP_SUCCESS;

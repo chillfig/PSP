@@ -131,23 +131,6 @@ typedef struct
 int32  PSP_SP0_GetInfo(void);
 
 /**
- ** \func Print the SP0 data to string buffer
- ** 
- ** \par Description:
- ** Internal function to print the gathered data from SP0 to a string buffer.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
-static int32 PSP_SP0_PrintToBuffer(void);
-
-/**
 ** \func Get the structure containing the SP0 Hardware and Firmware data
 **
 ** \par Description:

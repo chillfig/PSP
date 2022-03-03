@@ -317,8 +317,6 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_MEMORY_RestoreDATA");
 
-
-
     #endif /* TEST_MEMORY == 1 */
 
     #if TEST_FLASH == 1

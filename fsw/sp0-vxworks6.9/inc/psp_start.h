@@ -176,33 +176,6 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
 */
 
 /**
-** \brief Get the reset type and subtype
-**
-** \par Description:
-** This function determines the reset type and subtype.
-**
-** \par Assumptions, External Events, and Notes:
-** Reset Types are defined in Aitech headers.
-** \n\n
-** Function will save reset types to the respective global static variables:
-** \li g_uiResetType
-** \li g_uiResetSubtype
-** \n\n
-** Finally, function will print to console the reset type.
-** \n\n
-** Output defines are defined in Aitech file scratchRegMap.h
-**
-** \param None
-**
-** \return RESET_SRC_POR 
-** \return RESET_SRC_WDT 
-** \return RESET_SRC_FWDT 
-** \return RESET_SRC_CPCI 
-** \return RESET_SRC_SWR 
-*/
-static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void);
-
-/**
  ** \brief Change system task priorities
  **
  ** \par Description:

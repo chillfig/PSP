@@ -118,7 +118,10 @@ typedef struct MEM_SCRUB_ERRSTATS_s
 ** the function will use the phyisical memory limit.
 ** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
 ** #MEMSCRUB_PRIORITY_DOWN_RANGE defined in cfe_psp_config.h. 
-** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.
+** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.\n
+** If the scrubMemory function is called in a task that has a timing restriction, 
+** the scrub range (i.e. endAddr - startAddr) should be adjusted to a small 
+** value but should be a multiple of the page size (4096 bytes).
 ** 
 ** \param[in] newStartAddr - Memory address to start from, usually zero
 ** \param[in] newEndAddr - Memory address to end at, usually end of the physical RAM
@@ -149,13 +152,15 @@ bool  CFE_PSP_MEM_SCRUB_isRunning(void);
 ** \func Stop the memory scrubbing task
 **
 ** \par Description:
-** This function deletes the Memory Scrubbing task.  
-** The task is deleted and the statistics are reset.
+** This function resets all memory scrub related variables,
+** then call CFE_PSP_MEM_SCRUB_Disable to delete the memory scrubbing
+** task.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** None
+** This function should only be used for shutdown/reset. To stop/delete
+** memory scrub task for other situations, use SCRUB_Disable
 **
-** \param None
+** \param - None
 **
 ** \return #CFE_PSP_SUCCESS - If successfully deleted
 ** \return #CFE_PSP_ERROR - If unsuccessfully deleted
@@ -200,7 +205,7 @@ int32  CFE_PSP_MEM_SCRUB_Init(void);
 ** \func Enable the Memory Scrubbing task
 **
 ** \par Description:
-** This function enables the Memory Scrubbing task.
+** This function enables (starts) the Memory Scrubbing task.
 **
 ** \par Assumptions, External Events, and Notes:
 ** If the task is already running, do nothing. If the task is not running,

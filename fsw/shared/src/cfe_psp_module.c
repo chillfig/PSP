@@ -88,19 +88,13 @@ void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
     }
 }
 
-/**
- ** \func Initialize a list of Modules
- ** 
- ** \par Description:
- ** Initalize all modules for PSP including user-selected modules
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param None
- ** 
- ** \return None
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ModuleInit
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_ModuleInit(void)
 {
     /* First initialize the fixed set of modules for this PSP */
@@ -123,21 +117,13 @@ void CFE_PSP_ModuleInit(void)
     CFE_PSP_ModuleInitList(GLOBAL_CONFIGDATA.PspModuleList);
 }
 
-/**
- ** \func Obtain the API for a specific module
- **
- ** \par Description:
- ** This function retrieves the API structure for a given module ID.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] PspModuleId - The ID of the module (configuration-dependent)
- ** \param[out] API - Pointer to the variable that stores the returned API structure
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_INVALID_MODULE_ID
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Module_GetAPIEntry
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
 {
     int32  Result;
@@ -157,21 +143,13 @@ int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
     return Result;
 }
 
-/**
- ** \func Find a module by name
- ** 
- ** \par Description:
- ** None
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] ModuleName - The name of the Module
- ** \param[in,out] PspModuleId - The Module Id
- ** 
- ** \return #CFE_PSP_INVALID_MODULE_NAME
- ** \return #CFE_PSP_SUCCESS
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Module_FindByName
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_Module_FindByName(const char *ModuleName, uint32 *PspModuleId)
 {
     uint32                       i;

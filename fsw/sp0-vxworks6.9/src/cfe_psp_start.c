@@ -119,21 +119,13 @@ static CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
     VXWORKS_TASK_PRIORITIES
 };
 
-/**
-** \func Main entry-point
-**
-** \par Description:
-** This function is the entry point that the real time OS calls to start cFS.
-** This function will do any BSP/OS-specific setup, then call the entry point
-** of cFS, which is this function.
-**
-** \par Assumptions, External Events, and Notes:
-** cFE should not call this function.  See the description.
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_Main
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_Main(void)
 {
     int32 status = 0;
@@ -149,19 +141,13 @@ void CFE_PSP_Main(void)
 }
 
 
-/**
-** \func Print Power On Self Test (POST) results to the console
-**
-** \par Description:
-** None
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ProcessPOSTResults
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_ProcessPOSTResults(void)
 {
     uint64 bitExecuted = 0ULL;
@@ -300,19 +286,13 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     return resetSrc;
 }
 
-/**
-** \func Determines if started in safe mode and logs off nominal resets.
-**
-** \par Description:
-** None
-**
-** \par Assumptions, External Events, and Notes:
-** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
-**
-** \param resetSrc - Reset Type RESET_SRC_REG_ENUM
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_LogSoftwareResetType
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
     uint8 ucIndex = 0u;
@@ -374,19 +354,13 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     }
 }
 
-/**
-** \func Application startup entry point from OSAL BSP.
-**
-** \par Description:
-** SP0 Implementation Specific
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: OS_Application_Startup
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
     int32 status = OS_SUCCESS;
@@ -472,22 +446,13 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     return;
 }
 
-/**
-** \func Application Run entry point from OSAL BSP.
-**
-** \par Description:
-** SP0 Implementation Specific
-**
-** \par Assumptions, External Events, and Notes:
-** This function is declared but empty so that we don't run the default OSAL
-** equivalent function. The latter will actively suspend the console shell.
-** Replication of the behaviour to suspend the shell is performed via API 
-** function CFE_PSP_SuspendConsoleShellTask().
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: OS_Application_Run
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 #if OVERRIDE_OSAL_OS_APPLICATION_RUN
 void OS_Application_Run(void) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
@@ -501,20 +466,13 @@ void OS_Application_Run(void) //UndCC_Line(SSET106) Func. name part of PSP API, 
 }
 #endif
 
-/**
- ** \func Function Suspend/Resume the Console Shell Task.
- **
- ** \par Description:
- ** None
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] suspend - True to suspend task, False to resume task
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SuspendConsoleShellTask
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
 {
     int32 status = CFE_PSP_ERROR;
@@ -553,21 +511,13 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
     return status;
 }
 
-/**
-** \func Get restart type
-**
-** \par Description:
-** This function returns the last reset type.  If a pointer to a valid
-** memory space is passed in, it returns the reset sub-type in that memory.
-** Right now the reset types are application-specific.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] resetSubType - Pointer to the variable that stores the returned reset sub-type
-**
-** \return Last reset type
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetRestartType
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 {
     if (resetSubType != NULL)
@@ -578,21 +528,13 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
     return (g_uiResetType);
 }
 
-/**
- ** \func Changes default task priority to a given priority
- **
- ** \par Description:
- ** None
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] tName - Task name
- ** \param[in] tgtPrio - New task priority
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SestTaskPrio
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
 {
     int32 tid = CFE_PSP_ERROR;
@@ -633,23 +575,13 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
     return status;
 }
 
-/**
- ** \func Changes system task priorities so that they are lower than CFS system
- ** task priorities
- **
- ** \par Description:
- ** None
- **
- ** \par Assumptions, External Events, and Notes:
- ** tNet0 priority should be adjusted to be right below what ever
- ** gets defined for CI/TO apps in your system if using the network
- ** interface CCSDS/UDP for CI/TO apps.
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SetSysTasksPrio
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 static int32 CFE_PSP_SetSysTasksPrio(void)
 {
     int32 status = CFE_PSP_SUCCESS;
@@ -720,23 +652,13 @@ static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
     return ret_code;
 }
 
-/**
-** \func Initialize the Solid State Recorder
-**
-** \par Description:
-** This function configures and initializes the Solid State Recorder for 
-** a particular platform.
-**
-** \par Assumptions, External Events, and Notes:
-** This function is not implemented for the SP0-vxworks6.9 PSP since SSR is not used.
-**
-** \param[in] bus - ATA controller number
-** \param[in] device - ATA drive number
-** \param[in] DeviceName - Name of the XBD device to create
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_InitSSR
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32  CFE_PSP_InitSSR(uint32 bus, uint32 device, char *DeviceName )
 {
     /* Function not implemented for the SP0 */

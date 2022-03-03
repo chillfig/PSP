@@ -46,20 +46,13 @@ static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* 
 /** \brief Watchdog current status */
 static bool g_bWatchdogStatus = false;
 
-/**
-** \func Initialize the watchdog timer
-**
-** \par Description:
-** This function configures and initializes the watchdog timer to its 
-** default setting.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogInit
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_WatchdogInit(void)
 {
     g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;
@@ -68,19 +61,13 @@ void CFE_PSP_WatchdogInit(void)
 }
 
 
-/**
-** \func Enable the watchdog timer
-**
-** \par Description:
-** This function enables the watchdog timer.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogEnable
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_WatchdogEnable(void)
 {
     int iStatus = OK;
@@ -101,19 +88,13 @@ void CFE_PSP_WatchdogEnable(void)
     }
 }
 
-/**
-** \func Disable the watchdog timer
-**
-** \par Description:
-** This function disables the watchdog timer.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogDisable
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_WatchdogDisable(void)
 {
     int iStatus = OK;
@@ -131,19 +112,13 @@ void CFE_PSP_WatchdogDisable(void)
     }
 }
 
-/**
-** \func Service the watchdog timer
-**
-** \par Description:
-** This function services the watchdog timer according to the value set in CFE_PSP_WatchdogSet().
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogService
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_WatchdogService(void)
 {
     /*
@@ -155,39 +130,26 @@ void CFE_PSP_WatchdogService(void)
 }
 
 
-/**
-** \func Get the watchdog time
-**
-** \par Description:
-** This function fetches the watchdog time, in milliseconds.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return The watchdog time in milliseconds
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogGet
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 uint32 CFE_PSP_WatchdogGet(void)
 {
     return g_uiCFE_PSP_WatchdogValue_ms;
 }
 
 
-/**
-** \func Set the watchdog time
-**
-** \par Description:
-** This function sets the current watchdog time, in milliseconds.
-**
-** \par Assumptions, External Events, and Notes:
-** Although the WatchDog can be set to nano-seconds precision, the implementation
-** only allows milliseconds precision.
-**
-** \param[in] watchDogValue_ms - watchdog time in milliseconds
-**
-** \return None
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogSet
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
 {
     int   iStatus = OK;
@@ -213,21 +175,13 @@ void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
     }
 }
 
-/**
- ** \func Check if watchdog is enabled ro disabled
- **
- ** \par Description:
- ** This functions returns the status of the Watchdog
- **
- ** \par Assumptions, External Events, and Notes:
- ** This function will return true of watchdog is enabled or false if
- ** watchdog is disabled
- **
- ** \param None
- **
- ** \return true - if Watchdog is currently enabled
- ** \return false - if Watchdog is current disabled
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_WatchdogStatus
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 bool CFE_PSP_WatchdogStatus(void)
 {
     return g_bWatchdogStatus;

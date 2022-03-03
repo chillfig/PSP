@@ -57,6 +57,7 @@
 */
 
 /** \brief Define cFE core loadable module name */
+#define CFE_MODULE_NAME "cfe-core.o"
 #define MEMORY_PRINT_SCOPE "PSP MEMORY: "
 
 /*
@@ -217,24 +218,13 @@ static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint3
 *********************************************************************************
 */
 
-/**
- ** \func Initialize the processor's reserved memory
- **
- ** \par Description:
- ** This function initializes all of the memory in the BSP that is preserved on 
- ** a processor reset. The memory includes the Critical Data Store, the ES Reset Area,
- ** the Volatile Disk Memory and the User Reserved Memory. Options include 
- ** #CFE_PSP_RST_TYPE_PROCESSOR, #CFE_PSP_RST_TYPE_POWERON, #CFE_PSP_RST_TYPE_MAX
- **
- ** \par Assumptions, External Events, and Notes:
- ** For SP0 target implementation, the User Reserved Memory is always preserved,
- ** independently from Reset Type.
- **
- ** \param[in] RestartType - The reset type
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_InitProcessorReservedMemory
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
 int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 {
     cpuaddr   start_addr = 0;
@@ -379,19 +369,13 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
    return(iReturnCode);
 }
 
-/**
- ** \func Initialize the CFE_PSP_ReservedMemoryMap global object
- **
- ** \par Description:
- ** This function initializes the CFE_PSP_ReservedMemoryMap global object.
- **
- ** \par Assumptions, External Events, and Notes:
- ** This function must be called by the startup code before the map is accessed.
- **
- ** \param None
- **
- ** \return None
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SetupReservedMemoryMap
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
     cpuaddr   start_addr = 0;
@@ -589,21 +573,13 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
 *********************************************************************************
 */
 
-/**
-** \func Get the location and size of the kernel text segment
-**
-** \par Description:
-** This function returns the location and size of the kernel text segment of the memory area.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] PtrToKernelSegment - Pointer to the variable that stores the returned memory address
-** \param[out] SizeOfKernelSegment - Pointer to the variable that stores returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetKernelTextSegmentInfo
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
 int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *SizeOfKernelSegment)
 {
     int32    iReturnCode = CFE_PSP_ERROR;
@@ -633,21 +609,13 @@ int32 CFE_PSP_GetKernelTextSegmentInfo(cpuaddr *PtrToKernelSegment, uint32 *Size
     return(iReturnCode);
 }
 
-/**
-** \func Get the location and size of the cFE text segment
-**
-** \par Description:
-** This function returns the location and size of the cFE text segment of the memory area.
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] PtrToCFESegment - Pointer to the variable that stores the returned memory address
-** \param[out] SizeOfCFESegment - Pointer to the variable that stores returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetCFETextSegmentInfo
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
 int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFESegment)
 {
     int32       return_code = CFE_PSP_ERROR;

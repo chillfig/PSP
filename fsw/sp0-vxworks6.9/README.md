@@ -56,7 +56,6 @@ Kernel must include the following services:
   - CFE_PSP_ReservedMemoryMap `$`
 
 - Static Variables
-  - g_ReservedMemBlock
   - g_VxWorksTaskList
   - g_uiResetType
   - g_uiResetSubtype
@@ -105,64 +104,67 @@ Kernel must include the following services:
 ### Active Memory Scrubbing
 
 - Defines
-  - MEMSCRUB_TASK_STACK_SIZE
+  - MEM_SCRUB_PRINT_SCOPE
+  - MEM_SCRUB_TASK_START_ON_STARTUP
+  - MEM_SCRUB_DEFAULT_START_ADDR `*`
+  - MEM_SCRUB_DEFAULT_END_ADDR `*`
   - MEMSCRUB_DEFAULT_PRIORITY `*`
   - MEMSCRUB_PRIORITY_UP_RANGE `*`
   - MEMSCRUB_PRIORITY_DOWN_RANGE `*`
   - MEMSCRUB_TASK_NAME `*`
-  - MEM_SCRUB_PRINT_SCOPE
-  - PSP_MEM_SCRUB_BSEM_NAME
-  - MEM_SCRUB_TASK_START_ON_STARTUP
+  - PSP_MEM_SCRUB_BSEM_NAME `*`
+
+- Structures
+  - MEM_SCRUB_STATUS_t
+  - MEM_SCRUB_ERRSTATS_t
+
+- Public Functions
+  - CFE_PSP_MEM_SCRUB_Set
+  - CFE_PSP_MEM_SCRUB_isRunning
+  - CFE_PSP_MEM_SCRUB_Delete
+  - CFE_PSP_MEM_SCRUB_Status
+  - CFE_PSP_MEM_SCRUB_Init
+  - CFE_PSP_MEM_SCRUB_Enable
+  - CFE_PSP_MEM_SCRUB_Disable
+  - CFE_PSP_MEM_SCRUB_ErrStats
+
+- Static Functions
+  - CFE_PSP_MEM_SCRUB_Task
 
 - Static Variables
+  - g_uiEndOfRam
   - g_uiMemScrubTaskPriority
   - g_uiMemScrubTaskId
   - g_uiMemScrubStartAddr
   - g_uiMemScrubEndAddr
   - g_uiMemScrubCurrentPage
   - g_uiMemScrubTotalPages
-  - g_uiStartOfRam
-  - g_uiEndOfRam
-  - g_semUpdateMemAddr_id
+  - g_uiSemUpdateMemAddr_id
   - g_bScrubAddrUpdates_flag
 
 - Static Functions
   - CFE_PSP_MEM_SCRUB_Task
 
-- Functions
-  - CFE_PSP_MEM_SCRUB_Set
-  - CFE_PSP_MEM_SCRUB_Status
-  - CFE_PSP_MEM_SCRUB_isRunning
-  - CFE_PSP_MEM_SCRUB_Init
-  - CFE_PSP_MEM_SCRUB_Delete
-  - CFE_PSP_MEM_SCRUB_Enable
-  - CFE_PSP_MEM_SCRUB_Disable
-  - CFE_PSP_MEM_SCRUB_ErrStats
-
-### Critical Device Storage (CDS)
+### FLASH Interaction
 
 - Defines
-  - CFE_PSP_CFE_FLASH_FILEPATH `*`
-  - PSP_CDS_SYNC_TO_FLASH_DEFAULT
+  - CFE_PSP_CDS_FLASH_FILEPATH `*`
+  - CFE_PSP_RESET_FLASH_FILEPATH `*`
+  - CFE_PSP_VOLATILEDISK_FLASH_FILEPATH `*`
+  - CFE_PSP_USERRESERVED_FLASH_FILEPATH `*`
 
+- Structures
 
-- Static Variables
-  - g_cCDSFileName    "The full file path where the CDS file will be saved"
-  - g_uiCDSCrc        "CDS CRC value"
-  - g_bCorruptedCDSFlash "Identify if the CDS file in Flash memory is corrupted of not"
-  - g_bCDSSyncFlash_flag   "Identify if we intended to sync CDS to FLASH"
+- Public Functions
+  - CFE_PSP_FLASH_ReadFromFLASH
+  - CFE_PSP_FLASH_WriteToFLASH
+  - CFE_PSP_FLASH_DeleteFile
+  - CFE_PSP_FLASH_CreateFile
+  - CFE_PSP_FLASH_CheckFile
 
 - Static Functions
-  - CFE_PSP_ReadCDSFromFlash
-  - CFE_PSP_WriteCDSToFlash
-  - CFE_PSP_CalculateCRC
 
-- Functions
-  - CFE_PSP_GetCDSSize `$`
-  - CFE_PSP_WriteToCDS `$`
-  - CFE_PSP_ReadFromCDS `$`
-  - CFE_PSP_MEMORY_SYNC_Enable
-  - CFE_PSP_MEMORY_SYNC_Disable
+- Static Variables
 
 ### SP0 Info
 
@@ -171,71 +173,90 @@ Kernel must include the following services:
   - SP0_TEXT_BUFFER_MAX_SIZE
   - SP0_SAFEMODEUSERDATA_BUFFER_SIZE
   - SP0_PRINT_SCOPE
+  - SP0_UPGRADE_MAX_VOLTAGE_SENSORS'
+  - SP0_ORIGINAL_MAX_VOLTAGE_SENSORS
+  - SP0_ORIGINAL_MAX_TEMP_SENSORS
 
-- Static Variables
-  - g_cSP0DataDump
-  - g_iSP0DataDumpLength
+- Structures
+  - SP0_info_table_t
+
+- Public Functions
+  - PSP_SP0_GetInfo
+  - PSP_SP0_PrintToBuffer
+  - PSP_SP0_GetInfoTable
+  - PSP_SP0_DumpData
+  - PSP_SP0_GetDiskFreeSize
 
 - Static Functions
   - PSP_SP0_PrintToBuffer
 
-- Functions
-  - PSP_SP0_GetInfo
-  - PSP_SP0_GetInfoTable
-  - PSP_SP0_DumpData
+- Static Variables
+  - g_cSP0DataDump
+  - g_iSP0DataDumpLength
+  - g_sp0_info_table
 
 ### NTP Time Sync
 
 - Defines
-  - CFE_MISSION_TIME_SYNC_OS_SEC
-  - CFE_MISSION_TIME_SYNC_OS_ENABLE
-  - NTPSYNC_TASK_NAME
-  - NTPSYNC_DEFAULT_PRIORITY
-  - NTPSYNC_PRIORITY_UP_RANGE
-  - NTPSYNC_PRIORITY_DOWN_RANGE
+  - NTP_DAEMON_TASK_NAME `*`
+  - CFE_MISSION_TIME_EPOCH_UNIX_DIFF `*`
+  - CFE_1HZ_TASK_NAME `*`
+  - NTPSYNC_INITIAL_TIME_DELAY `*`
+  - NTPSYNC_MAX_ITERATION_TIME_DELAY `*`
+  - CFE_MISSION_TIME_SYNC_OS_ENABLE `*`
+  - CFE_MISSION_TIME_SYNC_OS_SEC `*`
+  - NTPSYNC_TASK_NAME `*`
+  - NTPSYNC_DEFAULT_PRIORITY `*`
+  - NTPSYNC_PRIORITY_UP_RANGE `*`
+  - NTPSYNC_PRIORITY_DOWN_RANGE `*`
   - NTPSYNC_PRINT_SCOPE
   - CFE_MISSION_TIME_SYNC_TIME_ON_STARTUP
 
-- Static Variables
-  - g_uiPSPNTPTask_id
-  - g_ucNTPSyncTaskPriority
-  - g_iEnableGetTimeFromOS_flag
-  - g_usOSTimeSync_Sec
+- Structures
 
-- Static Functions
-  - CFE_PSP_TIME_NTPSync_Task
-
-- Functions (include psp_time_sync.h)
-  - ntp_clock_vxworks_Destroy
-  - ntp_clock_vxworks_Init
+- Public Functions
   - CFE_PSP_TIME_NTPSync_Task_Enable
   - CFE_PSP_TIME_NTPSync_Task_Disable
   - CFE_PSP_TIME_NTPSync_Task_isRunning
   - CFE_PSP_TIME_NTPSync_Task_Priority_Set
+  - CFE_PSP_TIME_NTP_Daemon_isRunning
+  - ntp_clock_vxworks_Destroy
   - CFE_PSP_TIME_NTPSync_GetFreq
   - CFE_PSP_TIME_NTPSync_SetFreq
   - CFE_PSP_TIME_Set_OS_Time
   - CFE_PSP_TIME_Get_OS_Time
   - CFE_PSP_TIME_CFETimeService_isRunning
-  - CFE_PSP_TIME_NTP_Daemon_isRunning
   - CFE_PSP_TIME_StartNTPDaemon
   - CFE_PSP_TIME_StopNTPDaemon
 
-### Watchdog
+- Static Functions
+  - CFE_PSP_TIME_NTPSync_Task
 
+- Static Variables
+  - g_uiPSPNTPTask_id
+  - g_ucNTPSyncTaskPriority
+  - g_bEnableGetTimeFromOS_flag
+  - g_usOSTimeSync_Sec
+
+### Watchdog
 - Defines
   - CFE_PSP_WATCHDOG_MIN `*`
   - CFE_PSP_WATCHDOG_MAX `*`
   - CFE_PSP_WATCHDOG_DEFAULT_MSEC `*`
 
-- Static Variables
-  - g_uiCFE_PSP_WatchdogValue_ms
-  - g_bWatchdogStatus
+- Structures
 
-- Functions
+- Public Functions
   - CFE_PSP_WatchdogInit `$`
   - CFE_PSP_WatchdogEnable `$`
   - CFE_PSP_WatchdogDisable `$`
   - CFE_PSP_WatchdogService `$`
   - CFE_PSP_WatchdogGet `$`     "getter for g_uiCFE_PSP_WatchdogValue"
   - CFE_PSP_WatchdogSet `$`     "setter for g_uiCFE_PSP_WatchdogValue"
+  - CFE_PSP_WatchdogStatus `$`
+
+- Static Functions
+
+- Static Variables
+  - g_uiCFE_PSP_WatchdogValue_ms
+  - g_bWatchdogStatus
