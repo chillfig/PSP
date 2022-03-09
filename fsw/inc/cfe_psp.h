@@ -121,9 +121,11 @@
  */
 /** \name Reset Types */
 /** \{ */
-#define CFE_PSP_RST_TYPE_PROCESSOR    1  /**< Volatile disk, Critical Data Store and User Reserved memory could still be valid */
-#define CFE_PSP_RST_TYPE_POWERON      2  /**< All memory has been cleared */
-#define CFE_PSP_RST_TYPE_MAX          3  /**< Placeholder to indicate 1+ the maximum value that the PSP will ever use. */
+#define CFE_PSP_RST_TYPE_PROCESSOR      1  /**< Volatile disk, Critical Data Store and User Reserved memory could still be valid */
+#define CFE_PSP_RST_TYPE_POWERON        2  /**< All memory has been cleared */
+#define CFE_PSP_RST_TYPE_CFS_TOGGLE     3  /**< Switch CFS partition and set to clear all memory */
+#define CFE_PSP_RST_TYPE_SHELL          4  /**< Restart to VxWorks shell */
+#define CFE_PSP_RST_TYPE_MAX            5  /**< Placeholder to indicate 1+ the maximum value that the PSP will ever use. */
 /** \} */
 
 /*
@@ -207,27 +209,34 @@ void  CFE_PSP_Main(void);
 void  CFE_PSP_GetTime(OS_time_t *LocalTime);
 
 /**
-** \func Re-start
+** \func Restart target
 **
 ** \par Description:
 ** This function is the entry point back to the BSP to restart the processor.
 ** cFE calls this function to restart the processor.
 **
 ** \par Assumptions, External Events, and Notes:
-** Depending on the resetType, the function will reboot with the following 
-** restart type:
-** \li resetType == CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_CLEAR)
-** \li resetType != CFE_PSP_RST_TYPE_POWERON --> reboot(BOOT_NORMAL)
-** \n\n
-** System restart types defined in sysLib.h:
-** \li BOOT_NORMAL _"normal reboot with countdown, memory is not cleared"_
-** \li BOOT_CLEAR _"clear memory"_
-** \n\n
-** The following reboot options are not used.
-** \li BOOT_NO_AUTOBOOT _"no autoboot if set, memory is not cleared"_
-** \li BOOT_QUICK_AUTOBOOT _"fast autoboot, memory is not cleared"_
+** Depending on the resetType, the function will modify boot startup string.
+** \li #CFE_PSP_RST_TYPE_SHELL will clear the boot string and allow
+** the VxWorks kernel to load the shell terminal. Then restart with
+** #CFE_PSP_RST_TYPE_POWERON.
+** \li #CFE_PSP_RST_TYPE_CFS_TOGGLE will modify the boot startup
+** string to the next available CFS device name. Then restart with
+** #CFE_PSP_RST_TYPE_PROCESSOR.
+** \li #CFE_PSP_RST_TYPE_PROCESSOR & #CFE_PSP_RST_TYPE_POWERON will not modify
+** the boot startup string and let the CFE code handle it.
+** \n
+** By default, the restart function is called with the BOOT_CLEAR option.
+**
+** TODO: Need to evaluate if resetControl(0,0,1) would be a better option
+**
+** TODO: Need to evaluate if resetControl(0,0,1) would be a better option
 **
 ** \param[in] resetType - Type of cFE reset
+**                        #CFE_PSP_RST_TYPE_POWERON
+**                        #CFE_PSP_RST_TYPE_PROCESSOR
+**                        #CFE_PSP_RST_TYPE_SHELL
+**                        #CFE_PSP_RST_TYPE_CFS_TOGGLE
 **
 ** \return None
 */
@@ -624,8 +633,9 @@ bool CFE_PSP_WatchdogStatus(void);
 ** \func Abort cFE startup
 **
 ** \par Description:
-** This function provides the mechanism to abort the cFE startup process and 
-** returns back to the OS.
+** This function provides the mechanism to abort the cFE startup process, 
+** attempt to recover or clean up, and then reboots. If too many reboot 
+** attempts, function will exit to console.
 **
 ** \par Assumptions, External Events, and Notes:
 ** This function should not be called by the cFS applications.

@@ -17,8 +17,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <target_config.h>
+
 #include "uttest.h"
 #include "utstubs.h"
+#include "osapi.h"
 #include "ut_psp_utils.h"
 #include "cfe_psp.h"
 
@@ -41,23 +43,51 @@ void Ut_CFE_PSP_Restart(void)
     uint32  uiResetType = CFE_PSP_RST_TYPE_POWERON;
     CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
     CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
+    char cMsg[256] = "";
+
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
 
     /* ----- Test case #1 - Nominal Power on reboot ----- */
     /* Setup additional inputs */
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_Restart() - 1/2: Nominal PowerOn reboot");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 1/3: Nominal message");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON,
+                  "_CFE_PSP_Restart() - 1/3: Nominal PowerOn reboot");
 
-    /* ----- Test case #2 - Nominal Processor reboot ----- */
+    /* ----- Test case #2 - Nominal reboot to shell ----- */
     /* Setup additional inputs */
-    uiResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    uiResetType = CFE_PSP_RST_TYPE_SHELL;
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_Restart() - 2/2: Nominal Processor reboot");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 2/3: Nominal message");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON,
+                  "_CFE_PSP_Restart() - 2/3: Nominal POWERON reboot");
+
+    /* ----- Test case #3 - Nominal reboot to shell ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    strcpy(g_StartupInfo.active_cfs_partition, "/ffx0");
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    uiResetType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
+    /* Execute test */
+    CFE_PSP_Restart(uiResetType);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 3/3: Nominal message");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
+                  "_CFE_PSP_Restart() - 3/3: Nominal PROCESSOR reboot");
 }
 
 /*=======================================================================================
@@ -66,22 +96,73 @@ void Ut_CFE_PSP_Restart(void)
 void Ut_CFE_PSP_Panic(void)
 {
     int32 iErrorCode = -1;
-    char cMsg[256] = {};
-    sprintf(cMsg, "CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n", iErrorCode);
+    char cMsg[256] = "";
+    CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
+    CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
 
-    /* ----- Test case #1 - Nominal ----- */
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1 - Nominal CFE_PSP_PANIC_MEMORY_ALLOC ----- */
     /* Setup additional inputs */
-    Ut_logMsg_Setup();
-    UT_SetDefaultReturnValue(UT_KEY(remove), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(write), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
-    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelete), OS_SUCCESS);
-    CFE_PSP_MEM_SCRUB_Init();
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemTake), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    iErrorCode = CFE_PSP_PANIC_MEMORY_ALLOC;
+    snprintf(cMsg, sizeof(cMsg), "PSP Panic called with %d\n", iErrorCode);
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    UtAssert_logMsg(cMsg, "_CFE_PSP_Panic - 1/1: Nominal Panic log string found");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 1/4: Nominal message");
+    UtAssert_STUB_COUNT(reboot,1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Nominal CFE_PSP_PANIC_STARTUP ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemTake), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    iErrorCode = CFE_PSP_PANIC_STARTUP;
+    snprintf(cMsg, sizeof(cMsg), "PSP Panic called with %d\n", iErrorCode);
+    /* Execute test */
+    CFE_PSP_Panic(iErrorCode);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 2/4: Nominal message");
+    UtAssert_STUB_COUNT(reboot,1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Nominal CFE_PSP_PANIC_VOLATILE_DISK ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemTake), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    iErrorCode = CFE_PSP_PANIC_VOLATILE_DISK;
+    snprintf(cMsg, sizeof(cMsg), "PSP Panic called with %d\n", iErrorCode);
+    /* Execute test */
+    CFE_PSP_Panic(iErrorCode);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 3/4: Nominal message");
+    UtAssert_STUB_COUNT(reboot,1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #4 - Nominal CFE_PSP_PANIC_NONVOL_DISK ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemTake), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    iErrorCode = CFE_PSP_PANIC_NONVOL_DISK;
+    snprintf(cMsg, sizeof(cMsg), "PSP Panic called with %d\n", iErrorCode);
+    /* Execute test */
+    CFE_PSP_Panic(iErrorCode);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 4/4: Nominal message");
+    UtAssert_STUB_COUNT(reboot,1);
 }
 
 /*=======================================================================================
@@ -143,6 +224,65 @@ void Ut_CFE_PSP_GetProcessorName(void)
 }
 
 /*=======================================================================================
+** Ut_CFE_PSP_ToggleCFSBootPartition(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_ToggleCFSBootPartition(void)
+{
+    char cMsg[256] = {'\0'};
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    strcpy(g_StartupInfo.active_cfs_partition, "/ffx0");
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    /* Execute test */
+    CFE_PSP_ToggleCFSBootPartition();
+    /* Verify outputs */
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_ToggleCFSBootPartition() - 1/3: Nominal no printed messages");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Could not find active_cfs_partition ----- */
+    /* Setup additional inputs */
+    strcpy(g_StartupInfo.active_cfs_partition, "/ff");
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    /* Execute test */
+    CFE_PSP_ToggleCFSBootPartition();
+    /* Verify outputs */
+    UtAssert_STUB_COUNT(PCS_snprintf, 0);
+    UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
+    UtAssert_STUB_COUNT(sysNvRamGet, 1);
+    UtAssert_STUB_COUNT(sysNvRamSet, 1);
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_ToggleCFSBootPartition() - 2/3: Nominal no printed messages");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - snprintf error ----- */
+    /* Setup additional inputs */
+    strcpy(g_StartupInfo.active_cfs_partition, "/ffx1");
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    /* Execute test */
+    CFE_PSP_ToggleCFSBootPartition();
+    /* Verify outputs */
+    UtAssert_STUB_COUNT(PCS_snprintf, 1);
+    UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
+    UtAssert_STUB_COUNT(sysNvRamGet, 1);
+    UtAssert_STUB_COUNT(sysNvRamSet, 1);
+    snprintf(cMsg, 256, "PSP: Could not construct new boot startup string.\n`%s`/`%s`\n", g_cAvailable_cfs_partitions[0], CFE_PSP_STARTUP_FILENAME);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 3/3: snprintf error message");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 1, "_CFE_PSP_ToggleCFSBootPartition() - 3/3: Nominal no printed messages");
+}
+
+/*=======================================================================================
 ** Ut_CFE_PSP_GetBootStartupString(void) test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_GetBootStartupString(void)
@@ -156,9 +296,10 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     char str_buffer[250] = "";
     char str_buffer_check[] = "/ffx0/startup";
 
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal - non talkative ----- */
     /* Setup additional inputs */
-    Ut_OS_printf_Setup();
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
     UT_SetDataBuffer(UT_KEY(sysNvRamGet), boot_string, sizeof(boot_string), true);
     /* Execute test */
@@ -208,9 +349,8 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     uiRetCode = CFE_PSP_GetBootStartupString(str_buffer, sizeof(str_buffer), 1);
     /* Verify outputs */
     UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative return code");
-    UtAssert_StrnCmp(str_buffer,str_buffer_check,sizeof(str_buffer_check), "_PSP_GetBootStartupString() - 5/5: Nominal talkative returned string");
+    UtAssert_StrnCmp(str_buffer,str_buffer_check,sizeof(str_buffer_check), "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative returned string");
     UtAssert_True(Ut_OS_printf_MsgCount() == 5, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative printed messages");
-    Ut_OS_printfPrint();
 }
 
 /*=======================================================================================
@@ -219,7 +359,6 @@ void Ut_CFE_PSP_GetBootStartupString(void)
 void Ut_CFE_PSP_SetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    BOOT_PARAMS test_param = {'\0'};
     char boot_string[] = "/ffx0/startup";
     char boot_string_too_long[] = "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
@@ -351,6 +490,8 @@ void Ut_CFE_PSP_SetBootStructure(void)
     char cMsg_error_saving[] = {"PSP: Could not set new boot string\n"};
     char cMsg_error_structure[] = {"PSP: Could not convert structure to boot string\n"};
 
+    UT_SetDefaultReturnValue(UT_KEY(bootStructToString), OK);
+
     /* ----- Test case #1 - Nominal - non talkative ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
@@ -391,6 +532,7 @@ void Ut_CFE_PSP_SetBootStructure(void)
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(bootStructToString), ERROR);
     /* Set new parameters */
     memset(&test_param,'1',sizeof(test_param));
     /* Execute test */

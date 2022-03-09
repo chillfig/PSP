@@ -122,62 +122,72 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 /**********************************************************
  * 
- * Function: CFE_PSP_edrLoadFromEEPROM
+ * Function: CFE_PSP_LoadFromNVRAM
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_edrLoadFromEEPROM(void)
+int32   CFE_PSP_LoadFromNVRAM(void)
 {
-    int32   iStatus = OK;
-    int32   iRet_code = CFE_PSP_SUCCESS;
-    int     *pEDR_size = NULL;
-    int     edr_pack_size = 7;
-    char    edr_word[] = "EDR";
-    uint32  num_exceptions_in_edr = 0;
+    int32       iStatus = OK;
+    int32       iRet_code = CFE_PSP_SUCCESS;
+    int32       *pURM_size = NULL;
+    int32       edr_size = 0;
+    const int32 boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+    const int32 urm_pack_size = 7;
+    const char  urm_word[] = "URM";
+    uint32      num_exceptions_in_urm = 0;
 
-    /* EDR Signature is defined as { 'E', 'D', 'R', 0x00, 0x00, 0x00, 0x00 } */
-    char    edr_signature[7] = {};
+    /* URM Signature is defined as { 'U', 'R', 'M', 0x00, 0x00, 0x00, 0x00 } */
+    char    urm_signature[7] = {'\0'};
 
-    /* Copy EDR signature and size in local memory */
-    iStatus = userNvRamGet(edr_signature, edr_pack_size, 0);
+    /* Copy URM signature and size in local memory */
+    iStatus = userNvRamGet(urm_signature, urm_pack_size, 0);
 
     if (iStatus == OK)
     {
-        /* Check if there is the EDR word in memory. This allows to skip loading in case NVRAM is empty. */
-        if (memcmp(edr_word, edr_signature, 3) == 0)
+        /* Check if there is the URM word in memory. This allows to skip loading in case NVRAM is empty. */
+        if (memcmp(urm_word, urm_signature, 3) == 0)
         {
-            /* Extract EDR size from signature */
-            pEDR_size = (int *)(edr_signature + 3);
+            /* Extract URM size from signature */
+            pURM_size = (int32 *)(urm_signature + 3);
+            edr_size = *pURM_size - boot_size;
 
             /* Prints the Signature Pack for debugging */
             OS_printf(PSP_EXCEP_PRINT_SCOPE 
-                      "EDR Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
-                      edr_signature[0],
-                      edr_signature[1],
-                      edr_signature[2],
-                      edr_signature[3],
-                      edr_signature[4],
-                      edr_signature[5],
-                      edr_signature[6]
+                      "URM Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
+                      urm_signature[0],
+                      urm_signature[1],
+                      urm_signature[2],
+                      urm_signature[3],
+                      urm_signature[4],
+                      urm_signature[5],
+                      urm_signature[6]
             );
 
+            /* Load Boot Record data from EEPROM */
+            iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
+
             /* Load data from EEPROM to ED&R pointer */
-            iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr, *pEDR_size, edr_pack_size);
+            iStatus = userNvRamGet(
+                      (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                      edr_size,
+                      boot_size + urm_pack_size
+            );
 
             if (iStatus == OK)
             {
                 /* Get the number of exceptions loaded from EEPROM */
-                num_exceptions_in_edr = CFE_PSP_Exception_GetCount();
+                num_exceptions_in_urm = CFE_PSP_Exception_GetCount();
 
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "EDR Data Recovered (%d bytes) - %u new exception(s)\n",
-                          *pEDR_size,
-                          num_exceptions_in_edr
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
+                          *pURM_size,
+                          num_exceptions_in_urm
                 );
             }
             else
             {
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Data\n");
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n");
                 iRet_code = CFE_PSP_ERROR;
             }
         }
@@ -185,17 +195,17 @@ int32   CFE_PSP_edrLoadFromEEPROM(void)
         {
             /* This section occurs when the NVRAM has not been initialized, or
             the data is corrupted. */
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "No EDR Signature Pack found {0x%02X 0x%02X 0x%02X}\n", 
-                      edr_signature[0],
-                      edr_signature[1],
-                      edr_signature[2]
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "No URM Signature Pack found {0x%02X 0x%02X 0x%02X}\n", 
+                      urm_signature[0],
+                      urm_signature[1],
+                      urm_signature[2]
             );
             iRet_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load EDR Signature Pack\n");
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Signature Pack\n");
         iRet_code = CFE_PSP_ERROR;
     }
 
@@ -204,61 +214,70 @@ int32   CFE_PSP_edrLoadFromEEPROM(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_edrSaveToEEPROM
+ * Function: CFE_PSP_SaveToNVRAM
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_edrSaveToEEPROM(void)
+int32   CFE_PSP_SaveToNVRAM(void)
 {
-    int32   iStatus = OK;
-    int32   iRet_code = CFE_PSP_SUCCESS;
-    int     edr_pack_size = 0;
-    char    edr_signature_pack[7] = { 'E', 'D', 'R', 0x00, 0x00, 0x00, 0x00 };
-    int     *pEDR_size = NULL;
+    int32       iStatus = OK;
+    int32       iRet_code = CFE_PSP_SUCCESS;
+    char        urm_signature_pack[7] = { 'U', 'R', 'M', 0x00, 0x00, 0x00, 0x00 };
+    const int32 urm_pack_size = sizeof(urm_signature_pack);
+    int32       *pURM_size = NULL;
+    int32       edr_size = 0;
+    int32       boot_size = 0;
 
-    /* Assign the edr size pointer */
-    pEDR_size = (int *)(edr_signature_pack + 3);
-    /* Get size of edr signature pack */
-    edr_pack_size = sizeof(edr_signature_pack);
+    /* Assign the urm size pointer */
+    pURM_size = (int32 *)(urm_signature_pack + 3);
 
     /*
     Get the size of ED&R structure and save it in the signature pack.
     The structure is defined in cfe_psp_exceptionstorage_types.h
     */
-    *pEDR_size = (int) sizeof(CFE_PSP_ExceptionStorage_t);
+    edr_size = (int32) sizeof(CFE_PSP_ExceptionStorage_t);
+    boot_size = (int32) sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+    *pURM_size = edr_size + boot_size;
 
     /* Prints the Signature Pack for debugging */
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving EDR Signature Pack {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n", 
-              edr_signature_pack[0],
-              edr_signature_pack[1],
-              edr_signature_pack[2],
-              edr_signature_pack[3],
-              edr_signature_pack[4],
-              edr_signature_pack[5],
-              edr_signature_pack[6]);
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Signature Pack {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n", 
+              urm_signature_pack[0],
+              urm_signature_pack[1],
+              urm_signature_pack[2],
+              urm_signature_pack[3],
+              urm_signature_pack[4],
+              urm_signature_pack[5],
+              urm_signature_pack[6]);
 
-    /* Save the ED&R signature and size in memory */
-    iStatus = userNvRamSet(edr_signature_pack, edr_pack_size, 0);
+    /* Save the URM signature and size in memory */
+    iStatus = userNvRamSet(urm_signature_pack, urm_pack_size, 0);
     
     if (iStatus == OK)
     {
-        /* Save the ED&R data to EEPROM */
-        iStatus = userNvRamSet((char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr, *pEDR_size, edr_pack_size);
+        /* Save the URM data to EEPROM */
+        iStatus = userNvRamSet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
+
+        /* Save the URM data to EEPROM */
+        iStatus = userNvRamSet(
+                  (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                  edr_size,
+                  urm_pack_size + boot_size
+        );
 
         if (iStatus == OK)
         {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving EDR Data to EEPROM (%u bytes)\n", *pEDR_size);
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Data to EEPROM (%u bytes)\n", *pURM_size);
         }
         else
         {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Data\n");
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Data\n");
             iRet_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save EDR Signature\n");
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Signature\n");
         iRet_code = CFE_PSP_ERROR;
     }
 
@@ -268,18 +287,18 @@ int32   CFE_PSP_edrSaveToEEPROM(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_edrClearEEPROM
+ * Function: CFE_PSP_ClearNVRAM
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_edrClearEEPROM(void)
+int32   CFE_PSP_ClearNVRAM(void)
 {
     int32   iRet_code = CFE_PSP_SUCCESS;
-    char    edr_signature_pack[7] = {'\0'};
+    char    urm_signature_pack[7] = {'\0'};
 
     /* Write to EEPROM */
-    if(userNvRamSet(edr_signature_pack, sizeof(edr_signature_pack), 0) != OK)
+    if(userNvRamSet(urm_signature_pack, sizeof(urm_signature_pack), 0) != OK)
     {
         iRet_code = CFE_PSP_ERROR;
     }
@@ -367,7 +386,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         CFE_PSP_Exception_WriteComplete();
 
         /* After write complete, the EDR data in RAM is ready to be backup up on EEPROM */
-        CFE_PSP_edrSaveToEEPROM();
+        CFE_PSP_SaveToNVRAM();
 
         if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {
@@ -421,7 +440,7 @@ void CFE_PSP_AttachExceptions(void)
          * is NULL otherwise it set the handler to NULL. No action was required but
          * ignoring an error is a bad practice.
          */
-        if (edrErrorPolicyHookRemove() == ERROR) //UndCC_Line(SSET055) - returned by function
+        if (edrErrorPolicyHookRemove() != OK)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE
                       "edrErrorPolicyHookRemove() failed for address 0x%x\n", 
@@ -453,8 +472,43 @@ void CFE_PSP_AttachExceptions(void)
  *********************************************************/
 void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
-    /* Currently using the default VxWorks exception environment for the SP0 */
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "SetDefaultExceptionEnvironment not implemented\n");
+    uint32  uiAfter_spefscr = 0;
+    uint32  uiAfter_msr = 0;
+
+    /*
+    References:
+    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/archPpc.h
+    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/ppc85xx.h
+    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/vxPpcLib.h
+    PDF: PowerPC™ e500 Core Family Reference Manual, E500CORERM.pdf, page 122, Table 2-35
+    */
+    
+    vxMsrSet(vxMsrGet()   | 
+             /* enable the external interrupt */
+             _PPC_MSR_EE  | 
+             /* enable floating point */
+             _PPC_MSR_SPE | 
+             /* machine check enable */
+             _PPC_MSR_ME
+    );
+
+    vxSpefscrSet(vxSpefscrGet()     | 
+                 /* Embedded floating-point invalid operation/input error exception enable */
+                 _PPC_SPEFSCR_FINVE | 
+                 /* Embedded floating-point overflow exception enable */
+                 _PPC_SPEFSCR_FOVFE | 
+                 /* Embedded floating-point divide by zero exception enable */
+                 _PPC_SPEFSCR_FDBZE | 
+                 /* Embedded floating-point round (inexact) exception enable */
+                 /* _PPC_SPEFSCR_FINXE |  */
+                 /* Embedded floating-point underflow exception enable */
+                 _PPC_SPEFSCR_FUNFE
+    );
+
+    uiAfter_spefscr = vxSpefscrGet();
+    uiAfter_msr = vxMsrGet();
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "vxSpefscrGet = [0x%08X]\n", uiAfter_spefscr);
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "vxMsrGet = [0x%08X]\n", uiAfter_msr);
 }
 
 /**********************************************************
@@ -466,13 +520,13 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
  *********************************************************/
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
-    int32       ret_code = CFE_PSP_SUCCESS;
-    int         iRetChar = 0;
+    int32       iRet_code = CFE_PSP_SUCCESS;
+    int32       iRetChar = 0;
     const char  *pTaskName = NULL;
 
     if ((Buffer == NULL) || (ReasonBuf == NULL))
     {
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
     else
     {
@@ -495,15 +549,15 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer
         if (iRetChar < 0)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save exception reason on buffer\n");
-            ret_code = CFE_PSP_ERROR;
+            iRet_code = CFE_PSP_ERROR;
         }
         if (iRetChar >= ReasonSize)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save the whole exception reason string on buffer\n");
-            ret_code = CFE_PSP_ERROR;
+            iRet_code = CFE_PSP_ERROR;
         }
     }
 
-    return ret_code;
+    return iRet_code;
 }
 

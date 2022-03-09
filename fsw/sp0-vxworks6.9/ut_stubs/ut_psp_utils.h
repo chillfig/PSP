@@ -90,6 +90,9 @@ int returnSelectedBootFlash(void);
 
 int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 int PCS_OS_BSPMain(void);
+STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
+void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize );
+void reboot(int iBootType);
 
 #endif  /* _UT_PSP_UTILS_H_ */
 

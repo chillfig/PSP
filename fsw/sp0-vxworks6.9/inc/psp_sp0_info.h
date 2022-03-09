@@ -27,12 +27,12 @@
 #ifndef _PSP_SP0_INFO_H_
 #define _PSP_SP0_INFO_H_
 
-/* For supporting REALTIME clock */
-#include <timers.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* For supporting REALTIME clock */
+#include <timers.h>
 
 /**
 ** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform

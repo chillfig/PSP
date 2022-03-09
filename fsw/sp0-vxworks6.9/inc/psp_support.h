@@ -25,7 +25,6 @@
 #ifndef _PSP_SUPPORT_H_
 #define _PSP_SUPPORT_H_
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +33,26 @@ extern "C" {
 **  Include Files
 */
 #include <bootLib.h>
+
+/**
+** \addtogroup psp_public_api PSP Public APIs - Common
+** \{
+*/
+
+/**
+ ** \func Toggle among CFS partitions
+ **
+ ** \par Description:
+ ** Function change the boot startup string with the next available CFS partition
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ ** 
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_ToggleCFSBootPartition(void);
 
 /**
  ** \func Gets current boot startup string
@@ -93,7 +112,7 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** a BOOT_PARAM structure.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** This function is used only before calling the #CFE_PSP_Reset function.
  ** 
  ** \param[out] target_boot_parameters
  ** \param[in]  talkative - If true, print out debug messages
@@ -120,6 +139,10 @@ int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 tal
  ** \return #CFE_PSP_ERROR
  */
 int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

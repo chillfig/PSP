@@ -1,5 +1,5 @@
 #include <string.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <stdio.h>
 #include "utstubs.h"
 /* #include "cfe_es.h" */

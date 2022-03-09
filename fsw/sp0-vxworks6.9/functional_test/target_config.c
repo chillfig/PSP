@@ -56,7 +56,7 @@
 #endif
 
 #ifndef CFE_DEFAULT_CORE_FILENAME
-#define CFE_DEFAULT_CORE_FILENAME ""
+#define CFE_DEFAULT_CORE_FILENAME "psp_ft.exe"
 #endif
 
 /*

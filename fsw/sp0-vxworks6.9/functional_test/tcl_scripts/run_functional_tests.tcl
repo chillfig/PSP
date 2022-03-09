@@ -3,7 +3,7 @@ msleep 500
 
 # Attach to target1
 # Connecting to Target PSP_FT
-if [catch "wtxToolAttach PSP_UT psp_ft" target_attach_error] {
+if [catch "wtxToolAttach PSP_FT psp_ft" target_attach_error] {
     puts stdout "Could not connect to Target"
     puts $target_attach_error
     return "ERROR"
@@ -44,15 +44,43 @@ wtxRegisterForEvent USER.*
 puts stdout [wtxEventpointListGet]
 
 # Find Module ID so we can kill it later
-set task_info [wtxObjModuleInfoGet psp_ut.exe]
+set task_info [wtxObjModuleInfoGet psp_ft.exe]
 set moduleID [lindex $task_info 0]
 
 # Resume task
 wtxContextResume CONTEXT_TASK $task_id
 
-# Sleep to let test run, then detach
-# Waiting for 15 seconds until it ends
-msleep 15000
+puts stdout "Waiting for Functional Test to complete"
+
+# Set maximum number of seconds to wait to 100 sec
+set max_wait 100
+set waiting_for 0
+# Wait until done by listening to a special USER event
+while {([set event [wtxEventGet]] == "") && ($waiting_for < $max_wait)} {
+    msleep 1000
+    incr waiting_for
+}
+
+# If we received an event message, print it
+if {($event != "")} {
+    puts stdout $event
+}
+
+# If we waited for max_wait seconds, kill process
+if {($waiting_for == $max_wait)} {
+    puts stdout "Timeout waiting for Functional Test"
+    puts stdout "Killing Task"
+    wtxContextKill $moduleID
+}
+
+# If we waited less than max_wait seconds, nothing to do?
+if {($waiting_for < $max_wait)} {
+    puts stdout "Functional Test run for $waiting_for seconds"
+    puts stdout "Closing"
+    # Give it another second for printing on target
+    msleep 1
+    return "OK"
+}
 
 # Disconnect from Target PSP_FT_FC
 wtxToolDetach

@@ -1,15 +1,38 @@
 #include <string.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <stdio.h>
+#include <bootLib.h>
 #include "utstubs.h"
 
 #define MAX_RDWR_SIZE       0x01000000  /* 16MB */
+
+typedef enum {SP0_ORIGINAL = 1, SP0_UPGRADE = 2} SP0_BOARD_GENERATION_TYPE;
+
+char UserReservedMemory[4000] = {'\0'};
+char *pURM = UserReservedMemory;
+size_t uURM = 4000;
+char bString[BOOT_FILE_LEN] = "/ffx0/startup";
+
+void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize )
+{
+    int iSize;
+
+    iSize = UT_DEFAULT_IMPL(userReservedGet);
+
+    pUserReservedAddr = &pURM;
+    uURM = iSize;
+    pUserReservedSize = &uURM;
+}
 
 int userMemAlloc(uint32 *addr, uint32 size, bool talk)
 {
     int iStatus;
 
     iStatus = UT_DEFAULT_IMPL(userMemAlloc);
+    if (iStatus >= 0)
+    {
+        *addr = (uint32)pURM;
+    }
 
     return iStatus;
 }
@@ -209,6 +232,59 @@ int sysSetFpgaWdt(float secs /* Number of seconds for timeout */)
     return iStatus;
 }
 
+/**
+ * SP0_ORIGINAL = 1
+ * SP0_UPGRADE =2
+ */
+SP0_BOARD_GENERATION_TYPE sysGetBoardGeneration(bool talkative)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(sysGetBoardGeneration);
+
+    if (Status == 1)
+    {
+        return SP0_ORIGINAL;
+    }
+    else if (Status == 2)
+    {
+        return SP0_UPGRADE;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+char *PCS_bootStringToStruct (char * bootString, BOOT_PARAMS * pBootParams)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(bootStringToStruct);
+
+    if (Status == OK)
+    {
+        memcpy(pBootParams->startupScript, bString, BOOT_FILE_LEN);
+    }
+
+    return bString;
+}
+
+char *PCS_strncpy(char *dst, const char *src, size_t size)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(PCS_strncpy);
+
+    if (Status == 0)
+    {
+        /* "nominal" response */
+        return strncpy(dst, src, size);
+    }
+
+    return (char *)0;
+}
+
 int PCS_snprintf(char *s, size_t maxlen, const char *format, ...)
 {
     int32   Status;
@@ -229,7 +305,6 @@ int PCS_snprintf(char *s, size_t maxlen, const char *format, ...)
     {
         actual = Status;
     }
-
     return actual;
 }
 

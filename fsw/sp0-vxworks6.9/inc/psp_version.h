@@ -30,6 +30,11 @@
 extern "C" {
 #endif
 
+/**
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
+** \{
+*/
+
 /** \name Version Macro Definitions */
 /** \{ */
 /** \brief Development Build Macro Definitions - Build Number */
@@ -71,6 +76,11 @@ extern "C" {
     " PSP Development Build " CFE_PSP_IMPL_VERSION /* Codename for current development */ \
     ", Last Official Release: psp v1.4.0"          /* For full support please use this version */
 /** \} */
+
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

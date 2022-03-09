@@ -75,21 +75,12 @@ if {($waiting_for == $max_wait)} {
 
 # If we waited less than max_wait seconds, nothing to do?
 if {($waiting_for < $max_wait)} {
-    puts stdout "Unit Tested for $waiting_for seconds"
+    puts stdout "Unit Test run for $waiting_for seconds"
     puts stdout "Closing"
     # Give it another second for printing on target
     msleep 1
     return "OK"
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-# Sleep to let test run, then detach
-# Waiting for 70 seconds until it ends
-msleep 70000
-=======
->>>>>>> Added Event Message to UT script
-=======
->>>>>>> 35ff842fa826c63d68c569682335f079289c1aa1
 # Disconnect from Target PSP_UT_FC
 wtxToolDetach

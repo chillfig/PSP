@@ -30,6 +30,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <ioLib.h>
+#include <errno.h>
 #include <vxWorks.h>
 #include <float.h>
 #include <stat.h>
@@ -54,10 +55,10 @@
  ** \brief Max number of Voltage and Temperature sensors per target generation
  ** 
  */
-#define SP0_UPGRADE_MAX_VOLTAGE_SENSORS     6
-#define SP0_ORIGINAL_MAX_VOLTAGE_SENSORS    0
-#define SP0_UPGRADE_MAX_TEMP_SENSORS        4
-#define SP0_ORIGINAL_MAX_TEMP_SENSORS       3
+#define SP0_UPGRADE_MAX_VOLT_SENSORS    6
+#define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
+#define SP0_UPGRADE_MAX_TEMP_SENSORS    4
+#define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
 
 /*
 ** Static Function Declarations
@@ -72,7 +73,7 @@ static int32 PSP_SP0_PrintToBuffer(void);
 /** \brief SP0 String Buffer */
 static char g_cSP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
 /** \brief Actual length of the string buffer */
-static int g_iSP0DataDumpLength;
+static int32 g_iSP0DataDumpLength;
 /** \} */
 
 /**
@@ -91,16 +92,16 @@ int32 PSP_SP0_GetInfo(void)
 {
     RESET_SRC_REG_ENUM          resetSrc = 0;
     USER_SAFE_MODE_DATA_STRUCT  safeModeUserData = {};
-    int32                       status = 0;
+    int32                       iStatus = 0;
     float                       fTemperature = 0.0f;
     float                       fVoltage = 0.0f;
-    int8                        i = 0;
-    uint8                       uiMaxTempSensors = SP0_UPGRADE_MAX_TEMP_SENSORS;
-    uint8                       uiMaxVoltageSensors = SP0_UPGRADE_MAX_VOLTAGE_SENSORS;
-    uint64                      bitExecuted = 0ULL;
-    uint64                      bitResult   = 0ULL;
-    int                         iRetChar = 0;
-    int32                       ret_code = CFE_PSP_SUCCESS;
+    uint32                      uiIndex = 0;
+    uint8                       ucMaxTempSensors = SP0_UPGRADE_MAX_TEMP_SENSORS;
+    uint8                       ucMaxVoltageSensors = SP0_UPGRADE_MAX_VOLT_SENSORS;
+    uint64                      ulBitExecuted = 0ULL;
+    uint64                      ulBitResult   = 0ULL;
+    int32                       iRetChar = 0;
+    int32                       iRet_code = CFE_PSP_SUCCESS;
     
     OS_printf(SP0_PRINT_SCOPE "Collecting Data\n");
 
@@ -161,20 +162,20 @@ int32 PSP_SP0_GetInfo(void)
     /*
     Gets last reset reason
     */
-    status = ReadResetSourceReg(&resetSrc,0);
-    if (status == OS_SUCCESS)
+    iStatus = ReadResetSourceReg(&resetSrc,0);
+    if (iStatus == OS_SUCCESS)
     {
         g_sp0_info_table.systemLastResetReason = (uint8) resetSrc;
     }
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
     
     /* Do I need this: ReadSafeModeUserData() */
-    status = ReadSafeModeUserData(&safeModeUserData,0);
-    if (status == OS_SUCCESS)
+    iStatus = ReadSafeModeUserData(&safeModeUserData,0);
+    if (iStatus == OS_SUCCESS)
     {
         if (safeModeUserData.sbc == SM_LOCAL_SBC)
         {
@@ -198,8 +199,8 @@ int32 PSP_SP0_GetInfo(void)
         }
         if ((iRetChar < 0) || (iRetChar >= SP0_SAFEMODEUSERDATA_BUFFER_SIZE))
         {
-            OS_printf(SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData");
-            ret_code = CFE_PSP_ERROR;
+            OS_printf(SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData\n");
+            iRet_code = CFE_PSP_ERROR;
         }
     }
     else
@@ -208,7 +209,7 @@ int32 PSP_SP0_GetInfo(void)
                             SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                             "OS_Error Retrieving SafeModeUserData");
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
 
     /*
@@ -237,24 +238,24 @@ int32 PSP_SP0_GetInfo(void)
     */
     if (sysGetBoardGeneration(FALSE) == SP0_ORIGINAL)
     {
-        uiMaxTempSensors = SP0_ORIGINAL_MAX_TEMP_SENSORS;
+        ucMaxTempSensors = SP0_ORIGINAL_MAX_TEMP_SENSORS;
     }
     /* Read temperature sensors */
-    for (i = 0; i < uiMaxTempSensors; i++)
+    for (uiIndex = 0; uiIndex < ucMaxTempSensors; uiIndex++)
     {
         /* This function takes about 3msec each time it is called */
-        status = tempSensorRead(i, CURRENT_TEMP, &fTemperature, false);
+        iStatus = tempSensorRead(uiIndex, CURRENT_TEMP, &fTemperature, false);
         /* If temperature is read successfully, save on table */
-        if (status == OS_SUCCESS)
+        if (iStatus == OS_SUCCESS)
         {
-            g_sp0_info_table.temperatures[i] = fTemperature;
+            g_sp0_info_table.temperatures[uiIndex] = fTemperature;
         }
         /* If temperature reading is unsuccessful, save lowest possible number to show error */
         else
         {
             OS_printf(SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n");
-            g_sp0_info_table.temperatures[i] = (float)FLT_MIN;
-            ret_code = CFE_PSP_ERROR;
+            g_sp0_info_table.temperatures[uiIndex] = (float)FLT_MIN;
+            iRet_code = CFE_PSP_ERROR;
         }
     }
     
@@ -262,69 +263,69 @@ int32 PSP_SP0_GetInfo(void)
     if (sysGetBoardGeneration(FALSE) == SP0_UPGRADE)
     {
         /* Only SP0s DDR2 has Voltage Monitoring */
-        for (i = 0; i < uiMaxVoltageSensors; i++)
+        for (uiIndex = 0; uiIndex < ucMaxVoltageSensors; uiIndex++)
         {
             /*
             Voltage sensor index is +1 since 0 is a special condition used only for 
             reading voltage statuses against the alarm. This is not implemented.
             */
            /* This function takes about 3msec each time it is called */
-            status = volSensorRead(i + 1, CURRENT_VOL, &fVoltage, false);
+            iStatus = volSensorRead(uiIndex + 1, CURRENT_VOL, &fVoltage, false);
             /* If voltage is read successfully, save on table */
-            if (status == OS_SUCCESS)
+            if (iStatus == OS_SUCCESS)
             {
-                g_sp0_info_table.voltages[i] = fVoltage;
+                g_sp0_info_table.voltages[uiIndex] = fVoltage;
             }
             /* If voltage reading is unsuccessful, save lowest possible number to show error */
             else
             {
                 OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
-                g_sp0_info_table.voltages[i] = (float)FLT_MIN;
-                ret_code = CFE_PSP_ERROR;
+                g_sp0_info_table.voltages[uiIndex] = (float)FLT_MIN;
+                iRet_code = CFE_PSP_ERROR;
             }
         }
     }
 
     /* This function returns the list of the test executed by AIMON in a 64 bit packed word. */
-    status = aimonGetBITExecuted(&bitExecuted, 0);
-    if (status == OS_SUCCESS)
+    iStatus = aimonGetBITExecuted(&ulBitExecuted, 0);
+    if (iStatus == OS_SUCCESS)
     {
-        memcpy(&g_sp0_info_table.bitExecuted, &bitExecuted, sizeof(g_sp0_info_table.bitExecuted));
+        memcpy(&g_sp0_info_table.bitExecuted, &ulBitExecuted, sizeof(g_sp0_info_table.bitExecuted));
     }
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
 
     /* This function returns the summary of the test results in a 64 bit packed word */
-    status = aimonGetBITResults(&bitResult, 0);
-    if (status == OS_SUCCESS)
+    iStatus = aimonGetBITResults(&ulBitResult, 0);
+    if (iStatus == OS_SUCCESS)
     {
-        memcpy(&g_sp0_info_table.bitResult, &bitResult, sizeof(g_sp0_info_table.bitResult));
+        memcpy(&g_sp0_info_table.bitResult, &ulBitResult, sizeof(g_sp0_info_table.bitResult));
     }
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
 
     /* Get real time clock from OS */
-    status = clock_gettime(CLOCK_REALTIME, &g_sp0_info_table.lastUpdatedUTC);
-    if (status != OK)
+    iStatus = clock_gettime(CLOCK_REALTIME, &g_sp0_info_table.lastUpdatedUTC);
+    if (iStatus != OK)
     {
         OS_printf(SP0_PRINT_SCOPE "Error getting local time\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
     
     /* Print data to string */
     if(PSP_SP0_PrintToBuffer())
     {
         OS_printf(SP0_PRINT_SCOPE "Could not print to buffer. Data is left in the structure.");
-        ret_code = CFE_PSP_ERROR_LEVEL_0;
+        iRet_code = CFE_PSP_ERROR_LEVEL_0;
     }
 
-    return ret_code;
+    return iRet_code;
 }
 
 /**
@@ -345,20 +346,20 @@ static int32 PSP_SP0_PrintToBuffer(void)
 {
     uint32     uiTotalMemory_MiB = 0;
     char       *pActiveBootString = NULL;
-    char       active_boot_primary[] = "PRIMARY";
-    char       active_boot_secondary[] = "SECONDARY";
-    int32      ret_code = CFE_PSP_SUCCESS;
+    char       cActive_boot_primary[] = "PRIMARY";
+    char       cActive_boot_secondary[] = "SECONDARY";
+    int32      iRet_code = CFE_PSP_SUCCESS;
     
     /* Coverts bytes to Mibytes */
     uiTotalMemory_MiB = (g_sp0_info_table.systemPhysMemTop >> 20);
 
     if (g_sp0_info_table.active_boot == 1)
     {
-        pActiveBootString = active_boot_primary;
+        pActiveBootString = cActive_boot_primary;
     }
     else
     {
-        pActiveBootString = active_boot_secondary;
+        pActiveBootString = cActive_boot_secondary;
     }
 
     /* Output to local string buffer */
@@ -426,16 +427,16 @@ static int32 PSP_SP0_PrintToBuffer(void)
     {
         /* This will make sure that we don't write garbage to file */
         g_iSP0DataDumpLength = -1;
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
     /* Check if it was truncated */
     if (g_iSP0DataDumpLength >= SP0_TEXT_BUFFER_MAX_SIZE)
     {
         /* Return error but don't do anything else. */
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
 
-    return ret_code;
+    return iRet_code;
 }
 
 /**********************************************************
@@ -474,54 +475,53 @@ SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console)
  *********************************************************/
 int32 PSP_SP0_DumpData(void)
 {
-    char    filename[] = SP0_DATA_DUMP_FILEPATH;
-    int     fd = -1;
+    char    cFilename[] = SP0_DATA_DUMP_FILEPATH;
+    int32   iFD = -1;
     ssize_t iBytes = 0;
-    int     iStatus = OK;
-    int32   ret_code = CFE_PSP_SUCCESS;
+    int32   iStatus = OK;
+    int32   iRet_code = CFE_PSP_SUCCESS;
 
     /* Save the SP0 info dump only if the data available */
     if (g_iSP0DataDumpLength > 0)
     {
         /* Delete previous dump file if exists */
-        iStatus = remove(filename);
-
+        iStatus = remove(cFilename);
+        errno = 0;
         /* Create a new file for writing */
-        fd = open(filename, O_CREAT | O_RDWR, 0644);
+        iFD = open(cFilename, O_CREAT | O_RDWR, 0644);
         /* If there are no errors */
-        if (fd != ERROR) //UndCC_Line(SSET055) - returned by function
+        if (iFD > -1)
         {
             /* Write data to file */
-            iBytes = write(fd, g_cSP0DataDump, (size_t) g_iSP0DataDumpLength);
+            iBytes = write(iFD, g_cSP0DataDump, (size_t) g_iSP0DataDumpLength);
             /* If there was an error during writing, let the user know and continue */
-            if (iBytes == ERROR) //UndCC_Line(SSET055) - returned by function
+            if (iBytes != g_iSP0DataDumpLength)
             {
-                OS_printf(SP0_PRINT_SCOPE "Error while writing SP0 info data dump to file\n");
-                ret_code = CFE_PSP_ERROR;
+                OS_printf(SP0_PRINT_SCOPE "Error while writing SP0 info data dump to file. errno=`%d`\n",errno);
+                iRet_code = CFE_PSP_ERROR;
             }
             /* Close file */
-            iStatus = close(fd);
+            iStatus = close(iFD);
             /* If there was an error during closing, let the user know and continue */
-            if (iStatus == ERROR) //UndCC_Line(SSET055) - returned by function
+            if (iStatus != OK)
             {
-                OS_printf(SP0_PRINT_SCOPE "Could not close file SP0 info data dump\n");
-                ret_code = CFE_PSP_ERROR;
+                OS_printf(SP0_PRINT_SCOPE "Could not close file SP0 info data dump. errno=`%d`\n",errno);
+                iRet_code = CFE_PSP_ERROR;
             }
         }
         else
         {
-            OS_printf(SP0_PRINT_SCOPE "Could not create the SP0 info file dump\n");
-            ret_code = CFE_PSP_ERROR;
+            OS_printf(SP0_PRINT_SCOPE "Could not create the SP0 info file dump. errno=`%d`\n",errno);
+            iRet_code = CFE_PSP_ERROR;
         }
     }
     else
     {
         OS_printf(SP0_PRINT_SCOPE "Data Dump has not been initialized or error occured\n");
-        ret_code = CFE_PSP_ERROR;
+        iRet_code = CFE_PSP_ERROR;
     }
 
-PSP_SP0_DumpData_Exit_TAG:
-    return ret_code;
+    return iRet_code;
 }
 
 /**********************************************************
@@ -533,19 +533,19 @@ PSP_SP0_DumpData_Exit_TAG:
  *********************************************************/
 int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
 {
-    int64_t free_size_bytes = CFE_PSP_ERROR;
+    int64_t lFree_size_bytes = CFE_PSP_ERROR;
     long block_size = 0;
-    int64_t blocks_available = 0;
-    struct statfs ram_disk_stats = {};
+    int64_t lBlocks_available = 0;
+    struct statfs ram_disk_stats = {'\0'};
 
     if ((ram_disk_root_path != NULL) && memchr(ram_disk_root_path, (int) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH))
     {
         if (statfs(ram_disk_root_path, &ram_disk_stats) == OK)
         {
             block_size = ram_disk_stats.f_bsize;
-            blocks_available = ram_disk_stats.f_bavail;
-            free_size_bytes = block_size * blocks_available;
+            lBlocks_available = ram_disk_stats.f_bavail;
+            lFree_size_bytes = block_size * lBlocks_available;
         }
     }
-    return free_size_bytes;
+    return lFree_size_bytes;
 }

@@ -271,7 +271,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         */
 
         /* Clear EDR data in EEPROM */
-        CFE_PSP_edrClearEEPROM();
+        CFE_PSP_ClearNVRAM();
 
         /*
         ** Set the default reset type in case a watchdog reset occurs
@@ -316,8 +316,12 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         ** Attempt to restore above memory sections
         */
         
-        /* Recover EDR data if available */
-        CFE_PSP_edrLoadFromEEPROM();
+        /* Attempt recovering NVRAM data */
+        if (CFE_PSP_LoadFromNVRAM() != CFE_PSP_SUCCESS)
+        {
+            /* Save it back if the NVRAM is empty */
+            CFE_PSP_SaveToNVRAM();
+        }
 
         /* RESET MEMORY - Not sure if still valid */
         memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,

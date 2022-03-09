@@ -31,11 +31,14 @@
 #ifndef _PSP_TIME_SYNC_H_
 #define _PSP_TIME_SYNC_H_
 
-#include "osapi.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "osapi.h"
+
+/* Provides the definition of CFE_TIME_SysTime_t */
+#include "cfe_time_extern_typedefs.h"
 
 /**
 ** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform

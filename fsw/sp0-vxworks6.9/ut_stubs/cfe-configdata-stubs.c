@@ -11,7 +11,7 @@
 
 /* PSP coverage stub replacement for string.h */
 #include <string.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <stdio.h>
 #include "utstubs.h"
 
@@ -40,7 +40,13 @@ Target_CfeConfigData GLOBAL_CFE_CONFIGDATA =
         /**
          * Notification function. Called from PSP after async event handling.
          */
-        .SystemNotify = SystemNotify
+        .SystemNotify = SystemNotify,
+
+        .ResetAreaSize = 100,
+        .RamDiskSectorSize = 512,
+        .RamDiskTotalSectors = 2,
+        .CdsSize = 100,
+        .UserReservedSize = 100
 };
 
 Target_ConfigData GLOBAL_CONFIGDATA =

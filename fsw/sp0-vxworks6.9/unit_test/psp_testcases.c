@@ -164,6 +164,22 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_LogSoftwareResetType");
 
+    UtTest_Add(Ut_CFE_PSP_StartupFailed,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupFailed");
+
+    UtTest_Add(Ut_CFE_PSP_StartupClear,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupClear");
+
+    UtTest_Add(Ut_CFE_PSP_GetActiveCFSPartition,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetActiveCFSPartition");
+
+    UtTest_Add(Ut_CFE_PSP_StartupTimer,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupTimer");
+
     UtTest_Add(Ut_OS_Application_Startup,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_OS_Application_Startup"); 
@@ -405,17 +421,17 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ExceptionGetSummary_Impl");
 
-    UtTest_Add(Ut_CFE_PSP_edrLoadFromEEPROM,
+    UtTest_Add(Ut_CFE_PSP_LoadFromNVRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_edrLoadFromEEPROM");
+               "Ut_CFE_PSP_LoadFromNVRAM");
 
-    UtTest_Add(Ut_CFE_PSP_edrSaveToEEPROM,
+    UtTest_Add(Ut_CFE_PSP_SaveToNVRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_edrSaveToEEPROM");
+               "Ut_CFE_PSP_SaveToNVRAM");
 
-    UtTest_Add(Ut_CFE_PSP_edrClearEEPROM,
+    UtTest_Add(Ut_CFE_PSP_ClearNVRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_edrClearEEPROM");
+               "Ut_CFE_PSP_ClearNVRAM");
 
     #endif /* TEST_EXCEPTION == 1 */
 
@@ -449,6 +465,10 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_GetBootStartupString,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetBootStartupString");
+
+    UtTest_Add(Ut_CFE_PSP_ToggleCFSBootPartition,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ToggleCFSBootPartition");
 
     UtTest_Add(Ut_CFE_PSP_SetBootStartupString,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

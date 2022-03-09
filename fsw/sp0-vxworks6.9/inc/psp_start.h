@@ -44,18 +44,23 @@
 extern "C" {
 #endif
 
-/* MACRO to perform a bitwise AND operation */
-#define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
-
 /**
 ** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
 ** \{
 */
 
+/* MACRO to perform a bitwise AND operation on a specific bit position */
+#define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
+
+/* MACRO to perform a bitwise AND operation */
+#define BITWISE_AND(x, y)       ((x) & (y))
+
 /**
- ** \brief List of MCHK Errors Messages
- */
-const char * g_pMachineCheckCause_msg[10];
+ ** \brief Default PSP StartupTimer pre-print string 
+ ** \par Description:
+ ** This string is printed before every print related to StartupTimer API.
+*/
+#define PSP_STARTUP_TIMER_PRINT_SCOPE                     "PSP Startup: "
 
 /**
 ** \func Output POST results
@@ -81,11 +86,90 @@ void CFE_PSP_ProcessPOSTResults(void);
 ** \par Assumptions, External Events, and Notes:
 ** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
 **
-** \param resetSrc - Reset Type RESET_SRC_REG_ENUM
+** \param[in] resetSrc - Reset Type RESET_SRC_REG_ENUM
 **
 ** \return None
 */
 void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc);
+
+/**
+ ** \func Gracefully Restart CFS
+ ** 
+ ** \par Description:
+ ** If we reached this point, something failed or it is taking too long to
+ ** complete. If that is the case, function will log the attempt and restart the
+ ** SP0 target with the appropriate restart type.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** If for some reason the file containing the restart attempts located in the 
+ ** currently active CFS flash partition is corrupted, the file will be deleted
+ ** and new data will be added with counters starting from zero.
+ **
+ ** \param[in] timer_id - is the ID of the timer that triggered the call
+ **
+ ** \return None
+ */
+void CFE_PSP_StartupFailedRestartSP0_hook(uint32 timer_id);
+
+/**
+ ** \func Delete startup timer and status file
+ ** 
+ ** \par Description:
+ ** This function is called at the end of #OS_Application_Startup function which
+ ** identifies the end of PSP startup and when CFE can restart logic is ready.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ **
+ */
+int32 CFE_PSP_StartupClear(void);
+
+/**
+ ** \func  Retrieve the currently active CFS partition
+ ** 
+ ** \par Description: 
+ ** The Flash memory is split into 2 partitions each containing 1 CFS instance.
+ ** This function will return the device name such as: "/ffx0" or "/ffx1"
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** To figure out which one is loaded in RAM, this function will check if the
+ ** kernel is exposing a specific CFS support funtion GetActiveCFSPartition().
+ ** If not available, function will assume a single Flash partition "/ffx0".
+ ** 
+ ** \param[out] pBuffer - Pointer to the buffer that will receive the string
+ ** \param[in] uBuffer_size - Maximum size of the buffer
+ ** 
+ ** \return None
+ */
+void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
+
+/**
+ **
+ ** \func Setup and Starts the Startup Timer
+ **
+ ** \par Description:
+ ** During CFS startup, and before CFE is ready to start the apps, CFS cannot
+ ** catch errors and restart. This function sets up a callback function
+ ** triggered by a timer. When CFS loads within a configurable time, the
+ ** #OS_Application_Startup function will complete and the timer reset. If the
+ ** end of the function is not reached before the timer expires, the callback
+ ** function will restart the target and log the attempt on the currently active
+ ** partition.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_StartupTimer(void);
 
 /**
 ** \func OSAL startup entry point
@@ -209,6 +293,11 @@ static int32 CFE_PSP_SetSysTasksPrio(void);
  ** \return #CFE_PSP_ERROR
  */
 static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id);
+
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

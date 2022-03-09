@@ -35,12 +35,13 @@ extern "C" {
 */
 
 /**
- ** \func Load ED&R data from EEPROM
+ ** \func Load data from NVRAM
  ** 
  ** \par Description:
- ** During CFS startup, the ED&R data in RAM is cleared. This function will
- ** first verify that the EEPROM user area contains valid ED&R data, then
- ** recover it. Data is saved to EEPROM using #CFE_PSP_edrSaveToEEPROM.
+ ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
+ ** This function will first verify that the EEPROM user area contains a valid,
+ ** signature, then recover it.
+ ** Data is saved to NVRAM (EEPROM) using #CFE_PSP_SaveToNVRAM.
  **
  ** \par Assumptions, External Events, and Notes:
  ** This function makes use of the onboard EEPROM user area with maximum usable
@@ -51,15 +52,16 @@ extern "C" {
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_edrLoadFromEEPROM(void);
+int32   CFE_PSP_LoadFromNVRAM(void);
 
 /**
- ** \func Save RAM ED&R in EEPROM
+ ** \func Save data to NVRAM
  ** 
  ** \par Description:
- ** During CFS startup, the ED&R data in RAM is cleared. This function will
- ** save the ED&R data in RAM to the EEPROM user area. It will also save a
- ** simple signature to allow the #CFE_PSP_edrLoadFromEEPROM to validate the data.
+ ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
+ ** This function will save the ED&R and Memory Boot data to the NVRAM user area.
+ ** It will also save a simple signature to allow the #CFE_PSP_LoadFromNVRAM to
+ ** validate the presence of data.
  **
  ** \par Assumptions, External Events, and Notes:
  ** This function makes use of the onboard EEPROM user area with maximum usable
@@ -70,13 +72,13 @@ int32   CFE_PSP_edrLoadFromEEPROM(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_edrSaveToEEPROM(void);
+int32   CFE_PSP_SaveToNVRAM(void);
 
 /**
- ** \func Clear EDR in EEPROM
+ ** \func Clear NVRAM
  ** 
  ** \par Description:
- ** Function reset to \0 the edr signature in EEPROM.
+ ** Function reset to \0 the signature in NVRAM.
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -86,7 +88,7 @@ int32   CFE_PSP_edrSaveToEEPROM(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_edrClearEEPROM(void);
+int32   CFE_PSP_ClearNVRAM(void);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

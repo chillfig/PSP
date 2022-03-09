@@ -25,7 +25,7 @@
 **  Include Files
 */
 #include <stdio.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <unistd.h>
 
 /* Aitech BSP Specific */
@@ -70,7 +70,7 @@ void CFE_PSP_WatchdogInit(void)
  *********************************************************/
 void CFE_PSP_WatchdogEnable(void)
 {
-    int iStatus = OK;
+    int32 iStatus = OK;
 
     /*
     ** TRUE (allows slave SBC's WDT failure to reset all SBCs)
@@ -97,7 +97,7 @@ void CFE_PSP_WatchdogEnable(void)
  *********************************************************/
 void CFE_PSP_WatchdogDisable(void)
 {
-    int iStatus = OK;
+    int32 iStatus = OK;
     g_bWatchdogStatus = false;
 
     iStatus = sysDisableFpgaWdt();
@@ -152,7 +152,7 @@ uint32 CFE_PSP_WatchdogGet(void)
  *********************************************************/
 void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
 {
-    int   iStatus = OK;
+    int32  iStatus = OK;
     float fRate = 0.0f;
 
     /*Rate is in seconds*/

@@ -57,9 +57,7 @@ Kernel must include the following services:
 
 - Static Variables
   - g_VxWorksTaskList
-  - g_uiResetType
-  - g_uiResetSubtype
-  - g_safeModeUserData
+  - g_StartupInfo
   - g_uiShellTaskID
   - g_ucOverRideDefaultedrPolicyHandlerHook
   - g_pDefaultedrPolicyHandlerHook
@@ -72,6 +70,10 @@ Kernel must include the following services:
   - CFE_PSP_Main
   - CFE_PSP_ProcessPOSTResults
   - CFE_PSP_LogSoftwareResetType
+  - CFE_PSP_GetActiveCFSPartition
+  - CFE_PSP_StartupTimer
+  - CFE_PSP_StartupClear
+  - CFE_PSP_StartupFailedRestartSP0_hook
   - OS_Application_Startup `$`
   - OS_Application_Run `$`
   - CFE_PSP_SuspendConsoleShellTask

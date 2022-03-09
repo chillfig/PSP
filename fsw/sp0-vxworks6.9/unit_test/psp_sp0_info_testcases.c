@@ -48,12 +48,13 @@ void Ut_PSP_SP0_GetInfo(void)
     uint64 bitResult   = 1ULL;
 
     char cMsg_readreset[] = {SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n"};
-    char cMsg_safemode_nowrite[] = {SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData"};
+    char cMsg_safemode_nowrite[] = {SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData\n"};
     char cMsg_safemode_retrieve[] = {SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n"};
     char cMsg_temp[] = {SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n"};
     char cMsg_volt[] = {SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n"};
     char cMsg_aimongetbitexec[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n"};
     char cMsg_aimongetbitres[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n"};
+    char cMsg_localtime[] = {SP0_PRINT_SCOPE "Error getting local time\n"};
 
     uint32 uiResetSrc = 0;
 
@@ -81,6 +82,7 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
 
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
@@ -111,6 +113,7 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), true);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
 
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 1);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
@@ -205,7 +208,8 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
-    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
 
     /* Execute test */
     ret = PSP_SP0_GetInfo();
@@ -318,6 +322,7 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
@@ -388,10 +393,10 @@ void Ut_PSP_SP0_GetInfo(void)
     Ut_OS_printf_Setup();
 
 
-    /* ----- Test case #12 - g_iSP0DataDumpLength too long ----- */
+    /* ----- Test case #12 - clock_gettime error ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
-    UT_SetDefaultReturnValue(UT_KEY(sysModel), 1);
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
     /* getCoreClockSpeed for SP0s = 0 */
     UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
@@ -406,13 +411,13 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
-
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
     ret = PSP_SP0_GetInfo();
     /* Verify outputs */
-    UtAssert_True(g_iSP0DataDumpLength > SP0_TEXT_BUFFER_MAX_SIZE, "_PSP_SP0_GetInfo - 12/13: g_cSP0DataLength larger than max buffer");
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
+    UtAssert_OS_print(cMsg_localtime, "_PSP_SP0_GetInfo - 12/13: clock_gettime error");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
 
     /* ----- Test case #13 - last snprintf error ----- */
     /* Setup additional inputs */
@@ -485,8 +490,7 @@ void Ut_PSP_SP0_GetInfoTable(void)
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     /* Set the content of the output data to a fixed value for testing */
-    memset(g_cSP0DataDump,(int)1, 20);
-    g_iSP0DataDumpLength = 20;
+    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
     /* Execute test */
     sp0_data = PSP_SP0_GetInfoTable(true);
     /* Verify outputs */
@@ -515,12 +519,15 @@ void Ut_PSP_SP0_DumpData(void)
     char cMsg_write[200] = {};
     char cMsg_close[200] = {};
     char cMsg_nodump[200] = {};
-    
+    int  iFileID = 10;
+
     Ut_OS_printf_Setup();
     
-    sprintf(cMsg_creat, SP0_PRINT_SCOPE "Could not create the SP0 info file dump\n");
-    sprintf(cMsg_write, SP0_PRINT_SCOPE "Error while writing SP0 info data dump to file\n");
-    sprintf(cMsg_close, SP0_PRINT_SCOPE "Could not close file SP0 info data dump\n");
+    errno = 9;
+
+    sprintf(cMsg_creat, SP0_PRINT_SCOPE "Could not create the SP0 info file dump. errno=`%d`\n", errno);
+    sprintf(cMsg_write, SP0_PRINT_SCOPE "Error while writing SP0 info data dump to file. errno=`%d`\n", errno);
+    sprintf(cMsg_close, SP0_PRINT_SCOPE "Could not close file SP0 info data dump. errno=`%d`\n", errno);
     sprintf(cMsg_nodump, SP0_PRINT_SCOPE "Data Dump has not been initialized or error occured\n");
     g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, SP0_TEXT_BUFFER_MAX_SIZE, "0123456789");
 
@@ -528,8 +535,8 @@ void Ut_PSP_SP0_DumpData(void)
     /* Setup additional inputs */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
-    UT_SetDefaultReturnValue(UT_KEY(open), OK);
-    UT_SetDefaultReturnValue(UT_KEY(write), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), iFileID);
+    UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
     PSP_SP0_DumpData();
@@ -544,8 +551,6 @@ void Ut_PSP_SP0_DumpData(void)
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(write), OK);
-    UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
     PSP_SP0_DumpData();
     /* Verify outputs */
@@ -558,7 +563,7 @@ void Ut_PSP_SP0_DumpData(void)
     /* Setup additional inputs */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
-    UT_SetDefaultReturnValue(UT_KEY(open), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), iFileID);
     UT_SetDefaultReturnValue(UT_KEY(write), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
@@ -573,8 +578,8 @@ void Ut_PSP_SP0_DumpData(void)
     /* Setup additional inputs */
     /* Set the content of the output data to a fixed value for testing */
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
-    UT_SetDefaultReturnValue(UT_KEY(open), OK);
-    UT_SetDefaultReturnValue(UT_KEY(write), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), iFileID);
+    UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), ERROR);
     /* Execute test */
     PSP_SP0_DumpData();
@@ -589,8 +594,8 @@ void Ut_PSP_SP0_DumpData(void)
     /* Set the content of the output data to a fixed value for testing */
     g_iSP0DataDumpLength = -1;
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
-    UT_SetDefaultReturnValue(UT_KEY(open), OK);
-    UT_SetDefaultReturnValue(UT_KEY(write), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), iFileID);
+    UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
     PSP_SP0_DumpData();

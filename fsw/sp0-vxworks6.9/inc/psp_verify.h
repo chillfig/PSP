@@ -25,14 +25,20 @@
 #ifndef _PSP_VERIFY_H_
 #define _PSP_VERIFY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 ** Include Files
 */
 #include "cfe_psp_config.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+/**
+** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
+** \{
+*/
 
 /*
 ** Macro Definitions
@@ -138,6 +144,62 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 
 /** \brief Check that the NTP SYNC Task name is no longer than the maximum allowed name length */
 CompileTimeAssert(sizeof(NTPSYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
+
+/* \brief Check that CFE_PSP_STARTUP_AVAILABLE_PARTITIONS is defined */
+#ifndef CFE_PSP_STARTUP_AVAILABLE_PARTITIONS
+    #define CFE_PSP_STARTUP_AVAILABLE_PARTITIONS    {"/ffx0"}
+#endif
+
+/** \brief Check that we have a maximum string length defined for the current active CFS partition or device */
+#ifndef CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
+    #define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH 6
+#endif
+/** \brief Check the maximum length of the startup filename */
+#ifndef CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH
+    #define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH 32
+#endif
+
+/** \brief Check the minimum length of the startup filename */
+#if CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH < CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH - 1
+    #error "CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH must be longer than CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH - 1"
+#endif
+
+/** \brief Check the maximum and minimum length of the active CFS partition */
+#if CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH < 1
+    #error "CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH must be at least 1 character"
+#endif
+#if CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH >= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
+    #error "CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH must be no more than CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1"
+#endif
+
+/** \brief Verify that the startup wait time before calling the StartupFailed function is at least 1 second */
+#ifndef CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC
+    #define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC 60
+#endif
+#if CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC < 1
+    #error "CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC must be at least 1 second"
+#endif
+
+/** \brief  Verify max number of processor resets is defined and its value is more than 1 */
+#ifndef CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS
+    #define CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS 3
+#endif
+#if CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS < 1
+    #error "CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS must be positive"
+#endif
+
+/** \brief  Verify failed startup filename is defined and its length is between 1 and CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH */
+#ifndef CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME
+    #define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME "fail.txt"
+#endif
+CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FILENAME_TOO_LONG);
+CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_LONG);
+CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_SHORT);
+
+
+/**
+** \} <!-- End of group "psp_public_api" -->
+*/
 
 #ifdef __cplusplus
 }

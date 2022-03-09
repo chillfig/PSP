@@ -1,5 +1,5 @@
 #include <string.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <stdio.h>
 #include "utstubs.h"
 #include "ut_psp_utils.h"
@@ -53,6 +53,18 @@ int32 CFE_PSP_MemRangeSet(uint32 RangeNum,
     return iStatus;
 }
 
+/* From PSP Shared */
+int32 CFE_PSP_MemValidateRange(cpuaddr Address,
+                               size_t Size,
+                               uint32 MemoryType)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(CFE_PSP_MemValidateRange);
+    
+    return iStatus;
+}
+
 int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug)
 {
     int32 iStatus;
@@ -98,7 +110,7 @@ int edrPolicyHandlerHookAdd(void * pPtrFunc)
 
 void CFE_PSP_ModuleInit(void)
 {   
-    
+
 }
 
 /**

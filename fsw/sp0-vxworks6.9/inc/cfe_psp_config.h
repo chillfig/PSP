@@ -37,6 +37,8 @@
 /* Defines function getCoreClockSpeed() */
 #include <sys950Lib.h>
 
+#include <scratchRegMap.h>
+
 #include "common_types.h"
 
 #ifdef __cplusplus
@@ -73,7 +75,6 @@ extern "C" {
                                                     {"ipftps", 202},\
                                                     {"ipcom_syslogd", 205},\
                                                     {"ipcom_telnetd", 204},\
-                                                    {"ipcom_egd", 253},\
                                                     {"FTCMP00", 253}
 
 
@@ -130,7 +131,220 @@ extern "C" {
  ** used to drive the CFS SCH minor frame callbacks in its default config.
  **
  */
-#define CFE_PSP_SOFT_TIMEBASE_PERIOD        10000
+#define CFE_PSP_SOFT_TIMEBASE_PERIOD                    10000
+
+/**
+ ** \brief Maximum length of active CFS flash partition name
+ **
+ ** \par Limits:
+ ** This value should be kept small since it will take away from the failed
+ ** startup filename max lenght.<br>
+ ** Minimum is 1 character<br>
+ ** Maximum is #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
+ **
+ */
+#define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH             6
+
+/**
+ ** \brief Maximum length of failed startup file name
+ **
+ ** \par Limits:
+ ** This value should be kept high enough to accomodate the active partition
+ ** name and the startup file name.
+ ** Minimum of #CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1
+ */
+#define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH      32
+
+/**
+ ** \brief Maximum length of failed stratup filename with path
+ **
+ ** \par Limits:
+ ** This value is the total length of the active partition max length plus
+ ** the failed startup failname.
+ **
+ */
+#define CFE_PSP_FAILED_STARTUP_FULLPATH_LENGTH \
+                        CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
+
+/**
+ ** \brief Define Number of PSP Resets Before Switching CFS Partition
+ ** 
+ ** \par Description:
+ ** Number of PSP Resets before switching to the other partition. If set to 2,
+ ** then 2 processor resets will occur, and the 3rd processor reset will be a
+ ** power on reset instead.
+ **
+ ** \par Limits:
+ ** There is a lower limit of 0.  There are no restrictions on the upper limit
+ ** however, the maximum number of processor resets may be system dependent and
+ ** should be verified.
+ */
+#define CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS            3
+
+/**
+ ** \brief Define Number of seconds to wait until PSP Restart target
+ ** 
+ ** \par Description:
+ ** Number of seconds to wait before calling the PSP Restart function.
+ ** 
+ ** \par Limits:
+ ** There is a lower limit of 0. There are no restrictions on the upper limit
+ ** however, the maximum number of seconds to wait for CFS to start is dependent 
+ ** on system performance.
+ */
+#define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC               60
+
+/**
+ ** \brief Define file name containing the number of attempts to start
+ ** 
+ ** \par Description:
+ ** The file name that contains the number of attempts to startup CFS. The file
+ ** is located in the currently active flash partition.
+ ** 
+ ** \par Limits:
+ ** File name must be at least 1 character, and no more than 
+ ** #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1 characters.
+ */
+#define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME         "fail.txt"
+
+/**
+ ** \brief Define the file name of the boot startup
+ **
+ ** \par Limits:
+ ** Minimum 1 character, and maximum of #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH
+ */
+#define CFE_PSP_STARTUP_FILENAME                        "startup"
+
+/**
+ ** \brief Define the list of available CFS devices
+ **
+ ** \par Limits:
+ ** There is a minimum of 1 device name
+ */
+#define CFE_PSP_STARTUP_AVAILABLE_PARTITIONS            {"/ffx0", "/ffx1"}
+
+/**
+ ** \brief Layout of Startup Structure
+ **
+ ** \par Description:
+ ** This structure is used during the startup of CFS, but before the apps can
+ ** start using the Watchdog.
+ ** 
+ */
+typedef struct  {
+    /** \brief  Timer ID */
+    osal_id_t           timerID;
+
+    /** \brief  Pointer to function that will log the failure to start */
+    OS_TimerCallback_t  pStartupFailedFunction;
+    
+    /** \brief  Number of second to wait for startup to complete */
+    uint32              uMaxWaitTime_sec;
+
+    /** \brief  Timer Name */
+    char                timer_name[OS_MAX_API_NAME];
+
+    /** \brief  Name of the file storing the number of failed startup attempts */
+    char                failed_startup_filename[CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH];
+
+    /** \brief  Full Path of the failed startup file */
+    char                fullpath_failed_startup_filename[CFE_PSP_FAILED_STARTUP_FULLPATH_LENGTH];
+
+    /** \brief  Current Boot Startup String */
+    char                boot_startup_filename[BOOT_FILE_LEN];
+
+    /** \brief  Path of the currently active partition
+     * \par Description:
+     * The active CFS flash partition is the device name without the slash at the 
+     * end. The function setting this variable will default to /ffx0 in case of
+     * any error.
+    */
+    char                active_cfs_partition[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH];
+
+    /** \brief  Number of failed startup attempts */
+    uint8               startup_failed_attempts;
+
+    /** \brief  Number of failed startup resets
+     * \par Description:
+     * A reset occurs after startup_failed_attempts reaches the predefined
+     * #CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS number of attempts. When a reset
+     * occurs, the User Reserved Memory saved in Flash gets erased.
+     */
+    uint8               startup_failed_reset_attempts;
+
+    /** \brief Reset Type */
+    uint32              ResetType;
+
+    /** \brief Reset Sub Type */
+    uint32              ResetSubtype;
+
+    /** \brief Safe Mode User Data */
+    USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
+    
+} CFE_PSP_Startup_structure_t;
+
+/**
+ ** \brief Maximum length of active CFS flash partition name
+ **
+ ** \par Limits:
+ ** This value should be kept small since it will take away from the failed
+ ** startup filename max lenght.<br>
+ ** Minimum is 1 character<br>
+ ** Maximum is #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
+ **
+ */
+#define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH             6
+
+/**
+ ** \brief Maximum length of failed startup file name
+ **
+ ** \par Limits:
+ ** This value should be kept high enough to accomodate the active partition
+ ** name and the startup file name.
+ ** Minimum of #CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1
+ */
+#define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH      32
+
+/**
+ ** \brief Define Number of PSP Resets Before Switching CFS Partition
+ ** 
+ ** \par Description:
+ ** Number of PSP Resets before switching to the other partition. If set to 2,
+ ** then 2 processor resets will occur, and the 3rd processor reset will be a
+ ** power on reset instead.
+ **
+ ** \par Limits:
+ ** There is a lower limit of 0.  There are no restrictions on the upper limit
+ ** however, the maximum number of processor resets may be system dependent and
+ ** should be verified.
+ */
+#define CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS            3
+
+/**
+ ** \brief Define Number of seconds to wait until PSP Restart target
+ ** 
+ ** \par Description:
+ ** Number of seconds to wait before calling the PSP Restart function.
+ ** 
+ ** \par Limits:
+ ** There is a lower limit of 0. There are no restrictions on the upper limit
+ ** however, the maximum number of seconds to wait for CFS to start is dependent 
+ ** on system performance.
+ */
+#define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC               60
+
+/**
+ ** \brief Define file name containing the number of attempts to start
+ ** 
+ ** \par Description:
+ ** The file name that contains the number of attempts to startup CFS. The file
+ ** is located in the currently active flash partition.
+ ** 
+ ** \par Limits:
+ ** File name must be at least 1 character, and no more than 
+ ** #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1 characters.
+ */
+#define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME         "fail.txt"
 
 /** \brief Memory Table Size.
  ** 

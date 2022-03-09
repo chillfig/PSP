@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "utstubs.h"
 
 #include "osapi.h"
@@ -39,6 +38,15 @@ int open(const char * file, int oflag, ...)
     int32 iStatus;
 
     iStatus = UT_DEFAULT_IMPL(open);
+    
+    if (iStatus < 0)
+    {
+        errno = 9;
+    }
+    else
+    {
+        errno = 0;
+    }
 
     return iStatus;
 }
@@ -58,6 +66,15 @@ int close(int fd)
 
     iStatus = UT_DEFAULT_IMPL(close);
 
+    if (iStatus < 0)
+    {
+        errno = 9;
+    }
+    else
+    {
+        errno = 0;
+    }
+
     return iStatus;
 }
 
@@ -66,6 +83,10 @@ int read(int fd, void * buf, size_t n)
     int32 iStatus;
 
     iStatus = UT_DEFAULT_IMPL(read);
+    if (iStatus > 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(read), (void *) buf, n);
+    }
 
     return iStatus;
 }
@@ -75,6 +96,33 @@ int write(int fd, const void * buf, size_t n)
     int32 iStatus;
 
     iStatus = UT_DEFAULT_IMPL(write);
+
+    if (iStatus < 0)
+    {
+        errno = 9;
+    }
+    else
+    {
+        errno = 0;
+    }
+
+    return iStatus;
+}
+
+off_t lseek(int fd, off_t offset, int whence)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(lseek);
+
+    return iStatus;
+}
+
+off_t lseek(int fd, off_t offset, int whence)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(lseek);
 
     return iStatus;
 }
@@ -94,12 +142,9 @@ int stat(char *fname, struct stat *buf)
 
 void reboot(int iBootType)
 {
-    UT_DEFAULT_IMPL(reboot);
-}
+    int32 iStatus;
 
-void exit(int iCode)
-{
-    UT_DEFAULT_IMPL(exit);
+    iStatus = UT_DEFAULT_IMPL(reboot);
 }
 
 int32 Ut_OS_printf_hook(void *pUserObj, int32 iStubRetcode,

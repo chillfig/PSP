@@ -10,7 +10,7 @@
 **  Include Files
 */
 #include <stdio.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
@@ -20,6 +20,7 @@
 
 #include <scratchRegMap.h>
 #include <aimonUtil.h>
+#include <wdb/wdbLib.h>
 
 #include <math.h>
 
@@ -37,7 +38,7 @@
 #include "psp_start.h"
 #include "psp_exceptions.h"
 #include "psp_support.h"
-#include "psp_cds_flash.h"
+#include "psp_flash.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
 #include "psp_time_sync.h"
@@ -145,6 +146,16 @@ void PSP_FT_Setup(void)
 }
 
 /**
+ ** \brief Special function to send WDB Event Message to calling WTX Script
+ ** 
+ */
+void PSP_FT_SendEndTestEvent(void)
+{
+    if (wdbUserEvtPost ("End of Tests") != OK)
+        OS_printf ("Can't send message to host tools");
+}
+
+/**
  ** \brief Functional test main function
  ** 
  */
@@ -180,8 +191,10 @@ void PSP_FT_Start(void)
     OS_printf("[RESULTS]\n"
               "Num tests: %u\n"
               "Passed: %u\n"
-              "Failed: %u\n",
+              "Failed: %u\n\n",
               cnt_tests, cnt_pass, cnt_fail);
+
+    PSP_FT_SendEndTestEvent();
 }
 
 void ft_support(void)
@@ -240,16 +253,16 @@ void ft_exception(void)
     CFE_PSP_SetDefaultExceptionEnvironment
     */
 
-    ret_code = CFE_PSP_edrSaveToEEPROM();
+    ret_code = CFE_PSP_SaveToNVRAM();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Saving ED&R Data to EEPROM was Successful")
 
-    ret_code = CFE_PSP_edrLoadFromEEPROM();
+    ret_code = CFE_PSP_LoadFromNVRAM();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Loading ED&R Data from EEPROM returned Success")
 
-    ret_code = CFE_PSP_edrClearEEPROM();
+    ret_code = CFE_PSP_ClearNVRAM();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Clearing ED&R Data in EEPROM returned Success")
 
-    ret_code = CFE_PSP_edrLoadFromEEPROM();
+    ret_code = CFE_PSP_LoadFromNVRAM();
     FT_Assert_True(ret_code == CFE_PSP_ERROR, "Loading ED&R Data from EEPROM after Clear EDR returned Error")
 
     EDR_USER_FATAL_INJECT(true, "Test Fatal EDR Inject");
@@ -330,7 +343,8 @@ void ft_start(void)
 {
     bool        test_case = false;
     uint32      last_reset_type;
-    RESET_SRC_REG_ENUM   resetSrc;
+    RESET_SRC_REG_ENUM   resetSrc = RESET_SRC_POR | RESET_SRC_SWR;
+    char        buffer[256];
     int32       ret_code;
 
     OS_printf("[START]\n");
@@ -340,13 +354,23 @@ void ft_start(void)
     test_case = ((last_reset_type == CFE_PSP_RST_TYPE_POWERON) ||
                 (last_reset_type == CFE_PSP_RST_TYPE_PROCESSOR) ||
                 (last_reset_type == CFE_PSP_RST_TYPE_MAX));
-    FT_Assert_True(last_reset_type, "CFE_PSP_GetRestartType returned valid reset type")
+    FT_Assert_True(test_case, "CFE_PSP_GetRestartType returned valid reset type")
 
     /* Functions just print out data, nothing to check */
     ReadResetSourceReg(&resetSrc, false);
     CFE_PSP_LogSoftwareResetType(resetSrc);
     FT_Assert_True(true, "CFE_PSP_ProcessResetType has no return value (void)")
     FT_Assert_True(true, "CFE_PSP_LogSoftwareResetType has no return value (void)")
+
+    /* Get Active CFS Partition */
+    memset(buffer,'\0', sizeof(buffer));
+    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    memset(buffer,(int) NULL, sizeof(buffer));
+    FT_Assert_True(memchr(buffer, (int) NULL, sizeof(buffer)) != NULL,"CFE_PSP_GetActiveCFSPartition returned a string")
+
+    /* CFE_PSP_StartupTimer, CFE_PSP_StartupFailedRestartSP0_hook, CFE_PSP_StartupClear */
+    CFE_PSP_StartupTimer();
+    CFE_PSP_StartupClear();
 
     /* Print the POST results */
     CFE_PSP_ProcessPOSTResults();
@@ -402,9 +426,6 @@ void ft_cds_flash(void)
     FT_Assert_True(ret_value == CFE_PSP_SUCCESS, "ReadToCDS returned SUCCESS")
     ret_value = memcmp(data_buffer, data_buffer_readback, sizeof(data_buffer));
     FT_Assert_True(ret_value == 0, "ReadCDS returned the same data as the WriteCDS")
-
-    /* Remove CDS file from FLASH */
-    remove(CFE_PSP_CFE_FLASH_FILEPATH);
 
     /* Set the local data memory */
     memset(data_buffer, char_data+1, sizeof(data_buffer));

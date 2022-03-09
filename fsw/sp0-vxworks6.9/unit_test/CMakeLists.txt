@@ -76,6 +76,7 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
     OS_Application_Run=UT_OS_Application_Run
     OS_BSPMain=PCS_OS_BSPMain
     snprintf=PCS_snprintf
+    bootStringToStruct=PCS_bootStringToStruct
 )
 
 # To support the starting and killing of NTP daemon process (NTP Sync Module)

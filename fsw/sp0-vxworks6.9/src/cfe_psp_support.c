@@ -27,7 +27,7 @@
 **  Include Files
 */
 #include <stdio.h>
-#include <stdlib.h>
+#include <ioLib.h>
 #include <unistd.h>
 #include <vxWorks.h>
 #include <cacheLib.h>
@@ -39,10 +39,14 @@
 #include "osapi.h"
 
 #include "cfe_psp.h"
+#include "cfe_psp_config.h"
+#include "psp_start.h"
 #include "cfe_psp_memory.h"
 #include "psp_support.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
+#include "psp_time_sync.h"
+#include "psp_flash.h"
 
 /** \name Vehicle and Processor IDs */
 /** \{ */
@@ -54,6 +58,11 @@
 #define CFE_PSP_SPACECRAFT_ID        (GLOBAL_CONFIGDATA.Default_SpacecraftId)
 /** \} */
 
+/** \brief List of available CFS partitions in Flash memory */
+static char g_cAvailable_cfs_partitions[][CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = CFE_PSP_STARTUP_AVAILABLE_PARTITIONS;
+
+extern CFE_PSP_Startup_structure_t g_StartupInfo;
+
 /**********************************************************
  * 
  * Function: CFE_PSP_Restart
@@ -63,22 +72,39 @@
  *********************************************************/
 void CFE_PSP_Restart(uint32 resetType)
 {
-    if (resetType == CFE_PSP_RST_TYPE_POWERON)
+    char cStartupString[BOOT_FILE_LEN] = {'\0'};
+
+    /* Delay to make sure that all prints have been printed to console */
+    OS_printf("PSP Restart called with %d\n", resetType);
+
+    OS_TaskDelay(3000);
+
+    switch (resetType)
     {
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_POWERON;
-        /*Normally the cache would be flushed but the reserved memory is not cached
-         * so the flush is not needed.
-         */
-        reboot(BOOT_CLEAR);
+        case CFE_PSP_RST_TYPE_SHELL:
+            /*
+            VxWorks will automatically boot CFS if a boot startup string is provided.
+            By clearing the boot startup string, VxWorks will fall back to shell.
+            */
+            CFE_PSP_SetBootStartupString(cStartupString, false);
+            resetType = CFE_PSP_RST_TYPE_POWERON;
+            break;
+
+        case CFE_PSP_RST_TYPE_CFS_TOGGLE:
+            /*
+            Find next available CFS partition, and change to it as a circular buffer.
+            */
+            CFE_PSP_ToggleCFSBootPartition();
+            resetType = CFE_PSP_RST_TYPE_PROCESSOR;
+            break;
+
+        default:
+            break;
     }
-    else
-    {
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
-        /*Normally the cache would be flushed but the reserved memory is not cached
-         * so the flush is not needed.
-         */
-        reboot(BOOT_NORMAL);
-    }
+
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
+
+    reboot(BOOT_CLEAR);
 }
 
 
@@ -91,8 +117,11 @@ void CFE_PSP_Restart(uint32 resetType)
  *********************************************************/
 void CFE_PSP_Panic(int32 errorCode)
 {
-    logMsg("CFE_PSP_Panic Called with error code = 0x%08X. Exiting.\n",
-           errorCode, 0,0,0,0,0);
+    uint32 uiRestart_Type = CFE_PSP_RST_TYPE_PROCESSOR;
+
+    OS_printf("PSP Panic called with %d\n", errorCode);
+
+    /** Clean up memory as much as possible before rebooting **/
 
     /* Dump PSP SP0 Information */
     PSP_SP0_DumpData();
@@ -100,8 +129,41 @@ void CFE_PSP_Panic(int32 errorCode)
     /* Close Memory Scrubbing Task if still running */
     CFE_PSP_MEM_SCRUB_Delete();
 
-    /* UndCC_NextLine(SSET_100, SSET110) */
-    exit(-1);
+    /** Attempt to clean up memory before restarting target **/
+
+    /*
+    CFS calls this function when its own OS_* functions returns some errors
+    due to errors returned by VxWorks functions. Because the errorCode actually
+    tells us what failed, we can attempt to fix it and then reboot it. If we
+    cannot fix it, we exit to console.
+    Error Codes defined in cfe_psp.h
+    */
+    switch (errorCode)
+    {
+        case CFE_PSP_PANIC_MEMORY_ALLOC:
+            /* Memory Allocation */
+        case CFE_PSP_PANIC_VOLATILE_DISK:
+            /* Volatile Disk */
+        case CFE_PSP_PANIC_NONVOL_DISK:
+            /* Nonvolatile Disk */
+
+            /* Target will not recover User Reserved Memory on startup */
+            uiRestart_Type = CFE_PSP_RST_TYPE_POWERON;
+            break;
+        /*
+        Catch the rest of the error codes
+        CFE_PSP_PANIC_STARTUP
+        CFE_PSP_PANIC_STARTUP_SEM
+        CFE_PSP_PANIC_CORE_APP
+        CFE_PSP_PANIC_GENERAL_FAILURE
+        */
+        default:
+            /* PROCESSOR restart */
+            break;
+    }
+
+    /* Restart CFS */
+    CFE_PSP_Restart(uiRestart_Type);
 }
 
 /**********************************************************
@@ -154,26 +216,72 @@ const char *CFE_PSP_GetProcessorName(void)
     return CFE_PSP_CPU_NAME;
 }
 
-/**
- ** @internal
- **
- ** \func Gets current boot startup string
- **
- ** \par Description:
- ** Function gets the current target boot startup string.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[out] startupBootString - Pointer to string where to save the boot string
- ** \param[in]  bufferSize - size of startupBootString array
- ** \param[in]  talkative - If true, print out the boot parameter structure
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- **
- ** @internal
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_ToggleCFSBootPartition
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+void CFE_PSP_ToggleCFSBootPartition(void)
+{
+    int32   iRetCode = CFE_PSP_SUCCESS;
+    int32   iChars = 0;
+    uint8   ucIndex = 0u;
+    uint8   ucEffectiveIndex = 0U;
+    uint8   ucMaxIterations = sizeof(g_cAvailable_cfs_partitions) / sizeof(g_cAvailable_cfs_partitions[0]);
+    char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
+    int32   testmemcmp = 0;
+    
+    for (ucIndex = 0; ucIndex < ucMaxIterations; ucIndex++)
+    {
+        if (memcmp(g_StartupInfo.active_cfs_partition,
+                g_cAvailable_cfs_partitions[ucIndex],
+                CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH) == 0)
+        {
+            /* If this is the last record, restart from zero */
+            if (ucIndex == (ucMaxIterations - 1))
+            {
+                ucEffectiveIndex = 0;
+            }
+            else
+            {
+                /* Set index to next one */
+                ucEffectiveIndex = ucIndex;
+                ucEffectiveIndex++;
+            }
+            
+            /* Build string */
+            iChars = snprintf(
+                     cBootString,
+                     sizeof(cBootString),
+                     "%s/%s",
+                     g_cAvailable_cfs_partitions[ucEffectiveIndex],
+                     CFE_PSP_STARTUP_FILENAME
+            );
+            if ((iChars > sizeof(cBootString)) || (iChars < 3))
+            {
+                OS_printf("PSP: Could not construct new boot startup string.\n`%s`/`%s`\n",
+                          g_cAvailable_cfs_partitions[ucEffectiveIndex],
+                          CFE_PSP_STARTUP_FILENAME
+                );
+            }
+
+            break;
+        }
+    }
+
+    /* Set Boot Startup String */
+    iRetCode = CFE_PSP_SetBootStartupString(cBootString, false);
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetBootStartupString
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
@@ -209,25 +317,13 @@ int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize,
     return iRet_code;
 }
 
-/**
- ** @internal
- **
- ** \func Sets new boot startup string
- **
- ** \par Description:
- ** Function sets a new target boot startup string.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] startupScriptPath
- ** \param[in] talkative - If true, print out the boot parameter structure
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- **
- ** @internal
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SetBootStartupString
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
@@ -253,7 +349,7 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
             }
 
             /* Update local structure */
-            strncpy(target_boot.startupScript, startupScriptPath, BOOT_FILE_LEN);
+            memcpy(target_boot.startupScript, startupScriptPath, BOOT_FILE_LEN);
 
             /* Save new parameters to target */
             iRet_code = CFE_PSP_SetBootStructure(target_boot, talkative);
@@ -276,23 +372,13 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
     return iRet_code;
 }
 
-/**
- ** @internal
- **
- ** \func Prints the boot paramters to console
- **
- ** \par Description:
- ** Prints the boot paramters to console
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[in] target_boot_parameters
- **
- ** \return None
- **
- ** @internal
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_PrintBootParameters
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
 {
     OS_printf(
@@ -334,42 +420,29 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
     );
 }
 
-/**
- ** @internal
- **
- ** \func Gets current boot parameter structure
- **
- ** \par Description:
- ** Function gets the target boot string and converts it to
- ** a BOOT_PARAM structure.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- **
- ** \param[out] target_boot_parameters
- ** \param[in]  talkative - If true, print out debug messages
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- **
- ** @internal
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_GetBootStructure
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative)
 {
     int32   iRet_code = CFE_PSP_ERROR;
-    char    bootString[MAX_BOOT_LINE_SIZE] = {'\0'};
+    char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
     char    *pRet_code = NULL;
 
     /* Get boot string */
-    if (sysNvRamGet(bootString,MAX_BOOT_LINE_SIZE,0) == OK)
+    if (sysNvRamGet(cBootString,MAX_BOOT_LINE_SIZE,0) == OK)
     {
         /* Convert boot string to structure */
-        pRet_code = bootStringToStruct(bootString, target_boot_parameters);
+        pRet_code = bootStringToStruct(cBootString, target_boot_parameters);
 
         if (talkative > 0)
         {
             OS_printf("PSP: Boot String:\n");
-            OS_printf("`%s`\n",bootString);
+            OS_printf("`%s`\n",cBootString);
         }
 
         iRet_code = CFE_PSP_SUCCESS;
@@ -382,41 +455,28 @@ int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 tal
     return iRet_code;
 }
 
-/**
- ** @internal
- **
- ** \func Sets new boot parameter structure
- **
- ** \par Description:
- ** Function gets the target boot string and converts it to
- ** a BOOT_PARAM structure.
- **
- ** \par Assumptions, External Events, and Notes:
- ** None
- ** 
- ** \param[in] new_boot_parameters
- ** \param[in]  talkative - If true, print out debug messages
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- **
- ** @internal
- */
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SetBootStructure
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
 int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_ERROR;
-    char        bootString[MAX_BOOT_LINE_SIZE] = {'\0'};
+    char        cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
 
     /* Convert new parameters to a single boot string */
-    if (bootStructToString(bootString, &new_boot_parameters) == OK)
+    if (bootStructToString(cBootString, &new_boot_parameters) == OK)
     {
         /* Save it back on target */
-        if (sysNvRamSet(bootString, (int)strlen(bootString), 0) == OK)
+        if (sysNvRamSet(cBootString, (int)strlen(cBootString) + 1, 0) == OK)
         {
             if (talkative > 0)
             {
                 OS_printf("PSP: New Boot String:\n");
-                OS_printf("`%s`\n",bootString);
+                OS_printf("`%s`\n",cBootString);
             }
             iRet_code = CFE_PSP_SUCCESS;
         }
