@@ -356,7 +356,7 @@ int32 CFE_PSP_MEMORY_GetUSERRESERVEDArea(uint32 *p_area);
 ** \return #CFE_PSP_INVALID_POINTER
 ** \return #CFE_PSP_INVALID_MEM_RANGE
 */
-int32 CFE_PSP_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
 
 /*
 ** \func Read from the USERRESERVED memory area

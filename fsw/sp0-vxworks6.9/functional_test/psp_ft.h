@@ -32,6 +32,7 @@ void ft_cds_flash(void);
 void ft_mem_scrub(void);
 void ft_sp0_info(void);
 void ft_memory(void);
+void ft_memory_sync(void);
 void ft_start(void);
 void ft_ntp_sync(void);
 void ft_watchdog(void);

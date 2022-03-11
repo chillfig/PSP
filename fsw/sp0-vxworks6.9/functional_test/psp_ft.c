@@ -34,6 +34,7 @@
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
+#include "psp_mem_sync.h"
 #include "cfe_psp_config.h"
 #include "psp_start.h"
 #include "psp_exceptions.h"
@@ -179,6 +180,8 @@ void PSP_FT_Start(void)
     ft_cds_flash();
 
     ft_memory();
+
+    ft_memory_sync();
 
     ft_mem_scrub();
 
@@ -328,6 +331,69 @@ void ft_memory(void)
     */
 
     OS_printf("[MEMORY END]\n");
+}
+
+/*
+** Testing:
+** Does the system NOT crash
+** while multiple tasks are utilizing
+** the same sections of RAM
+**
+** ALSO, this test is running under the assumption that
+** no other tasks/routines are writing/utilizing
+** user reservered memory section of reserved memory (which
+** is currently the case as of Feb 16, 2022, 3:10 PM)
+*/
+void ft_memory_sync(void)
+{
+    OS_printf("[START FT MEMORY SYNC]\n");
+
+    /*
+    ** To run this test, add define the
+    ** preprocessor directive 
+    ** RUN_MEM_SYNC_TEST
+    ** and remove static function specifier
+    ** in cfe_psp_memory.c source
+    */
+
+#ifdef RUN_MEM_SYNC_TEST
+
+    uint8 uiBuf_original[256];
+    uint8 uiBuf_backup[256];
+    uint8 fillValue = 0;
+
+    cnt_tests = 1;
+    cnt_pass = 0;
+    cnt_fail = 0;
+
+    for (uint32 i = 0; i < 256; i++)
+    {
+        fillValue = (uint8) rand();
+        uiBuf_original[i] = fillValue;
+        uiBuf_backup[i] = fillValue; 
+    }
+
+    /* Write to USER RESERVED area */
+    CFE_PSP_MEMORY_WriteToUSERRESERVED((void *)uiBuf_original, 0, 256);
+
+    /* Clear test data */
+    memset((void *)uiBuf_original, 0, 256);
+
+    /* Allow for some time to pass to ensure sync has occured */
+    OS_TaskDelay(MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
+
+    /* Simulate a reset, kind of */
+    extern int32 CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    CFE_PSP_MEMORY_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
+
+    /* Validate Data */
+    int memcmpResult = memcmp((void *)uiBuf_original, (void *)uiBuf_backup, 256);
+    FT_Assert_True(memcmpResult == 0, "MemorySync Data Check");
+    
+#endif /* RUN_MEM_SYNC_TEST */
+
+    OS_printf("[END FT MEMORY SYNC]\n");
 }
 
 /*
@@ -771,3 +837,9 @@ void ft_watchdog(void)
 
     OS_printf("[WATCHDOG END]\n\n");
 }
+
+/**********************************************************
+ * 
+ * STATIC/HELPER FUNCTION SPACE
+ * 
+ *********************************************************/

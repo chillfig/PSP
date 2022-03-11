@@ -13,6 +13,7 @@
 **               |                  | psp_support_testcases.c, psp_timer_testcase.c, 
 **               |                  | psp_watchdog_testcases.c, and psp_memory_testcases.c
 **    2021-09-08 | Claudio Olmi     | Added psp_ntp_testcases.c
+**    2022-02-01 | Matthew Rumbel   | Memory sync support
 **=======================================================================================*/
 
 #include <unistd.h>
@@ -332,6 +333,51 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreDATA,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_MEMORY_RestoreDATA");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Init,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Init");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Destroy,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Destroy");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Start,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Start");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Stop,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Stop");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_isRunning,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_isRunning");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_setPriority,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_setPriority");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getPriority,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_getPriority");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_setFrequency,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_setFrequency");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getFrequency,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_getFrequency");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getStatus,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_getStatus");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Task,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_Task");
+
 
     #endif /* TEST_MEMORY == 1 */
 

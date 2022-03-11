@@ -28,7 +28,8 @@
 /*=======================================================================================
 ** Preprocessor Directives
 **=======================================================================================*/
-#define UT_MEMORY_PRINT_SCOPE "_CFE_PSP_MEMORY_"
+#define UT_MEMORY_PRINT_SCOPE       "_CFE_PSP_MEMORY_"
+#define UT_MEMORY_SYNC_PRINT_SCOPE  "_CFE_PSP_MEMORY_SYNC_"
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -470,7 +471,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify results */
-    UtAssert_True(totalAllocSize == g_uiTotalReservedAllocSize, "_CFE_PSP_SetupReservedMemoryMap 1/3: Successfully allocate memory -  Memory alloc size check");
+    UtAssert_True(totalAllocSize == g_uiTotalReservedAllocSize, "_CFE_PSP_SetupReservedMemoryMap 1/4: Successfully allocate memory -  Memory alloc size check");
 
     /* ----- Test case #2 - Fail to allocate space ----- */
     /* Set additional inputs */
@@ -481,7 +482,7 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify results */
-    UtAssert_True(g_uiTotalReservedAllocSize == 0, "_CFE_PSP_SetupReservedMemoryMap 2/3: Fail to allocate memory - Memory alloc size check");
+    UtAssert_True(g_uiTotalReservedAllocSize == 0, "_CFE_PSP_SetupReservedMemoryMap 2/4: Fail to allocate memory - Memory alloc size check");
 
     /* ----- Test case #3 - Mem Range Set failure ----- */
     /* Set additional inputs */
@@ -492,7 +493,30 @@ void Ut_CFE_PSP_SetupReservedMemoryMap(void)
     /* Execute test */
     CFE_PSP_SetupReservedMemoryMap();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 3/3: MemRangeSet failure");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 3/4: MemRangeSet failure");
+
+    /* ---- Test case #4 - Fail create binary semaphores ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(userMemAlloc), OK);
+    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemCreate), OS_SEM_FAILURE);
+    /* Execute test */
+    CFE_PSP_SetupReservedMemoryMap();
+    /* Verify results */
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create RESET binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 4/4: Create RESET BinSem Failure - message");
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create VOLATILEDISK binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 4/4: Create VOLATILEDISK BinSem Failure - message");
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create CDS binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 4/4: Create CDS BinSem Failure - message");
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create USERRESERVED binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetupReservedMemoryMap 4/4: Create USERRESERVED BinSem Failure - message");
 }
 
 /*=======================================================================================
@@ -1562,8 +1586,8 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 1/6: Memory not allocated - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 1/6: Memory not allocated - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 1/8: Memory not allocated - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 1/8: Memory not allocated - message");
 
     /* ----- Test case #2 - Default switch/case ----- */
     /* Set additional inputs */
@@ -1574,8 +1598,8 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, 9999);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_MEMORY_WriteToRAM - 2/6: Invalid memory selection - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 2/6: Invalid memory selection - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_MEMORY_WriteToRAM - 2/8: Invalid memory selection - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 2/8: Invalid memory selection - message");
 
     /* ----- Test case #3 - Memory block ptr NULL ----- */
     /* Set additional inputs */
@@ -1585,7 +1609,7 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 3/6: Memory block ptr was null - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 3/8: Memory block ptr was null - return code");
 
     /* ----- Test case #4 - Illegal offset ----- */
     /* Set additional inputs */
@@ -1596,8 +1620,8 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 99, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToRAM - 4/6: Invalid offset - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 4/6: message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToRAM - 4/8: Invalid offset - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 4/8: message");
 
     /* ----- Test case #5 - Data is match/clean ----- */
     /* Set additional inputs */
@@ -1605,7 +1629,7 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 5/6: Data match, no writing required - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 5/8: Data match, no writing required - return code");
 
     /* ----- Test case #6 - Data mismatch ----- */
     /* Set additional inputs */
@@ -1615,11 +1639,49 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     memset(uiBuffer, '0', uiNumBytes);
     uiCrcCheck = CFE_PSP_CalculateCRC(localCDSBuffer, 200, 0);
     memset(localCDSBuffer, '2', 100);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     /* Execute test */
     iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 6/6: Data mismatch, data write - return code");
-    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_MEMORY_WriteToRAM - 6/6: Data mismatch, data write - memory compare");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 6/8: Data mismatch, data write - return code");
+    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_MEMORY_WriteToRAM - 6/8: Data mismatch, data write - memory compare");
+
+    /* ----- Test case #7 - Fail to take semaphore ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    memset(localCDSBuffer, '2', 200);
+    memset(localCDSBuffer, '0', 100);
+    memset(uiBuffer, '0', uiNumBytes);
+    uiCrcCheck = CFE_PSP_CalculateCRC(localCDSBuffer, 200, 0);
+    memset(localCDSBuffer, '2', 100);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Failed to take bin sem, status: %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEMORY_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
+
+
+    /* ----- Test case #8 - Fail to give semaphore ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    memset(localCDSBuffer, '2', 200);
+    memset(localCDSBuffer, '0', 100);
+    memset(uiBuffer, '0', uiNumBytes);
+    uiCrcCheck = CFE_PSP_CalculateCRC(localCDSBuffer, 200, 0);
+    memset(localCDSBuffer, '2', 100);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Fail to give bin sem, status %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
 }
 
 /*=======================================================================================
@@ -1805,6 +1867,550 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreDATA - 7/7: Successfully read from FLASH - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_Init(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+
+    /* ----- Test case #1: Bin Sem Create Fail ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create MEMORY SYNC TASK binary semaphore, status: %d\n", OS_ERROR);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - message");
+
+    /* ----- Test case #2: Start on startup false ----- */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 2/4: Successfully create binary semaphore - return code");
+
+    /* ----- Test case #3: Start on startup true, fail to start ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Init: Failed to start task\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    /* Verify results */
+    UtAssert_True(iReturnCode ==CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start tasl - message");
+
+    /* ----- Test case #4: Start on startup true, start task----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 4/4: Failed to start task - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+
+    /* ----- Test case #1: Task fail to stop ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Unable to kill MEMORY SYNC task\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/4: Fail to stop task - message");
+
+    /* ----- Test case #2: Fail to take binsem ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", OS_SEM_FAILURE);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail to take bsem - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/4: Fail take bsem - message");
+
+    /* ----- Test case #3: Fail to delete bsem ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", OS_SEM_FAILURE);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/4: Fail delete bsem - message");
+
+    /* ----- Test case #4: Succesfful destroy ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
+    OS_BinSemCreate(&g_MemorySyncTaskBinSem, MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/4: Success - return code");
+    UtAssert_True(g_MemorySyncTaskBinSem == OS_OBJECT_ID_UNDEFINED, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/4: Success - Semaphore value check");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_Start(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+
+    /* ----- Test case #1: Task is already running ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task already running\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 1/4: Task already running - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 1/4: Task already running - message");
+
+    /* ----- Test case #2: Binary semaphore not created ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    g_MemorySyncTaskBinSem = 0;
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Start: Data not initialized\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 2/4: Data not initialized - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 2/4: Data not initialized - message");
+
+    /* ----- Test case #3: Task creation fails ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Error starting MEMORY SYNC task\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 3/4: Failed to start task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 3/4: Failed to start task - message");
+    
+    /* ----- Test case #4: Task creation successful ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    g_MemorySyncTaskBinSem = 99;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 4/4: Start Task - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_Stop(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+    
+    /* ----- Test case #1: Task is not running ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Task not running\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/5: Task not running - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/5: Task not running - message");
+
+    /* ----- Test case #2: Fail to take binsem ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to take bsem, status: %d\n", OS_SEM_FAILURE);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - message");
+
+    /* ----- Test case #3: Fail to delete task ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Unable to delete task, status: %d\n", OS_ERROR);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - message");
+
+    /* ----- Test case #4: fail to give binsem----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to give bsem, status: %d\n", OS_SEM_FAILURE);
+    OS_TaskCreate(
+                    &g_uiMemorySyncTaskId,
+                    MEMORY_SYNC_TASK_NAME,
+                    CFE_PSP_MEMORY_SYNC_Task,
+                    OSAL_TASK_STACK_ALLOCATE,
+                    OSAL_SIZE_C(4096),
+                    g_uiMemorySyncTaskPriority,
+                    0
+                );
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    /* Verify results */
+    UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - message");
+
+    /* ----- Test case #5: Successful stop----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
+    OS_TaskCreate(
+                    &g_uiMemorySyncTaskId,
+                    MEMORY_SYNC_TASK_NAME,
+                    CFE_PSP_MEMORY_SYNC_Task,
+                    OSAL_TASK_STACK_ALLOCATE,
+                    OSAL_SIZE_C(4096),
+                    g_uiMemorySyncTaskPriority,
+                    0
+                );
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 5/5: Successfully stop task - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void)
+{
+    bool iReturnValue = true;
+    char cMsg[256] = {};
+    
+    /* ----- Test case #1: Task is not running ----- */
+    /* Set additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    /* Execute tests */
+    iReturnValue = CFE_PSP_MEMORY_SYNC_isRunning();
+    /* Verify results */
+    UtAssert_True(iReturnValue == false, UT_MEMORY_SYNC_PRINT_SCOPE "isRunning - 1/2: Task not running - return code");
+
+    /* ----- Test case #1: Task is running ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    /* Execute tests */
+    iReturnValue = CFE_PSP_MEMORY_SYNC_isRunning();
+    /* Verify results */
+    UtAssert_True(iReturnValue == true, UT_MEMORY_SYNC_PRINT_SCOPE "isRunning - 2/2: Task is running - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+    osal_priority_t newPriority = 0;
+    
+    /* ----- Test case #1: New priority too high ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too high\n");
+    newPriority = 250;
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 1/5: New priority too high - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 1/5: New priority too high - message");
+
+    /* ----- Test case #2: New priority too low ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too low\n");
+    newPriority = 1;
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 2/5: New priority too low- return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 2/5: New priority too low - message");
+
+    /* ----- Test case #3: Task not running ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 3/5: New priority too low- return code");
+    UtAssert_True(g_uiMemorySyncTaskPriority == newPriority, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 3/5: New priority set, task not running - priority value check");
+
+    /* ----- Test case #4: Set priority fail ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: Failed to set new priority\n");
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set priority - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set new priority - message");
+    
+    /* ----- Test case #5: Succesfully set priority ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_SUCCESS);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 5/5: New priority set, task running - return code");
+    UtAssert_True(g_uiMemorySyncTaskPriority == newPriority, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 5/5: New priority set, task running - priority value check");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void)
+{
+    osal_id_t basePriority = 99;
+    osal_id_t priority = 0;
+    
+    /* ----- Test case #1: Get task priority----- */
+    /* Set additional inputs */
+    g_uiMemorySyncTaskPriority = basePriority;
+    /* Execute tests */
+    priority = CFE_PSP_MEMORY_SYNC_getPriority();
+    /* Verify results */
+    UtAssert_True(priority == basePriority, UT_MEMORY_SYNC_PRINT_SCOPE "getPriority - 1/1: Get priority value");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void)
+{
+    uint32 newFreq = 333;
+    g_uiMemorySyncTime = 1;
+    int32 iReturnCode = CFE_PSP_ERROR;
+    
+    /* ----- Test case #1: Set new frequency----- */
+    /* Set additional inputs */
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_setFrequency(newFreq);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setFrequency - 1/1: Set new frequency - return code");
+    UtAssert_True(g_uiMemorySyncTime == newFreq, UT_MEMORY_SYNC_PRINT_SCOPE "setFrequency - 1/1: Set new frequency - frequency value check");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void)
+{
+    int32 retFreq = 33;
+    
+    /* ----- Test case #1: Get Frequency ----- */
+    /* Set additional inputs */
+    g_uiMemorySyncTime = 999;
+    /* Execute tests */
+    retFreq = CFE_PSP_MEMORY_SYNC_getFrequency();
+    /* Verify results */
+    UtAssert_True(g_uiMemorySyncTime == retFreq, UT_MEMORY_SYNC_PRINT_SCOPE "getFrequency - 1/1: Get frequency - frequency check");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void)
+{
+    uint32 retStat = 99;
+    
+    /* ----- Test case #1: Get statistics ----- */
+    /* Set additional inputs */
+    g_uiMemorySyncStatistics = 333;
+    /* Execute tests */
+    retStat = CFE_PSP_MEMORY_SYNC_getStatistics();
+    /* Verify results */
+    UtAssert_True(retStat == g_uiMemorySyncStatistics, UT_MEMORY_SYNC_PRINT_SCOPE "getStatus - 1/1: Get statistics - stat check");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_Task(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
+{
+    char cMsg[256] = {};
+    uint8 buf[33] = {};
+    memset(buf, 0, 33);
+    CFE_PSP_MemoryBlock_t baseMemBlock = {(void *)buf, 33};
+    CFE_PSP_ReservedMemoryMap.ResetMemory = baseMemBlock;
+    CFE_PSP_ReservedMemoryMap.CDSMemory = baseMemBlock;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory = baseMemBlock;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory = baseMemBlock;
+
+    /* ----- Test case #1: Fail to take task semaphore ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take TASK semaphore, status: %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 1/7: Unable to take task semaphore - message");
+
+    /* ----- Test case #2: Fail to take ENTRY semaphore ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take ENTRY binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 2/7: Unable to take ENTRY semaphore - message");
+
+    /* ----- Test case #3: Fail to write to FLASH, no flag change ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    g_bCDSUpdateFlag = true;
+    UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_True(g_bCDSUpdateFlag == true, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 3/7: Write Failed, memory section update flag check");
+
+    /* ----- Test case #4: Successfully write to FLASH, flag change -----*/
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    g_bCDSUpdateFlag = true;
+    UT_SetDeferredRetcode(UT_KEY(open), 1, 99);
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 33;
+    UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+    UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_True(g_bCDSUpdateFlag == false, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 4/7: Write SUCCESS, memory section update flag check");
+
+    /* ----- Test case #5: Fail to give ENTRY semaphore----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_bCDSUpdateFlag = false;
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Fail to give ENTRY binary semaphore, status: %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 5/7: Unable to give ENTRY semaphore - message");
+
+    /* ----- Test case #6: Fail to give task semaphore----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_bCDSUpdateFlag = false;
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to give TASK semaphore, status: %d\n", OS_SEM_FAILURE);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 6/7: Unable to give TASK semaphore - message");
+
+    /* ----- Test case #7: Fail to task delay----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_bCDSUpdateFlag = false;
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemTake), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_BinSemGive), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 1, OS_ERROR);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to delay task, status: %d\n", OS_ERROR);
+    /* Execute test */
+    CFE_PSP_MEMORY_SYNC_Task();
+    /* Verify results */
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 7/7: Unable to delay task - message");
 }
 
 /*=======================================================================================

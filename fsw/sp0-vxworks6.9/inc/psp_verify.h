@@ -90,26 +90,6 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
     #error "SP0_DATA_DUMP_FILEPATH must be defined"
 #endif
 
-/** \brief CDS File Path Verification */
-#ifndef CFE_PSP_CDS_FLASH_FILEPATH
-    #error "CFE_PSP_CDS_FLASH_FILEPATH must be defined"
-#endif
-
-/** \brief RESET File Path Verification */
-#ifndef CFE_PSP_RESET_FLASH_FILEPATH
-    #error "CFE_PSP_RESET_FLASH_FILEPATH must be defined"
-#endif
-
-/** \brief Volatile Disk File Path Verification */
-#ifndef CFE_PSP_VOLATILEDISK_FLASH_FILEPATH
-    #error "CFE_PSP_VOLATILEDISK_FLASH_FILEPATH must be defined"
-#endif
-
-/** \brief User Reserved File Path Verification */
-#ifndef CFE_PSP_USERRESERVED_FLASH_FILEPATH
-    #error "CFE_PSP_USERRESERVED_FLASH_FILEPATH must be defined"
-#endif
-
 /** \brief WatchDog Default Time Verification */
 #ifndef CFE_PSP_WATCHDOG_DEFAULT_MSEC
     #error "CFE_PSP_WATCHDOG_DEFAULT_MSEC must be defined"
@@ -145,6 +125,61 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 /** \brief Check that the NTP SYNC Task name is no longer than the maximum allowed name length */
 CompileTimeAssert(sizeof(NTPSYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 
+/** \brief Check reserved memory section file name macros */
+#ifndef CFE_PSP_CDS_FLASH_FILEPATH
+    #error "CFE_PSP_CDS_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_RESET_FLASH_FILEPATH
+    #error "CFE_PSP_RESET_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_VOLATILEDISK_FLASH_FILEPATH
+    #error "CFE_PSP_VOLATILEDISK_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_USERRESERVED_FLASH_FILEPATH
+    #error "CFE_PSP_USERRESERVED_FLASH_FILEPATH must be defined"
+#endif
+
+/** \brief Check MEMORY SYNC preprocessor directives */
+#ifndef MEMORY_SYNC_DEFAULT_SYNC_TIME_MS
+    #error "MEMORY_SYNC_DEFAULT_SYNC_TIME_MS must be defined"
+#endif
+#ifndef MEMORY_SYNC_TASK_NAME
+    #error "MEMORY_SYNC_TASK_NAME must be defined"
+#endif
+#ifndef MEMORY_SYNC_BSEM_NAME
+    #error "MEMORY_SYNC_BSEM_NAME must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_DEFAULT
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_UP_RANGE must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DOWN_RANGE must be defined"
+#endif
+#ifndef MEMORY_SYNC_START_ON_STARTUP
+    #error "MEMORY_SYNC_START_ON_STARTUP must be defined"
+#endif
+#if MEMORY_SYNC_PRIORITY_DEFAULT < MEMORY_SYNC_PRIORITY_LOW_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#endif
+#if MEMORY_SYNC_PRIORITY_DEFAULT > MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#endif
+#ifndef MEMORY_RESET_BIN_SEM_NAME
+    #error "MEMORY_RESET_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_CDS_BIN_SEM_NAME
+    #error "MEMORY_CDS_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_VOLATILEDISK_BIN_SEM_NAME
+    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_USERRESERVED_BIN_SEM_NAME
+    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be dfeined"
+#endif
+CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 /* \brief Check that CFE_PSP_STARTUP_AVAILABLE_PARTITIONS is defined */
 #ifndef CFE_PSP_STARTUP_AVAILABLE_PARTITIONS
     #define CFE_PSP_STARTUP_AVAILABLE_PARTITIONS    {"/ffx0"}

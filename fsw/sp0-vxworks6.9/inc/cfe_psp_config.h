@@ -723,6 +723,29 @@ typedef struct
  */
 #define NTPSYNC_PRIORITY_DOWN_RANGE           60
 
+/** \brief MEMORY SYNC Default time between sync attempts */
+#define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000
+/** \brief MEMORY SYNC Task Name */
+#define MEMORY_SYNC_TASK_NAME               "MEMSYNCTASK"
+/** \brief MEMORY SYNC Binary Semaphore Name */
+#define MEMORY_SYNC_BSEM_NAME               "MEMSYNCBSEM"
+/** \brief MEMORY SYNC Priority Defualt */
+#define MEMORY_SYNC_PRIORITY_DEFAULT        190
+/** \brief MEMORY SYNC Priority Upper Limit */
+#define MEMORY_SYNC_PRIORITY_UP_RANGE       230
+/** \brief MEMORY SYNC Priority Lower Limit */
+#define MEMORY_SYNC_PRIORITY_LOW_RANGE      60
+/** \brief MEMORY SYNC Start on Startup */
+#define MEMORY_SYNC_START_ON_STARTUP        true
+/** \brief RESET Binary Semaphore Name */
+#define MEMORY_RESET_BIN_SEM_NAME           "RSTBSEM"
+/** \brief CDS Binary Semaphore Name */
+#define MEMORY_CDS_BIN_SEM_NAME             "CDSBSEM"
+/** \brief VOLATILE DISK Binary Semaphore Name */
+#define MEMORY_VOLATILEDISK_BIN_SEM_NAME    "VODBSEM"
+/** \brief USER RESERVED Binary Semaphore Name */
+#define MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
+
 /** \} */
 
 /**

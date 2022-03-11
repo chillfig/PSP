@@ -67,7 +67,8 @@ int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname)
         if (iFd < 0)
         {
             OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Failed to open file\n");
-            OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: strerror: %s", strerror(errno));
+            OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+            OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: strerror: %s\n", strerror(errno));
             iReturnCode = CFE_PSP_ERROR;
         }
         else
@@ -79,6 +80,7 @@ int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname)
             if (readBytes != size)
             {
                 OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read incorrect amount of data\n");
+                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
                 OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read %d of %d bytes. strerror: %s \n", 
                                             (int)readBytes, (int)size, strerror(errno));
                 iReturnCode = CFE_PSP_ERROR;
@@ -88,6 +90,7 @@ int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname)
             if (close(iFd) != OS_SUCCESS)
             {
                 OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Unable to close file\n");
+                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
             }
         }
     }
@@ -117,11 +120,12 @@ int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname)
     else
     {
         /* Attempt to open file */
-        iFd = open(fname, O_WRONLY, 0);
+        iFd = open(fname, O_WRONLY | O_CREAT, 0);
         if (iFd < 0)
         {
             OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Failed to open file\n");
-            OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: strerror: %s", strerror(errno));
+            OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+            OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: strerror: %s\n", strerror(errno));
             iReturnCode = CFE_PSP_ERROR;
         }
         else
@@ -133,6 +137,7 @@ int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname)
             if (wroteBytes != size)
             {
                 OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Wrote incorrect amount of data\n");
+                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
                 OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Wrote %lu of %lu bytes. strerror: %s\n", 
                                             wroteBytes, size, strerror(errno));
                 iReturnCode = CFE_PSP_ERROR;
@@ -142,6 +147,7 @@ int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname)
             if (close(iFd) != OS_SUCCESS)
             {
                 OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Unable to close file\n");
+                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
                 /* Not necessarily a write error here */
             }
         }
@@ -209,13 +215,15 @@ int32 CFE_PSP_FLASH_CreateFile(char *fname)
             {
                 iReturnCode = CFE_PSP_ERROR;
                 OS_printf(FLASH_PRINT_SCOPE "CreateFile: Failed to create file\n");
-                OS_printf(FLASH_PRINT_SCOPE "CreateFile: strerror: %s", strerror(errno));
+                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+                OS_printf(FLASH_PRINT_SCOPE "CreateFile: strerror: %s\n", strerror(errno));
             }
             else
             {
                 if (close(iFd) != OS_SUCCESS)
                 {
                     OS_printf(FLASH_PRINT_SCOPE "CreateFile: Failed to close file\n");
+                    OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
                 }
             }
         }

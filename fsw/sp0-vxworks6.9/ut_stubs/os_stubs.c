@@ -118,15 +118,6 @@ off_t lseek(int fd, off_t offset, int whence)
     return iStatus;
 }
 
-off_t lseek(int fd, off_t offset, int whence)
-{
-    int32 iStatus;
-
-    iStatus = UT_DEFAULT_IMPL(lseek);
-
-    return iStatus;
-}
-
 struct stat {
     int value;
 };

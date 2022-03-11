@@ -55,6 +55,17 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
 void Ut_CFE_PSP_MEMORY_WriteToRAM(void);
 void Ut_CFE_PSP_MEMORY_ReadFromRAM(void);
 void Ut_CFE_PSP_MEMORY_RestoreDATA(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Init(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Start(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Stop(void);
+void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void);
+void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void);
+void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void);
+void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void);
+void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void);
+void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void);
+void Ut_CFE_PSP_MEMORY_SYNC_Task(void);
 
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
 /*=======================================================================================

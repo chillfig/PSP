@@ -54,6 +54,7 @@
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
 #include "psp_verify.h"
+#include "psp_mem_sync.h"
 #include "psp_support.h"
 
 /*
@@ -755,6 +756,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     CFE_PSP_WatchdogInit();
 
     CFE_PSP_MEM_SCRUB_Init();
+    CFE_PSP_MEMORY_SYNC_Init();
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are

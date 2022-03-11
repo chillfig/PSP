@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <userReservedMem.h>
+
 /*
 ** cFE includes
 */
@@ -51,14 +52,15 @@
 #include "psp_exceptions.h"
 #include "cfe_psp_memory.h"
 #include "psp_flash.h"
+#include "psp_mem_sync.h"
 
 /*
 ** Macro Definitions
 */
 
-/** \brief Define cFE core loadable module name */
-#define CFE_MODULE_NAME "cfe-core.o"
+/** \brief Define PRINT SCOPES */
 #define MEMORY_PRINT_SCOPE "PSP MEMORY: "
+#define MEMORY_SYNC_PRINT_SCOPE "MEMORY SYNC: "
 
 /*
 ** ENUM Definitions
@@ -67,7 +69,8 @@ enum MEMORY_SECTION
     {OP_CDS = 0,
     OP_RESET = 1,
     OP_VOLATILEDISK = 2,
-    OP_USERRESERVED = 3};
+    OP_USERRESERVED = 3,
+    OP_NA = 4};
 
 /*
 **  External Declarations
@@ -92,6 +95,8 @@ static int32 CFE_PSP_MEMORY_RestoreCDS(void);
 static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK(void);
 static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
 static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op);
+static void CFE_PSP_MEMORY_SYNC_Task(void);
+
 /*
 ** Global variables
 */
@@ -124,6 +129,33 @@ CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap; //UndCC_Line(SSET056) Nam
 
 /** \brief Pointer to the reserved memory block */
 static CFE_PSP_MemoryBlock_t g_ReservedMemBlock;
+
+/** \brief RESET Binary Semaphore ID */
+static osal_id_t g_RESETBinSemId = 0;
+/** \brief CDS Binary Semaphore ID */
+static osal_id_t g_CDSBinSemId = 0;
+/** \brief VOLATILE DISK Binary Semaphore ID */
+static osal_id_t g_VOLATILEDISKBinSemId = 0;
+/** \brief USER RESERVED Binary Semaphore ID */
+static osal_id_t g_USERRESERVEDBinSemId = 0;
+/** \brief RESET Bool flag to indicate a sync needs to occur */
+static bool g_bRESETUpdateFlag = false;
+/** \brief CDS Bool flag to indicate a sync needs to occur */
+static bool g_bCDSUpdateFlag = false;
+/** \brief VOLATILE DISK Bool flag to indicate a sync needs to occur */
+static bool g_bVOLATILEDISKUpdateFlag = false;
+/** \brief USER RESERVED Bool flag to indicate a sync needs to occur */
+static bool g_bUSERRESERVEDUpdateFlag = false;
+/** \brief MEMORY SYNC Time Between Sync Value */
+static uint32 g_uiMemorySyncTime = MEMORY_SYNC_DEFAULT_SYNC_TIME_MS;
+/** \brief MEMORY SYNC Statistics */
+static uint32 g_uiMemorySyncStatistics = 0;
+/** \brief MEMORY SYNC Task ID */
+static osal_id_t g_uiMemorySyncTaskId = 0;
+/** \brief MEMORY SYNC Task Priority */
+static osal_priority_t g_uiMemorySyncTaskPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+/** \brief MEMORY SYNC Task Binary Semaphore ID */
+static osal_id_t g_MemorySyncTaskBinSem = 0;    // NOTE: This should match OS_OBJECT_ID_UNDEFINED
 
 /**
  ** \func Calculate 16 bits CRC from input data
@@ -261,6 +293,12 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     ** IF   the restart type is CFE_PSP_RST_TYPE_POWERON, erase all User Reserved Memory
     ** ELSE recover user reserved memory from FLASH
     */
+
+    /*
+    ** If any of the below fail, we can restart. But if the above
+    ** fail, we need to have some sort of more meaningful return code
+    ** and not restart as it is likely a configuration failure
+    */
     else if (RestartType == CFE_PSP_RST_TYPE_POWERON)
     {
         /*
@@ -272,11 +310,6 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 
         /* Clear EDR data in EEPROM */
         CFE_PSP_ClearNVRAM();
-
-        /*
-        ** Set the default reset type in case a watchdog reset occurs
-        */
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
 
         memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
                 0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
@@ -304,6 +337,11 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
                                     CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+
+        /*
+        ** Set the default reset type in case a watchdog reset occurs
+        */
+        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
     }
     else if (RestartType == CFE_PSP_RST_TYPE_PROCESSOR)
     {
@@ -444,6 +482,12 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
+    iStatus = OS_BinSemCreate(&g_RESETBinSemId, MEMORY_RESET_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    if (iStatus != OS_SUCCESS)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create RESET binary semaphore, status: %d\n", iStatus);
+    }
     
     /* 4. (CFE_PSP_MemoryBlock_t) Volatile Disk */
     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize =
@@ -459,6 +503,12 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
+    iStatus = OS_BinSemCreate(&g_VOLATILEDISKBinSemId, MEMORY_VOLATILEDISK_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    if (iStatus != OS_SUCCESS)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create VOLATILEDISK binary semaphore, status: %d\n", iStatus);
+    }
 
     /* 5. (CFE_PSP_MemoryBlock_t) CDS */
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = GLOBAL_CONFIGDATA.CfeConfig->CdsSize;
@@ -472,6 +522,12 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     else
     {
         OS_printf("usrMemAlloc Failed\n");
+    }
+    iStatus = OS_BinSemCreate(&g_CDSBinSemId, MEMORY_CDS_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    if (iStatus != OS_SUCCESS)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create CDS binary semaphore, status: %d\n", iStatus);
     }
 
     /* 6. (CFE_PSP_MemoryBlock_t) User Reserved */
@@ -487,6 +543,13 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
+    iStatus = OS_BinSemCreate(&g_USERRESERVEDBinSemId, MEMORY_USERRESERVED_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    if (iStatus != OS_SUCCESS)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create USERRESERVED binary semaphore, status: %d\n", iStatus);
+    }
+
     
     /* Debug/Log printing */
     OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemoryMap Info:\n");
@@ -504,19 +567,19 @@ void CFE_PSP_SetupReservedMemoryMap(void)
                 (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
     
     /*
-     * Set up the "RAM" entry in the memory table.
-     *
-     * What is the purpose of this? Should we be more detailed with our set?
-     * We don't actually use all of RAM (nor should we at a cFS level?)
-     */
+    ** Set up the "RAM" entry in the memory table.
+    **
+    ** What is the purpose of this? Should we be more detailed with our set?
+    ** We don't actually use all of RAM (nor should we at a cFS level?)
+    */
     iStatus = CFE_PSP_MemRangeSet(
-            0, 
-            CFE_PSP_MEM_RAM, 
-            0, 
-            g_uiEndOfRam, 
-            CFE_PSP_MEM_SIZE_DWORD, 
-            CFE_PSP_MEM_ATTR_READWRITE
-    );
+                                    0, 
+                                    CFE_PSP_MEM_RAM, 
+                                    0, 
+                                    g_uiEndOfRam, 
+                                    CFE_PSP_MEM_SIZE_DWORD, 
+                                    CFE_PSP_MEM_ATTR_READWRITE
+                                );
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemory: MemRangeSet failed\n");
@@ -563,12 +626,12 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
     /* VOLATILE DISK */
     memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
 
     /* User Reserved */
     memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(CFE_PSP_USERRESERVED_FLASH_FILEPATH);
 }
 
 /*
@@ -1174,11 +1237,10 @@ static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEM
 */
 static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
 {
-    uint8   *pCopyPtr       = NULL;
-    int32   iReturnCode     = CFE_PSP_SUCCESS;
-    uint32  uiReadBytes     = 0;
-
-    CFE_PSP_MemoryBlock_t memBlock = {0, 0};
+    uint8                   *pCopyPtr       = NULL;
+    int32                   iReturnCode     = CFE_PSP_SUCCESS;
+    uint32                  uiReadBytes     = 0;
+    CFE_PSP_MemoryBlock_t   memBlock        = {0, 0};
 
     if (p_data == NULL)
     {
@@ -1189,14 +1251,14 @@ static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint3
     {
         switch (op)
         {
-            case OP_RESET:
-                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
-                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-                break;
-
             case OP_CDS:
                 memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
                 memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                break;
+
+            case OP_RESET:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
                 break;
 
             case OP_VOLATILEDISK:
@@ -1261,10 +1323,12 @@ static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint3
 */
 static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
 {
-    uint8 *pCopyPtr = NULL;
-    int32 iReturnCode = CFE_PSP_ERROR;
-
-    CFE_PSP_MemoryBlock_t memBlock = {0, 0};
+    uint8                   *pCopyPtr       = NULL;
+    int32                   iReturnCode     = CFE_PSP_ERROR;
+    int32                   iStatus         = OS_ERROR;
+    osal_id_t               osidBinSem      = 0;
+    bool                    *p_bUpdateFlag    = NULL;
+    CFE_PSP_MemoryBlock_t   memBlock        = {0, 0};
 
     if (p_data == NULL)
     {
@@ -1275,24 +1339,32 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
     {
         switch (op)
         {
-            case OP_RESET:
-                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
-                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-                break;
-
             case OP_CDS:
                 memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
                 memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
+                osidBinSem = g_CDSBinSemId;
+                p_bUpdateFlag = &g_bCDSUpdateFlag;
+                break;
+
+            case OP_RESET:
+                memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+                memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
+                osidBinSem = g_RESETBinSemId;
+                p_bUpdateFlag = &g_bRESETUpdateFlag;
                 break;
 
             case OP_VOLATILEDISK:
                 memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
                 memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
+                osidBinSem = g_VOLATILEDISKBinSemId;
+                p_bUpdateFlag = &g_bVOLATILEDISKUpdateFlag;
                 break;
 
             case OP_USERRESERVED:
                 memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
                 memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
+                osidBinSem = g_USERRESERVEDBinSemId;
+                p_bUpdateFlag = &g_bUSERRESERVEDUpdateFlag;
                 break;
 
             default:
@@ -1328,7 +1400,24 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
             if (memcmp((char *)pCopyPtr, (char *)p_data, size) != 0)
             {
                 /* Overwrite memory (RAM) block */
-                memcpy(pCopyPtr, (char *)p_data, size);
+                iStatus = OS_BinSemTake(osidBinSem);
+                if (iStatus != OS_SUCCESS)
+                {
+                    OS_printf(MEMORY_PRINT_SCOPE "WriteToRAM: Failed to take bin sem, status: %d\n", iStatus);
+                    OS_printf(MEMORY_PRINT_SCOPE "OP: %d", op);
+                    iReturnCode = CFE_PSP_ERROR;
+                }
+                else
+                {
+                    memcpy(pCopyPtr, (char *)p_data, size);
+                    *p_bUpdateFlag = true;
+                    iStatus = OS_BinSemGive(osidBinSem);
+                    if (iStatus != OS_SUCCESS)
+                    {
+                        OS_printf(MEMORY_PRINT_SCOPE "WriteToRAM: Fail to give bin sem, status %d\n", iStatus);
+                        OS_printf(MEMORY_PRINT_SCOPE "OP: %d", op);
+                    }
+                }
             }
         }
     }
@@ -1337,14 +1426,14 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
 }
 
 /*
-** \brief Restore DATA data from FLASH
+** \brief Restore DATA from FLASH
 **
 ** \par Description:
-** Restore DATA data from FLASH
+** Restore DATA from FLASH
 **
 ** \par Assumptions, External Events, and Notes:
 ** If file is not present on system, this function will 
-** attempt to create the file and write current DATA data
+** attempt to create the file and write current DATA
 ** to file
 **
 ** \param op - Memory selection
@@ -1451,4 +1540,423 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
     }
 
     return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * MEMORY SYNC IMPLEMENTATION
+ * 
+ *********************************************************/
+/*
+** \brief Routine to be executed by low priority task
+**
+** \par Description:
+** This task will attempt to sync certain 'reserved memory' sections 
+** to a configured file. The sync code will execute then 'delay' for a 
+** configurable amount of time.
+**
+** \par Assumptions, External Events, and Notes:
+** We assume that the used files are already created and available to be written to.
+** If a user attempts to stop this task during execution, the task will finish
+** out it's current sync of reserved memory.
+*/
+static void CFE_PSP_MEMORY_SYNC_Task(void)
+{
+    int32                   iReturnCode         = CFE_PSP_ERROR;
+    int32                   iStatus             = OS_SUCCESS;
+    osal_id_t               memSectionBinSem    = 0;
+    bool                    *p_bUpdateFlag        = NULL;
+    CFE_PSP_MemoryBlock_t   memBlock            = {0, 0};
+    char                    *p_caFilename       = NULL;
+
+    enum MEMORY_SECTION op = 0;
+
+    while (iStatus == OS_SUCCESS)
+    {
+        switch (op)
+        {
+            case OP_CDS:
+                memBlock = CFE_PSP_ReservedMemoryMap.CDSMemory;
+                memSectionBinSem = g_CDSBinSemId;
+                p_caFilename = CFE_PSP_CDS_FLASH_FILEPATH;
+                p_bUpdateFlag = &g_bCDSUpdateFlag;
+                break;
+
+            case OP_RESET:
+                memBlock = CFE_PSP_ReservedMemoryMap.ResetMemory;
+                memSectionBinSem = g_RESETBinSemId;
+                p_caFilename = CFE_PSP_RESET_FLASH_FILEPATH;
+                p_bUpdateFlag = &g_bRESETUpdateFlag;
+                break;
+            
+            case OP_VOLATILEDISK:
+                memBlock = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory;
+                memSectionBinSem = g_VOLATILEDISKBinSemId;
+                p_caFilename = CFE_PSP_VOLATILEDISK_FLASH_FILEPATH;
+                p_bUpdateFlag = &g_bVOLATILEDISKUpdateFlag;
+                break;
+
+            case OP_USERRESERVED:
+                memBlock = CFE_PSP_ReservedMemoryMap.UserReservedMemory;
+                memSectionBinSem = g_USERRESERVEDBinSemId;
+                p_caFilename = CFE_PSP_USERRESERVED_FLASH_FILEPATH;
+                p_bUpdateFlag = &g_bUSERRESERVEDUpdateFlag;
+                break;
+
+            default:
+                op = OP_NA;
+                break;
+        }
+
+        if (op == OP_NA)
+        {
+            op = OP_CDS;
+            iStatus = OS_TaskDelay(g_uiMemorySyncTime);
+            if (iStatus != OS_SUCCESS)
+            {
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Failed to delay task, status: %d\n", iStatus);
+                break;
+            }
+        }
+        else
+        {
+            g_uiMemorySyncStatistics++;
+            iStatus = OS_BinSemTake(g_MemorySyncTaskBinSem);
+            if (iStatus != OS_SUCCESS)
+            {
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take TASK semaphore, status: %d\n", iStatus);
+            }
+            else
+            {
+                iStatus = OS_BinSemTake(memSectionBinSem);
+                if (iStatus != OS_SUCCESS)
+                {
+                    OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take ENTRY binary " \
+                                "semaphore, status: %d\n", iStatus);
+                }
+                else
+                {
+                    if (*p_bUpdateFlag == true)
+                    {
+                        iReturnCode = CFE_PSP_FLASH_WriteToFLASH((uint32 *)memBlock.BlockPtr, 
+                                                        memBlock.BlockSize,
+                                                        p_caFilename);
+                        if (iReturnCode == CFE_PSP_SUCCESS)
+                        {
+                            /* Only a successful write indicates we no longer need to sync */
+                            *p_bUpdateFlag = false;
+                        }
+                    }
+
+                    iStatus = OS_BinSemGive(memSectionBinSem);
+                    if (iStatus != OS_SUCCESS)
+                    {
+                        OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Fail to " \
+                        "give ENTRY binary semaphore, status: %d\n", iStatus);
+                    }
+                    else
+                    {
+                        iStatus = OS_BinSemGive(g_MemorySyncTaskBinSem);
+                        if (iStatus != OS_SUCCESS)
+                        {
+                            OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Failed to give TASK " \
+                                        "semaphore, status: %d\n", iStatus);
+                        }
+                    }
+                }
+            }
+
+            op++;
+        }
+    }
+
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task: Encountered OS/KERNEL-level error. Exiting MEMORY SYNC task.\n");
+    OS_TaskExit();
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_Init
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_Init(void)
+{
+    int32 iReturnCode   = CFE_PSP_SUCCESS;
+    int32 iStatus       = OS_ERROR;
+
+    iStatus = OS_BinSemCreate(&g_MemorySyncTaskBinSem, MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
+    if (iStatus != OS_SUCCESS)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE \
+                    "Init: Failed to create MEMORY SYNC TASK binary semaphore, status: %d\n", iStatus);
+        g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+        iReturnCode = CFE_PSP_ERROR;
+    }
+    else
+    {
+        if (MEMORY_SYNC_START_ON_STARTUP == true)
+        {
+            iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+            if (iReturnCode != CFE_PSP_SUCCESS)
+            {
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Init: Failed to start task\n");
+            }
+        }
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_Destroy
+ * 
+ * Description: See function declaration for info
+ * 
+ **********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_Destroy(void)
+{
+    int32 iReturnCode   = CFE_PSP_SUCCESS;
+    int32 iStatus       = OS_ERROR;
+
+    /* Ensure MEMORY SYNC task is not running */
+    if (CFE_PSP_MEMORY_SYNC_Stop() == CFE_PSP_SUCCESS)
+    {
+        if (g_MemorySyncTaskBinSem != OS_OBJECT_ID_UNDEFINED)
+        {
+            /* Attempt to take sempahore */
+            iStatus = OS_BinSemTake(g_MemorySyncTaskBinSem);
+            if (iStatus == OS_SUCCESS)
+            {
+                iStatus = OS_BinSemDelete(g_MemorySyncTaskBinSem);
+            }
+
+            if (iStatus != OS_SUCCESS)
+            {
+                iReturnCode = CFE_PSP_ERROR;
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", iStatus);
+            }
+            else
+            {
+                g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+            }
+        }
+    }
+    else
+    {
+        iReturnCode = CFE_PSP_ERROR;
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "Destroy: Unable to kill MEMORY SYNC task\n");
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_Start
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_Start(void)
+{
+    int32 iReturnCode   = CFE_PSP_ERROR;
+    int32 iStatus       = OS_ERROR;
+
+    if (CFE_PSP_MEMORY_SYNC_isRunning() == true)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task already running\n");
+        iReturnCode = CFE_PSP_SUCCESS;
+    }
+    else if (g_MemorySyncTaskBinSem == OS_OBJECT_ID_UNDEFINED)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "Start: Data not initialized\n");
+        iReturnCode = CFE_PSP_ERROR;
+    }
+    else
+    {
+        iReturnCode = OS_TaskCreate(
+                                    &g_uiMemorySyncTaskId,
+                                    MEMORY_SYNC_TASK_NAME,
+                                    CFE_PSP_MEMORY_SYNC_Task,
+                                    OSAL_TASK_STACK_ALLOCATE,
+                                    OSAL_SIZE_C(4096),
+                                    g_uiMemorySyncTaskPriority,
+                                    0
+                                );
+    
+        if(iReturnCode != OS_SUCCESS)
+        {
+            OS_printf(MEMORY_SYNC_PRINT_SCOPE "Error starting MEMORY SYNC task\n");
+            iReturnCode = CFE_PSP_ERROR;
+        }
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_Stop
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_Stop(void)
+{
+    int32 iReturnCode   = CFE_PSP_SUCCESS;
+    int32 iStatus       = OS_ERROR;
+
+    if (CFE_PSP_MEMORY_SYNC_isRunning() == false)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "Stop: Task not running\n");
+    }
+    else
+    {
+        iStatus = OS_BinSemTake(g_MemorySyncTaskBinSem);
+        if (iStatus != OS_SUCCESS)
+        {
+            OS_printf(MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to take bsem, status: %d\n", iStatus);
+            iReturnCode = CFE_PSP_ERROR;
+        }
+        else
+        {
+            iStatus = OS_TaskDelete(g_uiMemorySyncTaskId);
+            if (iStatus != OS_SUCCESS)
+            {
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Stop: Unable to delete task, status: %d\n", iStatus);
+                iReturnCode = CFE_PSP_ERROR;
+            }
+
+            iStatus = OS_BinSemGive(g_MemorySyncTaskBinSem);
+            if (iStatus != OS_SUCCESS)
+            {
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to give bsem, status: %d\n", iStatus);
+                iReturnCode = CFE_PSP_ERROR;
+            }
+        }
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_isRunning
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+bool CFE_PSP_MEMORY_SYNC_isRunning(void)
+{
+    bool        bReturnValue    = true;
+    osal_id_t   osidTaskId      = 0;
+
+    if (OS_TaskGetIdByName(&osidTaskId, MEMORY_SYNC_TASK_NAME) == OS_ERR_NAME_NOT_FOUND)
+    {
+        bReturnValue = false;
+    }
+
+    return bReturnValue;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_setPriority
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority)
+{
+    int32 iReturnCode = CFE_PSP_ERROR;
+
+    if (priority > MEMORY_SYNC_PRIORITY_UP_RANGE)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too high\n");
+    }
+    else if (priority < MEMORY_SYNC_PRIORITY_LOW_RANGE)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too low\n");
+    }
+    else if (CFE_PSP_MEMORY_SYNC_isRunning() == false)
+    {
+        /*
+        ** Task is not running, we only
+        ** need to change task property
+        */
+        g_uiMemorySyncTaskPriority = priority;
+        iReturnCode = CFE_PSP_SUCCESS;
+    }
+    else
+    {
+        /*
+        ** Task is running, we need to change
+        ** both task property and running task
+        ** priorities
+        */
+        if (OS_TaskSetPriority(g_uiMemorySyncTaskId, priority) == OS_SUCCESS)
+        {
+            g_uiMemorySyncTaskPriority = priority;
+            iReturnCode = CFE_PSP_SUCCESS;
+        }
+        else
+        {
+            OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: Failed to set new priority\n");
+        }
+    }
+
+    return iReturnCode;
+}
+
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_getPriority
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+osal_priority_t CFE_PSP_MEMORY_SYNC_getPriority(void)
+{
+    return g_uiMemorySyncTaskPriority;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_setFrequency
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 CFE_PSP_MEMORY_SYNC_setFrequency(uint32 sec_time_ms)
+{
+    g_uiMemorySyncTime = sec_time_ms;
+    return CFE_PSP_SUCCESS;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_getFrequency
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void)
+{
+    return g_uiMemorySyncTime;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_MEMORY_SYNC_getStatus
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void)
+{
+    return g_uiMemorySyncStatistics;
 }
