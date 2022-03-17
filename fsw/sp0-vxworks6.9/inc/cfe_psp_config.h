@@ -145,6 +145,15 @@ extern "C" {
  */
 #define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH             6
 
+/*
+** \brief Maximum length of full filepath
+**
+** \par Limits:
+** this value should be kept high enough to accomodate active partition
+** name, reserved memory direction, and file name
+*/
+#define CFE_PSP_FILEPATH_MAX_LENGTH                     CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 26
+
 /**
  ** \brief Maximum length of failed startup file name
  **
@@ -282,28 +291,6 @@ typedef struct  {
     USER_SAFE_MODE_DATA_STRUCT safeModeUserData;
     
 } CFE_PSP_Startup_structure_t;
-
-/**
- ** \brief Maximum length of active CFS flash partition name
- **
- ** \par Limits:
- ** This value should be kept small since it will take away from the failed
- ** startup filename max lenght.<br>
- ** Minimum is 1 character<br>
- ** Maximum is #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
- **
- */
-#define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH             6
-
-/**
- ** \brief Maximum length of failed startup file name
- **
- ** \par Limits:
- ** This value should be kept high enough to accomodate the active partition
- ** name and the startup file name.
- ** Minimum of #CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1
- */
-#define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH      32
 
 /**
  ** \brief Define Number of PSP Resets Before Switching CFS Partition
@@ -499,25 +486,20 @@ typedef struct
 
 } CFE_PSP_SymbolicLinks_t;
 
+/** \brief Backup file directory */
+#define CFE_PSP_BACKUP_DIRECTORY                    "/URM"
 
-/** \name CDS File Location on FLASH Configuration Parameters */
-/** \{ */
-/**
- ** \brief CDS FLASH Memory File Location
- ** \par Note:
- ** File will be overwritten every time CFS starts.
-*/
-#define CFE_PSP_CDS_FLASH_FILEPATH          "/ffx0/CDS"
-/** \} */
+/** \brief CDS File name on FLASH */
+#define CFE_PSP_CDS_FLASH_FILEPATH                  "CDS.bkp"
 
-/** \brief RESET File location on FLASH */
-#define CFE_PSP_RESET_FLASH_FILEPATH        "/ffx0/RRT"
+/** \brief RESET File name on FLASH */
+#define CFE_PSP_RESET_FLASH_FILEPATH                "RESET.bkp"
 
-/** \brief Volatile Disk File location on FLASH */
-#define CFE_PSP_VOLATILEDISK_FLASH_FILEPATH        "/ffx0/RVD"
+/** \brief Volatile Disk File name on FLASH */
+#define CFE_PSP_VOLATILEDISK_FLASH_FILEPATH         "VODI.bkp"
 
-/** \brief User Reserved File location on FLASH */
-#define CFE_PSP_USERRESERVED_FLASH_FILEPATH        "/ffx0/RUR"
+/** \brief User Reserved File name on FLASH */
+#define CFE_PSP_USERRESERVED_FLASH_FILEPATH        "USRR.bkp"
 
 
 /** \name Memory Scrubbing Configuration Parameters */

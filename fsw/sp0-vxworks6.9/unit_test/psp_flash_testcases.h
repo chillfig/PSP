@@ -28,6 +28,7 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void);
 void Ut_CFE_PSP_FLASH_DeleteFile(void);
 void Ut_CFE_PSP_FLASH_CreateFile(void);
 void Ut_CFE_PSP_FLASH_CheckFile(void);
+void Ut_CFE_PSP_FLASH_CreateDirectory(void);
 #endif  /* UT_PSP_FLASH_TESTCASES_H */
 /*=======================================================================================
 ** End of file psp_flash_testcases.h

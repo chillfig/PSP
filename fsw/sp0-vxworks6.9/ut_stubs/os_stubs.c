@@ -60,6 +60,15 @@ int creat(const char * file, int oflag, ...)
     return iStatus;
 }
 
+int mkdir(const char * dir)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(mkdir);
+
+    return iStatus;
+}
+
 int close(int fd)
 {
     int32 iStatus;

@@ -96,6 +96,11 @@ static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK(void);
 static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
 static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op);
 static void CFE_PSP_MEMORY_SYNC_Task(void);
+static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void);
+static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void);
+static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void);
+static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void);
+static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op);
 
 /*
 ** Global variables
@@ -156,6 +161,14 @@ static osal_id_t g_uiMemorySyncTaskId = 0;
 static osal_priority_t g_uiMemorySyncTaskPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
 /** \brief MEMORY SYNC Task Binary Semaphore ID */
 static osal_id_t g_MemorySyncTaskBinSem = 0;    // NOTE: This should match OS_OBJECT_ID_UNDEFINED
+/** \brief CDS Filepath */
+static char g_CDSFilepath[CFE_PSP_FILEPATH_MAX_LENGTH]          = {};
+/** \brief RESET Filepath */
+static char g_RESETFilepath[CFE_PSP_FILEPATH_MAX_LENGTH]        = {};
+/** \brief VOLATILE DISK Filepath */
+static char g_VOLATILEDISKFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
+/** \brief USER RESERVED Filepath */
+static char g_USERRESERVEDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
 
 /**
  ** \func Calculate 16 bits CRC from input data
@@ -315,28 +328,28 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                 0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize,
-                                    CFE_PSP_RESET_FLASH_FILEPATH);
+                                    g_RESETFilepath);
 
         /* CDS MEMORY */
         memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                 0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
-                                    CFE_PSP_CDS_FLASH_FILEPATH);
+                                    g_CDSFilepath);
 
         /* VOLATILE DISK MEMORY */
         memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                 0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
-                                    CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+                                    g_VOLATILEDISKFilepath);
 
         /* USER RESERVERED MEMORY */
         memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                 0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
-                                    CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+                                    g_USERRESERVEDFilepath);
 
         /*
         ** Set the default reset type in case a watchdog reset occurs
@@ -366,7 +379,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                 0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
         CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
                                     CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
-                                    CFE_PSP_RESET_FLASH_FILEPATH);
+                                    g_RESETFilepath);
 
         /* CDS MEMORY */
         iStatus = CFE_PSP_MEMORY_RestoreCDS();
@@ -378,7 +391,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                     0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
             CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
-                                    CFE_PSP_CDS_FLASH_FILEPATH);
+                                    g_CDSFilepath);
         }
 
         /* VOLATILE DISK MEMORY */
@@ -391,7 +404,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                     0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
             CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
-                                    CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+                                    g_VOLATILEDISKFilepath);
         }
 
         /* USER RESERVED MEMORY */
@@ -404,7 +417,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                     0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
             CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
-                                    CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+                                    g_USERRESERVEDFilepath);
         }
     }
 
@@ -441,6 +454,9 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     **      4. (CFE_PSP_MemoryBlock_t)                  Volatile Disk
     **      5. (CFE_PSP_MemoryBlock_t)                  CDS
     **      6. (CFE_PSP_MemoryBlock_t)                  User Reserved
+    **
+    ** Additionally, we need to generate filepaths for each memory
+    ** section (required for memory sync)
     */
 
     /* 1. (CFE_PSP_ReservedMemoryBootRecord_t *) Boot Ptr */
@@ -565,6 +581,19 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     OS_printf("\tUsRe:\tBlock Ptr: 0x%08lx\tBlock Size: 0x%08lx\n",
                 (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                 (unsigned long)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+
+    
+
+    /* Construct filepaths */
+    CFE_PSP_MEMORY_SYNC_CDS_FPATH();
+    CFE_PSP_MEMORY_SYNC_RESET_FPATH();
+    CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH();
+    CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH();
+
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "CDS FILEPATH: <%s>\n", g_CDSFilepath);
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "RESET FILEPATH: <%s>\n", g_RESETFilepath);
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "VOLATILEDISK FILEPATH: <%s>\n", g_VOLATILEDISKFilepath);
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "USERRESERVED FILEPATH: <%s>\n", g_USERRESERVEDFilepath);
     
     /*
     ** Set up the "RAM" entry in the memory table.
@@ -616,22 +645,22 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
     /* RESET */
     memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_RESET_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(g_RESETFilepath);
 
     /* CDS */
     memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_CDS_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(g_CDSFilepath);
 
     /* VOLATILE DISK */
     memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(g_VOLATILEDISKFilepath);
 
     /* User Reserved */
     memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+    CFE_PSP_FLASH_DeleteFile(g_USERRESERVEDFilepath);
 }
 
 /*
@@ -1455,25 +1484,25 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
         case OP_CDS:
             memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr;
             memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize;
-            p_caFilename = CFE_PSP_CDS_FLASH_FILEPATH;
+            p_caFilename = g_CDSFilepath;
             break;
 
         case OP_RESET:
             memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
             memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize;
-            p_caFilename = CFE_PSP_RESET_FLASH_FILEPATH;
+            p_caFilename = g_RESETFilepath;
             break;
 
         case OP_VOLATILEDISK:
             memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
             memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize;
-            p_caFilename = CFE_PSP_VOLATILEDISK_FLASH_FILEPATH;
+            p_caFilename = g_VOLATILEDISKFilepath;
             break;
 
         case OP_USERRESERVED:
             memBlock.BlockPtr = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
             memBlock.BlockSize = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize;
-            p_caFilename = CFE_PSP_USERRESERVED_FLASH_FILEPATH;
+            p_caFilename = g_USERRESERVEDFilepath;
             break;
         
         default:
@@ -1578,28 +1607,28 @@ static void CFE_PSP_MEMORY_SYNC_Task(void)
             case OP_CDS:
                 memBlock = CFE_PSP_ReservedMemoryMap.CDSMemory;
                 memSectionBinSem = g_CDSBinSemId;
-                p_caFilename = CFE_PSP_CDS_FLASH_FILEPATH;
+                p_caFilename = g_CDSFilepath;
                 p_bUpdateFlag = &g_bCDSUpdateFlag;
                 break;
 
             case OP_RESET:
                 memBlock = CFE_PSP_ReservedMemoryMap.ResetMemory;
                 memSectionBinSem = g_RESETBinSemId;
-                p_caFilename = CFE_PSP_RESET_FLASH_FILEPATH;
+                p_caFilename = g_RESETFilepath;
                 p_bUpdateFlag = &g_bRESETUpdateFlag;
                 break;
             
             case OP_VOLATILEDISK:
                 memBlock = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory;
                 memSectionBinSem = g_VOLATILEDISKBinSemId;
-                p_caFilename = CFE_PSP_VOLATILEDISK_FLASH_FILEPATH;
+                p_caFilename = g_VOLATILEDISKFilepath;
                 p_bUpdateFlag = &g_bVOLATILEDISKUpdateFlag;
                 break;
 
             case OP_USERRESERVED:
                 memBlock = CFE_PSP_ReservedMemoryMap.UserReservedMemory;
                 memSectionBinSem = g_USERRESERVEDBinSemId;
-                p_caFilename = CFE_PSP_USERRESERVED_FLASH_FILEPATH;
+                p_caFilename = g_USERRESERVEDFilepath;
                 p_bUpdateFlag = &g_bUSERRESERVEDUpdateFlag;
                 break;
 
@@ -1959,4 +1988,166 @@ uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void)
 uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void)
 {
     return g_uiMemorySyncStatistics;
+}
+
+/*
+** \brief Construct CDS Filepath
+**
+** \par Description:
+** Generate/construct CDS filepath
+**
+** \par Assumptions, Notes, and External Events:
+** This function will wait for current memory
+** sync to finish. This function will not allow
+** memory to be synced to flash until complete.
+**
+** \param None
+*/
+static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
+{
+    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_CDS);
+}
+
+/*
+** \brief Construct RESET Filepath
+**
+** \par Description:
+** Generate/construct RESET filepath
+**
+** \par Assumptions, Notes, and External Events:
+** This function will wait for current memory
+** sync to finish. This function will not allow
+** memory to be synced to flash until complete.
+**
+** \param None
+*/
+static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
+{
+    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_RESET);
+}
+
+/*
+** \brief Construct VOLATILE DISK Filepath
+**
+** \par Description:
+** Generate/construct VOLATILE DISK filepath
+**
+** \par Assumptions, Notes, and External Events:
+** This function will wait for current memory
+** sync to finish. This function will not allow
+** memory to be synced to flash until complete.
+**
+** \param None
+*/
+static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
+{
+    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_VOLATILEDISK);
+}
+
+/*
+** \brief Construct USER RESERVED Filepath
+**
+** \par Description:
+** Generate/construct USER RESERVED filepath
+**
+** \par Assumptions, Notes, and External Events:
+** This function will wait for current memory
+** sync to finish. This function will not allow
+** memory to be synced to flash until complete.
+**
+** \param None
+*/
+static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
+{
+    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_USERRESERVED);
+}
+
+/*
+** \brief Construct Reserved Memory Section Filepaths
+**
+** \par Description:
+** Generate reserved memory section filepaths
+**
+** \par Assumptions, Notes, and External Events:
+** This function will destroy any data contained
+** within the provided p_path array.
+** This function should only be called during
+** startup.
+**
+** \param p_fpath[out] - Character array filepath
+** \param op - Memory section indicator
+**
+** \return #CFE_PSP_SUCCESS - Successfully created full filepaths
+** \return #CFE_PSP_ERROR - Unsuccessfully created full filepaths
+*/
+static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    int32 iStatus = OS_SUCCESS;
+    int32 iResult = -1;
+    char caActivePartition[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = {};
+    char caActivePath[CFE_PSP_FILEPATH_MAX_LENGTH - 2] = {};
+
+    CFE_PSP_GetActiveCFSPartition(caActivePartition, CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH);
+
+    /*
+    ** Assemble active partition + storage directory
+    */
+    iResult = snprintf(caActivePath, CFE_PSP_FILEPATH_MAX_LENGTH - 2, "%s%s", 
+                                caActivePartition, CFE_PSP_BACKUP_DIRECTORY);
+    if (iResult < 0)
+    {
+        OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error assembling active path, error: %d\n", iResult);
+        iReturnCode = CFE_PSP_ERROR;
+    }
+    else
+    {
+        /*
+        ** Ensure active directory is present on system
+        */
+        iReturnCode = CFE_PSP_FLASH_CreateDirectory(caActivePath);
+        if (iReturnCode != CFE_PSP_SUCCESS)
+        {
+            OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error creating path\n");
+            iReturnCode = CFE_PSP_ERROR;
+        }
+        else
+        {
+            switch(op)
+            {
+                case OP_CDS:
+                    iResult = snprintf(g_CDSFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s", 
+                                                    caActivePath, CFE_PSP_CDS_FLASH_FILEPATH);
+                    break;
+                
+                case OP_RESET:
+                    iResult = snprintf(g_RESETFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
+                                                    caActivePath, CFE_PSP_RESET_FLASH_FILEPATH);
+                    break;
+
+                case OP_VOLATILEDISK:
+                    iResult = snprintf(g_VOLATILEDISKFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
+                                                    caActivePath, CFE_PSP_VOLATILEDISK_FLASH_FILEPATH);
+                    break;
+
+                case OP_USERRESERVED:
+                    iResult = snprintf(g_USERRESERVEDFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
+                                                    caActivePath, CFE_PSP_USERRESERVED_FLASH_FILEPATH);
+                    break;
+                
+                default:
+                    iResult = -1;
+                    OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");
+                    break;
+            }
+
+            if (iResult < 0)
+            {
+                iReturnCode = CFE_PSP_ERROR;
+                OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: ERROR: %d\n", iResult);
+            }
+        }
+    }
+
+    return iReturnCode;
 }

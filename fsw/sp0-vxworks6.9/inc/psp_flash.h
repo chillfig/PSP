@@ -121,6 +121,24 @@ int32 CFE_PSP_FLASH_CreateFile(char *fname);
 */
 bool CFE_PSP_FLASH_CheckFile(char *fname);
 
+/*
+** \brief Create a directory
+**
+** \par Description:
+** Create a directory
+**
+** \par Assumptions, External Events, and Notes:
+** If the directory already exists, this will NOT
+** 'reset' the directory.
+**
+** \param[in] p_dir - Null terminated character array containing dir path
+**
+** \return #CFE_PSP_SUCCESS - Successfully created directory
+** \return #CFE_PSP_ERROR - Unsuccessfully created directory
+** \return #CFE_PSP_INVALID_POINTER - Invalid pointer
+*/
+int32 CFE_PSP_FLASH_CreateDirectory(const char *p_dir);
+
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */

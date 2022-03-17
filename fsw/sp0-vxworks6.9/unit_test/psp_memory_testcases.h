@@ -66,6 +66,11 @@ void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void);
 void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void);
 void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void);
 void Ut_CFE_PSP_MEMORY_SYNC_Task(void);
+void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void);
+void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void);
+void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void);
+void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void);
+void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void);
 
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
 /*=======================================================================================

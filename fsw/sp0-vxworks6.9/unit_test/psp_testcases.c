@@ -378,6 +378,27 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_MEMORY_SYNC_Task");
 
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH");
+
+    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath");
+
+
 
     #endif /* TEST_MEMORY == 1 */
 
@@ -403,6 +424,10 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_FLASH_CheckFile,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_FLASH_CheckFile");
+
+    UtTest_Add(Ut_CFE_PSP_FLASH_CreateDirectory,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_FLASH_CreateDirectory");
 
     #endif /* TEST_FLASH == 1 */
 

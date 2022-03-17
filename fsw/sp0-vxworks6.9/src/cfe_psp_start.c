@@ -56,6 +56,7 @@
 #include "psp_verify.h"
 #include "psp_mem_sync.h"
 #include "psp_support.h"
+#include "psp_mem_sync.h"
 
 /*
 **  External Function Prototypes
@@ -751,9 +752,6 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     ** Initialize the statically linked modules (if any)
     */
     CFE_PSP_ModuleInit();
-
-    /* Initialize the watchdog, it's left disabled */
-    CFE_PSP_WatchdogInit();
 
     CFE_PSP_MEM_SCRUB_Init();
     CFE_PSP_MEMORY_SYNC_Init();

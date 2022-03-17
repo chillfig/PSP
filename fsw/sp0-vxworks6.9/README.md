@@ -163,6 +163,7 @@ Kernel must include the following services:
   - CFE_PSP_FLASH_DeleteFile
   - CFE_PSP_FLASH_CreateFile
   - CFE_PSP_FLASH_CheckFile
+  - CFE_PSP_FLASH_CreateDirectory
 
 - Static Functions
 
@@ -262,3 +263,58 @@ Kernel must include the following services:
 - Static Variables
   - g_uiCFE_PSP_WatchdogValue_ms
   - g_bWatchdogStatus
+
+### Memory/Memory Sync
+- Defines
+  - enum MEMORY_SECTION
+
+- Structures
+
+- Public Functions
+  - CFE_PSP_MEMORY_SYNC_Init
+  - CFE_PSP_MEMORY_SYNC_Destroy
+  - CFE_PSP_MEMORY_SYNC_Start
+  - CFE_PSP_MEMORY_SYNC_Stop
+  - CFE_PSP_MEMORY_SYNC_isRunning
+  - CFE_PSP_MEMORY_SYNC_setPriority
+  - CFE_PSP_MEMORY_SYNC_getPriority
+  - CFE_PSP_MEMORY_SYNC_setFrequency
+  - CFE_PSP_MEMORY_SYNC_getFrequency
+  - CFE_PSP_MEMORY_SYNC_getStatus
+
+- Static Functions
+  - CFE_PSP_MEMORY_GetMemSize
+  - CFE_PSP_MEMORY_GetMemArea
+  - CFE_PSP_MEMORY_ReadFromRAM
+  - CFE_PSP_MEMORY_WriteToRAM
+  - CFE_PSP_MEMORY_RestoreRESET
+  - CFE_PSP_MEMORY_RestoreCDS
+  - CFE_PSP_MEMORY_RestoreVOLATILEDISK
+  - CFE_PSP_MEMORY_RestoreUSERRESERVED
+  - CFE_PSP_MEMORY_RestoreDATA
+  - CFE_PSP_MEMORY_SYNC_Task
+  - CFE_PSP_MEMORY_SYNC_CDS_FPATH
+  - CFE_PSP_MEMORY_SYNC_RESET_FPATH
+  - CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH
+  - CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH
+  - CFE_PSP_MEMORY_SYNC_GenerateFilepath
+
+- Static Variables
+  - g_ReservedMemBlock
+  - g_RESETBinSemId
+  - g_CDSBinSemId
+  - g_VOLATILEDISKBinSemId
+  - g_USERRESERVEDBinSemId
+  - g_RESETUpdateFlag
+  - g_CDSUpdateFlag
+  - g_VOLATILEDISKUpdateFlag
+  - g_USERRESERVEDUpdateFlag
+  - g_uiMemorySyncTime
+  - g_MemorySYncStatistics
+  - g_uiMemorySyncTaskId
+  - g_uiMemorySyncTaskPriority
+  - g_MemorySyncTaskBinSem
+  - g_CDSFilepath
+  - g_RESETFilepath
+  - g_VOLATILEDISKFilepath
+  - g_USERRESERVEDFilepath

@@ -2413,6 +2413,168 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 7/7: Unable to delay task - message");
 }
 
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - ----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_CDS_FPATH();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_CDS_FPATH - 1/1: Generate fpath - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - ----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_RESET_FPATH();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_RESET_FPATH - 1/1: Generate fpath - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - ----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_VOLATILEDISK_FPATH - 1/1: Generate fpath - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - ----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_USERRESERVED_FPATH - 1/1: Generate fpath - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+
+    /* ----- Test case #1 - Fail to construct directory path ----- */
+    /* Additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), -5);
+    // UT_SetDeferredRetcode(UT_KEY(snprintf), 1, -5);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error assembling active path, error: %d\n", -5);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(99);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - message");
+
+    /* ----- Test case #2 - Fail to create direcotry ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error creating path\n");
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, -5);
+    errno = 3;
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 2/5: Fail to create directory path - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 2/5: Fail to create directory path - message");
+
+    /* ----- Test case #3 - snprintf fail during complete constructions ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: ERROR: %d\n", -5);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, -5);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - message");
+
+    /* ----- Test case #4 - Reach defualt case ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    // UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(99);
+    printf("MATT: tc 4 - return code: %d\n", iReturnCode);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 4/5: Invalid memory selection - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 4/5: Invalid memory selection - message");
+
+    /* ----- Test case #5 - Successful execution ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 5/5: Success - return code");
+}
+
 /*=======================================================================================
 ** End of file psp_memory_testcases.c
 **=======================================================================================*/

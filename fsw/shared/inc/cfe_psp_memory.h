@@ -188,7 +188,7 @@ void CFE_PSP_DeleteProcessorReservedMemory(void);
 ** \return #CFE_PSP_INVALID_POINTER
 ** \return #CFE_PSP_ERROR;
 */
-int32 CFE_PSP_MEMORY_GetRESETSize(uint32 *size);
+int32 CFE_PSP_GetRESETSize(uint32 *size);
 
 /*
 ** \func Write to the RESET memory area
@@ -245,24 +245,7 @@ int32 CFE_PSP_MEMORY_ReadFromRESET(const void *p_data, uint32 offset, uint32 siz
 ** \return #CFE_PSP_INVALID_POINTER
 ** \return #CFE_PSP_ERROR;
 */
-int32 CFE_PSP_MEMORY_GetVOLATILEDISKSize(uint32 *size);
-
-/*
-** \func Get pointer ot the VOLATILEDISK memory area
-**
-** \par Description:
-** This function fetches the area of the VOLATILEDISK memory
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_area - Pointer to the variable that stores returned memory address
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
-int32 CFE_PSP_MEMORY_GetVOLATILEDISKArea(uint32 *p_area);
+int32 CFE_PSP_GetVOLATILEDISKSize(uint32 *size);
 
 /*
 ** \func Write to the VOLATILEDISK memory area
@@ -319,24 +302,7 @@ int32 CFE_PSP_MEMORY_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uin
 ** \return #CFE_PSP_INVALID_POINTER
 ** \return #CFE_PSP_ERROR;
 */
-int32 CFE_PSP_MEMORY_GetUSERRESERVEDSize(uint32 *size);
-
-/*
-** \func Get pointer ot the USERRESERVED memory area
-**
-** \par Description:
-** This function fetches the area of the USERRESERVED memory
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_area - Pointer to the variable that stores returned memory address
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
-int32 CFE_PSP_MEMORY_GetUSERRESERVEDArea(uint32 *p_area);
+int32 CFE_PSP_GetUSERRESERVEDSize(uint32 *size);
 
 /*
 ** \func Write to the USERRESERVED memory area
@@ -393,7 +359,7 @@ int32 CFE_PSP_MEMORY_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uin
 ** \return #CFE_PSP_INVALID_POINTER
 ** \return #CFE_PSP_ERROR;
 */
-int32 CFE_PSP_MEMORY_GetCDSArea(cpuaddr *p_area, uint32 *p_size);
+int32 CFE_PSP_GetCDSArea(cpuaddr *p_area, uint32 *p_size);
 
 /*
 ** External variables

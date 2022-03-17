@@ -327,3 +327,46 @@ void Ut_CFE_PSP_FLASH_CheckFile(void)
     /* Verify results */
     UtAssert_True(iReturnValue == false, UT_FLASH_PRINT_SCOPE "CheckFile - 3/3: File does not exists - return code");
 }
+
+/*=======================================================================================
+** Ut_CFE_PSP_FLASH_CreateDirecotry(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_FLASH_CreateDirectory(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+    char cMsg[256] = {};
+
+    char caDirectory[20] = "/testdir";
+
+    /* ----- Test case #1 - NULL check ----- */
+    /* Additional inputs */
+    Ut_OS_printf_Setup();
+    sprintf(cMsg, FLASH_PRINT_SCOPE "CreateDirectory: Invalid Pointer\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_FLASH_CreateDirectory((char *)NULL);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "CreateDirectory - 1/3: NULL check - return code");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateDirectory - 1/3: NULL check - message");
+
+    /* ----- Test case #2 - Status < 0, errno != 17 ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, -5);
+    errno = 2;
+    sprintf(cMsg, FLASH_PRINT_SCOPE "CreateDirectory: STATUS: %d\n", -5);
+    /* Execute test */
+    iReturnCode = CFE_PSP_FLASH_CreateDirectory(caDirectory);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "CreateDirectory - 2/3: mkdir error - return code");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateDirectory - 2/3: mkdir error - message");
+
+    /* ----- Test case #3 - Successful run ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_FLASH_CreateDirectory(caDirectory);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "CreateDirectory - 3/3: Successful execution - return code");
+}

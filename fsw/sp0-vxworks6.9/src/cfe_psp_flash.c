@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
 
 /*
@@ -259,4 +261,44 @@ bool CFE_PSP_FLASH_CheckFile(char *fname)
     }
 
     return bReturnValue;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_FLASH_CreateDirectory
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+int32 CFE_PSP_FLASH_CreateDirectory(const char *p_dir)
+{
+    int32 iStatus = 0;
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    if (p_dir == NULL)
+    {
+        iReturnCode = CFE_PSP_INVALID_POINTER;
+        OS_printf(FLASH_PRINT_SCOPE "CreateDirectory: Invalid Pointer\n");
+    }
+    else
+    {
+        iStatus = mkdir(p_dir);
+
+        if (iStatus < 0)
+        {
+            /*
+            ** Only report an error if our errno is something other
+            ** than errno 17 "File exists"
+            */
+            if (errno != 17)
+            {
+                iReturnCode = CFE_PSP_ERROR;
+                OS_printf(FLASH_PRINT_SCOPE "CreateDirectory: Failed to create <%s> directory\n", p_dir);
+                OS_printf(FLASH_PRINT_SCOPE "CreateDirectory: STATUS: %d\n", iStatus);
+                OS_printf(FLASH_PRINT_SCOPE "CreateDirectory: ERRNO: %d, STRERROR: %s\n", errno, strerror(errno));
+            }
+        }
+    }
+
+    return iReturnCode;
 }

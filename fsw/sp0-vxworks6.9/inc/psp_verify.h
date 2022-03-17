@@ -231,10 +231,68 @@ CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FIL
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_LONG);
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_SHORT);
 
-
 /**
 ** \} <!-- End of group "psp_public_api" -->
 */
+/** \brief Check backup directory is defined */
+#ifndef CFE_PSP_BACKUP_DIRECTORY
+    #error "CFE_PSP_BACKUP_DIRECTORY must be defined"
+#endif
+/** \brief Check reserved memory section file name macros */
+#ifndef CFE_PSP_CDS_FLASH_FILEPATH
+    #error "CFE_PSP_CDS_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_RESET_FLASH_FILEPATH
+    #error "CFE_PSP_RESET_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_VOLATILEDISK_FLASH_FILEPATH
+    #error "CFE_PSP_VOLATILEDISK_FLASH_FILEPATH must be defined"
+#endif
+#ifndef CFE_PSP_USERRESERVED_FLASH_FILEPATH
+    #error "CFE_PSP_USERRESERVED_FLASH_FILEPATH must be defined"
+#endif
+
+/** \brief Check MEMORY SYNC preprocessor directives */
+#ifndef MEMORY_SYNC_DEFAULT_SYNC_TIME_MS
+    #error "MEMORY_SYNC_DEFAULT_SYNC_TIME_MS must be defined"
+#endif
+#ifndef MEMORY_SYNC_TASK_NAME
+    #error "MEMORY_SYNC_TASK_NAME must be defined"
+#endif
+#ifndef MEMORY_SYNC_BSEM_NAME
+    #error "MEMORY_SYNC_BSEM_NAME must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_DEFAULT
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_UP_RANGE must be defined"
+#endif
+#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DOWN_RANGE must be defined"
+#endif
+#ifndef MEMORY_SYNC_START_ON_STARTUP
+    #error "MEMORY_SYNC_START_ON_STARTUP must be defined"
+#endif
+#if MEMORY_SYNC_PRIORITY_DEFAULT < MEMORY_SYNC_PRIORITY_LOW_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#endif
+#if MEMORY_SYNC_PRIORITY_DEFAULT > MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#endif
+#ifndef MEMORY_RESET_BIN_SEM_NAME
+    #error "MEMORY_RESET_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_CDS_BIN_SEM_NAME
+    #error "MEMORY_CDS_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_VOLATILEDISK_BIN_SEM_NAME
+    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be dfeined"
+#endif
+#ifndef MEMORY_USERRESERVED_BIN_SEM_NAME
+    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be dfeined"
+#endif
+CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 
 #ifdef __cplusplus
 }
