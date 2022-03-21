@@ -136,6 +136,34 @@ void UtTest_Setup(void)
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_PSP_SP0_GetDiskFreeSize");
 
+    UtTest_Add(Ut_PSP_SP0_ROM1_LOCK,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM1_LOCK");
+
+    UtTest_Add(Ut_PSP_SP0_ROM1_UNLOCK,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM1_UNLOCK");
+
+    UtTest_Add(Ut_PSP_SP0_ROM2_LOCK,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM2_LOCK");
+
+    UtTest_Add(Ut_PSP_SP0_ROM2_UNLOCK,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM1_UNLOCK");
+
+    UtTest_Add(Ut_PSP_SP0_ROMX_COMMAND,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROMX_COMMAND");
+
+    UtTest_Add(Ut_PSP_SP0_ROM1_Status,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM1_Status");
+
+    UtTest_Add(Ut_PSP_SP0_ROM2_Status,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_PSP_SP0_ROM2_Status");
+
     #endif /* TEST_SP0_INFO == 1 */
 
     #if TEST_START == 1

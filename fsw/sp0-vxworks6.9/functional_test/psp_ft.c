@@ -679,6 +679,37 @@ void ft_sp0_info(void)
     FT_Assert_True(fs_size_ram > 0, "Check file system sizes - /ram0 file system size = %lld bytes", fs_size_ram)
     FT_Assert_True(fs_size_flash > 0, "Check file system sizes - /ffx0 file system size = %lld bytes", fs_size_flash)
 
+    /*
+    ** NOTE: ROM1/2 are locked by default
+    */
+    /*** UNLOCK ROM1 ***/
+    /* Prepare */
+    /* Execute */
+    PSP_SP0_ROM1_UNLOCK();
+    /* Results */
+    FT_Assert_True(PSP_SP0_ROM1_Status() == false, "Check ROM1 Status after UNLOCK");
+    
+    /*** LOCK ROM1 ***/
+    /* Prepare */
+    /* Execute */
+    PSP_SP0_ROM1_LOCK();
+    /* Results */
+    FT_Assert_True(PSP_SP0_ROM1_Status() == true, "Check ROM1 Status after LOCK");
+
+    /*** UNLOCK ROM1 ***/
+    /* Prepare */
+    /* Execute */
+    PSP_SP0_ROM2_UNLOCK();
+    /* Results */
+    FT_Assert_True(PSP_SP0_ROM2_Status() == false, "Check ROM2 Status after UNLOCK");
+    
+    /*** LOCK ROM1 ***/
+    /* Prepare */
+    /* Execute */
+    PSP_SP0_ROM2_LOCK();
+    /* Results */
+    FT_Assert_True(PSP_SP0_ROM2_Status() == true, "Check ROM2 Status after LOCK");
+
     OS_printf("[SP0_INFO END]\n\n");
 }
 

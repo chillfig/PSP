@@ -60,10 +60,30 @@
 #define SP0_UPGRADE_MAX_TEMP_SENSORS    4
 #define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
 
+/** \brief ROM1 LOCK Code */
+#define SP0_ROM1_CODE_LOCK                  0x000000A1
+/** \brief ROM1 UNLOCK Code */
+#define SP0_ROM1_CODE_UNLOCK                0x000000A3
+/** \brief ROM2 LOCK Code */
+#define SP0_ROM2_CODE_LOCK                  0x000000B1
+/** \brief ROM2 UNLOCK Code */
+#define SP0_ROM2_CODE_UNLOCK                0x000000B3
+/** \brief SP0 Boot ROM Status Address */
+#define SP0_BOOT_ROM_STATUS_ADDR            0xE8000040
+/** \brief SP0 ROM1 Bit Mask */
+#define SP0_ROM1_MASK                       0x00000100
+/** \brief SP0 ROM2 Bit Mask */
+#define SP0_ROM2_MASK                       0x00000200
+/** \brief SP0 ROM1 Status Shift */
+#define SP0_ROM1_STATUS_SHIFT               8
+/** \brief SP0 ROM2 Status Shift */
+#define SP0_ROM2_STATUS_SHIFT               9
+
 /*
 ** Static Function Declarations
 */
 static int32 PSP_SP0_PrintToBuffer(void);
+static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode);
 
 /*
 ** Static Variables
@@ -549,3 +569,154 @@ int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
     }
     return lFree_size_bytes;
 }
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM1_LOCK
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 PSP_SP0_ROM1_LOCK(void)
+{
+    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM1_CODE_LOCK);
+}
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM1_UNLOCK
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 PSP_SP0_ROM1_UNLOCK(void)
+{
+    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM1_CODE_UNLOCK);
+}
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM2_LOCK
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 PSP_SP0_ROM2_LOCK(void)
+{
+    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM2_CODE_LOCK);
+}
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM2_UNLOCK
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+int32 PSP_SP0_ROM2_UNLOCK(void)
+{
+    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM2_CODE_UNLOCK);
+}
+
+/*
+** \brief Executes the base commands to lock/unlock ROM device
+**
+** \par Description:
+** Executes commands to lock/unlock ROM device
+**
+** \par Assumptions, Notes, and External Events:
+** We first must write a series of 8-bit values in sequence
+** to unlock/lock the BOOT ROM Write Protect. The first 
+** five writes in the sequence are executed, then the last remaining
+** write (handled by switch/case) will complete the sequence and
+** lock/unlock the BOOT ROM as intended. See attachment on
+** GWCFS-1226 Jira Story
+**
+** \param[in] uiCode - Code to indicate lock/unlock ROM1/2
+**
+** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
+** \return #CFE_PSP_ERROR - Unsuccessfully executed intended sequence
+*/
+static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
+{
+    int32 iReturnCode = CFE_PSP_ERROR;
+
+    *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x00000000;
+    *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x000000AA;
+    *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x00000055;
+    *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x00000080;
+    *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x000000A5;
+    
+    switch(uiCode)
+    {
+        case SP0_ROM1_CODE_LOCK:
+            *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM1_CODE_LOCK;
+            if (PSP_SP0_ROM1_Status() == true)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            break;
+        
+        case SP0_ROM1_CODE_UNLOCK:
+            *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM1_CODE_UNLOCK;
+            if (PSP_SP0_ROM1_Status() == false)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            break;
+
+        case SP0_ROM2_CODE_LOCK:
+            *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM2_CODE_LOCK;
+            if (PSP_SP0_ROM2_Status() == true)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            break;
+        
+        case SP0_ROM2_CODE_UNLOCK:
+            *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM2_CODE_UNLOCK;
+            if (PSP_SP0_ROM2_Status() == false)
+            {
+                iReturnCode = CFE_PSP_SUCCESS;
+            }
+            break;
+        
+        default:
+            /* Execute Reset */
+            *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x00000000;
+            break;
+    }
+
+    return iReturnCode;
+}
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM1_Status
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+bool PSP_SP0_ROM1_Status(void)
+{
+    return (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM1_MASK) >> SP0_ROM1_STATUS_SHIFT);
+}
+
+/**********************************************************
+ * 
+ * Function: PSP_SP0_ROM2_Status
+ * 
+ * Description: See function declaration for info
+ * 
+ *********************************************************/
+bool PSP_SP0_ROM2_Status(void)
+{
+    return (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
+}
+
+/**********************************************************
+ * 
+ * MATT TEST AREA
+ *      END
+ *
+ *********************************************************/

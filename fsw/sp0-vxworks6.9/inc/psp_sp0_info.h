@@ -179,6 +179,107 @@ int32 PSP_SP0_DumpData(void);
  */
 int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
 
+/*
+** \brief Lock ROM1
+**
+** \par Description:
+** Function that will unlock ROM1
+**
+** \par Assumptions, External Events, and Notes:
+** This function will still attempt to lock ROM1
+** even if it is currently locked
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32 PSP_SP0_ROM1_LOCK(void);
+
+/*
+** \brief Unlock ROM1
+**
+** \par Description:
+** Function that will unlock ROM1
+**
+** \par Assumptions, External Events, and Notes:
+** This function will still attempt to unlock ROM1
+** even if it is currently unlocked
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32 PSP_SP0_ROM1_UNLOCK(void);
+
+/*
+** \brief Lock ROM2
+**
+** \par Description:
+** Function that will unlock ROM2
+**
+** \par Assumptions, External Events, and Notes:
+** This function will still attempt to lock ROM2
+** even if it is currently locked
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32 PSP_SP0_ROM2_LOCK(void);
+
+/*
+** \brief Unlock ROM2
+**
+** \par Description:
+** Function that will unlock ROM2
+**
+** \par Assumptions, External Events, and Notes:
+** This function will still attempt to unlock ROM2
+** even if it is currently unlocked
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS
+** \return #CFE_PSP_ERROR
+*/
+int32 PSP_SP0_ROM2_UNLOCK(void);
+
+/*
+** \brief Get ROM1 Lock/Unlock Status
+**
+** \par Description:
+** Function will return LOCK/UNLOCK status of ROM1
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return false - ROM1 is UNLOCKED
+** \return true - ROM1 is LOCKED
+*/
+bool PSP_SP0_ROM1_Status(void);
+
+/*
+** \brief Get ROM2 Lock/Unlock Status
+**
+** \par Description:
+** Function will return LOCK/UNLOCK status of ROM2
+**
+** \par Assumptions, External Events, and Notes:
+** None
+**
+** \param None
+**
+** \return false - ROM2 is UNLOCKED
+** \return true - ROM2 is LOCKED
+*/
+bool PSP_SP0_ROM2_Status(void);
+
+
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */

@@ -34,6 +34,13 @@ void Ut_PSP_SP0_GetInfoTable(void);
 void Ut_PSP_SP0_PrintToBuffer(void);
 void Ut_PSP_SP0_DumpData(void);
 void Ut_PSP_SP0_GetDiskFreeSize(void);
+void Ut_PSP_SP0_ROM1_LOCK(void);
+void Ut_PSP_SP0_ROM1_UNLOCK(void);
+void Ut_PSP_SP0_ROM2_LOCK(void);
+void Ut_PSP_SP0_ROM2_UNLOCK(void);
+void Ut_PSP_SP0_ROMX_COMMAND(void);
+void Ut_PSP_SP0_ROM1_Status(void);
+void Ut_PSP_SP0_ROM2_Status(void);
 
 #endif  /* UT_PSP_SP0_INFO_TESTCASES_H */
 

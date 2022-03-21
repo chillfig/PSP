@@ -26,6 +26,10 @@
 #include "psp_sp0_info_testcases.h"
 #include "../src/cfe_psp_sp0_info.c"
 
+/**********************************************************
+ * PREPROCESSOR DIRECTIVES
+ *********************************************************/
+#define UT_SP0_PRINT_SCOPE "_PSP_SP0_"
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -637,6 +641,257 @@ void Ut_PSP_SP0_GetDiskFreeSize(void)
     return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_too_long);
     /* Verify outputs */
     UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 4/4: Path too long");
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROM1_LOCK(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM1_LOCK(void)
+{
+    /* Capture original ROM1 status */
+    bool bROM1Status = PSP_SP0_ROM1_Status();
+
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - LOCK ROM1 ----- */
+    /* Set additional inputs */
+    PSP_SP0_ROM1_UNLOCK();
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROM1_LOCK();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_LOCK - 1/1: LOCK ROM1 - return code");
+
+    /*
+    ** No matter what happens, 
+    ** attempt to restore original
+    ** ROM1 status
+    */
+    if (bROM1Status == true)
+    {
+        PSP_SP0_ROM1_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM1_UNLOCK();
+    }
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROM1_UNLOCK(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM1_UNLOCK(void)
+{
+    /* Capture original ROM1 status */
+    bool bROM1Status = PSP_SP0_ROM1_Status();
+
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - UNLOCK ROM1 ----- */
+    /* Set additional inputs */
+    PSP_SP0_ROM1_LOCK();
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROM1_UNLOCK();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_UNLOCK - 1/1: UNLOCK ROM1 - return code");
+
+    /*
+    ** No matter what happens, 
+    ** attempt to restore original
+    ** ROM1 status
+    */
+    if (bROM1Status == true)
+    {
+        PSP_SP0_ROM1_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM1_UNLOCK();
+    }
+}
+
+/**********************************************************
+ * void Ut_PSP_SP1_ROM2_LOCK(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM2_LOCK(void)
+{
+    /* Capture original ROM2 Status */
+    bool bROM2Status = PSP_SP0_ROM2_Status();
+
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - UNLOCK ROM2 ----- */
+    /* Set additional inputs */
+    PSP_SP0_ROM2_UNLOCK();
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROM2_LOCK();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_LOCK - 1/1: LOCK ROM2 - return code");
+
+    /*
+    ** No matter what happens,
+    ** attemt to restore original
+    ** ROM2 status
+    */
+    if (bROM2Status == true)
+    {
+        PSP_SP0_ROM2_LOCK();
+    }
+    else
+    {
+		PSP_SP0_ROM2_UNLOCK();
+    }
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROM2_UNLOCK(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM2_UNLOCK(void)
+{
+	/* Capture original ROM2 Status */
+	bool bROM2Status = PSP_SP0_ROM2_Status();
+
+	int32 iReturnCode = CFE_PSP_SUCCESS;
+    /* ----- Test case #1 - UNLOCK ROM1 ----- */
+    /* Set additional inputs */
+    PSP_SP0_ROM2_LOCK();
+	/* Execute test */
+	iReturnCode = PSP_SP0_ROM2_UNLOCK();
+    /* Verify results */
+	UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_UNLOCK - 1/1: UNLOCK ROM2 - return code");
+
+	/*
+	** No matter what happens,
+	** attempt to restore original
+	** ROM2 status
+	*/
+	if (bROM2Status == true)
+	{
+		PSP_SP0_ROM2_LOCK();
+	}
+	else
+	{
+		PSP_SP0_ROM2_UNLOCK();
+	}
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROMX_COMMAND(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROMX_COMMAND(void)
+{
+    /* Get current status */
+    bool bROM1Status = PSP_SP0_ROM1_Status();
+    bool bROM2Status = PSP_SP0_ROM2_Status();
+
+    int32_t iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - ROM1 LOCK ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM1_CODE_LOCK);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 1/5: ROM1 LOCK - return code");
+
+    /* ----- Test case #2 - ROM1 UNLOCK ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM1_CODE_UNLOCK);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 2/5: ROM1 UNLOCK - return code");
+
+    /* ----- Test case #3 - ROM2 LOCK ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM2_CODE_LOCK);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 3/5: ROM2 LOCK - return code");
+
+    /* ----- Test case #4 - ROM2 UNLOCK ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM2_CODE_UNLOCK);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 4/5: ROM2 UNLOCK - return code");
+
+    /*
+    ** Restore ROM1/2 Status
+    */
+    if (bROM1Status == true)
+    {
+        PSP_SP0_ROM1_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM1_UNLOCK();
+    }
+
+    if (bROM2Status == true)
+    {
+        PSP_SP0_ROM2_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM2_UNLOCK();
+    }
+
+    /* ----- Test case #5 - Hit Default case ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = PSP_SP0_ROMX_COMMAND((uint32_t) 0x00000000);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_SP0_PRINT_SCOPE "ROMX_COMMAND 5/5: Default switch case - return code");
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROM1_Status(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM1_Status(void)
+{
+    /* Get current status manually */
+    bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM1_MASK) >> SP0_ROM1_STATUS_SHIFT);
+
+    bool bReturnValue = false;
+    /* ----- Test case #1 - Get Status ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    bReturnValue = PSP_SP0_ROM1_Status();
+    /* Verify results */
+    UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM1 Status - return value");
+
+    if (bOriginalValue == true)
+    {
+        PSP_SP0_ROM1_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM1_UNLOCK();
+    }
+}
+
+/**********************************************************
+ * void Ut_PSP_SP0_ROM2_Status(void) test cases
+ *********************************************************/
+void Ut_PSP_SP0_ROM2_Status(void)
+{
+    /* Get current status manually */
+    bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
+
+    bool bReturnValue = false;
+    /* ----- Test case #1 - Get Status ----- */
+    /* Set additional inputs */
+    /* Execute test */
+    bReturnValue = PSP_SP0_ROM2_Status();
+    /* Verify results */
+    UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM2 Status - return value");
+
+    if (bOriginalValue == true)
+    {
+        PSP_SP0_ROM2_LOCK();
+    }
+    else
+    {
+        PSP_SP0_ROM2_UNLOCK();
+    }
 }
 
 /*=======================================================================================
