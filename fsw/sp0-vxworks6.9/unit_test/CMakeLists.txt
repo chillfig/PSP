@@ -65,7 +65,7 @@ endif()
 ### ### ###
 
 # Source for this app's UT executable
-aux_source_directory(${IMPL_DIR}/ut_stubs UT_SRCS)
+aux_source_directory(ut_stubs UT_SRCS)
 
 add_executable(${UT_NAME}_ut ${UT_SRCS})
 
@@ -85,7 +85,7 @@ include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
 include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
 
-include_directories(${IMPL_DIR}/ut_stubs)
+include_directories(${IMPL_DIR}/unit_test/ut_stubs)
 include_directories(${IMPL_DIR}/unit_test)
 include_directories(${MISSION_SOURCE_DIR}/cfe/modules/core_api/fsw/inc/)
 

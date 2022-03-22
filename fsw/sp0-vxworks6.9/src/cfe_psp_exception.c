@@ -472,9 +472,6 @@ void CFE_PSP_AttachExceptions(void)
  *********************************************************/
 void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
-    uint32  uiAfter_spefscr = 0;
-    uint32  uiAfter_msr = 0;
-
     /*
     References:
     /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/archPpc.h
@@ -504,11 +501,6 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
                  /* Embedded floating-point underflow exception enable */
                  _PPC_SPEFSCR_FUNFE
     );
-
-    uiAfter_spefscr = vxSpefscrGet();
-    uiAfter_msr = vxMsrGet();
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "vxSpefscrGet = [0x%08X]\n", uiAfter_spefscr);
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "vxMsrGet = [0x%08X]\n", uiAfter_msr);
 }
 
 /**********************************************************

@@ -67,34 +67,54 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME} INTERFACE
     fsw/inc
 )
 
-# Figure out if the compiler is for a real target
-set(RUN_ON_TARGET 0)
-string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
-
 if (ENABLE_UNIT_TESTS)
     set(PSP_UT_PRE "PSP UT: ")
-    if (RUN_ON_TARGET GREATER 0)
-      # Prepare for Unit Test on Target
-      message(${PSP_UT_PRE} "Preparing for Unit Test on SP0 with Code Coverage")
-      set(CODE_COVERAGE TRUE)
-      add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/unit_test)
-    else(RUN_ON_TARGET GREATER 0)
-      # Prepare for Unit Test on Linux (This is maintained by Github upstream PSP)
-      message(${PSP_UT_PRE} "Preparing for Unit Test on Linux")
-      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
-      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+
+    # Figure out if the compiler is for a real target
+    set(RUN_ON_TARGET 0)
+    string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
+
+    if(RUN_ON_TARGET GREATER 0)
+        # ---- Run Unit Tests on Target -----
+
+        # Check that the UT implementation for the specific Platform exists
+        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fsw/${CFE_PSP_TARGETNAME}/unit_test/CMakeLists.txt)
+            # Prepare for Unit Test on Target
+            message(${PSP_UT_PRE} "Preparing for Unit Test on SP0 with Code Coverage")
+            set(CODE_COVERAGE TRUE)
+            add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/unit_test)
+        else()
+            message("NOT FOUND")
+        endif()        
+    
+    else()
+        # ---- Run Unit Tests on Linux -----
+
+        # Prepare for Unit Test on Linux (This is maintained by Github upstream PSP)
+        if ("${CFE_SYSTEM_PSPNAME}" STREQUAL "pc-linux")
+            # Prepare for Unit Test on Linux
+            message(${PSP_UT_PRE} "Preparing for Unit Test on Linux")
+            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
+            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+        endif()
+
     endif(RUN_ON_TARGET GREATER 0)
+
 endif (ENABLE_UNIT_TESTS)
 
+# Get Functional Test environment variable
 set(ENABLE_FUNCTIONAL_TESTS $ENV{ENABLE_FUNCTIONAL_TESTS} CACHE BOOL "Enable build of functional tests")
+
 if (ENABLE_FUNCTIONAL_TESTS)
     set(PSP_UT_PRE "PSP FT: ")
-    if (RUN_ON_TARGET GREATER 0)
+
+    # If we are running Unit Test for SP0, assume it is on target.
+    if ("${CFE_SYSTEM_PSPNAME}" STREQUAL "sp0-vxworks6.9")
         # Prepare for Functional Test on Target
         message("Preparing for PSP Functional Test")
         add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/functional_test)
-    else(RUN_ON_TARGET GREATER 0)
+    else()
         # Prepare for Functional Test on Linux
         message(${PSP_UT_PRE} "Functional Test on Linux is not implemented!")
-    endif(RUN_ON_TARGET GREATER 0)
+    endif()
 endif (ENABLE_FUNCTIONAL_TESTS)

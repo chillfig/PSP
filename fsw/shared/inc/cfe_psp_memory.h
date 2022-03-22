@@ -173,192 +173,192 @@ int32  CFE_PSP_InitProcessorReservedMemory(uint32 RestartType);
  */
 void CFE_PSP_DeleteProcessorReservedMemory(void);
 
-/*
-** \func Get the size of the RESET memory area
-**
-** \par Description:
-** This function fetches the size of the RESET memory area.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] size - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
+/**
+ ** \func Get the size of the RESET memory area
+ **
+ ** \par Description:
+ ** This function fetches the size of the RESET memory area.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] size - Pointer to the variable that stores the returned memory size
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_ERROR;
+ */
 int32 CFE_PSP_GetRESETSize(uint32 *size);
 
-/*
-** \func Write to the RESET memory area
-**
-** \par Description:
-** This function write the specified data to the specified memory area of the RESET.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] p_data - Pointer to the data buffer to be written
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be written
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Write to the RESET memory area
+ **
+ ** \par Description:
+ ** This function write the specified data to the specified memory area of the RESET.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] p_data - Pointer to the data buffer to be written
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be written
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Read from the RESET memory area
-**
-** \par Description:
-** Read the specified data from the specified memory area of the RESET.
-** 
-** \par Assumptions, External Events, and Notes:
-** Assume that data read here is correct
-**
-** \param[in] p_data - Pointer to store read data
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be read
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Read from the RESET memory area
+ **
+ ** \par Description:
+ ** Read the specified data from the specified memory area of the RESET.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** Assume that data read here is correct
+ **
+ ** \param[in] p_data - Pointer to store read data
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be read
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_ReadFromRESET(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Get the size of the VOLATILEDISK memory area
-**
-** \par Description:
-** This function fetches the size of the VOLATILEDISK memory area.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] size - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
+/**
+ ** \func Get the size of the VOLATILEDISK memory area
+ **
+ ** \par Description:
+ ** This function fetches the size of the VOLATILEDISK memory area.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] size - Pointer to the variable that stores the returned memory size
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_ERROR;
+ */
 int32 CFE_PSP_GetVOLATILEDISKSize(uint32 *size);
 
-/*
-** \func Write to the VOLATILEDISK memory area
-**
-** \par Description:
-** This function write the specified data to the specified memory area of the VOLATILEDISK.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] p_data - Pointer to the data buffer to be written
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be written
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Write to the VOLATILEDISK memory area
+ **
+ ** \par Description:
+ ** This function write the specified data to the specified memory area of the VOLATILEDISK.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] p_data - Pointer to the data buffer to be written
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be written
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Read from the VOLATILEDISK memory area
-**
-** \par Description:
-** Read the specified data from the specified memory area of the VOLATILEDISK.
-** 
-** \par Assumptions, External Events, and Notes:
-** Assume that data read here is correct
-**
-** \param[in] p_data - Pointer to store read data
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be read
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Read from the VOLATILEDISK memory area
+ **
+ ** \par Description:
+ ** Read the specified data from the specified memory area of the VOLATILEDISK.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** Assume that data read here is correct
+ **
+ ** \param[in] p_data - Pointer to store read data
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be read
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Get the size of the USERRESERVED memory area
-**
-** \par Description:
-** This function fetches the size of the USERRESERVED memory area.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] size - Pointer to the variable that stores the returned memory size
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
+/**
+ ** \func Get the size of the USERRESERVED memory area
+ **
+ ** \par Description:
+ ** This function fetches the size of the USERRESERVED memory area.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] size - Pointer to the variable that stores the returned memory size
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_ERROR;
+ */
 int32 CFE_PSP_GetUSERRESERVEDSize(uint32 *size);
 
-/*
-** \func Write to the USERRESERVED memory area
-**
-** \par Description:
-** This function write the specified data to the specified memory area of the USERRESERVED.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] p_data - Pointer to the data buffer to be written
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be written
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Write to the USERRESERVED memory area
+ **
+ ** \par Description:
+ ** This function write the specified data to the specified memory area of the USERRESERVED.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] p_data - Pointer to the data buffer to be written
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be written
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Read from the USERRESERVED memory area
-**
-** \par Description:
-** Read the specified data from the specified memory area of the USERRESERVED.
-** 
-** \par Assumptions, External Events, and Notes:
-** Assume that data read here is correct
-**
-** \param[in] p_data - Pointer to store read data
-** \param[in] offset - Memory offset from the beginning of the memory block
-** \param[in] size - Number of bytes to be read
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_INVALID_MEM_RANGE
-*/
+/**
+ ** \func Read from the USERRESERVED memory area
+ **
+ ** \par Description:
+ ** Read the specified data from the specified memory area of the USERRESERVED.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** Assume that data read here is correct
+ **
+ ** \param[in] p_data - Pointer to store read data
+ ** \param[in] offset - Memory offset from the beginning of the memory block
+ ** \param[in] size - Number of bytes to be read
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_INVALID_MEM_RANGE
+ */
 int32 CFE_PSP_MEMORY_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
 
-/*
-** \func Get pointer ot the CDS memory area
-**
-** \par Description:
-** This function fetches the area of the CDS memory
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_area - Pointer to the variable that stores returned memory address
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR;
-*/
+/**
+ ** \func Get pointer ot the CDS memory area
+ **
+ ** \par Description:
+ ** This function fetches the area of the CDS memory
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] p_area - Pointer to the variable that stores returned memory address
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_POINTER
+ ** \return #CFE_PSP_ERROR;
+ */
 int32 CFE_PSP_GetCDSArea(cpuaddr *p_area, uint32 *p_size);
 
 /*

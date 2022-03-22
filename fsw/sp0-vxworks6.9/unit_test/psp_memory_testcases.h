@@ -71,6 +71,8 @@ void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void);
 void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void);
 void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void);
 void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void);
+void Ut_CFE_PSP_MEMORY_CheckURMFilesExists(void);
+void Ut_CFE_PSP_MEMORY_FlushToFLASH(void);
 
 #endif  /* UT_PSP_MEMORY_TESTCASES_H */
 /*=======================================================================================

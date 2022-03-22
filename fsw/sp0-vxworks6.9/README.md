@@ -298,6 +298,8 @@ Kernel must include the following services:
   - CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH
   - CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH
   - CFE_PSP_MEMORY_SYNC_GenerateFilepath
+  - CFE_PSP_MEMORY_FlushToFLASH
+  - CFE_PSP_MEMORY_CheckURMFilesExists
 
 - Static Variables
   - g_ReservedMemBlock

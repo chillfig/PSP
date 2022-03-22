@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <target_config.h>
-#include <fcntl.h>
+#include <ioLib.h>
 
 #include "uttest.h"
 #include "utstubs.h"
@@ -44,23 +44,35 @@ extern int tempSensorRead (int8 sensor, uint8 dataType, float *temperature, bool
 **=======================================================================================*/
 void Ut_CFE_PSP_Main(void)
 {
-    /* ----- Test case #1: - Nominal ----- */
+    /* ----- Test case #1: - Previous instance of CFS found ----- */
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), 10);
+    /* Execute test */
+    CFE_PSP_Main();
+    /* Verify results */
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 0);
+    UtAssert_NA("_CFE_PSP_Main - 1/3: Found previous instance of CFS");
+
+    /* ----- Test case #2: - OS_BSPMain returns error ----- */
+    UT_ResetState(0);
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), TASK_ID_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_ERROR);
+    /* Execute test */
+    CFE_PSP_Main();
+    /* Verify results */
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
+    UtAssert_NA("_CFE_PSP_Main - 2/3: OS_BSPMain returned error");
+
+    /* ----- Test case #3: - Nominal ----- */
+    UT_ResetState(0);
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_SUCCESS);
-
+    /* Execute test */
     CFE_PSP_Main();
-
     /* Verify results */
-    UtAssert_NA("_CFE_PSP_Main - 1/1: Nominal, OS_BSPMain return success");
-
-    /* ----- Test case #1: - Nominal ----- */
-    /* Set additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_ERROR);
-
-    CFE_PSP_Main();
-
-    /* Verify results */
-    UtAssert_NA("_CFE_PSP_Main - 1/1: Nominal, OS_BSPMain returned error");
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
+    UtAssert_NA("_CFE_PSP_Main - 3/3: Nominal, OS_BSPMain success");
 }
 
 /*=======================================================================================
@@ -124,86 +136,108 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* ----- Test case #1 - Nominal Power Switch ON ----- */
     /* Setup additional inputs */
     uiResetSrc = RESET_SRC_POR;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: POWERON Reset: Power Switch ON.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg,  "_ProcessResetType() - 1/8:Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(retCode == RESET_SRC_POR, "_ProcessResetType() - 1/8:Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 1/8:Nominal - POWERON Reset: Power Switch ON, correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_ProcessResetType() - 1/8:Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
+    UtAssert_OS_print(cMsg,  "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(retCode == RESET_SRC_POR, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
 
-    /* ----- Test case #2 - Nominal External FPGA Watchdog timer primary EEPROM boot failure. ----- */
+    /* ----- Test case #2 - Nominal Power Switch ON ----- */
+    /* Setup additional inputs */
+    uiResetSrc = RESET_SRC_POR;
+    UT_SetDefaultReturnValue(UT_KEY(open), 10);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+    sprintf(cMsg, "PSP: POWERON Reset: Power Switch ON.\n");
+    /* Execute test */
+    retCode = CFE_PSP_ProcessResetType();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg,  "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(retCode == RESET_SRC_POR, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_PROCESSOR, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
+
+    /* ----- Test case #3 - Nominal External FPGA Watchdog timer primary EEPROM boot failure. ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     sprintf(cMsg, "PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
-    uiResetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_WDT;
+    uiResetSrc = RESET_SRC_WDT;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 2/8:Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
-    UtAssert_True(retCode == RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_WDT, "_ProcessResetType() - 2/8:Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 2/8:Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct Reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 2/8:Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
+    UtAssert_True(retCode == RESET_SRC_WDT, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct Reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct reset subtype");
 
-    /* ----- Test case #3 - Nominal Internal FPGA Watchdog timer application SW failure. ----- */
+    /* ----- Test case #4 - Nominal Internal FPGA Watchdog timer application SW failure. ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    uiResetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_FWDT;
+    uiResetSrc = RESET_SRC_FWDT;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 3/8:Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
-    UtAssert_True(retCode == RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_FWDT, "_ProcessResetType() - 3/8:Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 3/8:Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 3/8:Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
+    UtAssert_True(retCode == RESET_SRC_FWDT, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset subtype");
 
-    /* ----- Test case #4 - Nominal cPCI Reset initiated by FPGA from remote SBC. ----- */
+    /* ----- Test case #5 - Nominal cPCI Reset initiated by FPGA from remote SBC. ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    uiResetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_CPCI;
+    uiResetSrc = RESET_SRC_CPCI;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 4/8: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
-    UtAssert_True(retCode == RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_CPCI, "_ProcessResetType() - 4/8: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 4/8: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 4/8: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
+    UtAssert_True(retCode == RESET_SRC_CPCI, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset subtype");
 
-    /* ----- Test case #5 - Nominal Software Hard Reset ----- */
+    /* ----- Test case #6 - Nominal Software Hard Reset ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    uiResetSrc = RESET_SRC_POR | RESET_SRC_SWR;
+    uiResetSrc = RESET_SRC_SWR;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: POWERON Reset: Software Hard Reset.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 5/8: Nominal - POWERON Reset: Software Hard Reset");
-    UtAssert_True(retCode == RESET_SRC_POR | RESET_SRC_SWR, "_ProcessResetType() - 5/8: Nominal - POWERON Reset: Software Hard Reset");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 5/8: Nominal - POWERON Reset: Software Hard Reset. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 5/8: Nominal - POWERON Reset: Software Hard Reset. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset");
+    UtAssert_True(retCode == RESET_SRC_SWR, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset. Correct reset subtype");
 
-    /* ----- Test case #6 - Failed to read safemode data ----- */
+    /* ----- Test case #7 - Failed to read safemode data ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    uiResetSrc = RESET_SRC_POR | RESET_SRC_SWR;
+    uiResetSrc = RESET_SRC_SWR;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     UT_SetDeferredRetcode(UT_KEY(ReadSafeModeUserData), 1, OS_ERROR);
@@ -211,43 +245,45 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 6/8: Failed to read safemode data");
-    UtAssert_True(retCode == RESET_SRC_POR | RESET_SRC_SWR, "_ProcessResetType() - 6/8: POWERON Reset: Software Hard Reset");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 6/8: POWERON 8Reset: Software Hard Reset. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 6/8: POWERON Reset: Software Hard Reset. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 7/9: Failed to read safemode data");
+    UtAssert_True(retCode == RESET_SRC_SWR, "_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 7/9: POWERON 8Reset: Software Hard Reset. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset. Correct reset subtype");
 
-    /* ----- Test case #7 - POWERON Resest: UNKNOWN Reset ----- */
+    /* ----- Test case #8 - POWERON Resest: UNKNOWN Reset ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     /* Some other, not listed reset code */
     uiResetSrc = 0x0;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: POWERON Reset: UNKNOWN Reset.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 7/8: Unknown reset type");
-    UtAssert_True(retCode == 0x0, "_ProcessResetType() - 7/8: Unknown reset type");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 7/8: Unknown reset type. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 7/8: Unknown reset type. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 8/9: Unknown reset type");
+    UtAssert_True(retCode == 0x0, "_ProcessResetType() - 8/9: Unknown reset type");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 8/9: Unknown reset type. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 8/9: Unknown reset type. Correct reset subtype");
 
-    /* ----- Test case #8 - UNKNOWN Reset. Reset source read failed. ----- */
+    /* ----- Test case #9 - UNKNOWN Reset. Reset source read failed. ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     uiResetSrc = 0;
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_ERROR);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
     sprintf(cMsg, "PSP: POWERON Reset: UNKNOWN Reset. Reset source read failed.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 8/9: UNKNOWN Reset. Reset source read failed.");
-    UtAssert_True(retCode == 0, "_ProcessResetType() - 8/9: UNKNOWN Reset. Reset source read failed.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 8/9: UNKNOWN Reset. Reset source read failed. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 8/9: UNKNOWN Reset. Reset source read failed. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
+    UtAssert_True(retCode == 0, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset subtype");
 }
 
 /*=======================================================================================
@@ -282,14 +318,14 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     UtAssert_NoOS_print("PSP: MCHK_L1_ICHERR  =      (0x01) L1 instruction cache error\n", 
                         "_CFE_PSP_LogSoftwareResetType - 1/7:Nominal - No check for g_StartupInfo.safeModeUserData.mckCause");
 
-    /* ----- Test case #2 - Nominal POR SWR WDT. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
+    /* ----- Test case #2 - Nominal WDT. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    resetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_WDT;
+    resetSrc = RESET_SRC_WDT;
     g_StartupInfo.safeModeUserData.sbc = SM_REMOTE_SBC;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR SWR WDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: PROCESSOR rst Source = 0x%x = (WDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -298,17 +334,17 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     /* Execute test */
     CFE_PSP_LogSoftwareResetType(resetSrc);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 2/7:Nominal - POR SWR WDT");
-    UtAssert_OS_print(cMsg_mkcause,
-                      "_CFE_PSP_LogSoftwareResetType - 2/7:Nominal - Check for g_StartupInfo.safeModeUserData.mckCause");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 2/7:Nominal - WDT");
+    UtAssert_NoOS_print(cMsg_mkcause,
+                      "_CFE_PSP_LogSoftwareResetType - 2/7:Nominal - No check for g_StartupInfo.safeModeUserData.mckCause");
 
-    /* ----- Test case #3 - Nominal POR SWR FWDT. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
+    /* ----- Test case #3 - Nominal FWDT. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    resetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_FWDT;
+    resetSrc = RESET_SRC_FWDT;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR SWR FWDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: PROCESSOR rst Source = 0x%x = (FWDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -317,16 +353,16 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     /* Execute test */
     CFE_PSP_LogSoftwareResetType(resetSrc);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 3/7:Nominal - POR SWR FWDT");
-    UtAssert_OS_print(cMsg_mkcause, "_CFE_PSP_LogSoftwareResetType - 3/7:Nominal - Check for g_StartupInfo.safeModeUserData.mckCause");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 3/7:Nominal - FWDT");
+    UtAssert_NoOS_print(cMsg_mkcause, "_CFE_PSP_LogSoftwareResetType - 3/7:Nominal - No check for g_StartupInfo.safeModeUserData.mckCause");
 
-    /* ----- Test case #4 - Nominal POR SWR CPCI. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
+    /* ----- Test case #4 - Nominal CPCI. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    resetSrc = RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_CPCI;
+    resetSrc = RESET_SRC_CPCI;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR SWR CPCI) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: PROCESSOR rst Source = 0x%x = (CPCI) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -335,17 +371,17 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     /* Execute test */
     CFE_PSP_LogSoftwareResetType(resetSrc);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 4/7:Nominal - POR SWR CPCI");
-    UtAssert_OS_print(cMsg_mkcause, "_CFE_PSP_LogSoftwareResetType - 6/7:Nominal - Check for g_StartupInfo.safeModeUserData.mckCause");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 4/7:Nominal - CPCI");
+    UtAssert_NoOS_print(cMsg_mkcause, "_CFE_PSP_LogSoftwareResetType - 4/7:Nominal - No check for g_StartupInfo.safeModeUserData.mckCause");
 
-    /* ----- Test case #5 - Nominal POR SWR. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
+    /* ----- Test case #5 - Nominal SWR. Check for g_StartupInfo.safeModeUserData.mckCause ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    resetSrc = RESET_SRC_POR | RESET_SRC_SWR;
+    resetSrc = RESET_SRC_SWR;
     g_StartupInfo.safeModeUserData.mckCause = 1U;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: PROCESSOR rst Source = 0x%x = (SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -354,7 +390,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     /* Execute test */
     CFE_PSP_LogSoftwareResetType(resetSrc);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 5/7:Nominal - POR SWR");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_LogSoftwareResetType - 5/7:Nominal - SWR");
     UtAssert_OS_print(cMsg_mkcause, "_CFE_PSP_LogSoftwareResetType - 5/7:Nominal - Check for g_StartupInfo.safeModeUserData.mckCause");
 
     /* ----- Test case #6 - Nominal default to POR. No check for g_StartupInfo.safeModeUserData.mckCause ----- */
@@ -435,6 +471,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not open `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
@@ -454,6 +494,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(lseek), -1);
     UT_SetDefaultReturnValue(UT_KEY(close), -1);
     UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
     /* Verify outputs */
@@ -476,6 +520,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
     UT_SetDefaultReturnValue(UT_KEY(close), 0);
     UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
     /* Verify outputs */
@@ -496,6 +544,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(write), -1);
     UT_SetDefaultReturnValue(UT_KEY(close), 0);
     UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
     /* Verify outputs */
@@ -519,6 +571,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
     UT_SetDefaultReturnValue(UT_KEY(close), 0);
     UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
     /* Verify outputs */
@@ -540,6 +596,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
     UT_SetDefaultReturnValue(UT_KEY(close), 0);
     UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(0);
     /* Verify outputs */
@@ -633,39 +693,42 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(memchr), 6);
     UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/3: Output buffer nominal");
     UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal no Messages");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #2 - Bad memory range ----- */
+    /* ----- Test case #2 - Variable is not a string ----- */
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(memchr), 0);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    sprintf(cMsg, "PSP: Error, address does not pass validation. Code [%d]\n", CFE_PSP_ERROR);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 2/3: Bad memory range Message");
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/3: Output buffer nominal");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Messages");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #2 - Bad memory range ----- */
+    /* ----- Test case #3 - Bad memory range ----- */
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    sprintf(cMsg, "PSP: Warning, kernel does not support reading the currently active CFS flash partition\n");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 3/3: Using fallback filepath Message");
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/3: Output buffer nominal");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 3/3: Nominal no Messages");
 }
 
 /*=======================================================================================
@@ -820,6 +883,9 @@ void Ut_OS_Application_Startup(void)
     g_StartupInfo.uMaxWaitTime_sec = 10;
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerDelete), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
+
+    /* For CFE_PSP_Reset */
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */

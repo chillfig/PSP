@@ -2575,6 +2575,54 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 5/5: Success - return code");
 }
 
+void Ut_CFE_PSP_MEMORY_CheckURMFilesExists(void)
+{
+    int32 iReturnCode = OS_SUCCESS;
+
+    /* ----- Test case #1 - File does not exists ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_CheckURMFilesExists();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE " - 1/2: File does not exist return code");
+
+    /* ----- Test case #2 - File does exist ----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    /* Execute test */
+    iReturnCode = CFE_PSP_MEMORY_CheckURMFilesExists();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE " - 2/2: File does exist return code");
+}
+
+void Ut_CFE_PSP_MEMORY_FlushToFLASH(void)
+{
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 0;
+    
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = 0;
+
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = 0;
+
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = 0;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Additional inputs */
+    UT_ResetState(0);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    /* Execute test */
+    CFE_PSP_MEMORY_FlushToFLASH();
+    /* Verify results */
+    UtAssert_STUB_COUNT(open, 0);
+    UtAssert_STUB_COUNT(OS_BinSemTake, 0);
+}
+
 /*=======================================================================================
 ** End of file psp_memory_testcases.c
 **=======================================================================================*/

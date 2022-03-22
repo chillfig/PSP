@@ -145,13 +145,13 @@ extern "C" {
  */
 #define CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH             6
 
-/*
-** \brief Maximum length of full filepath
-**
-** \par Limits:
-** this value should be kept high enough to accomodate active partition
-** name, reserved memory direction, and file name
-*/
+/**
+ ** \brief Maximum length of full filepath
+ **
+ ** \par Limits:
+ ** this value should be kept high enough to accomodate active partition
+ ** name, reserved memory direction, and file name
+ */
 #define CFE_PSP_FILEPATH_MAX_LENGTH                     CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 26
 
 /**
@@ -505,31 +505,31 @@ typedef struct
 /** \name Memory Scrubbing Configuration Parameters */
 /** \{ */
 
-/*
-** \brief Memory Scrub Default Start Address
-**
-** \par Description:
-** Default, configurable memory scrub start address
-**
-** \par Assumptions, External Events, and Notes:
-** Value must be set to a valid address. This will not be checked when
-** starting memory scrub task. Set to (-1) to allow program to 
-** use general start address.
-*/
+/**
+ ** \brief Memory Scrub Default Start Address
+ **
+ ** \par Description:
+ ** Default, configurable memory scrub start address
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Value must be set to a valid address. This will not be checked when
+ ** starting memory scrub task. Set to (-1) to allow program to 
+ ** use general start address.
+ */
 #define MEM_SCRUB_DEFAULT_START_ADDR        (-1)
 
-/*
-** \brief Memory Scrub Default End Address
-**
-** \par Description:
-** Default, configurable memory scrub end address
-**
-** \par Assumptions, External Events, and Notes:
-** Value must be set to a valid address, in relation to physical
-** end of RAM and configured start address. This will not be checked when
-** starting memory scrub task. Set to (-1) to allow program to 
-** use general start address (physical end of RAM).
-*/
+/**
+ ** \brief Memory Scrub Default End Address
+ **
+ ** \par Description:
+ ** Default, configurable memory scrub end address
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Value must be set to a valid address, in relation to physical
+ ** end of RAM and configured start address. This will not be checked when
+ ** starting memory scrub task. Set to (-1) to allow program to 
+ ** use general start address (physical end of RAM).
+ */
 #define MEM_SCRUB_DEFAULT_END_ADDR          (-1)
 
 /**

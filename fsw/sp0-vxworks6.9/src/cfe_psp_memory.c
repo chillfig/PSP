@@ -34,7 +34,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <ioLib.h>
 #include <userReservedMem.h>
 
 /*
@@ -278,6 +278,8 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     int32     iCDSFd = -1;
     ssize_t   readBytes = 0;  
     int32     iStatus = 0;
+
+    uint32    uiBlockCRC = 0;
     
     /* 
     ** Returns the address and size of the user-reserved region
@@ -298,69 +300,14 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                   (unsigned long)reserve_memory_size);
         iReturnCode = CFE_PSP_ERROR;
     }
-
-    /*
-    ** Depending on the restart type, the User Reserved Memory is recovered or deleted
-    ** from FLASH memory.
-    **
-    ** IF   the restart type is CFE_PSP_RST_TYPE_POWERON, erase all User Reserved Memory
-    ** ELSE recover user reserved memory from FLASH
-    */
-
     /*
     ** If any of the below fail, we can restart. But if the above
     ** fail, we need to have some sort of more meaningful return code
     ** and not restart as it is likely a configuration failure
     */
-    else if (RestartType == CFE_PSP_RST_TYPE_POWERON)
+    if (iReturnCode != CFE_PSP_ERROR)
     {
         /*
-        ** POWERON RESET Detected
-        ** 
-        ** Erase all user reserved memory.
-        ** Clear from RAM, FLASH
-        */
-
-        /* Clear EDR data in EEPROM */
-        CFE_PSP_ClearNVRAM();
-
-        memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
-                0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
-                                    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize,
-                                    g_RESETFilepath);
-
-        /* CDS MEMORY */
-        memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
-                0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
-                                    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
-                                    g_CDSFilepath);
-
-        /* VOLATILE DISK MEMORY */
-        memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
-                0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
-        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
-                                    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
-                                    g_VOLATILEDISKFilepath);
-
-        /* USER RESERVERED MEMORY */
-        memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
-                0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
-                                    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
-                                    g_USERRESERVEDFilepath);
-
-        /*
-        ** Set the default reset type in case a watchdog reset occurs
-        */
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
-    }
-    else if (RestartType == CFE_PSP_RST_TYPE_PROCESSOR)
-    {
-        /*
-        ** PROCESSOR RESET Detected
-        ** 
         ** Volatile disk, Critical Data Store and User Reserved
         ** memory could still be valid
         **
@@ -375,11 +322,16 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         }
 
         /* RESET MEMORY - Not sure if still valid */
-        memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
-                0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-        CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
-                                    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
-                                    g_RESETFilepath);
+        iStatus = CFE_PSP_MEMORY_RestoreRESET();
+
+        if (iStatus != CFE_PSP_SUCCESS)
+        {
+            memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                    0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+                                        CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
+                                        g_RESETFilepath);
+        }
 
         /* CDS MEMORY */
         iStatus = CFE_PSP_MEMORY_RestoreCDS();
@@ -421,7 +373,78 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         }
     }
 
-   return(iReturnCode);
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
+
+    return(iReturnCode);
+}
+
+/**
+ ** \brief Check that if the User Reserved Memory file exists
+ **
+ ** \par Description:
+ ** This function will check if the user reserved memory file exits in the path
+ ** constructed.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Checking only for a single file, not all 4. Deleting the Reset file will
+ ** produce a POWERON restart type.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS - When the file does exist
+ ** \return #CFE_PSP_ERROR - When the file does not exist
+ */
+int32 CFE_PSP_MEMORY_CheckURMFilesExists(void)
+{
+    int32   iReturnCode = CFE_PSP_SUCCESS;
+    int     iFD = -1;
+
+    iFD = open(g_RESETFilepath, O_RDONLY, 0);
+    if (iFD < 0)
+    {
+        iReturnCode = CFE_PSP_ERROR;
+    }
+    else
+    {
+        close(iFD);
+    }
+
+    return iReturnCode;
+}
+
+/**
+ ** \brief Flush the User Reserved Memory to its filepath
+ **
+ ** \par Description:
+ ** This function will perform a flush of all the data from User Reserved Memory
+ ** to their respective filenames in Flash memory
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Function is supposed to be called right before target restart
+ **
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_MEMORY_FlushToFLASH(void)
+{
+    CFE_PSP_MEMORY_SYNC_Stop();
+
+    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+                                CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
+                                g_RESETFilepath);
+
+    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                            CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
+                            g_CDSFilepath);
+
+    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                            CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
+                            g_VOLATILEDISKFilepath);
+
+    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                        CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
+                        g_USERRESERVEDFilepath);
 }
 
 /**********************************************************
@@ -635,7 +658,7 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
 {
     /*
     ** NOTE: We don't actually have a way to 'de allocate' our allocated
-    ** memory via kernel fucntion call
+    ** memory via kernel function call
     **
     ** Just FLUSH and delete, but hold onto block Ptr.
     */
@@ -838,20 +861,20 @@ int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size
     return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_RESET);
 }
 
-/*
-** \brief Restore RESET data from FLASH
-**
-** \par Description:
-** Restore RESET data from FLASH
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Restore RESET data from FLASH
+ **
+ ** \par Description:
+ ** Restore RESET data from FLASH
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_RestoreRESET()
 {
     return CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
@@ -938,20 +961,20 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
     return iReturnCode;
 }
 
-/*
-** \brief Restore CDS data from FLASH
-**
-** \par Description:
-** Restore CDS data from FLASH (read)
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Restore CDS data from FLASH
+ **
+ ** \par Description:
+ ** Restore CDS data from FLASH (read)
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_RestoreCDS()
 {
     return CFE_PSP_MEMORY_RestoreDATA(OP_CDS);
@@ -1020,20 +1043,20 @@ int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint
     return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_VOLATILEDISK);
 }
 
-/*
-** \brief Restore volatile disk data from FLASH
-**
-** \par Description:
-** Restore volatile disk data from FLASH (read)
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Restore volatile disk data from FLASH
+ **
+ ** \par Description:
+ ** Restore volatile disk data from FLASH (read)
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK()
 {
     return CFE_PSP_MEMORY_RestoreDATA(OP_VOLATILEDISK);
@@ -1102,20 +1125,20 @@ int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint
     return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_USERRESERVED);
 }
 
-/*
-** \brief Restore user reserved data from FLASH
-**
-** \par Description:
-** Restore user reserved data from FLASH (read)
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Restore user reserved data from FLASH
+ **
+ ** \par Description:
+ ** Restore user reserved data from FLASH (read)
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED()
 {
     return CFE_PSP_MEMORY_RestoreDATA(OP_USERRESERVED);
@@ -1127,22 +1150,22 @@ static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED()
  * 
  **********************************************************/
 
-/*
-** \brief Get reserved memory size
-**
-** \par Description:
-** Get reserved memory area size
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_size - Size of data
-** \param[in] op - Reserved memory section option
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Get reserved memory size
+ **
+ ** \par Description:
+ ** Get reserved memory area size
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] p_size - Size of data
+ ** \param[in] op - Reserved memory section option
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
@@ -1183,23 +1206,23 @@ static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op)
     return iReturnCode;
 }
 
-/*
-** \brief Get reserved memory area
-**
-** \par Description:
-** Get reserved memory area size and pointer
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_area - Data pointer
-** \param[out] p_size - Size of data
-** \param[in] op - Reserved memory section option
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Get reserved memory area
+ **
+ ** \par Description:
+ ** Get reserved memory area size and pointer
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] p_area - Data pointer
+ ** \param[out] p_size - Size of data
+ ** \param[in] op - Reserved memory section option
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEMORY_SECTION op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
@@ -1245,25 +1268,25 @@ static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEM
     return iReturnCode;
 }
 
-/*
-** \brief Read data from RAM
-**
-** \par Description:
-** Read data to a specific reserved memory section
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[out] p_data - Data buffer to receive data read from RAM
-** \param[in] offset - Data offset for read location
-** \param[in] size - Size of data read
-** \param[in] op - Reserved memory section option
-**
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Read data from RAM
+ **
+ ** \par Description:
+ ** Read data to a specific reserved memory section
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[out] p_data - Data buffer to receive data read from RAM
+ ** \param[in] offset - Data offset for read location
+ ** \param[in] size - Size of data read
+ ** \param[in] op - Reserved memory section option
+ **
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
 {
     uint8                   *pCopyPtr       = NULL;
@@ -1331,25 +1354,25 @@ static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint3
     return iReturnCode;
 }
 
-/*
-** \brief Write data to RAM
-**
-** \par Description:
-** Write data to a specific reserved memory section
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param[in] p_data - Data to write to RAM
-** \param[in] offset - Data offset for write location
-** \param[in] size - Size of data to write
-** \param[in] op - Reserved memory section option
-**
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Write data to RAM
+ **
+ ** \par Description:
+ ** Write data to a specific reserved memory section
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] p_data - Data to write to RAM
+ ** \param[in] offset - Data offset for write location
+ ** \param[in] size - Size of data to write
+ ** \param[in] op - Reserved memory section option
+ **
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
 {
     uint8                   *pCopyPtr       = NULL;
@@ -1454,24 +1477,24 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
     return iReturnCode;
 }
 
-/*
-** \brief Restore DATA from FLASH
-**
-** \par Description:
-** Restore DATA from FLASH
-**
-** \par Assumptions, External Events, and Notes:
-** If file is not present on system, this function will 
-** attempt to create the file and write current DATA
-** to file
-**
-** \param op - Memory selection
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-** \return #CFE_PSP_INVALID_MEM_TYPE
-** \return #CFE_PSP_INVALID_POINTER
-*/
+/**
+ ** \brief Restore DATA from FLASH
+ **
+ ** \par Description:
+ ** Restore DATA from FLASH
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** If file is not present on system, this function will 
+ ** attempt to create the file and write current DATA
+ ** to file
+ **
+ ** \param op - Memory selection
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ ** \return #CFE_PSP_INVALID_MEM_TYPE
+ ** \return #CFE_PSP_INVALID_POINTER
+ */
 static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
@@ -1576,19 +1599,19 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
  * MEMORY SYNC IMPLEMENTATION
  * 
  *********************************************************/
-/*
-** \brief Routine to be executed by low priority task
-**
-** \par Description:
-** This task will attempt to sync certain 'reserved memory' sections 
-** to a configured file. The sync code will execute then 'delay' for a 
-** configurable amount of time.
-**
-** \par Assumptions, External Events, and Notes:
-** We assume that the used files are already created and available to be written to.
-** If a user attempts to stop this task during execution, the task will finish
-** out it's current sync of reserved memory.
-*/
+/**
+ ** \brief Routine to be executed by low priority task
+ **
+ ** \par Description:
+ ** This task will attempt to sync certain 'reserved memory' sections 
+ ** to a configured file. The sync code will execute then 'delay' for a 
+ ** configurable amount of time.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** We assume that the used files are already created and available to be written to.
+ ** If a user attempts to stop this task during execution, the task will finish
+ ** out it's current sync of reserved memory.
+ */
 static void CFE_PSP_MEMORY_SYNC_Task(void)
 {
     int32                   iReturnCode         = CFE_PSP_ERROR;
@@ -1980,7 +2003,7 @@ uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_getStatus
+ * Function: CFE_PSP_MEMORY_SYNC_getStatistics
  * 
  * Description: See function declaration for info
  * 
@@ -1990,96 +2013,96 @@ uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void)
     return g_uiMemorySyncStatistics;
 }
 
-/*
-** \brief Construct CDS Filepath
-**
-** \par Description:
-** Generate/construct CDS filepath
-**
-** \par Assumptions, Notes, and External Events:
-** This function will wait for current memory
-** sync to finish. This function will not allow
-** memory to be synced to flash until complete.
-**
-** \param None
-*/
+/**
+ ** \brief Construct CDS Filepath
+ **
+ ** \par Description:
+ ** Generate/construct CDS filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
 static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
 {
     return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_CDS);
 }
 
-/*
-** \brief Construct RESET Filepath
-**
-** \par Description:
-** Generate/construct RESET filepath
-**
-** \par Assumptions, Notes, and External Events:
-** This function will wait for current memory
-** sync to finish. This function will not allow
-** memory to be synced to flash until complete.
-**
-** \param None
-*/
+/**
+ ** \brief Construct RESET Filepath
+ **
+ ** \par Description:
+ ** Generate/construct RESET filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
 static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
 {
     return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_RESET);
 }
 
-/*
-** \brief Construct VOLATILE DISK Filepath
-**
-** \par Description:
-** Generate/construct VOLATILE DISK filepath
-**
-** \par Assumptions, Notes, and External Events:
-** This function will wait for current memory
-** sync to finish. This function will not allow
-** memory to be synced to flash until complete.
-**
-** \param None
-*/
+/**
+ ** \brief Construct VOLATILE DISK Filepath
+ **
+ ** \par Description:
+ ** Generate/construct VOLATILE DISK filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
 static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
 {
     return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_VOLATILEDISK);
 }
 
-/*
-** \brief Construct USER RESERVED Filepath
-**
-** \par Description:
-** Generate/construct USER RESERVED filepath
-**
-** \par Assumptions, Notes, and External Events:
-** This function will wait for current memory
-** sync to finish. This function will not allow
-** memory to be synced to flash until complete.
-**
-** \param None
-*/
+/**
+ ** \brief Construct USER RESERVED Filepath
+ **
+ ** \par Description:
+ ** Generate/construct USER RESERVED filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
 static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
 {
     return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_USERRESERVED);
 }
 
-/*
-** \brief Construct Reserved Memory Section Filepaths
-**
-** \par Description:
-** Generate reserved memory section filepaths
-**
-** \par Assumptions, Notes, and External Events:
-** This function will destroy any data contained
-** within the provided p_path array.
-** This function should only be called during
-** startup.
-**
-** \param p_fpath[out] - Character array filepath
-** \param op - Memory section indicator
-**
-** \return #CFE_PSP_SUCCESS - Successfully created full filepaths
-** \return #CFE_PSP_ERROR - Unsuccessfully created full filepaths
-*/
+/**
+ ** \brief Construct Reserved Memory Section Filepaths
+ **
+ ** \par Description:
+ ** Generate reserved memory section filepaths
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will destroy any data contained
+ ** within the provided p_path array.
+ ** This function should only be called during
+ ** startup.
+ **
+ ** \param p_fpath[out] - Character array filepath
+ ** \param op - Memory section indicator
+ **
+ ** \return #CFE_PSP_SUCCESS - Successfully created full filepaths
+ ** \return #CFE_PSP_ERROR - Unsuccessfully created full filepaths
+ */
 static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;

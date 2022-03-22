@@ -27,7 +27,6 @@
 **  Include Files
 */
 
-#include <fcntl.h>
 #include <stdio.h>
 #include <ioLib.h>
 #include <errno.h>
@@ -256,7 +255,7 @@ int32 PSP_SP0_GetInfo(void)
     uiMaxTempSensors is set by default to the SP0_UPGRADE target 
     If it is the original target, update number of onboard temperature sensors
     */
-    if (sysGetBoardGeneration(FALSE) == SP0_ORIGINAL)
+    if (sysGetBoardGeneration(false) == SP0_ORIGINAL)
     {
         ucMaxTempSensors = SP0_ORIGINAL_MAX_TEMP_SENSORS;
     }
@@ -280,7 +279,7 @@ int32 PSP_SP0_GetInfo(void)
     }
     
     /**** Read SP0 Voltages ****/
-    if (sysGetBoardGeneration(FALSE) == SP0_UPGRADE)
+    if (sysGetBoardGeneration(false) == SP0_UPGRADE)
     {
         /* Only SP0s DDR2 has Voltage Monitoring */
         for (uiIndex = 0; uiIndex < ucMaxVoltageSensors; uiIndex++)

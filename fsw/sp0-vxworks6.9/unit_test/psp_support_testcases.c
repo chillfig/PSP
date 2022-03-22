@@ -43,42 +43,66 @@ void Ut_CFE_PSP_Restart(void)
     uint32  uiResetType = CFE_PSP_RST_TYPE_POWERON;
     CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
     CFE_PSP_ReservedMemoryMap.BootPtr = &localBootRecord;
+
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 0;
+    
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = 0;
+
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = 0;
+
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = NULL;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = 0;
     char cMsg[256] = "";
 
     Ut_OS_printf_Setup();
-    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
 
-    /* ----- Test case #1 - Nominal Power on reboot ----- */
+    /* ----- Test case #1 - Nominal POWERON reboot ----- */
     /* Setup additional inputs */
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
     sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
     UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 1/3: Nominal message");
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON,
-                  "_CFE_PSP_Restart() - 1/3: Nominal PowerOn reboot");
+    UtAssert_STUB_COUNT(reboot,1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #2 - Nominal reboot to shell ----- */
     /* Setup additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
     uiResetType = CFE_PSP_RST_TYPE_SHELL;
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
     UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 2/3: Nominal message");
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_POWERON,
-                  "_CFE_PSP_Restart() - 2/3: Nominal POWERON reboot");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
+                  "_CFE_PSP_Restart() - 2/3: Nominal PROCESSOR reboot");
+    UtAssert_STUB_COUNT(reboot,1);
 
-    /* ----- Test case #3 - Nominal reboot to shell ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Nominal reboot to toggle ----- */
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
     strcpy(g_StartupInfo.active_cfs_partition, "/ffx0");
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     uiResetType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
     sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
@@ -88,6 +112,7 @@ void Ut_CFE_PSP_Restart(void)
     UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 3/3: Nominal message");
     UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
                   "_CFE_PSP_Restart() - 3/3: Nominal PROCESSOR reboot");
+    UtAssert_STUB_COUNT(reboot,1);
 }
 
 /*=======================================================================================

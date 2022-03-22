@@ -426,7 +426,13 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath");
 
+    UtTest_Add(Ut_CFE_PSP_MEMORY_CheckURMFilesExists,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_CheckURMFilesExists");
 
+    UtTest_Add(Ut_CFE_PSP_MEMORY_FlushToFLASH,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_MEMORY_FlushToFLASH");
 
     #endif /* TEST_MEMORY == 1 */
 

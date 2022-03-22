@@ -40,9 +40,11 @@
 
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
-#include "psp_start.h"
 #include "cfe_psp_memory.h"
+#include "psp_start.h"
+#include "psp_mem_sync.h"
 #include "psp_support.h"
+#include "psp_exceptions.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
 #include "psp_time_sync.h"
@@ -62,6 +64,7 @@
 static char g_cAvailable_cfs_partitions[][CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = CFE_PSP_STARTUP_AVAILABLE_PARTITIONS;
 
 extern CFE_PSP_Startup_structure_t g_StartupInfo;
+extern void CFE_PSP_MEMORY_FlushToFLASH(void);
 
 /**********************************************************
  * 
@@ -72,13 +75,14 @@ extern CFE_PSP_Startup_structure_t g_StartupInfo;
  *********************************************************/
 void CFE_PSP_Restart(uint32 resetType)
 {
-    char cStartupString[BOOT_FILE_LEN] = {'\0'};
+    char    cStartupString[BOOT_FILE_LEN] = {'\0'};
+    uint32  uiSyncCount = 0;
+    uint32  uiDelayTime_msec = 50;
 
     /* Delay to make sure that all prints have been printed to console */
     OS_printf("PSP Restart called with %d\n", resetType);
 
-    OS_TaskDelay(3000);
-
+    /* This cases are PSP specific */
     switch (resetType)
     {
         case CFE_PSP_RST_TYPE_SHELL:
@@ -87,12 +91,13 @@ void CFE_PSP_Restart(uint32 resetType)
             By clearing the boot startup string, VxWorks will fall back to shell.
             */
             CFE_PSP_SetBootStartupString(cStartupString, false);
-            resetType = CFE_PSP_RST_TYPE_POWERON;
+            resetType = CFE_PSP_RST_TYPE_PROCESSOR;
             break;
 
         case CFE_PSP_RST_TYPE_CFS_TOGGLE:
             /*
-            Find next available CFS partition, and change to it as a circular buffer.
+            Find next available CFS partition, and change to it
+            Reboot with PROCESSOR to keep the 
             */
             CFE_PSP_ToggleCFSBootPartition();
             resetType = CFE_PSP_RST_TYPE_PROCESSOR;
@@ -102,7 +107,29 @@ void CFE_PSP_Restart(uint32 resetType)
             break;
     }
 
-    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
+    if (resetType == CFE_PSP_RST_TYPE_POWERON)
+    {
+        CFE_PSP_MEMORY_SYNC_Stop();
+        /*
+        When we delete all URM files, the reset type gets deleted too.
+        This means that we have no way to tell CFS what was the reset type when
+        it starts up again. CFE_PSP_InitProcessorReservedMemory will check for
+        the URM files, and if it does not find them, it will assume that it is a
+        reset type POWERON, else assume PROCESSOR.
+         */
+        CFE_PSP_DeleteProcessorReservedMemory();
+        CFE_PSP_ClearNVRAM();
+    }
+    else
+    {
+        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
+
+        /* Increase the frequency of memory synchronization */
+        CFE_PSP_MEMORY_FlushToFLASH();
+    }
+
+    /* Delay to let console catch up on printing logs. */
+    OS_TaskDelay(3000);
 
     reboot(BOOT_CLEAR);
 }

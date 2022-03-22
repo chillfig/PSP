@@ -32,6 +32,7 @@
 #include <taskLib.h>
 #include <errno.h>
 #include <ioLib.h>
+#include <taskLibCommon.h>
 
 /* Aitech BSP Specific */
 #include <scratchRegMap.h>
@@ -63,6 +64,11 @@
 */
 /** \brief OSAL OS_BSPMain Entry Point */
 extern int OS_BSPMain(void);
+/** \brief VxWorks function to get the ID of a task from name */
+extern TASK_ID taskNameToId (char *name);
+/** \brief PSP Mem Sync function to check the presence of User Reserved Memory files */
+extern int32 CFE_PSP_MEMORY_CheckURMFilesExists(void);
+
 
 /** \name PSP Configuration 
  ** \par Description:
@@ -130,15 +136,27 @@ static CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
  *********************************************************/
 void CFE_PSP_Main(void)
 {
-    int32 iStatus = 0;
-    iStatus = OS_BSPMain();
-
-    /* If OS_BSPMain returns an error, then print a note */
-    if (iStatus != 0)
+    int32   iStatus = 0;
+    TASK_ID iTaskID = 0;
+    /* Add method to check if another CFS instance is already running then exit */
+    iTaskID = taskNameToId("CFE_ES");
+    if (iTaskID != TASK_ID_ERROR)
     {
-        /* At this point, CFS is closing and there is no guarantee that the OS_printf will work. */
         // UndCC_NextLine(SSET134)
-        printf("\nPSP: Exiting CFE_PSP_Main() - OS_BSPMain application status [%d] \n", iStatus);
+        printf("Another instance of CFS is already running [%d]\n",iTaskID);
+    }
+    else
+    {
+        /* Start CFS */
+        iStatus = OS_BSPMain();
+
+        /* If OS_BSPMain returns an error, then print a note */
+        if (iStatus != 0)
+        {
+            /* At this point, CFS is closing and there is no guarantee that the OS_printf will work. */
+            // UndCC_NextLine(SSET134)
+            printf("\nPSP: Exiting CFE_PSP_Main() - OS_BSPMain application status [%d]\n", iStatus);
+        }
     }
 }
 
@@ -166,19 +184,19 @@ void CFE_PSP_ProcessPOSTResults(void)
             {
                 if (CHECK_BIT(ulBitResult, uiIndex))
                 {
-                    OS_printf("PSP: POST Test - FAILED - %s.\n",
+                    OS_printf("PSP: POST Test - FAILED  - %s\n",
                             AimonCompletionBlockTestIDStrings[uiIndex]);
                 }
                 else
                 {
-                    OS_printf("PSP: POST Test - PASSED - %s .\n",
+                    OS_printf("PSP: POST Test - PASSED  - %s\n",
                             AimonCompletionBlockTestIDStrings[uiIndex]);
                 }
             }
             else
             {
 
-                OS_printf("PSP: POST Test - Not Run - %s.\n",
+                OS_printf("PSP: POST Test - Not Run - %s\n",
                         AimonCompletionBlockTestIDStrings[uiIndex]);
             }
         }
@@ -190,36 +208,46 @@ void CFE_PSP_ProcessPOSTResults(void)
 }
 
 /**
-** \func Determines the reset type and subtype
+** \func Determines the reset type and subtype as per Aitech BSP
 **
 ** \par Description:
 ** Reset Types are defined in Aitech headers
 ** Function will save reset types to the respective global static variables:
 ** - g_StartupInfo.ResetType
 ** - g_StartupInfo.ResetSubtype
+** This function will also set the CFE reset type to #CFE_PSP_RST_TYPE_POWERON
+** when no User Reserved Memory files are found, or #CFE_PSP_RST_TYPE_PROCESSOR
+** when User Reserver Memory files can be recovered.
 ** Finally, function will print to console the reset type
 **
 ** \par Assumptions, External Events, and Notes:
 ** Output defines are defined in Aitech file scratchRegMap.h
-** SP0 target does not output a single reset type code, but actually they are
-** combinations: i.e. RESET_SRC_POR | RESET_SRC_SWR.
 **
 ** \param None
 **
-** \return A combination of RESET_SRC_POR, RESET_SRC_WDT, RESET_SRC_FWDT, 
-**         RESET_SRC_CPCI, RESET_SRC_SWR 
+** \return #RESET_SRC_POR
+** \return #RESET_SRC_WDT
+** \return #RESET_SRC_FWDT
+** \return #RESET_SRC_CPCI
+** \return #RESET_SRC_SWR 
 */
 static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 iStatus = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
+    int iFD = -1;
 
     /* Reset the content of the safe mode user data buffer */
     memset(&g_StartupInfo.safeModeUserData, 0, sizeof(g_StartupInfo.safeModeUserData));
 
-    /* Default to CFE_PSP_RST_TYPE_PROCESSOR */
-    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
-    /* g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR; */
+    if (CFE_PSP_MEMORY_CheckURMFilesExists() == CFE_PSP_SUCCESS)
+    {
+        g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+    }
+    else
+    {
+        g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
+    }
 
     /* Gather information */
     iStatus  = ReadResetSourceReg(&resetSrc, false);
@@ -233,7 +261,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_POWER_CYCLE;
                 break;
             /* Software Reset - detects user (including machine check) requested reset */
-            case (RESET_SRC_POR | RESET_SRC_SWR):
+            case RESET_SRC_SWR:
                 OS_printf("PSP: POWERON Reset: Software Hard Reset.\n");
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
 
@@ -248,19 +276,19 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
                 break;
 
             /* External FPGA Watchdog timer - detects primary EEPROM boot failure */                
-            case (RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_WDT):
+            case RESET_SRC_WDT:
                 OS_printf("PSP: PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.\n");
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
                 break;
 
             /* cPCI Reset - detects cPCI reset initiated by FPGA from remote SBC */        
-            case (RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_CPCI):
+            case RESET_SRC_CPCI:
                 OS_printf("PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
                 break;
 
             /* Internal FPGA Watchdog timer - detects application SW failure */        
-            case (RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_FWDT):
+            case RESET_SRC_FWDT:
                 OS_printf("PSP: PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.\n");
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_WATCHDOG;
                 break;
@@ -300,17 +328,17 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
         case RESET_SRC_POR:
             pResetSrcString = "POR";
             break;
-        case RESET_SRC_POR | RESET_SRC_SWR:
-            pResetSrcString = "POR SWR";
+        case RESET_SRC_SWR:
+            pResetSrcString = "SWR";
             break;
-        case RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_WDT:
-            pResetSrcString = "POR SWR WDT";
+        case RESET_SRC_WDT:
+            pResetSrcString = "WDT";
             break;
-        case RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_FWDT:
-            pResetSrcString = "POR SWR FWDT";
+        case RESET_SRC_FWDT:
+            pResetSrcString = "FWDT";
             break;
-        case RESET_SRC_POR | RESET_SRC_SWR | RESET_SRC_CPCI:
-            pResetSrcString = "POR SWR CPCI";
+        case RESET_SRC_CPCI:
+            pResetSrcString = "CPCI";
             break;
         default:
             pResetSrcString = "Unknown";
@@ -562,24 +590,23 @@ int32 CFE_PSP_StartupClear(void)
 void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
 {
     int32   iReturn_code = CFE_PSP_ERROR;
-    cpuaddr address_of_active_flash_partition_name = 0;
+    cpuaddr pAddressActiveFlashPartitionName = 0;
     char    cFallback_partition_name[] = "/ffx0";
 
-    iReturn_code = OS_SymbolLookup(&address_of_active_flash_partition_name, "address_of_active_flash_partition_name");
-
-    if ((iReturn_code == OS_SUCCESS) && (address_of_active_flash_partition_name != 0))
+    iReturn_code = OS_SymbolLookup(&pAddressActiveFlashPartitionName, "address_of_active_flash_partition_name");
+    
+    if ((iReturn_code == OS_SUCCESS) && (pAddressActiveFlashPartitionName != 0))
     {
-        /* Validate Memory Pointers */
-        iReturn_code = CFE_PSP_MemValidateRange(address_of_active_flash_partition_name, uBuffer_size, CFE_PSP_MEM_RAM);
-
-        if (iReturn_code == CFE_PSP_SUCCESS)
+        /* Validate String */
+        if (memchr((void *)pAddressActiveFlashPartitionName, EOS, 6) != NULL)
         {
             /* Copy string to pBuffer */
-            strncpy(pBuffer, (char *)address_of_active_flash_partition_name, uBuffer_size);
+            strncpy(pBuffer, (char *)pAddressActiveFlashPartitionName, uBuffer_size);
         }
         else
         {
-            OS_printf("PSP: Error, address does not pass validation. Code [%d]\n", iReturn_code);
+            OS_printf("PSP: Warning, kernel variable does not contain a string\n");
+            strncpy(pBuffer, cFallback_partition_name, uBuffer_size);
         }
     }
     else
@@ -685,7 +712,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     the active CFS partition.
     */
     CFE_PSP_GetActiveCFSPartition(g_StartupInfo.active_cfs_partition, sizeof(g_StartupInfo.active_cfs_partition));
-    
+
     /*
     Get current Boot Startup Filename from SP0 memory
     The string is used in case we need to switch to alterante CFS flash partition

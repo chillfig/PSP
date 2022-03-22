@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <ioLib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <time.h>
 #include <errno.h>
 #include <vxWorks.h>
@@ -622,7 +621,7 @@ void ft_sp0_info(void)
         "SP0 Temperature 'TempCPU' is %.3f [C]", sp0_table.temperatures[2]
         )
     /* Check 4th temperature sensor only if our target is an SP0s */
-    if (sysGetBoardGeneration(FALSE) == SP0_UPGRADE)
+    if (sysGetBoardGeneration(false) == SP0_UPGRADE)
     {
         FT_Assert_True(
             check_range_value(sp0_table.temperatures[3], 30, PSP_FT_VALUE_RAW, 60.0, 10.0), 

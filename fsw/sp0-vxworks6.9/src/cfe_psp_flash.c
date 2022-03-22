@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <vxWorks.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <ioLib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
