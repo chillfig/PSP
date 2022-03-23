@@ -115,7 +115,6 @@ extern "C" {
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
 /** \} */
 
-
 /**
  ** \brief Soft Timebase Period
  **
@@ -589,9 +588,17 @@ typedef struct
  ** \brief Task name of the NTP daemon task
  **
  ** \par Description:
- ** The default task name in VxWorks is "ipntpd", but it may need to be changed
+ ** The default task name in VxWorks is "ipntp", but it may need to be changed
  */
 #define NTP_DAEMON_TASK_NAME                "ipntpd"
+
+/*
+** \brief NTP Name
+**
+** \par Description:
+** Name of NTP service
+*/
+#define NTP_SERVICE_NAME                    "ipntp"
 
 /**
  **  \brief EPOCH to Mission Time Difference
@@ -607,75 +614,7 @@ typedef struct
  **  NTP Sync will not occur if NTP time is less than this value
  ** 
  */
-#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946728000
-
-/**
- ** \brief CFE Time Service Task Name
- ** \par Description:
- ** This is the task name used by CFE Time Service to update the mission time.
- ** \par Note:
- ** This value is not checked against the CFE configuration, and it is up
- ** to the end user to verify it matches the CFE configuration.\n
- ** Definition will be deleted once the NTP Sync App is ready to be released.
- */
-
-#define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
-
-/**
- ** \brief Time delay in msec before checking CFE Time Service status
- ** \par Description:
- ** NTP Sync starts before the CFE Time Service.
- ** This parameter introduces and non-blocking time delay before checking 
- ** if the CFE Time Service has started. The goal is to start the NTP Sync
- ** as soon as possible after CFE Time Service starts.
- ** The time delay is defined in milliseconds and it will only occur during
- ** CFS booting.
- */
-#define NTPSYNC_INITIAL_TIME_DELAY          500
-
-/**
- ** \brief Time delay maximum iterations
- ** \par Description:
- ** If the time delay introduced with #NTPSYNC_INITIAL_TIME_DELAY is not enough
- ** the code will continue trying in a loop. This value sets the maximum 
- ** number of times to run the time delay.
- ** For example, if NTPSYNC_INITIAL_TIME_DELAY * NTPSYNC_MAX_ITERATION_TIME_DELAY
- ** is 500 ms * 120 = 60 seconds maximum wait time.
- */
-#define NTPSYNC_MAX_ITERATION_TIME_DELAY    120
-
-/**
- **  \brief Default NTP Sync Start/Stop on Startup
- ** 
- **  \par Description:
- **  Enable or disable the Automatic time sync with the OS
- */
-#define CFE_MISSION_TIME_SYNC_OS_ENABLE     true
-
-/**
- **  \brief Default Synchronization Frequency
- ** 
- **  \par Description:
- **  Default number of seconds between time synchronizations.
- **  CFE Time Service updates MET and STCF from VxWorks OS.
- **  When set to zero, CFE Time will be synchronized only once during start.
- ** 
- **  \par Limits
- **  Positive integer up to 255.
- **  If this value is too low, it could starve other processes.
- */
-#define CFE_MISSION_TIME_SYNC_OS_SEC        30
-
-/** \brief Default NTP Sync Task Name */
-#define NTPSYNC_TASK_NAME                   "PSPNTPSync"
-
-/** \brief Default NTP Sync Task Priority
- ** 
- ** \par Limits:
- ** Value must be above NTP Daemon task and below Mem Scrub task
- **
- */
-#define NTPSYNC_DEFAULT_PRIORITY            60
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
 
 /** \brief MEM SCRUB Binary semaphore name */
 #define PSP_MEM_SCRUB_BSEM_NAME             "PSP_BSEM_NAME"
@@ -688,22 +627,6 @@ typedef struct
  ** CDS to FLASH or not
  */
 #define PSP_CDS_SYNC_TO_FLASH_DEFAULT       true
-
-/**
- ** \brief NTP Sync maximum allowed Task priority
- **
- ** \par Description:
- ** Set the active NTP Sync task up range allowable priority.
- */
-#define NTPSYNC_PRIORITY_UP_RANGE           255
-
-/**
- ** \brief NTP Sync maximum allowed Task priority
- **
- ** \par Description:
- ** Set the active NTP Sync task down range allowable priority.
- */
-#define NTPSYNC_PRIORITY_DOWN_RANGE           60
 
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000

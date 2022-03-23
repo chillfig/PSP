@@ -54,7 +54,7 @@ if (CODE_COVERAGE)
     mergeFilesTo(
         psp_sp0_info_testcases.c ${IMPL_DIR}/src/cfe_psp_sp0_info.c "#include \"../src/cfe_psp_sp0_info.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_sp0_info_testcases.c)
     mergeFilesTo(
-        psp_ntp_testcases.c ${IMPL_DIR}/../modules/ntp_clock_vxworks/cfe_psp_ntp.c "#include \"../../modules/ntp_clock_wxworks/cfe_psp_ntp.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ntp_testcases.c)
+        psp_ntp_testcases.c ${IMPL_DIR}/src/cfe_psp_ntp.c "#include \"../src/cfe_psp_ntp.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ntp_testcases.c)
     file(COPY psp_testcases.c DESTINATION ${IMPL_DIR}/unit_test/${TMP_FOLDER_CODE_COVERAGE})
 
     aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FOLDER_CODE_COVERAGE} UT_SRCS)

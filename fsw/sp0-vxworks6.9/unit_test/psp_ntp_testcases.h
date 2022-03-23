@@ -32,21 +32,11 @@
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_NTPSync_SetFreq(void);
-void Ut_CFE_PSP_TIME_NTPSync_GetFreq(void);
 void Ut_CFE_PSP_TIME_Set_OS_Time(void);
 void Ut_CFE_PSP_TIME_Get_OS_Time(void);
-void Ut_CFE_PSP_TIME_NTP_Daemon_isRunning(void);
-void Ut_CFE_PSP_TIME_NTPSync_Task_Enable(void);
-void Ut_CFE_PSP_TIME_NTPSync_Task_Disable(void);
-void Ut_CFE_PSP_TIME_NTPSync_Task(void);
-void Ut_CFE_PSP_TIME_NTPSync_Task_isRunning(void);
-void Ut_CFE_PSP_TIME_NTPSync_Task_Priority_Set(void);
+void Ut_CFE_PSP_TIME_NTPDaemon_isRunning(void);
 void Ut_CFE_PSP_TIME_StartNTPDaemon(void);
 void Ut_CFE_PSP_TIME_StopNTPDaemon(void);
-void Ut_CFE_PSP_TIME_CFETimeService_isRunning(void);
-void Ut_ntp_clock_vxworks_Destroy(void);
-void Ut_ntp_clock_vxworks_Init(void);
 
 #endif  /* UT_PSP_NTP_TESTCASES_H */
 

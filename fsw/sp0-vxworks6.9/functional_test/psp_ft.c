@@ -47,6 +47,8 @@
 
 #include "psp_ft.h"
 
+#define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
+
 /* Global count of pass and fail */
 uint16_t cnt_tests = 0;
 uint16_t cnt_pass = 0;
@@ -722,8 +724,6 @@ void ft_ntp_sync(void)
     bool        status = false;
     int32       ret_code = CFE_PSP_ERROR;
     char        strMsg[256] = "";
-    uint16_t    currentSyncFreq = 0;
-    uint16_t    oldSyncFreq = 0;
     uint16_t    test_index = 0;
     uint32_t    previous_subsec = 0;
     uint32_t    subsec_change = 0;
@@ -760,45 +760,13 @@ void ft_ntp_sync(void)
               "SubSec: %u\n",
               strMsg, cfe_time_utc.Seconds, cfe_time_utc.Subseconds);
 
-    /* Test getting and setting NTP Sync frequency */
-    oldSyncFreq = CFE_PSP_TIME_NTPSync_GetFreq();
-    CFE_PSP_TIME_NTPSync_SetFreq(2);
-    currentSyncFreq = CFE_PSP_TIME_NTPSync_GetFreq();
-    FT_Assert_True(currentSyncFreq == 2, "Current NTP Sync frequency successfully changed from %u to %u\n", oldSyncFreq, currentSyncFreq);
-
-    /*
-    Test that the STCF is updating every 2 seconds 
-    Since the work load is set to 900ms, I will be checking the STCF changes
-    2 times every Time update. So one of them checks must be zero the second
-    check must be different from zero.
-    */
-    for (test_index; test_index < 10; test_index++)
-    {
-        OS_TaskDelay(900);
-        cfe_stcf = CFE_TIME_GetSTCF();
-        cfe_time_utc = CFE_TIME_GetUTC();
-        /* Print it out */
-        CFE_TIME_Print(strMsg, cfe_time_utc);
-        
-        if (test_index > 0)
-        {
-            subsec_change = cfe_stcf.Subseconds - previous_subsec;
-        }
-        previous_subsec = cfe_stcf.Subseconds;
-        OS_printf("UTC Time %s - "
-                "Sec: %u - "
-                "SubSec: %u - "
-                "dt(SubSec): %u\n",
-                strMsg, cfe_stcf.Seconds, cfe_stcf.Subseconds, subsec_change);
-    }
-
     /* Test NTPd client daemon APIs */
-    status = CFE_PSP_TIME_NTP_Daemon_isRunning();
-    if (status)
+    ret_code = CFE_PSP_TIME_NTPDaemon_isRunning();
+    if (ret_code == CFE_PSP_SUCCESS)
     {
         FT_Assert_True(true,"NTPd client daemon is running")
         ret_code = CFE_PSP_TIME_StopNTPDaemon();
-        FT_Assert_True(ret_code,"NTPd client daemon successfully stopped")
+        FT_Assert_True(ret_code == CFE_PSP_SUCCESS,"NTPd client daemon successfully stopped")
     }
     else
     {

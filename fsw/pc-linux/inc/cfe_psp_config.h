@@ -31,6 +31,22 @@
 #include <time.h>
 #include <pthread.h>
 
+/**
+ **  \brief EPOCH to Mission Time Difference
+ ** 
+ **  \par Description:
+ **  Default value corresponding to the difference in seconds between 
+ **  CFE Mission Epoch and UNIX Epoch. It is left to the end user to 
+ **  calculate the correct value.
+ ** 
+ **  \par Note:
+ **  Value could be positive or negative depending if Mission Epoch is before 
+ **  or after UNIX Epoch.
+ **  NTP Sync will not occur if NTP time is less than this value
+ ** 
+ */
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF  946727936
+
 /*
 ** This define sets the number of memory ranges that are defined in the memory range definition
 ** table.

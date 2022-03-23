@@ -41,7 +41,6 @@ target_link_libraries(${FT_NAME}_ft
     gateway_msg
     psp_module_api
     timebase_vxworks
-    ntp_clock_vxworks
     psp-${CFE_PSP_TARGETNAME}-impl
     psp-${CFE_PSP_TARGETNAME}-shared
     )

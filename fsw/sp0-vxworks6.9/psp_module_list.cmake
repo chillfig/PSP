@@ -3,4 +3,3 @@ timebase_vxworks
 eeprom_direct
 ram_direct
 port_direct
-ntp_clock_vxworks

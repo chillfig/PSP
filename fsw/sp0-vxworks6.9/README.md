@@ -201,39 +201,21 @@ Kernel must include the following services:
 ### NTP Time Sync
 
 - Defines
-  - NTP_DAEMON_TASK_NAME `*`
   - CFE_MISSION_TIME_EPOCH_UNIX_DIFF `*`
-  - CFE_1HZ_TASK_NAME `*`
-  - NTPSYNC_INITIAL_TIME_DELAY `*`
-  - NTPSYNC_MAX_ITERATION_TIME_DELAY `*`
-  - CFE_MISSION_TIME_SYNC_OS_ENABLE `*`
-  - CFE_MISSION_TIME_SYNC_OS_SEC `*`
-  - NTPSYNC_TASK_NAME `*`
-  - NTPSYNC_DEFAULT_PRIORITY `*`
-  - NTPSYNC_PRIORITY_UP_RANGE `*`
-  - NTPSYNC_PRIORITY_DOWN_RANGE `*`
+  - NTP_DAEMON_TASK_NAME `*`
   - NTPSYNC_PRINT_SCOPE
-  - CFE_MISSION_TIME_SYNC_TIME_ON_STARTUP
 
 - Structures
 
 - Public Functions
-  - CFE_PSP_TIME_NTPSync_Task_Enable
-  - CFE_PSP_TIME_NTPSync_Task_Disable
-  - CFE_PSP_TIME_NTPSync_Task_isRunning
-  - CFE_PSP_TIME_NTPSync_Task_Priority_Set
-  - CFE_PSP_TIME_NTP_Daemon_isRunning
-  - ntp_clock_vxworks_Destroy
-  - CFE_PSP_TIME_NTPSync_GetFreq
-  - CFE_PSP_TIME_NTPSync_SetFreq
+  - CFE_PSP_TIME_NTPDaemon_isRunning
   - CFE_PSP_TIME_Set_OS_Time
   - CFE_PSP_TIME_Get_OS_Time
-  - CFE_PSP_TIME_CFETimeService_isRunning
+  - CFE_PSP_TIME_NTPDaemon_isRunning
   - CFE_PSP_TIME_StartNTPDaemon
   - CFE_PSP_TIME_StopNTPDaemon
 
 - Static Functions
-  - CFE_PSP_TIME_NTPSync_Task
 
 - Static Variables
   - g_uiPSPNTPTask_id

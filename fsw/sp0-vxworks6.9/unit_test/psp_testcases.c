@@ -50,14 +50,6 @@ void UtTest_Setup(void)
 {
     /* Test NTP Sync */
     #if TEST_NTP == 1
-    
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_SetFreq,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_SetFreq");
-
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_GetFreq,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_GetFreq");
 
     UtTest_Add(Ut_CFE_PSP_TIME_Set_OS_Time,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -67,33 +59,9 @@ void UtTest_Setup(void)
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_CFE_PSP_TIME_Get_OS_Time");
     
-    UtTest_Add(Ut_CFE_PSP_TIME_NTP_Daemon_isRunning,
+    UtTest_Add(Ut_CFE_PSP_TIME_NTPDaemon_isRunning,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTP_Daemon_isRunning");
-    
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Enable,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_Task_Enable");
-        
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Disable,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_Task_Disable");
-
-    UtTest_Add(Ut_CFE_PSP_TIME_CFETimeService_isRunning,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_CFETimeService_isRunning");
-
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_Task");
-
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_isRunning,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_Task_isRunning");
-
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPSync_Task_Priority_Set,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPSync_Task_Priority_Set");
+              "Ut_CFE_PSP_TIME_NTPDaemon_isRunning");
 
     UtTest_Add(Ut_CFE_PSP_TIME_StartNTPDaemon,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -102,14 +70,6 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_TIME_StopNTPDaemon,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_CFE_PSP_TIME_StopNTPDaemon");
-
-    UtTest_Add(Ut_ntp_clock_vxworks_Destroy,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_ntp_clock_vxworks_Destroy");
-
-    UtTest_Add(Ut_ntp_clock_vxworks_Init,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_ntp_clock_vxworks_Init");
 
     #endif /* TEST_NTP_SYNC == 1 */
 

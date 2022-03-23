@@ -11,6 +11,7 @@ set_source_files_properties(cfe_psp_ssr.c PROPERTIES COMPILE_FLAGS -Werror=conve
 set_source_files_properties(cfe_psp_start.c PROPERTIES COMPILE_FLAGS -Werror=conversion -Werror=sign-conversion -Werror=all)
 set_source_files_properties(cfe_psp_support.c PROPERTIES COMPILE_FLAGS -Werror=conversion -Werror=sign-conversion -Werror=all)
 set_source_files_properties(cfe_psp_watchdog.c PROPERTIES COMPILE_FLAGS -Werror=conversion -Werror=sign-conversion -Werror=all)
+set_source_files_properties(cfe_psp_ntp.c PROPERTIES COMPILE_FLAGS -Werror=conversion -Werror=sign-conversion -Werror=all)
 
 # This contains the fully platform-specific code to
 # run CFE on this target.
@@ -23,6 +24,7 @@ add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_start.c
     src/cfe_psp_support.c
     src/cfe_psp_watchdog.c
+    src/cfe_psp_ntp.c
 )
 
 # The _GNU_SOURCE directive is required to call non-posix APIs

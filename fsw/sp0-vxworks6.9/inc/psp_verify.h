@@ -111,19 +111,15 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 #error CFE_PSP_MAX_EXCEPTION_ENTRIES must be a power of 2
 #endif
 
-#if NTPSYNC_DEFAULT_PRIORITY < 50
-    #error "NTPSYNC_DEFAULT_PRIORITY must have lower priority than NTP Daemon task"
-#elif NTPSYNC_DEFAULT_PRIORITY >= MEMSCRUB_DEFAULT_PRIORITY
-    #error "NTPSYNC_DEFAULT_PRIORITY must have higher priority than MEMSCRUB_DEFAULT_PRIORITY"
+/** \brief NTP Verification */
+#ifndef NTP_DAEMON_TASK_NAME
+    #error "NTP_DAEMON_TASK_NAME must be defined"
 #endif
 
-/** \brief NTP SYNC Task Name Verification */
-#ifndef NTPSYNC_TASK_NAME
-    #error "NTPSYNC_TASK_NAME must be defined"
+#ifndef NTP_SERVICE_NAME
+    #error "NTP_SERVICE_NAME must be defined"
 #endif
 
-/** \brief Check that the NTP SYNC Task name is no longer than the maximum allowed name length */
-CompileTimeAssert(sizeof(NTPSYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 
 /** \brief Check reserved memory section file name macros */
 #ifndef CFE_PSP_CDS_FLASH_FILEPATH
