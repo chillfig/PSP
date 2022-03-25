@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_flash.c
+ ** \file
  **
  ** \brief cFE PSP Flash related functions
  **

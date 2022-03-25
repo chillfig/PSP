@@ -1,5 +1,5 @@
 /**
- ** \file psp_exceptions.h
+ ** \file
  **
  ** \brief API header for collecting SP0(s) hardware and software information
  **
@@ -21,8 +21,8 @@
  **
 */
 
-#ifndef _PSP_EXCEPTIONS_H_
-#define _PSP_EXCEPTIONS_H_
+#ifndef PSP_EXCEPTIONS_H
+#define PSP_EXCEPTIONS_H
 
 
 #ifdef __cplusplus

@@ -18,6 +18,17 @@
 **  limitations under the License.
 */
 
+/*
+**  Author:  A. Cudmore
+**
+**  Purpose:  This file contains PSP support routine internal prototypes
+**            and typedefs. The routines and typedefs are intended for
+**            the local PSP routines only.
+**
+**  Modification History:
+**
+*/
+
 /**
  ** \file  cfe_psp_memory.h
  **
@@ -38,10 +49,10 @@
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
  **
-*/
+ */
 
-#ifndef _cfe_psp_memory_
-#define _cfe_psp_memory_
+#ifndef CFE_PSP_MEMORY_H
+#define CFE_PSP_MEMORY_H
 
 /*
 ** Include Files

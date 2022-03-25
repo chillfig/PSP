@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_config.h
+ ** \file
  **
  ** \brief Main PSP Configuration File for SP0
  **
@@ -21,8 +21,8 @@
  **
  */
 
-#ifndef _CFE_PSP_CONFIG_
-#define _CFE_PSP_CONFIG_
+#ifndef CFE_PSP_CONFIG_H
+#define CFE_PSP_CONFIG_H
 
 #include <stdio.h>
 #include <string.h>

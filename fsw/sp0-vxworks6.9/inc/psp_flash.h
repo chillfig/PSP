@@ -20,8 +20,8 @@
  ** None
  */
 
-#ifndef _PSP_FLASH_H_
-#define _PSP_FLASH_H_
+#ifndef PSP_FLASH_H
+#define PSP_FLASH_H
 
 #ifdef __cplusplus
 extern "C" {

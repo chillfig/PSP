@@ -1,5 +1,5 @@
 /**
- ** \file psp_start.h
+ ** \file
  **
  ** \brief Header file for the PSP function prototypes in cfe_psp_start.c
  **
@@ -23,8 +23,8 @@
  **
 */
 
-#ifndef _PSP_START_H_
-#define _PSP_START_H_
+#ifndef PSP_START_H
+#define PSP_START_H
 
 /*
 **  Include Files
@@ -109,7 +109,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc);
  **
  ** \return None
  */
-void CFE_PSP_StartupFailedRestartSP0_hook(uint32 timer_id);
+void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id);
 
 /**
  ** \func Delete startup timer and status file

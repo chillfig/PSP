@@ -1,5 +1,5 @@
 /**
- ** \file psp_time_sync.h
+ ** \file
  **
  ** \brief API header to control NTP Sync
  **
@@ -28,8 +28,8 @@
  ** time and publish it via Software Bus.
  */
 
-#ifndef _PSP_TIME_SYNC_H_
-#define _PSP_TIME_SYNC_H_
+#ifndef PSP_TIME_SYNC_H
+#define PSP_TIME_SYNC_H
 
 #ifdef __cplusplus
 extern "C" {

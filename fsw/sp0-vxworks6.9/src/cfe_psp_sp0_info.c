@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_sp0_info.c
+ ** \file
  **
  ** \brief API for collecting SP0(s) hardware and software information
  **

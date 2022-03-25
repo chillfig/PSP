@@ -1,5 +1,5 @@
 /**
- ** \file  cfe_psp_support.c
+ ** \file
  **
  ** \brief Contains glue routines between the cFE and the OS Board Support Package (BSP)
  **

@@ -1,5 +1,5 @@
 /**
- ** \file  cfe_psp_exception.c
+ ** \file
  **  
  ** \brief cFE PSP Exception related functions
  **

@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_memory.c
+ ** \file
  **
  ** \brief cFE PSP Memory related functions
  **
@@ -136,13 +136,13 @@ CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap; //UndCC_Line(SSET056) Nam
 static CFE_PSP_MemoryBlock_t g_ReservedMemBlock;
 
 /** \brief RESET Binary Semaphore ID */
-static osal_id_t g_RESETBinSemId = 0;
+static osal_id_t g_RESETBinSemId;
 /** \brief CDS Binary Semaphore ID */
-static osal_id_t g_CDSBinSemId = 0;
+static osal_id_t g_CDSBinSemId;
 /** \brief VOLATILE DISK Binary Semaphore ID */
-static osal_id_t g_VOLATILEDISKBinSemId = 0;
+static osal_id_t g_VOLATILEDISKBinSemId;
 /** \brief USER RESERVED Binary Semaphore ID */
-static osal_id_t g_USERRESERVEDBinSemId = 0;
+static osal_id_t g_USERRESERVEDBinSemId;
 /** \brief RESET Bool flag to indicate a sync needs to occur */
 static bool g_bRESETUpdateFlag = false;
 /** \brief CDS Bool flag to indicate a sync needs to occur */
@@ -156,11 +156,11 @@ static uint32 g_uiMemorySyncTime = MEMORY_SYNC_DEFAULT_SYNC_TIME_MS;
 /** \brief MEMORY SYNC Statistics */
 static uint32 g_uiMemorySyncStatistics = 0;
 /** \brief MEMORY SYNC Task ID */
-static osal_id_t g_uiMemorySyncTaskId = 0;
+static osal_id_t g_uiMemorySyncTaskId;
 /** \brief MEMORY SYNC Task Priority */
 static osal_priority_t g_uiMemorySyncTaskPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
 /** \brief MEMORY SYNC Task Binary Semaphore ID */
-static osal_id_t g_MemorySyncTaskBinSem = 0;    // NOTE: This should match OS_OBJECT_ID_UNDEFINED
+static osal_id_t g_MemorySyncTaskBinSem;    // NOTE: This should match OS_OBJECT_ID_UNDEFINED
 /** \brief CDS Filepath */
 static char g_CDSFilepath[CFE_PSP_FILEPATH_MAX_LENGTH]          = {};
 /** \brief RESET Filepath */
@@ -1378,7 +1378,7 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
     uint8                   *pCopyPtr       = NULL;
     int32                   iReturnCode     = CFE_PSP_ERROR;
     int32                   iStatus         = OS_ERROR;
-    osal_id_t               osidBinSem      = 0;
+    osal_id_t               osidBinSem      = OS_OBJECT_ID_UNDEFINED;
     bool                    *p_bUpdateFlag    = NULL;
     CFE_PSP_MemoryBlock_t   memBlock        = {0, 0};
 
@@ -1616,7 +1616,7 @@ static void CFE_PSP_MEMORY_SYNC_Task(void)
 {
     int32                   iReturnCode         = CFE_PSP_ERROR;
     int32                   iStatus             = OS_SUCCESS;
-    osal_id_t               memSectionBinSem    = 0;
+    osal_id_t               memSectionBinSem    = OS_OBJECT_ID_UNDEFINED;
     bool                    *p_bUpdateFlag        = NULL;
     CFE_PSP_MemoryBlock_t   memBlock            = {0, 0};
     char                    *p_caFilename       = NULL;
@@ -1776,7 +1776,7 @@ int32 CFE_PSP_MEMORY_SYNC_Destroy(void)
     /* Ensure MEMORY SYNC task is not running */
     if (CFE_PSP_MEMORY_SYNC_Stop() == CFE_PSP_SUCCESS)
     {
-        if (g_MemorySyncTaskBinSem != OS_OBJECT_ID_UNDEFINED)
+        if (!OS_ObjectIdEqual(g_MemorySyncTaskBinSem, OS_OBJECT_ID_UNDEFINED))
         {
             /* Attempt to take sempahore */
             iStatus = OS_BinSemTake(g_MemorySyncTaskBinSem);
@@ -1822,7 +1822,7 @@ int32 CFE_PSP_MEMORY_SYNC_Start(void)
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task already running\n");
         iReturnCode = CFE_PSP_SUCCESS;
     }
-    else if (g_MemorySyncTaskBinSem == OS_OBJECT_ID_UNDEFINED)
+    else if (OS_ObjectIdEqual(g_MemorySyncTaskBinSem, OS_OBJECT_ID_UNDEFINED))
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "Start: Data not initialized\n");
         iReturnCode = CFE_PSP_ERROR;
@@ -1904,7 +1904,7 @@ int32 CFE_PSP_MEMORY_SYNC_Stop(void)
 bool CFE_PSP_MEMORY_SYNC_isRunning(void)
 {
     bool        bReturnValue    = true;
-    osal_id_t   osidTaskId      = 0;
+    osal_id_t   osidTaskId      = OS_OBJECT_ID_UNDEFINED;
 
     if (OS_TaskGetIdByName(&osidTaskId, MEMORY_SYNC_TASK_NAME) == OS_ERR_NAME_NOT_FOUND)
     {

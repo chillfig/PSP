@@ -1,5 +1,5 @@
 /**
- ** \file psp_support.h
+ ** \file
  **
  ** \brief API header for supporting various SP0(s) features
  **
@@ -22,8 +22,8 @@
  **
 */
 
-#ifndef _PSP_SUPPORT_H_
-#define _PSP_SUPPORT_H_
+#ifndef PSP_SUPPORT_H
+#define PSP_SUPPORT_H
 
 #ifdef __cplusplus
 extern "C" {

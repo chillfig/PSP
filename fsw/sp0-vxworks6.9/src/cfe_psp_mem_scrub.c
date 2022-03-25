@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_mem_scrub.c
+ ** \file
  **
  ** \brief API for Memory Scrubbing on SP0
  **
@@ -64,7 +64,7 @@ static osal_priority_t g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
  ** \par Description:
  ** If 0, task is not running
  */
-static uint32 g_uiMemScrubTaskId = 0;
+static osal_id_t g_uiMemScrubTaskId;
 
 /**
  ** \brief Contains the Active Memory Scrubbing Start Address
@@ -113,7 +113,7 @@ static uint32 g_uiMemScrubTotalPages = 0;
  ** will be the first mem scrub-related function to be called and below variable
  ** is static, this will be safe. 
  */
-static osal_id_t g_semUpdateMemAddr_id = 0;
+static osal_id_t g_semUpdateMemAddr_id;
 
 /**
  ** \brief Boolean flag to indicate scrub addresses have been udpated
@@ -138,7 +138,7 @@ int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priorit
     /*
     ** Take binary semaphore
     */
-    if (g_semUpdateMemAddr_id == OS_OBJECT_ID_UNDEFINED)
+    if (OS_ObjectIdEqual(g_semUpdateMemAddr_id, OS_OBJECT_ID_UNDEFINED))
     {
         OS_printf(MEM_SCRUB_PRINT_SCOPE "Binary semaphore not created\n");
     }
@@ -235,7 +235,7 @@ int32 CFE_PSP_MEM_SCRUB_Delete(void)
     if (CFE_PSP_MEM_SCRUB_Disable() == CFE_PSP_SUCCESS)
     {
         /* Reset all memory scrub related values to default */
-        g_uiMemScrubTaskId = 0;
+        g_uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
         g_uiMemScrubCurrentPage = 0;
         g_uiMemScrubTotalPages = 0;
         g_uiMemScrubStartAddr = 0;
@@ -455,7 +455,7 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
     /* Initialize */
     bool        bReturnValue = true;
     int32       iStatus = OS_SUCCESS;
-    osal_id_t   mem_scrub_id = 0;
+    osal_id_t   mem_scrub_id = OS_OBJECT_ID_UNDEFINED;
 
     iStatus = OS_TaskGetIdByName(&mem_scrub_id, MEMSCRUB_TASK_NAME);
 
@@ -485,7 +485,7 @@ int32 CFE_PSP_MEM_SCRUB_Enable(void)
         OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n");
     }
     /* Check if semaphore has been created */
-    else if (g_semUpdateMemAddr_id == OS_OBJECT_ID_UNDEFINED)
+    else if (OS_ObjectIdEqual(g_semUpdateMemAddr_id, OS_OBJECT_ID_UNDEFINED))
     {
         /* Semaphore has not been created */
         iReturnCode = CFE_PSP_ERROR;
@@ -562,7 +562,7 @@ int32 CFE_PSP_MEM_SCRUB_Disable(void)
     ** No matter what happens, reset values
     */
     g_uiMemScrubTotalPages = 0;
-    g_uiMemScrubTaskId = 0;
+    g_uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
 
     return iReturnCode;
 }

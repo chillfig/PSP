@@ -1,5 +1,5 @@
 /**
- ** \file cfe_psp_start.c
+ ** \file
  **
  ** \brief cFE PSP main entry point
  **
@@ -386,7 +386,7 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_StartupFailedRestartSP0_hook(uint32 timer_id)
+void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
 {
     /*
     This function is called when the process of starting up CFS is taking 
@@ -408,7 +408,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(uint32 timer_id)
     uint32  uiRestartType = CFE_PSP_RST_TYPE_PROCESSOR;
     bool    RemoveFile = false;
 
-    if (g_StartupInfo.timerID == timer_id)
+    if (OS_ObjectIdEqual(g_StartupInfo.timerID, timer_id))
     {
 
         OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE "Startup Timer Expired!!\nRestarting\n");
@@ -635,7 +635,7 @@ int32 CFE_PSP_StartupTimer(void)
     g_StartupInfo.active_cfs_partition should have been updated by function
     CFE_PSP_GetActiveCFSPartition().
     */
-    g_StartupInfo.timerID = 0;
+    g_StartupInfo.timerID = OS_OBJECT_ID_UNDEFINED;
     g_StartupInfo.uMaxWaitTime_sec = CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC;
     strncpy(g_StartupInfo.failed_startup_filename, 
             CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME,
@@ -702,7 +702,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     int32 iStatus = OS_SUCCESS;
     int32 iTaskSetStatus = OS_SUCCESS;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    osal_id_t fs_id = 0;
+    osal_id_t fs_id = OS_OBJECT_ID_UNDEFINED;
 
     OS_printf_enable();
 

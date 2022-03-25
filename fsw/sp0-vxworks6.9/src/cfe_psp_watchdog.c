@@ -1,5 +1,5 @@
 /**
- ** \file: cfe_psp_watchdog.c
+ ** \file
  **
  ** \brief API to support Watchdog
  **

@@ -1,5 +1,5 @@
 /**
- ** \file  psp_mem_scrub.h
+ ** \file
  **
  ** \brief API header to control Memory Scrubbing
  **
@@ -22,8 +22,8 @@
  **
 */
 
-#ifndef _PSP_MEM_SCRUB_H_
-#define _PSP_MEM_SCRUB_H_
+#ifndef PSP_MEM_SCRUB_H
+#define PSP_MEM_SCRUB_H
 
 #include "common_types.h"
 #include "osapi.h"

@@ -1,5 +1,5 @@
 /**
- ** \file psp_sp0_info.h
+ ** \file
  **
  ** \brief API header for collecting SP0(s) hardware and software information
  **
@@ -24,8 +24,8 @@
  **
 */
 
-#ifndef _PSP_SP0_INFO_H_
-#define _PSP_SP0_INFO_H_
+#ifndef PSP_SP0_INFO_H
+#define PSP_SP0_INFO_H
 
 #ifdef __cplusplus
 extern "C" {

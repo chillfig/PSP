@@ -1,5 +1,5 @@
 /**
- ** \file psp_verify.h
+ ** \file
  **
  ** \brief Macros to run preprocessor checks on psp configuration
  **
@@ -22,8 +22,8 @@
  **
  */
 
-#ifndef _PSP_VERIFY_H_
-#define _PSP_VERIFY_H_
+#ifndef PSP_VERIFY_H
+#define PSP_VERIFY_H
 
 #ifdef __cplusplus
 extern "C" {

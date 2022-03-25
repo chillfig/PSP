@@ -1,5 +1,5 @@
 /** 
- ** \file psp_version.h
+ ** \file
  **
  ** \brief API header to obtain the values of the various version identifiers
  **
@@ -23,8 +23,8 @@
  */
 
 
-#ifndef _PSP_VERSION_H_
-#define _PSP_VERSION_H_
+#ifndef PSP_VERSION_H
+#define PSP_VERSION_H
 
 #ifdef __cplusplus
 extern "C" {
