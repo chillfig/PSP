@@ -293,6 +293,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n";
     char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "No URM Signature Pack found {0x00 0x00 0x00}\n";
     char    cMsg_bad3[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Signature Pack\n";
+    char    cMsg_bad4[] = PSP_EXCEP_PRINT_SCOPE "URM signature found but data is empty\n";
 
     char    urm_word[] = "URM";
     int     urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
@@ -300,6 +301,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     uint8   localURMBuffer[urm_data_size];
     memset(localURMBuffer, 0x00, urm_data_size);
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
+    CFE_PSP_ReservedMemoryMap.BootPtr = (void*)localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t);
 
     snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_data_size);
 
@@ -311,8 +313,8 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     memcpy(nvram, urm_word, 3);
     /* Write the EDR data size */
     memcpy(nvram + 3, &urm_data_size, 4);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 3, 0);
-    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_Exception_GetCount), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
@@ -321,17 +323,33 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #2 - Error EDR Data ----- */
+    /* ----- Test case #1.5 - Recovered BootPtr but not Exceptions ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
     /* Write the EDR signature */
     memcpy(nvram, urm_word, 3);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 2, 0);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, -1);
+    /* Write the EDR data size */
+    memcpy(nvram + 3, &urm_data_size, 4);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 2, OK);
+    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, ERROR);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Message");
+    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Message");
+    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Error Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #2 - EDR found but data size is zero ----- */
+    /* Setup additional inputs */
+    memset(nvram,0x00,sizeof(nvram));
+    /* Write the EDR signature */
+    memcpy(nvram, urm_word, 3);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    /* Execute test */
+    iRetCode = CFE_PSP_LoadFromNVRAM();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad4, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Message");
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Return Code");
 
     UT_ResetState(0);
@@ -341,7 +359,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     memset(nvram,0x00,sizeof(nvram));
     /* Write the EDR data size */
     memcpy(nvram + 3, &urm_data_size, 4);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
@@ -353,7 +371,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     /* ----- Test case #4 - Error userNvRamGet ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, -1);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), ERROR);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */

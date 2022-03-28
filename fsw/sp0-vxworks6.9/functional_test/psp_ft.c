@@ -143,6 +143,13 @@ void PSP_FT_Setup(void)
     tmp_fd = creat("/ram0/cf/cfe_es_startup.scr",O_RDWR);
     close(tmp_fd);
 
+    /* Clear flash from backups */
+    remove("/ffx0/CDS");
+    remove("/ffx0/URM/VODI.bkp");
+    remove("/ffx0/URM/USRR.bkp");
+    remove("/ffx0/URM/RESET.bkp");
+    remove("/ffx0/URM/CDS.bkp");
+
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     CFE_PSP_Main();
 }
@@ -423,12 +430,6 @@ void ft_start(void)
                 (last_reset_type == CFE_PSP_RST_TYPE_MAX));
     FT_Assert_True(test_case, "CFE_PSP_GetRestartType returned valid reset type")
 
-    /* Functions just print out data, nothing to check */
-    ReadResetSourceReg(&resetSrc, false);
-    CFE_PSP_LogSoftwareResetType(resetSrc);
-    FT_Assert_True(true, "CFE_PSP_ProcessResetType has no return value (void)")
-    FT_Assert_True(true, "CFE_PSP_LogSoftwareResetType has no return value (void)")
-
     /* Get Active CFS Partition */
     memset(buffer,'\0', sizeof(buffer));
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
@@ -512,7 +513,6 @@ void ft_mem_scrub(void)
 {
     int32       ret_code = 0;
     bool        mem_scrub_running = false;
-    osal_id_t   mem_scurb_id = 0;
     uint32      index_counter = 0;
     MEM_SCRUB_STATUS_t  mem_scrub_stats1;
     MEM_SCRUB_STATUS_t  mem_scrub_stats2;
@@ -602,8 +602,12 @@ void ft_sp0_info(void)
 
     /*** Get SP0 Info Table and check their values ***/
     /* Get the table that was filled up by the GetInfo function */
-    sp0_table = PSP_SP0_GetInfoTable(false);
+    ret_code = PSP_SP0_GetInfoTable(&sp0_table, 0);
     OS_printf("Data gathered at %s UTC\n",ctime(&sp0_table.lastUpdatedUTC.tv_sec));
+    FT_Assert_True(
+        ret_code == CFE_PSP_SUCCESS,
+        "PSP_SP0_GetInfoTable returns SUCCESS"
+    )
     /* Check that it is a predicted SP0 or SP0s target */
     FT_Assert_True(
         (sp0_table.systemCoreClockSpeed == 399) || (sp0_table.systemCoreClockSpeed == 333),

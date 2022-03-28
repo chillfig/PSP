@@ -175,47 +175,6 @@ extern "C" {
                         CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
 
 /**
- ** \brief Define Number of PSP Resets Before Switching CFS Partition
- ** 
- ** \par Description:
- ** Number of PSP Resets before switching to the other partition. If set to 2,
- ** then 2 processor resets will occur, and the 3rd processor reset will be a
- ** power on reset instead.
- **
- ** \par Limits:
- ** There is a lower limit of 0.  There are no restrictions on the upper limit
- ** however, the maximum number of processor resets may be system dependent and
- ** should be verified.
- */
-#define CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS            3
-
-/**
- ** \brief Define Number of seconds to wait until PSP Restart target
- ** 
- ** \par Description:
- ** Number of seconds to wait before calling the PSP Restart function.
- ** 
- ** \par Limits:
- ** There is a lower limit of 0. There are no restrictions on the upper limit
- ** however, the maximum number of seconds to wait for CFS to start is dependent 
- ** on system performance.
- */
-#define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC               60
-
-/**
- ** \brief Define file name containing the number of attempts to start
- ** 
- ** \par Description:
- ** The file name that contains the number of attempts to startup CFS. The file
- ** is located in the currently active flash partition.
- ** 
- ** \par Limits:
- ** File name must be at least 1 character, and no more than 
- ** #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1 characters.
- */
-#define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME         "fail.txt"
-
-/**
  ** \brief Define the file name of the boot startup
  **
  ** \par Limits:
@@ -317,7 +276,7 @@ typedef struct  {
  ** however, the maximum number of seconds to wait for CFS to start is dependent 
  ** on system performance.
  */
-#define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC               60
+#define CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC               120
 
 /**
  ** \brief Define file name containing the number of attempts to start
@@ -588,16 +547,17 @@ typedef struct
  ** \brief Task name of the NTP daemon task
  **
  ** \par Description:
- ** The default task name in VxWorks is "ipntp", but it may need to be changed
+ ** The default task name in VxWorks is "ipntpd", but it may need to be changed.
+ ** This string is used to find the NTP task in the VxWorks task list.
  */
 #define NTP_DAEMON_TASK_NAME                "ipntpd"
 
-/*
-** \brief NTP Name
-**
-** \par Description:
-** Name of NTP service
-*/
+/**
+ ** \brief NTP Name
+ **
+ ** \par Description:
+ ** Name of NTP service. This is used to start or kill the OS NTP service.
+ */
 #define NTP_SERVICE_NAME                    "ipntp"
 
 /**
@@ -619,14 +579,6 @@ typedef struct
 /** \brief MEM SCRUB Binary semaphore name */
 #define PSP_MEM_SCRUB_BSEM_NAME             "PSP_BSEM_NAME"
 
-/**
- ** \brief CDS sync to FLASH
- **
- ** \par Description:
- ** Default option used to determine to sync
- ** CDS to FLASH or not
- */
-#define PSP_CDS_SYNC_TO_FLASH_DEFAULT       true
 
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000

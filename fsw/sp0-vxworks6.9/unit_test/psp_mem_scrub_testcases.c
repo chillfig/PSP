@@ -62,7 +62,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
     Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
-    g_semUpdateMemAddr_id = 99;
+    g_semUpdateMemAddr_id = OS_ObjectIdFromInteger(99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Unable to enable mem scrub task\n");
     /* Execute test */
@@ -76,7 +76,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
-    g_semUpdateMemAddr_id = 99;
+    g_semUpdateMemAddr_id = OS_ObjectIdFromInteger(99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Init();
@@ -90,7 +90,6 @@ void Ut_CFE_PSP_MEM_SCRUB_Init(void)
 void Ut_CFE_PSP_MEM_SCRUB_Task(void)
 {
     char cMsg_scrub_error[] = {MEM_SCRUB_PRINT_SCOPE "Unexpected ERROR during scrubMemory call\n"};
-    osal_id_t mem_scrub_id = 0;
     int32 status;
     uint32_t testPages;
     char cMsg[256] = {};
@@ -501,7 +500,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Enable(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    g_semUpdateMemAddr_id = 99;
+    g_semUpdateMemAddr_id = OS_ObjectIdFromInteger(99);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Error creating memory scrub task\n");
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
@@ -514,7 +513,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Enable(void)
     /* ----- Test case #4 - Succesfully create mem scrub task ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    g_semUpdateMemAddr_id = 99;
+    g_semUpdateMemAddr_id = OS_ObjectIdFromInteger(99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute test */
@@ -531,20 +530,21 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     int32 iReturnCode;
     char cMsg[256] = {};
 
+    g_uiMemScrubTaskId = OS_ObjectIdFromInteger(99);
+
     /* ----- Test case #1 - Task is not running ----- */
     /* Set additional inputs */
     Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Memory scrub task is not running\n");
     g_uiMemScrubTotalPages = 99;
-    g_uiMemScrubTaskId = 99;
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Disable();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Disable - 1/5: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Disable - 1/5: Memory scrub task is not running - message");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Disable - 1/5: Memory scrub total pages reset");
-    UtAssert_True(g_uiMemScrubTaskId == 0,"_CFE_PSP_MEM_SCRUB_Disable - 1/5: Memory scrub task ID reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED,"_CFE_PSP_MEM_SCRUB_Disable - 1/5: Memory scrub task ID reset"); */
 
     /* ----- Test case #2 - Fail to take semaphore ----- */
     /* Set additional inputs */
@@ -554,14 +554,13 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Unable to take semaphore\n");
     g_uiMemScrubTotalPages = 99;
-    g_uiMemScrubTaskId = 99;
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Disable();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Disable - 2/5: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Disable - 2/5: Unable to take semaphore - message");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Disable - 2/5: Memory scrub total pages reset");
-    UtAssert_True(g_uiMemScrubTaskId == 0,"_CFE_PSP_MEM_SCRUB_Disable - 2/5: Memory scrub task ID reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED,"_CFE_PSP_MEM_SCRUB_Disable - 2/5: Memory scrub task ID reset"); */
 
     /* ----- Test case #3 - Fail to delete task ----- */
     /* Set additional inputs */
@@ -572,14 +571,13 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_ERROR);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Unable to delete memory scrub task\n");
     g_uiMemScrubTotalPages = 99;
-    g_uiMemScrubTaskId = 99;
     /* Execute test */
     iReturnCode = CFE_PSP_MEM_SCRUB_Disable();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Disable - 3/5: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Disable - 3/5: Unable to delete memory scrub task - message");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Disable - 3/5: Memory scrub total pages reset");
-    UtAssert_True(g_uiMemScrubTaskId == 0,"_CFE_PSP_MEM_SCRUB_Disable - 3/5: Memory scrub task ID reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED,"_CFE_PSP_MEM_SCRUB_Disable - 3/5: Memory scrub task ID reset"); */
     
     /* ----- Test case #4 - Fail release semaphore ----- */
     /* Set additional inputs */
@@ -591,7 +589,6 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEM_SCRUB_PRINT_SCOPE "Unable to release semaphore\n");
     g_uiMemScrubTotalPages = 99;
-    g_uiMemScrubTaskId = 99;
     OS_TaskCreate(&g_uiMemScrubTaskId, 
                     MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MEM_SCRUB_Task,
@@ -605,7 +602,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Disable - 4/5: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Disable - 4/5: Unable to release semaphore - message");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Disable - 4/5: Memory scrub total pages reset");
-    UtAssert_True(g_uiMemScrubTaskId == 0,"_CFE_PSP_MEM_SCRUB_Disable - 4/5: Memory scrub task ID reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED,"_CFE_PSP_MEM_SCRUB_Disable - 4/5: Memory scrub task ID reset"); */
     
     /* ----- Test case #5 - Successful disable ----- */
     /* Set additional inputs */
@@ -628,7 +625,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Disable(void)
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Disable - 5/5: Correct return code");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Disable - 5/5: Memory scrub total pages reset");
-    UtAssert_True(g_uiMemScrubTaskId == 0,"_CFE_PSP_MEM_SCRUB_Disable - 5/5: Memory scrub task ID reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED,"_CFE_PSP_MEM_SCRUB_Disable - 5/5: Memory scrub task ID reset"); */
 }
 
 /*=======================================================================================
@@ -678,7 +675,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Correect return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Unable to take semaphore - message");
-    UtAssert_True(g_uiMemScrubTaskId == 0, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Mem scrub task id reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Mem scrub task id reset"); */
     UtAssert_True(g_uiMemScrubCurrentPage == 0, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Mem scrub current page reset");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Mem scrub total pages reset");
     UtAssert_True(g_uiMemScrubStartAddr == 0, "_CFE_PSP_MEM_SCRUB_Delete - 2/4: Mem scrub start address reset");
@@ -713,7 +710,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Unable to delete semaphore - message");
-    UtAssert_True(g_uiMemScrubTaskId == 0, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Mem scrub task id reset");
+    /* UtAssert_True(g_uiMemScrubTaskId == OS_OBJECT_ID_UNDEFINED, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Mem scrub task id reset"); */
     UtAssert_True(g_uiMemScrubCurrentPage == 0, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Mem scrub current page reset");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Mem scrub total pages reset");
     UtAssert_True(g_uiMemScrubStartAddr == 0, "_CFE_PSP_MEM_SCRUB_Delete - 3/4: Mem scrub start address reset");
@@ -747,7 +744,7 @@ void Ut_CFE_PSP_MEM_SCRUB_Delete(void)
     iReturnCode = CFE_PSP_MEM_SCRUB_Delete();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Correct return code");
-    UtAssert_True(g_uiMemScrubTaskId == 0, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub task id reset");
+    /* UtAssert_True(g_uiMemScrubTaskId OS_OBJECT_ID_UNDEFINED, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub task id reset"); */
     UtAssert_True(g_uiMemScrubCurrentPage == 0, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub current page reset");
     UtAssert_True(g_uiMemScrubTotalPages == 0, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub total pages reset");
     UtAssert_True(g_uiMemScrubStartAddr == 0, "_CFE_PSP_MEM_SCRUB_Delete - 4/4: Mem scrub start address reset");

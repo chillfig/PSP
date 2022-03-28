@@ -80,7 +80,7 @@ void CFE_PSP_Restart(uint32 resetType)
     uint32  uiDelayTime_msec = 50;
 
     /* Delay to make sure that all prints have been printed to console */
-    OS_printf("PSP Restart called with %d\n", resetType);
+    OS_printf("WARNING: PSP Restart called with %d\n", resetType);
 
     /* This cases are PSP specific */
     switch (resetType)
@@ -126,10 +126,12 @@ void CFE_PSP_Restart(uint32 resetType)
 
         /* Increase the frequency of memory synchronization */
         CFE_PSP_MEMORY_FlushToFLASH();
+
+        CFE_PSP_SaveToNVRAM();
     }
 
     /* Delay to let console catch up on printing logs. */
-    OS_TaskDelay(3000);
+    OS_TaskDelay(4000);
 
     reboot(BOOT_CLEAR);
 }
@@ -146,7 +148,7 @@ void CFE_PSP_Panic(int32 errorCode)
 {
     uint32 uiRestart_Type = CFE_PSP_RST_TYPE_PROCESSOR;
 
-    OS_printf("PSP Panic called with %d\n", errorCode);
+    OS_printf("WARNING: PSP Panic called with %d\n", errorCode);
 
     /** Clean up memory as much as possible before rebooting **/
 

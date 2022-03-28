@@ -78,21 +78,6 @@ extern "C" {
 void CFE_PSP_ProcessPOSTResults(void);
 
 /**
-** \func Logs software reset type
-**
-** \par Description:
-** This function determines if started in safe mode and logs off software reset type.
-**
-** \par Assumptions, External Events, and Notes:
-** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
-**
-** \param[in] resetSrc - Reset Type RESET_SRC_REG_ENUM
-**
-** \return None
-*/
-void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc);
-
-/**
  ** \func Gracefully Restart CFS
  ** 
  ** \par Description:
@@ -258,25 +243,6 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
-
-/**
- ** \brief Change system task priorities
- **
- ** \par Description:
- ** This function changes the system task priorities so that they are 
- ** lower than CFS system task priorities.
- **
- ** \par Assumptions, External Events, and Notes:
- ** tNet0 priority should be adjusted to be right below what ever
- ** gets defined for CI/TO apps in your system if using the network
- ** interface CCSDS/UDP for CI/TO apps.
- **
- ** \param None
- **
- ** \return #CFE_PSP_SUCCESS
- ** \return #CFE_PSP_ERROR
- */
-static int32 CFE_PSP_SetSysTasksPrio(void);
 
 /**
  ** \func Add a list of symbolic link mappings 

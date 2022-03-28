@@ -169,9 +169,9 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_StartupTimer");
 
-    UtTest_Add(Ut_OS_Application_Startup,
+/*     UtTest_Add(Ut_OS_Application_Startup,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Startup"); 
+               "Ut_OS_Application_Startup");  */
 
     UtTest_Add(Ut_CFE_PSP_GetRestartType,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

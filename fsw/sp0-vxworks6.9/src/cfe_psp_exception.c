@@ -151,43 +151,53 @@ int32   CFE_PSP_LoadFromNVRAM(void)
         {
             /* Extract URM size from signature */
             pURM_size = (int32 *)(urm_signature + 3);
-            edr_size = *pURM_size - boot_size;
 
             /* Prints the Signature Pack for debugging */
             OS_printf(PSP_EXCEP_PRINT_SCOPE 
-                      "URM Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
-                      urm_signature[0],
-                      urm_signature[1],
-                      urm_signature[2],
-                      urm_signature[3],
-                      urm_signature[4],
-                      urm_signature[5],
-                      urm_signature[6]
+                    "URM Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
+                    urm_signature[0],
+                    urm_signature[1],
+                    urm_signature[2],
+                    urm_signature[3],
+                    urm_signature[4],
+                    urm_signature[5],
+                    urm_signature[6]
             );
 
-            /* Load Boot Record data from EEPROM */
-            iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
-
-            /* Load data from EEPROM to ED&R pointer */
-            iStatus = userNvRamGet(
-                      (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-                      edr_size,
-                      boot_size + urm_pack_size
-            );
-
-            if (iStatus == OK)
+            if (*pURM_size >= boot_size)
             {
-                /* Get the number of exceptions loaded from EEPROM */
-                num_exceptions_in_urm = CFE_PSP_Exception_GetCount();
 
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
-                          *pURM_size,
-                          num_exceptions_in_urm
+                edr_size = *pURM_size - boot_size;
+
+                /* Load Boot Record data from EEPROM */
+                iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
+
+                /* Load data from EEPROM to ED&R pointer */
+                iStatus = userNvRamGet(
+                        (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                        edr_size,
+                        boot_size + urm_pack_size
                 );
+
+                if (iStatus == OK)
+                {
+                    /* Get the number of exceptions loaded from EEPROM */
+                    num_exceptions_in_urm = CFE_PSP_Exception_GetCount();
+
+                    OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
+                            *pURM_size,
+                            num_exceptions_in_urm
+                    );
+                }
+                else
+                {
+                    OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n");
+                    iRet_code = CFE_PSP_ERROR;
+                }
             }
             else
             {
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n");
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM signature found but data is empty\n");
                 iRet_code = CFE_PSP_ERROR;
             }
         }

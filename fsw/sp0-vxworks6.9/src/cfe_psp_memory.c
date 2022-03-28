@@ -58,9 +58,11 @@
 ** Macro Definitions
 */
 
-/** \brief Define PRINT SCOPES */
+/** \name Define PRINT SCOPES */
+/** \{ */
 #define MEMORY_PRINT_SCOPE "PSP MEMORY: "
 #define MEMORY_SYNC_PRINT_SCOPE "MEMORY SYNC: "
+/** \} */
 
 /*
 ** ENUM Definitions

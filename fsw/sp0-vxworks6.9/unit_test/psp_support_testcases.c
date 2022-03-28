@@ -69,7 +69,6 @@ void Ut_CFE_PSP_Restart(void)
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 1/3: Nominal message");
     UtAssert_STUB_COUNT(reboot,1);
 
     UT_ResetState(0);
@@ -87,7 +86,6 @@ void Ut_CFE_PSP_Restart(void)
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 2/3: Nominal message");
     UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
                   "_CFE_PSP_Restart() - 2/3: Nominal PROCESSOR reboot");
     UtAssert_STUB_COUNT(reboot,1);
@@ -109,7 +107,6 @@ void Ut_CFE_PSP_Restart(void)
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Restart() - 3/3: Nominal message");
     UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
                   "_CFE_PSP_Restart() - 3/3: Nominal PROCESSOR reboot");
     UtAssert_STUB_COUNT(reboot,1);
@@ -138,7 +135,6 @@ void Ut_CFE_PSP_Panic(void)
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 1/4: Nominal message");
     UtAssert_STUB_COUNT(reboot,1);
 
     UT_ResetState(0);
@@ -154,7 +150,6 @@ void Ut_CFE_PSP_Panic(void)
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 2/4: Nominal message");
     UtAssert_STUB_COUNT(reboot,1);
 
     UT_ResetState(0);
@@ -170,7 +165,6 @@ void Ut_CFE_PSP_Panic(void)
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 3/4: Nominal message");
     UtAssert_STUB_COUNT(reboot,1);
 
     UT_ResetState(0);
@@ -186,7 +180,6 @@ void Ut_CFE_PSP_Panic(void)
     /* Execute test */
     CFE_PSP_Panic(iErrorCode);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_Panic - 4/4: Nominal message");
     UtAssert_STUB_COUNT(reboot,1);
 }
 

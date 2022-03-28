@@ -442,11 +442,13 @@ void Ut_CFE_PSP_StartupFailed(void)
     char cMsg_error1[] = "PSP: Error, Timer ID does not match `CFE_PSP_StartupFailedRestartSP0_hook`\n";
     CFE_PSP_Startup_structure_t buffer = {};
     uint8_t buf[10] = {'\0'};
+    osal_id_t tmpID;
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
-    g_StartupInfo.timerID = 0;
+    tmpID = OS_ObjectIdFromInteger(1);
+    g_StartupInfo.timerID = OS_ObjectIdFromInteger(99);
     g_StartupInfo.startup_failed_attempts = 0;
     g_StartupInfo.startup_failed_reset_attempts = 0;
     sprintf(g_StartupInfo.fullpath_failed_startup_filename, "/ffx0/fail.txt");
@@ -460,7 +462,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Set additional inputs */
 
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(1);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_error1, "_CFE_PSP_StartupFailed - 1/7: Wrong TimerID");
 
@@ -469,6 +471,7 @@ void Ut_CFE_PSP_StartupFailed(void)
 
     /* ----- Test case #2 - Error, could not open file ----- */
     /* Set additional inputs */
+    tmpID = OS_ObjectIdFromInteger(99);
     UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
@@ -477,7 +480,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not open `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 2/7: Startup timer expired message");
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/7: Error, could not open file");
@@ -499,7 +502,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 3/7: Startup timer expired message");
     UtAssert_True(g_StartupInfo.startup_failed_attempts = 1, "_CFE_PSP_StartupFailed - 3/7: Increase number of failed attempts");
@@ -525,7 +528,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 4/7: Startup timer expired message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not read structure from `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
@@ -549,7 +552,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 5/7: Startup timer expired message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not read structure from `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
@@ -576,7 +579,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 6/7: Startup timer expired message");
     UtAssert_True(g_StartupInfo.startup_failed_attempts == 1, "_CFE_PSP_StartupFailed - 6/7: Increase number of failed attempts");
@@ -601,7 +604,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_StartupFailedRestartSP0_hook(0);
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 7/7: Startup timer expired message");
     UtAssert_True(g_StartupInfo.startup_failed_attempts == 0, "_CFE_PSP_StartupFailed - 7/7: Increase number of failed attempts");
@@ -623,7 +626,6 @@ void Ut_CFE_PSP_StartupClear(void)
     uint32 clock_accuracy = 0;
     char timer_name[] = "TEST";
 
-    g_StartupInfo.timerID = 0;
     g_StartupInfo.uMaxWaitTime_sec = 10;
     sprintf(g_StartupInfo.fullpath_failed_startup_filename,"/ffx0/fail2.txt");
 
@@ -631,7 +633,7 @@ void Ut_CFE_PSP_StartupClear(void)
 
     /* ----- Test case #1 - Nominal ----- */
     /* Set additional inputs */
-    OS_TimerCreate(&g_StartupInfo.timerID, timer_name, &clock_accuracy, &UT_ResetState);
+    OS_TimerCreate(&g_StartupInfo.timerID, timer_name, &clock_accuracy, NULL);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerDelete), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(sysDisableFpgaWdt), OK);
@@ -810,6 +812,8 @@ void Ut_OS_Application_Startup(void)
     uint64 bitResult   = 1ULL;
     uint64 bitExecuted = 3ULL;
     USER_SAFE_MODE_DATA_STRUCT smud;
+
+    memset(nvram,0x00,sizeof(nvram));
 
     Ut_OS_printf_Setup();
 

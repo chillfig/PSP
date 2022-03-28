@@ -41,6 +41,8 @@
 static void CFE_PSP_MEM_SCRUB_Task(void);
 
 /* Defined in sysLib.c */
+/** \name External definition of variables containing error statistics */
+/** \{ */
 //UndCC_Begin(SSET056)
 extern uint32_t    l2errTotal;
 extern uint32_t    l2errMult;
@@ -51,6 +53,8 @@ extern uint32_t    l2errCfg;
 extern uint32_t    mchCause;
 extern uint32_t    mchkHook;
 //UndCC_End(SSET056)
+/** \} */
+/** \brief External definition of function to print memory scrubbing statistics */
 extern void ckCtrs(void);
 
 /* Defined in cfe_psp_memory.c */

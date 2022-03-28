@@ -51,10 +51,10 @@
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
 #include "cfe_psp_config.h"
+#include "psp_verify.h"
 #include "psp_start.h"
 #include "psp_mem_scrub.h"
 #include "psp_sp0_info.h"
-#include "psp_verify.h"
 #include "psp_mem_sync.h"
 #include "psp_support.h"
 #include "psp_mem_sync.h"
@@ -208,29 +208,29 @@ void CFE_PSP_ProcessPOSTResults(void)
 }
 
 /**
-** \func Determines the reset type and subtype as per Aitech BSP
-**
-** \par Description:
-** Reset Types are defined in Aitech headers
-** Function will save reset types to the respective global static variables:
-** - g_StartupInfo.ResetType
-** - g_StartupInfo.ResetSubtype
-** This function will also set the CFE reset type to #CFE_PSP_RST_TYPE_POWERON
-** when no User Reserved Memory files are found, or #CFE_PSP_RST_TYPE_PROCESSOR
-** when User Reserver Memory files can be recovered.
-** Finally, function will print to console the reset type
-**
-** \par Assumptions, External Events, and Notes:
-** Output defines are defined in Aitech file scratchRegMap.h
-**
-** \param None
-**
-** \return #RESET_SRC_POR
-** \return #RESET_SRC_WDT
-** \return #RESET_SRC_FWDT
-** \return #RESET_SRC_CPCI
-** \return #RESET_SRC_SWR 
-*/
+ ** \func Determines the reset type and subtype as per Aitech BSP
+ **
+ ** \par Description:
+ ** Reset Types are defined in Aitech headers
+ ** Function will save reset types to the respective global static variables:
+ ** - g_StartupInfo.ResetType
+ ** - g_StartupInfo.ResetSubtype
+ ** This function will also set the CFE reset type to #CFE_PSP_RST_TYPE_POWERON
+ ** when no User Reserved Memory files are found, or #CFE_PSP_RST_TYPE_PROCESSOR
+ ** when User Reserver Memory files can be recovered.
+ ** Finally, function will print to console the reset type
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Output defines are defined in Aitech file scratchRegMap.h
+ **
+ ** \param None
+ **
+ ** \return #RESET_SRC_POR
+ ** \return #RESET_SRC_WDT
+ ** \return #RESET_SRC_FWDT
+ ** \return #RESET_SRC_CPCI
+ ** \return #RESET_SRC_SWR
+ */
 static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 iStatus = 0;
@@ -310,14 +310,20 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     return resetSrc;
 }
 
-/**********************************************************
- * 
- * Function: CFE_PSP_LogSoftwareResetType
- * 
- * Description: See function declaration for info
- *
- *********************************************************/
-void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
+/**
+ ** \func Logs software reset type
+ **
+ ** \par Description:
+ ** This function determines if started in safe mode and logs off software reset type.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** RESET_SRC_REG_ENUM is defined in Aitech file scratchRegMap.h
+ **
+ ** \param[in] resetSrc - Reset Type RESET_SRC_REG_ENUM
+ **
+ ** \return None
+ */
+static void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
     uint8 ucIndex = 0u;
     uint8 ucMaxIterations = sizeof(g_pMachineCheckCause_msg) / sizeof(g_pMachineCheckCause_msg[0]);
@@ -378,6 +384,45 @@ void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     }
 }
 
+/**
+ ** \brief Change system task priorities
+ **
+ ** \par Description:
+ ** This function changes the system task priorities so that they are 
+ ** lower than CFS system task priorities.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** tNet0 priority should be adjusted to be right below what ever
+ ** gets defined for CI/TO apps in your system if using the network
+ ** interface CCSDS/UDP for CI/TO apps.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 CFE_PSP_SetSysTasksPrio(void)
+{
+    int32 iStatus = CFE_PSP_SUCCESS;
+    int32 iIndex = 0;
+    int32 iRet_code = OS_ERROR;
+
+    int32 iNumberOfTask = sizeof(g_VxWorksTaskList) / sizeof(CFE_PSP_OS_Task_and_priority_t);
+
+    OS_printf("PSP: Setting system tasks' priorities for %d tasks.\n", iNumberOfTask);
+
+    for (iIndex = 0; iIndex < iNumberOfTask; iIndex++)
+    {
+        iRet_code = CFE_PSP_SetTaskPrio(g_VxWorksTaskList[iIndex].VxWorksTaskName, 
+                                  g_VxWorksTaskList[iIndex].VxWorksTaskPriority);
+        if (iRet_code != OS_SUCCESS)
+        {
+            iStatus = CFE_PSP_ERROR;
+        }
+    }
+
+    return iStatus;
+}
 
 /**********************************************************
  * 
@@ -943,35 +988,6 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
     return iStatus;
 }
 
-/**********************************************************
- * 
- * Function: CFE_PSP_SetSysTasksPrio
- * 
- * Description: See function declaration for info
- *
- *********************************************************/
-static int32 CFE_PSP_SetSysTasksPrio(void)
-{
-    int32 iStatus = CFE_PSP_SUCCESS;
-    int32 iIndex = 0;
-    int32 iRet_code = OS_ERROR;
-
-    int32 iNumberOfTask = sizeof(g_VxWorksTaskList) / sizeof(CFE_PSP_OS_Task_and_priority_t);
-
-    OS_printf("PSP: Setting system tasks' priorities for %d tasks.\n", iNumberOfTask);
-
-    for (iIndex = 0; iIndex < iNumberOfTask; iIndex++)
-    {
-        iRet_code = CFE_PSP_SetTaskPrio(g_VxWorksTaskList[iIndex].VxWorksTaskName, 
-                                  g_VxWorksTaskList[iIndex].VxWorksTaskPriority);
-        if (iRet_code != OS_SUCCESS)
-        {
-            iStatus = CFE_PSP_ERROR;
-        }
-    }
-
-    return iStatus;
-}
 
 /**
  ** \func Add a list of symbolic link mappings 
@@ -991,7 +1007,7 @@ static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
 {
     int32   iRet_code      = CFE_PSP_SUCCESS;
     int32   iStatus        = OS_SUCCESS;
-    int32   index         = 0;
+    int32   index          = 0;
     int8    cNumberOfLinks = 0;
 
     /* Get the number of structures in the symbolic links array */

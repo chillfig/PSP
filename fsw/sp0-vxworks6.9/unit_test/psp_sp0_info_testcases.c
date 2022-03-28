@@ -478,40 +478,59 @@ void Ut_PSP_SP0_PrintToBuffer(void)
 void Ut_PSP_SP0_GetInfoTable(void)
 {
     SP0_info_table_t sp0_data;
+    int32 iRetCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - Nominal with no console print ----- */
     /* Setup additional inputs */
     g_sp0_info_table.lastUpdatedUTC.tv_sec = 1000;
     /* Execute test */
-    sp0_data = PSP_SP0_GetInfoTable(false);
+    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 0);
     /* Verify outputs */
     UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_PSP_SP0_GetInfoTable - 1/4: Nominal return success"
+        );
+    UtAssert_True(
         sp0_data.lastUpdatedUTC.tv_sec == g_sp0_info_table.lastUpdatedUTC.tv_sec,
-        "_PSP_SP0_GetInfoTable - 1/3: Nominal without console print"
+        "_PSP_SP0_GetInfoTable - 1/4: Nominal without console print"
         );
 
-    /* ----- Test case #1 - Nominal with console print ----- */
+    /* ----- Test case #2 - Nominal with console print ----- */
     /* Setup additional inputs */
-    Ut_OS_printf_Setup();
     /* Set the content of the output data to a fixed value for testing */
     g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
     /* Execute test */
-    sp0_data = PSP_SP0_GetInfoTable(true);
+    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 1);
     /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_PSP_SP0_GetInfoTable - 2/4: Nominal return success"
+        );
+    UtAssert_NA("_PSP_SP0_GetInfoTable - 2/4: Nominal with console print");
 
-    UtAssert_NA("_PSP_SP0_GetInfoTable - 2/3: Nominal with console print");
-
-    /* ----- Test case #1 - Nothing to print ----- */
+    /* ----- Test case #3 - data length is zero ----- */
     /* Setup additional inputs */
-    Ut_OS_printf_Setup();
     /* Set the content of the output data to a fixed value for testing */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     g_iSP0DataDumpLength = 0;
     /* Execute test */
-    sp0_data = PSP_SP0_GetInfoTable(true);
+    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 0);
     /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_PSP_SP0_GetInfoTable - 3/4: Data length zero return error"
+        );
 
-    UtAssert_NA("_PSP_SP0_GetInfoTable - 3/3: Nothing to print");
+    /* ----- Test case #4 - Null structure ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    /* Execute test */
+    iRetCode = PSP_SP0_GetInfoTable(NULL, 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_PSP_SP0_GetInfoTable - 4/4: Nominal return success"
+        );
 }
 
 /*=======================================================================================

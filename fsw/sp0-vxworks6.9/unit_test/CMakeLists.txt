@@ -65,7 +65,7 @@ endif()
 ### ### ###
 
 # Source for this app's UT executable
-aux_source_directory(ut_stubs UT_SRCS)
+aux_source_directory(${IMPL_DIR}/unit_test/ut_stubs UT_SRCS)
 
 add_executable(${UT_NAME}_ut ${UT_SRCS})
 

@@ -29,7 +29,9 @@
 
 
 #include <vxWorks.h>
-/* Endian information is requried by VxWorks IPCOM for Starting/Stopping NTP Daemon */
+/**
+ ** \brief Endian information is required by VxWorks IPCOM for Starting/Stopping NTP Daemon
+ */
 #if (_BYTE_ORDER == _LITTLE_ENDIAN )
 #define IP_LITTLE_ENDIAN
 #elif (_BYTE_ORDER == _BIG_ENDIAN )

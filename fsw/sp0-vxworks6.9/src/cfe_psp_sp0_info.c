@@ -50,14 +50,13 @@
 #include "cfe_psp_config.h"
 #include "psp_sp0_info.h"
 
-/**
- ** \brief Max number of Voltage and Temperature sensors per target generation
- ** 
- */
+/** \name Max number of Voltage and Temperature sensors per target generation */
+/** \{ */
 #define SP0_UPGRADE_MAX_VOLT_SENSORS    6
 #define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
 #define SP0_UPGRADE_MAX_TEMP_SENSORS    4
 #define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
+/** \} */
 
 /** \brief ROM1 LOCK Code */
 #define SP0_ROM1_CODE_LOCK                  0x000000A1
@@ -465,24 +464,30 @@ static int32 PSP_SP0_PrintToBuffer(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console)
+int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console)
 {
-    /* Output to console */
+    int32   iRetCode = CFE_PSP_ERROR;
 
-    /*
-    OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
-    is usually much longer.
-    */
-    if (print_to_console)
+    if (sp0_info != NULL)
     {
+        /* Copy internal structure */
+        memcpy(sp0_info, &g_sp0_info_table, sizeof(g_sp0_info_table));
+
+        /*
+        OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
+        is usually much longer.
+        */
         if (g_iSP0DataDumpLength > 0)
         {
-            // UndCC_NextLine(SSET134)
-            printf("\n\n%s\n\n", &g_cSP0DataDump);
+            if (print_to_console > 0)
+            {
+                // UndCC_NextLine(SSET134)
+                printf("\n\n%s\n\n", &g_cSP0DataDump);
+            }
+            iRetCode = CFE_PSP_SUCCESS;
         }
     }
-
-    return g_sp0_info_table;
+    return iRetCode;
 }
 
 /**********************************************************
@@ -617,25 +622,25 @@ int32 PSP_SP0_ROM2_UNLOCK(void)
     return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM2_CODE_UNLOCK);
 }
 
-/*
-** \brief Executes the base commands to lock/unlock ROM device
-**
-** \par Description:
-** Executes commands to lock/unlock ROM device
-**
-** \par Assumptions, Notes, and External Events:
-** We first must write a series of 8-bit values in sequence
-** to unlock/lock the BOOT ROM Write Protect. The first 
-** five writes in the sequence are executed, then the last remaining
-** write (handled by switch/case) will complete the sequence and
-** lock/unlock the BOOT ROM as intended. See attachment on
-** GWCFS-1226 Jira Story
-**
-** \param[in] uiCode - Code to indicate lock/unlock ROM1/2
-**
-** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
-** \return #CFE_PSP_ERROR - Unsuccessfully executed intended sequence
-*/
+/**
+ ** \brief Executes the base commands to lock/unlock ROM device
+ **
+ ** \par Description:
+ ** Executes commands to lock/unlock ROM device
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** We first must write a series of 8-bit values in sequence
+ ** to unlock/lock the BOOT ROM Write Protect. The first 
+ ** five writes in the sequence are executed, then the last remaining
+ ** write (handled by switch/case) will complete the sequence and
+ ** lock/unlock the BOOT ROM as intended. See attachment on
+ ** GWCFS-1226 Jira Story
+ **
+ ** \param[in] uiCode - Code to indicate lock/unlock ROM1/2
+ **
+ ** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
+ ** \return #CFE_PSP_ERROR - Unsuccessfully executed intended sequence
+ */
 static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
@@ -712,10 +717,3 @@ bool PSP_SP0_ROM2_Status(void)
 {
     return (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
 }
-
-/**********************************************************
- * 
- * MATT TEST AREA
- *      END
- *
- *********************************************************/

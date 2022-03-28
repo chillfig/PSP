@@ -41,6 +41,7 @@
 /*
 ** Macro Definitions
 */
+/** \brief Define PRINT SCOPES */
 #define FLASH_PRINT_SCOPE "PSP FLASH: "
 
 /**********************************************************

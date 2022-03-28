@@ -65,11 +65,11 @@ Kernel must include the following services:
 - Functions Internal "Because defined as static"
   - CFE_PSP_ProcessResetType
   - CFE_PSP_SetSysTasksPrio
+  - CFE_PSP_LogSoftwareResetType
 
 - Functions
   - CFE_PSP_Main
   - CFE_PSP_ProcessPOSTResults
-  - CFE_PSP_LogSoftwareResetType
   - CFE_PSP_GetActiveCFSPartition
   - CFE_PSP_StartupTimer
   - CFE_PSP_StartupClear

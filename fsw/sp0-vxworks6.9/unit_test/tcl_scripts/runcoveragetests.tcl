@@ -25,7 +25,7 @@ set psp_priority    100
 # 
 set psp_options     0x04000003
 set psp_stack_addr  0
-set psp_stack_size  16384
+set psp_stack_size  65536
 set redirIn         0
 set redirOut        0
 set delay           100
@@ -52,8 +52,8 @@ wtxContextResume CONTEXT_TASK $task_id
 
 puts stdout "Waiting for Unit Test to complete"
 
-# Set maximum number of seconds to wait to 100 sec
-set max_wait 100
+# Set maximum number of seconds to wait to 180 sec
+set max_wait 180
 set waiting_for 0
 # Wait until done by listening to a special USER event
 while {([set event [wtxEventGet]] == "") && ($waiting_for < $max_wait)} {

@@ -114,37 +114,39 @@ typedef struct
 
 
 /**
-** \func Collect SP0 Hardware and Firmware data
-**
-** \par Description:
-** This function collects the SP0 hardware and firmware data and saves it
-** in the sp0_info_table object, as well as a string in the sp0_data_dump object.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+ ** \func Collect SP0 Hardware and Firmware data
+ **
+ ** \par Description:
+ ** This function collects the SP0 hardware and firmware data and saves it
+ ** in the sp0_info_table object, as well as a string in the sp0_data_dump object.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32  PSP_SP0_GetInfo(void);
 
 /**
-** \func Get the structure containing the SP0 Hardware and Firmware data
-**
-** \par Description:
-** This function returns and print the structure containing the SP0 Hardware and Firmware
-** data.
-** 
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param print_to_console Print string buffer to console if True
-**
-** \return SP0_info_table_t structure containing all the collect info from SP0
-*/
-SP0_info_table_t PSP_SP0_GetInfoTable(bool print_to_console);
+ ** \func Get the structure containing the SP0 Hardware and Firmware data
+ **
+ ** \par Description:
+ ** This function returns and print the structure containing the SP0 Hardware and Firmware
+ ** data.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param print_to_console Print string buffer to console if larger than 0
+ ** \param sp0_info Pointer to an SP0_info_table_t structure
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console);
 
 /**
  ** \func Function dumps the collected data to file
@@ -179,104 +181,104 @@ int32 PSP_SP0_DumpData(void);
  */
 int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
 
-/*
-** \brief Lock ROM1
-**
-** \par Description:
-** Function that will unlock ROM1
-**
-** \par Assumptions, External Events, and Notes:
-** This function will still attempt to lock ROM1
-** even if it is currently locked
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**
+ ** \brief Lock ROM1
+ **
+ ** \par Description:
+ ** Function that will lock ROM1
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will still attempt to lock ROM1
+ ** even if it is currently locked
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32 PSP_SP0_ROM1_LOCK(void);
 
-/*
-** \brief Unlock ROM1
-**
-** \par Description:
-** Function that will unlock ROM1
-**
-** \par Assumptions, External Events, and Notes:
-** This function will still attempt to unlock ROM1
-** even if it is currently unlocked
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**
+ ** \brief Unlock ROM1
+ **
+ ** \par Description:
+ ** Function that will unlock ROM1
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will still attempt to unlock ROM1
+ ** even if it is currently unlocked
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32 PSP_SP0_ROM1_UNLOCK(void);
 
-/*
-** \brief Lock ROM2
-**
-** \par Description:
-** Function that will unlock ROM2
-**
-** \par Assumptions, External Events, and Notes:
-** This function will still attempt to lock ROM2
-** even if it is currently locked
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**
+ ** \brief Lock ROM2
+ **
+ ** \par Description:
+ ** Function that will lock ROM2
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will still attempt to lock ROM2
+ ** even if it is currently locked
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32 PSP_SP0_ROM2_LOCK(void);
 
-/*
-** \brief Unlock ROM2
-**
-** \par Description:
-** Function that will unlock ROM2
-**
-** \par Assumptions, External Events, and Notes:
-** This function will still attempt to unlock ROM2
-** even if it is currently unlocked
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+/**
+ ** \brief Unlock ROM2
+ **
+ ** \par Description:
+ ** Function that will unlock ROM2
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function will still attempt to unlock ROM2
+ ** even if it is currently unlocked
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
 int32 PSP_SP0_ROM2_UNLOCK(void);
 
-/*
-** \brief Get ROM1 Lock/Unlock Status
-**
-** \par Description:
-** Function will return LOCK/UNLOCK status of ROM1
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return false - ROM1 is UNLOCKED
-** \return true - ROM1 is LOCKED
-*/
+/**
+ ** \brief Get ROM1 Lock/Unlock Status
+ **
+ ** \par Description:
+ ** Function will return LOCK/UNLOCK status of ROM1
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return false - ROM1 is UNLOCKED
+ ** \return true - ROM1 is LOCKED
+ */
 bool PSP_SP0_ROM1_Status(void);
 
-/*
-** \brief Get ROM2 Lock/Unlock Status
-**
-** \par Description:
-** Function will return LOCK/UNLOCK status of ROM2
-**
-** \par Assumptions, External Events, and Notes:
-** None
-**
-** \param None
-**
-** \return false - ROM2 is UNLOCKED
-** \return true - ROM2 is LOCKED
-*/
+/**
+ ** \brief Get ROM2 Lock/Unlock Status
+ **
+ ** \par Description:
+ ** Function will return LOCK/UNLOCK status of ROM2
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return false - ROM2 is UNLOCKED
+ ** \return true - ROM2 is LOCKED
+ */
 bool PSP_SP0_ROM2_Status(void);
 
 
