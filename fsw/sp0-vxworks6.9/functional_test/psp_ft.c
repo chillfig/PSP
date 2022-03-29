@@ -19,6 +19,7 @@
 
 #include <scratchRegMap.h>
 #include <aimonUtil.h>
+#include <nvRamToFlash.h>
 #include <wdb/wdbLib.h>
 
 #include <math.h>
@@ -27,6 +28,8 @@
 #include "osapi.h"
 /* Provides the definition of CFE_TIME_SysTime_t */
 #include "cfe_time_extern_typedefs.h"
+#include "cfe_config.h"
+#include "cfe_config_core_internal.h"
 
 #include "cfe.h"
 #include "cfe_psp_exceptionstorage_api.h"
@@ -138,12 +141,15 @@ void PSP_FT_Run(void)
 /* Setup environment */
 void PSP_FT_Setup(void)
 {
+    char buffer[10];
+
     /** Create an empty cfe_es_startup to remove the error **/
     int tmp_fd;
     tmp_fd = creat("/ram0/cf/cfe_es_startup.scr",O_RDWR);
     close(tmp_fd);
 
     /* Clear flash from backups */
+    userNvRamSet(buffer, sizeof(buffer), 0);
     remove("/ffx0/CDS");
     remove("/ffx0/URM/VODI.bkp");
     remove("/ffx0/URM/USRR.bkp");
@@ -160,8 +166,12 @@ void PSP_FT_Setup(void)
  */
 void PSP_FT_SendEndTestEvent(void)
 {
-    if (wdbUserEvtPost ("End of Tests") != OK)
+    if (wdbUserEvtPost ("End of Tests") != OK) {
         OS_printf ("Can't send message to host tools");
+        CFE_Config_Init();
+        CFE_Config_GetString(CFE_CONFIGID_CORE_BUILDINFO_DATE);
+        CFE_Config_IterateAll(NULL, 0);
+    }
 }
 
 /**

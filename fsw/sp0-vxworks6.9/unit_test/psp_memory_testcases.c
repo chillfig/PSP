@@ -1950,7 +1950,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", OS_SEM_FAILURE);
@@ -1964,7 +1964,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SEM_FAILURE);
@@ -1975,10 +1975,10 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/4: Fail delete bsem - message");
 
-    /* ----- Test case #4: Succesfful destroy ----- */
+    /* ----- Test case #4: Successfully destroy ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
@@ -2027,7 +2027,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
-    g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Error starting MEMORY SYNC task\n");
     /* Execute tests */
@@ -2040,7 +2040,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     /* Set additional inputs */
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
-    g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute tests */
     iReturnCode = CFE_PSP_MEMORY_SYNC_Start();

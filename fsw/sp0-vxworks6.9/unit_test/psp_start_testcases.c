@@ -484,7 +484,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 2/7: Startup timer expired message");
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/7: Error, could not open file");
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_CFS_TOGGLE);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_CFS_TOGGLE);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/7: Restart Message");
 
     UT_ResetState(0);
@@ -510,7 +510,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: lseek error message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not close file `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: close error message");
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: Restart Message");
 
     Ut_OS_printf_Setup();
@@ -533,7 +533,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 4/7: Startup timer expired message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not read structure from `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/7: read error message");
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/7: Restart Message");
 
     Ut_OS_printf_Setup();
@@ -559,7 +559,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: lseek error message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not write to `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: write error message");
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: Restart Message");
 
     Ut_OS_printf_Setup();
@@ -584,7 +584,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 6/7: Startup timer expired message");
     UtAssert_True(g_StartupInfo.startup_failed_attempts == 1, "_CFE_PSP_StartupFailed - 6/7: Increase number of failed attempts");
     UtAssert_True(g_StartupInfo.startup_failed_reset_attempts == 0, "_CFE_PSP_StartupFailed - 6/7: Reset attempts not changed");
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 6/7: Restart Message");
 
     Ut_OS_printf_Setup();
@@ -611,7 +611,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UtAssert_True(g_StartupInfo.startup_failed_reset_attempts == 1, "_CFE_PSP_StartupFailed - 7/7: Reset attempts not changed");
     sprintf(cMsg, "PSP DEBUG: iBytes_read = %d --> POWERON\n", sizeof(buffer));
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/7: PSP DEBUG message");    
-    sprintf(cMsg, "PSP Restart called with %d\n", CFE_PSP_RST_TYPE_POWERON);
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_POWERON);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/7: Restart Message");
 }
 
