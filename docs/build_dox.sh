@@ -1,14 +1,20 @@
 #!/bin/bash
 
+# -------------------------------------------------------------------------------
 # NOTE: This shell script must run from the app's "docs" directory.
+# -------------------------------------------------------------------------------
 
 ucAPP=PSP_SP0-VXWORKS6.9
 lcAPP=psp_sp0-vxworks6.9
+
+# -------------------------------------------------------------------------------
 
 function do_clean()
 {
     rm -rf html latex
 }
+
+# -------------------------------------------------------------------------------
 
 function do_html()
 {
@@ -16,11 +22,15 @@ function do_html()
     mkdir -p latex && \
     cp dox_src/customs/*.tex latex && \
     doxygen dox_src/$lcAPP\_Doxyfile && \
-    cp *.pdf html
+    if [ -e *.pdf ]; then
+        cp *.pdf html
+    fi
 
     # Note that the last command is important to get the document links
     # to work properly for HTML.
 }
+
+# -------------------------------------------------------------------------------
 
 function update_refman()
 {
@@ -32,6 +42,8 @@ function update_refman()
     mv temp latex/refman.tex
 }
 
+# -------------------------------------------------------------------------------
+
 function do_pdf()
 {
     do_html && \
@@ -39,8 +51,13 @@ function do_pdf()
     cd latex && \
     make && \
     mv refman.pdf ../$ucAPP\_sdd_s5.pdf && \
-    cd ..
+    cd .. && \
+    rm -rf latex
 }
+
+# -------------------------------------------------------------------------------
+# Main
+# -------------------------------------------------------------------------------
 
 if [ "$1" == "clean" ]; then
     do_clean
@@ -51,8 +68,8 @@ elif [ "$1" == "pdf" ]; then
 elif [ "$1" == "all" ]; then
     do_pdf
 else
-    echo ""
-    echo "Usage: ./build_dox.sh [clean|html|pdf|all]"
-    echo ""
+    echo -e "\nUsage: ./build_dox.sh [clean|html|pdf|all]\n"
 fi
+
+# -------------------------------------------------------------------------------
 

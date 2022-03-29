@@ -749,6 +749,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT     = ../fsw/inc
+INPUT    += ../fsw/modules/ntp_clock_vxworks
 INPUT    += ../fsw/modules/port_direct
 INPUT    += ../fsw/modules/ram_direct
 INPUT    += ../fsw/modules/timebase_vxworks
