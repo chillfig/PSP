@@ -593,7 +593,7 @@ typedef struct
 /** \brief MEMORY SYNC Priority Lower Limit */
 #define MEMORY_SYNC_PRIORITY_LOW_RANGE      60
 /** \brief MEMORY SYNC Start on Startup */
-#define MEMORY_SYNC_START_ON_STARTUP        true
+#define MEMORY_SYNC_START_ON_STARTUP        false
 /** \brief RESET Binary Semaphore Name */
 #define MEMORY_RESET_BIN_SEM_NAME           "RSTBSEM"
 /** \brief CDS Binary Semaphore Name */

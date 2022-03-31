@@ -317,6 +317,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         */
         
         /* Attempt recovering NVRAM data */
+#if MEMORY_SYNC_START_ON_STARTUP == true
         if (CFE_PSP_LoadFromNVRAM() != CFE_PSP_SUCCESS)
         {
             /* Save it back if the NVRAM is empty */
@@ -373,6 +374,17 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
                                     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
                                     g_USERRESERVEDFilepath);
         }
+
+#else
+        memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+        memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
+        memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+        memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+                0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
+#endif
     }
 
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_PROCESSOR;
