@@ -40,19 +40,19 @@ extern "C" {
 /** \brief Development Build Macro Definitions - Build Number */
 #define CFE_PSP_IMPL_BUILD_NUMBER   124
 /** \brief Development Build Macro Definitions - Baseline */
-#define CFE_PSP_IMPL_BUILD_BASELINE "v1.5.0-rc1"
+#define CFE_PSP_IMPL_BUILD_BASELINE "v1.6.0-rc1"
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
-#define CFE_PSP_IMPL_MINOR_VERSION 5 
+#define CFE_PSP_IMPL_MINOR_VERSION 6 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
-#define CFE_PSP_IMPL_REVISION      1 
+#define CFE_PSP_IMPL_REVISION      0 
 /** \brief ONLY APPLY for OFFICIAL releases.
  ** Revision version number. A value of "99" indicates an unreleased development version.
  */
 #define CFE_PSP_IMPL_MISSION_REV   0
 /** \brief ONLY APPLY for OFFICIAL releases. Codename */
-#define CFE_PSP_IMPL_CODENAME "Caelum"
+#define CFE_PSP_IMPL_CODENAME "Draco"
 /** \} */
 
 /** \name Tools to construct version string */
