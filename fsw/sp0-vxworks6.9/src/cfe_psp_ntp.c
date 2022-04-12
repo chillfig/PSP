@@ -51,7 +51,7 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_module.h"
 
-#include "psp_time_sync.h"
+#include "cfe_psp_timesync.h"
 
 /** \name NTP Sync Configuration - VxWorks */
 /** \{ */
@@ -84,12 +84,12 @@ extern uint32 CFE_TIME_Micro2SubSecs(uint32);
 
 /**********************************************************
  * 
- * Function: CFE_PSP_TIME_NTPDaemon_isRunning
+ * Function: CFE_PSP_NTPDaemonIsRunning
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_TIME_NTPDaemon_isRunning(void)
+int32 CFE_PSP_NTPDaemonIsRunning(void)
 {
     int32       iReturnCode = CFE_PSP_SUCCESS;
     TASK_ID     tidTaskId   = 0;
@@ -110,7 +110,7 @@ int32 CFE_PSP_TIME_NTPDaemon_isRunning(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
+int32 CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec)
 {
     struct timespec     unixTime = {0,0};
     int32               iResult = CFE_PSP_ERROR;
@@ -135,12 +135,12 @@ int32 CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_TIME_Get_OS_Time
+ * Function: CFE_PSP_GetOSTime
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
+int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 {
     struct timespec     unixTime = {0,0};
     uint32              tv_sec = 0;
@@ -176,7 +176,7 @@ int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
     }
     else
     {
-        OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_TIME_Get_OS_Time called without a proper argument\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_GetOSTime called without a proper argument\n");
         iReturnStatus = CFE_PSP_ERROR;
     }
     
@@ -185,12 +185,12 @@ int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_TIME_StartNTPDaemon
+ * Function: CFE_PSP_StartNTPDaemon
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_TIME_StartNTPDaemon(void)
+int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       iStatus = CFE_PSP_ERROR;
     int32       tidTaskId = 0;
@@ -217,12 +217,12 @@ int32 CFE_PSP_TIME_StartNTPDaemon(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_TIME_StopNTPDaemon
+ * Function: CFE_PSP_StopNTPDaemon
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_TIME_StopNTPDaemon(void)
+int32 CFE_PSP_StopNTPDaemon(void)
 {
     int32       iReturnCode = CFE_PSP_SUCCESS;
     int32       iIPCOMStatus = CFE_PSP_ERROR;

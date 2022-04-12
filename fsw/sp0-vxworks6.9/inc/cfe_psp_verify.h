@@ -242,6 +242,6 @@ CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_S
 #endif /* _PSP_VERIFY_H_ */
 
 /*==============================================================================
-** End of file psp_verify.h
+** End of file cfe_psp_verify.h
 **============================================================================*/
     

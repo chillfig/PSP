@@ -3,7 +3,7 @@
 ** File:  psp_sp0_info_testcases.h
 **
 ** Purpose:
-**    This file contains function declarations of test cases for the cfe_psp_sp0_info.c.
+**    This file contains function declarations of test cases for the cfe_psp_sp0info.c.
 **
 ** Modification History:
 **    Date       | Author           | Description
@@ -29,18 +29,18 @@
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
-void Ut_PSP_SP0_GetInfo(void);
-void Ut_PSP_SP0_GetInfoTable(void);
-void Ut_PSP_SP0_PrintToBuffer(void);
-void Ut_PSP_SP0_DumpData(void);
-void Ut_PSP_SP0_GetDiskFreeSize(void);
-void Ut_PSP_SP0_ROM1_LOCK(void);
-void Ut_PSP_SP0_ROM1_UNLOCK(void);
-void Ut_PSP_SP0_ROM2_LOCK(void);
-void Ut_PSP_SP0_ROM2_UNLOCK(void);
-void Ut_PSP_SP0_ROMX_COMMAND(void);
-void Ut_PSP_SP0_ROM1_Status(void);
-void Ut_PSP_SP0_ROM2_Status(void);
+void Ut_CFE_PSP_SP0GetInfo(void);
+void Ut_CFE_PSP_SP0GetInfoTable(void);
+void Ut_CFE_PSP_SP0PrintToBuffer(void);
+void Ut_CFE_PSP_SP0DumpData(void);
+void Ut_CFE_PSP_SP0GetDiskFreeSize(void);
+void Ut_CFE_PSP_SP0ROM1Lock(void);
+void Ut_CFE_PSP_SP0ROM1Unlock(void);
+void Ut_CFE_PSP_SP0ROM2Lock(void);
+void Ut_CFE_PSP_SP0ROM2Unlock(void);
+void Ut_CFE_PSP_SP0ROMXCmd(void);
+void Ut_CFE_PSP_SP0ROM1Status(void);
+void Ut_CFE_PSP_SP0ROM2Status(void);
 
 #endif  /* UT_PSP_SP0_INFO_TESTCASES_H */
 

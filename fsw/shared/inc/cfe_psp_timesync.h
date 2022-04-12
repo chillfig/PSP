@@ -61,7 +61,7 @@ extern "C" {
 ** \return #CFE_PSP_ERROR - If NTP client task is not running
 ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED - If function is not implemented
 */
-int32  CFE_PSP_TIME_NTPDaemon_isRunning(void);
+int32  CFE_PSP_NTPDaemonIsRunning(void);
 
 /**
 ** \func Set the OS time
@@ -80,7 +80,7 @@ int32  CFE_PSP_TIME_NTPDaemon_isRunning(void);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
+int32  CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec);
 
 /**
 ** \func Gets the current time from vxworks OS
@@ -98,7 +98,7 @@ int32  CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT);
+int32  CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT);
 
 /**
 ** \func Start the NTP client
@@ -114,7 +114,7 @@ int32  CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT);
 ** \return NTP client Task ID
 ** \return IPCOM_ERR_NOT_STARTED
 */
-int32  CFE_PSP_TIME_StartNTPDaemon(void);
+int32  CFE_PSP_StartNTPDaemon(void);
 
 /**
 ** \func Stop the NTP client
@@ -130,7 +130,7 @@ int32  CFE_PSP_TIME_StartNTPDaemon(void);
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_TIME_StopNTPDaemon(void);
+int32  CFE_PSP_StopNTPDaemon(void);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

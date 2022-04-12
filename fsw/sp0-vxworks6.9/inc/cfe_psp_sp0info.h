@@ -110,7 +110,7 @@ typedef struct
     float temperatures[4];
     /** \brief Array of 6 voltages powering the SP0 */
     float voltages[6];
-} SP0_info_table_t;
+} CFE_PSP_SP0InfoTable_t;
 
 
 /**
@@ -128,7 +128,7 @@ typedef struct
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32  PSP_SP0_GetInfo(void);
+int32  CFE_PSP_SP0GetInfo(void);
 
 /**
  ** \func Get the structure containing the SP0 Hardware and Firmware data
@@ -141,12 +141,12 @@ int32  PSP_SP0_GetInfo(void);
  ** None
  **
  ** \param print_to_console Print string buffer to console if larger than 0
- ** \param sp0_info Pointer to an SP0_info_table_t structure
+ ** \param sp0_info Pointer to an CFE_PSP_SP0InfoTable_t structure
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console);
+int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to_console);
 
 /**
  ** \func Function dumps the collected data to file
@@ -162,7 +162,7 @@ int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_DumpData(void);
+int32 CFE_PSP_SP0DumpData(void);
 
 /**
  ** \func Get disk free disk space
@@ -179,7 +179,7 @@ int32 PSP_SP0_DumpData(void);
  ** \return int64_t - Size of free space in disk in bytes
  ** \return CFE_PSP_ERROR - If statfs returned error
  */
-int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
+int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path);
 
 /**
  ** \brief Lock ROM1
@@ -196,7 +196,7 @@ int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_ROM1_LOCK(void);
+int32 CFE_PSP_SP0ROM1Lock(void);
 
 /**
  ** \brief Unlock ROM1
@@ -213,7 +213,7 @@ int32 PSP_SP0_ROM1_LOCK(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_ROM1_UNLOCK(void);
+int32 CFE_PSP_SP0ROM1Unlock(void);
 
 /**
  ** \brief Lock ROM2
@@ -230,7 +230,7 @@ int32 PSP_SP0_ROM1_UNLOCK(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_ROM2_LOCK(void);
+int32 CFE_PSP_SP0ROM2Lock(void);
 
 /**
  ** \brief Unlock ROM2
@@ -247,7 +247,7 @@ int32 PSP_SP0_ROM2_LOCK(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 PSP_SP0_ROM2_UNLOCK(void);
+int32 CFE_PSP_SP0ROM2Unlock(void);
 
 /**
  ** \brief Get ROM1 Lock/Unlock Status
@@ -263,7 +263,7 @@ int32 PSP_SP0_ROM2_UNLOCK(void);
  ** \return false - ROM1 is UNLOCKED
  ** \return true - ROM1 is LOCKED
  */
-bool PSP_SP0_ROM1_Status(void);
+bool CFE_PSP_SP0ROM1Status(void);
 
 /**
  ** \brief Get ROM2 Lock/Unlock Status
@@ -279,7 +279,7 @@ bool PSP_SP0_ROM1_Status(void);
  ** \return false - ROM2 is UNLOCKED
  ** \return true - ROM2 is LOCKED
  */
-bool PSP_SP0_ROM2_Status(void);
+bool CFE_PSP_SP0ROM2Status(void);
 
 
 /**

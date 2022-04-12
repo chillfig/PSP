@@ -44,7 +44,7 @@ if (CODE_COVERAGE)
     mergeFilesTo(
         psp_flash_testcases.c ${IMPL_DIR}/src/cfe_psp_flash.c "#include \"../src/cfe_psp_flash.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_flash_testcases.c)
     mergeFilesTo(
-        psp_mem_scrub_testcases.c ${IMPL_DIR}/src/cfe_psp_mem_scrub.c "#include \"../src/cfe_psp_mem_scrub.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_mem_scrub_testcases.c)
+        psp_mem_scrub_testcases.c ${IMPL_DIR}/src/cfe_psp_memscrub.c "#include \"../src/cfe_psp_memscrub.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_mem_scrub_testcases.c)
     mergeFilesTo(
         psp_start_testcases.c ${IMPL_DIR}/src/cfe_psp_start.c "#include \"../src/cfe_psp_start.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_start_testcases.c)
     mergeFilesTo(
@@ -52,7 +52,7 @@ if (CODE_COVERAGE)
     mergeFilesTo(
         psp_watchdog_testcases.c ${IMPL_DIR}/src/cfe_psp_watchdog.c "#include \"../src/cfe_psp_watchdog.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_watchdog_testcases.c)
     mergeFilesTo(
-        psp_sp0_info_testcases.c ${IMPL_DIR}/src/cfe_psp_sp0_info.c "#include \"../src/cfe_psp_sp0_info.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_sp0_info_testcases.c)
+        psp_sp0_info_testcases.c ${IMPL_DIR}/src/cfe_psp_sp0info.c "#include \"../src/cfe_psp_sp0info.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_sp0_info_testcases.c)
     mergeFilesTo(
         psp_ntp_testcases.c ${IMPL_DIR}/src/cfe_psp_ntp.c "#include \"../src/cfe_psp_ntp.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ntp_testcases.c)
     file(COPY psp_testcases.c DESTINATION ${IMPL_DIR}/unit_test/${TMP_FOLDER_CODE_COVERAGE})

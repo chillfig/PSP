@@ -22,22 +22,22 @@ function gen_tables_from_doxygen_comments()
     python3 gen_api_tbls.py psp $SW_DIR/fsw/shared/inc/cfe_psp_memory.h "Memory" && \
     mv cfe_PSP_memory.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_memory.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_exceptions.h "SP0 Exceptions" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_exception.h "SP0 Exceptions" && \
     mv PSP_exceptions.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_exceptions.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_flash.h "FLASH" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_flash.h "FLASH" && \
     mv PSP_flash.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_flash.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_mem_scrub.h "Memory Scrub" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_memscrub.h "Memory Scrub" && \
     mv PSP_mem_scrub.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_memoryscrub.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_sp0_info.h "SP0 Data" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_sp0info.h "SP0 Data" && \
     mv PSP_sp0_info.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_sp0.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_start.h "Startup" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_start.h "Startup" && \
     mv PSP_start.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_startup.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/psp_time_sync.h "Time Sync" && \
+    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_timesync.h "Time Sync" && \
     mv PSP_time_sync.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_timesync.pdf
 
     echo -e "\n2. Remove un-needed files\n"

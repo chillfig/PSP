@@ -41,14 +41,14 @@
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "cfe_psp_memory.h"
-#include "psp_start.h"
-#include "psp_mem_sync.h"
-#include "psp_support.h"
-#include "psp_exceptions.h"
-#include "psp_mem_scrub.h"
-#include "psp_sp0_info.h"
-#include "psp_time_sync.h"
-#include "psp_flash.h"
+#include "cfe_psp_start.h"
+#include "cfe_psp_memsync.h"
+#include "cfe_psp_support.h"
+#include "cfe_psp_exception.h"
+#include "cfe_psp_memscrub.h"
+#include "cfe_psp_sp0info.h"
+#include "cfe_psp_timesync.h"
+#include "cfe_psp_flash.h"
 
 /** \name Vehicle and Processor IDs */
 /** \{ */
@@ -64,7 +64,7 @@
 static char g_cAvailable_cfs_partitions[][CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = CFE_PSP_STARTUP_AVAILABLE_PARTITIONS;
 
 extern CFE_PSP_Startup_structure_t g_StartupInfo;
-extern void CFE_PSP_MEMORY_FlushToFLASH(void);
+extern void CFE_PSP_FlushToFLASH(void);
 
 /**********************************************************
  * 
@@ -109,7 +109,7 @@ void CFE_PSP_Restart(uint32 resetType)
 
     if (resetType == CFE_PSP_RST_TYPE_POWERON)
     {
-        CFE_PSP_MEMORY_SYNC_Stop();
+        CFE_PSP_MemSyncStop();
         /*
         When we delete all URM files, the reset type gets deleted too.
         This means that we have no way to tell CFS what was the reset type when
@@ -125,7 +125,7 @@ void CFE_PSP_Restart(uint32 resetType)
         CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
 
         /* Increase the frequency of memory synchronization */
-        CFE_PSP_MEMORY_FlushToFLASH();
+        CFE_PSP_FlushToFLASH();
 
         CFE_PSP_SaveToNVRAM();
     }
@@ -153,10 +153,10 @@ void CFE_PSP_Panic(int32 errorCode)
     /** Clean up memory as much as possible before rebooting **/
 
     /* Dump PSP SP0 Information */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
 
     /* Close Memory Scrubbing Task if still running */
-    CFE_PSP_MEM_SCRUB_Delete();
+    CFE_PSP_MemScrubDelete();
 
     /** Attempt to clean up memory before restarting target **/
 

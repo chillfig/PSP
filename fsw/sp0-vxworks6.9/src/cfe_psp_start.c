@@ -51,13 +51,13 @@
 #include "cfe_psp_memory.h"
 #include "cfe_psp_module.h"
 #include "cfe_psp_config.h"
-#include "psp_verify.h"
-#include "psp_start.h"
-#include "psp_mem_scrub.h"
-#include "psp_sp0_info.h"
-#include "psp_mem_sync.h"
-#include "psp_support.h"
-#include "psp_mem_sync.h"
+#include "cfe_psp_verify.h"
+#include "cfe_psp_start.h"
+#include "cfe_psp_memscrub.h"
+#include "cfe_psp_sp0info.h"
+#include "cfe_psp_memsync.h"
+#include "cfe_psp_support.h"
+#include "cfe_psp_memsync.h"
 
 /*
 **  External Function Prototypes
@@ -67,7 +67,7 @@ extern int OS_BSPMain(void);
 /** \brief VxWorks function to get the ID of a task from name */
 extern TASK_ID taskNameToId (char *name);
 /** \brief PSP Mem Sync function to check the presence of User Reserved Memory files */
-extern int32 CFE_PSP_MEMORY_CheckURMFilesExists(void);
+extern int32 CFE_PSP_CheckURMFilesExists(void);
 
 
 /** \name PSP Configuration 
@@ -240,7 +240,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     /* Reset the content of the safe mode user data buffer */
     memset(&g_StartupInfo.safeModeUserData, 0, sizeof(g_StartupInfo.safeModeUserData));
 
-    if (CFE_PSP_MEMORY_CheckURMFilesExists() == CFE_PSP_SUCCESS)
+    if (CFE_PSP_CheckURMFilesExists() == CFE_PSP_SUCCESS)
     {
         g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
     }
@@ -801,7 +801,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     hardware and POST, and setup the task to dump the collected information 
     when abort is called.
     */
-    if (PSP_SP0_GetInfo() != CFE_PSP_SUCCESS)
+    if (CFE_PSP_SP0GetInfo() != CFE_PSP_SUCCESS)
     {
         OS_printf("PSP: Error while collecting SP0 information\n");
     }
@@ -825,8 +825,8 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     */
     CFE_PSP_ModuleInit();
 
-    CFE_PSP_MEM_SCRUB_Init();
-    CFE_PSP_MEMORY_SYNC_Init();
+    CFE_PSP_MemScrubInit();
+    CFE_PSP_MemSyncInit();
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are

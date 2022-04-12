@@ -24,11 +24,11 @@ add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT
     src/cfe_psp_exception.c
     src/cfe_psp_memory.c
     src/cfe_psp_flash.c
-    src/cfe_psp_mem_scrub.c
+    src/cfe_psp_memscrub.c
     src/cfe_psp_start.c
     src/cfe_psp_support.c
     src/cfe_psp_watchdog.c
-    src/cfe_psp_sp0_info.c
+    src/cfe_psp_sp0info.c
     src/cfe_psp_ntp.c)
 
 target_compile_definitions(psp-${CFE_SYSTEM_PSPNAME}-impl PRIVATE

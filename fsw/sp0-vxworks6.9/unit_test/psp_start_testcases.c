@@ -854,7 +854,7 @@ void Ut_OS_Application_Startup(void)
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
 
-    /* PSP_SP0_GetInfo SPE Functions - We are setting them once for all cases */
+    /* CFE_PSP_SP0GetInfo SPE Functions - We are setting them once for all cases */
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
     UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
@@ -874,7 +874,7 @@ void Ut_OS_Application_Startup(void)
     /* For CFE_PSP_WatchdogInit */
     UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), OK);
 
-    /* For CFE_PSP_MEM_SCRUB_Init */
+    /* For CFE_PSP_MemScrubInit */
     UT_SetDefaultReturnValue(UT_KEY(OS_BinSemCreate), OS_ERROR);
 
     /* For CFE_PSP_LogSoftwareResetType */

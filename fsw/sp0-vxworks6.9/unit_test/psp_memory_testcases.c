@@ -28,8 +28,8 @@
 /*=======================================================================================
 ** Preprocessor Directives
 **=======================================================================================*/
-#define UT_MEMORY_PRINT_SCOPE       "_CFE_PSP_MEMORY_"
-#define UT_MEMORY_SYNC_PRINT_SCOPE  "_CFE_PSP_MEMORY_SYNC_"
+#define UT_MEMORY_PRINT_SCOPE       "_CFE_PSP_"
+#define UT_MEMORY_SYNC_PRINT_SCOPE  "_CFE_PSP_MemSync"
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -761,29 +761,29 @@ void Ut_CFE_PSP_GetMemSize(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "GetMemSize: NULL Pointer\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemSize(NULL, 100);
+    iReturnCode = CFE_PSP_GetMemSize(NULL, 100);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_GetMemSize - 1/3: Invalid pointer - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_GetMemSize - 1/3: Invalid pointer - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetMemSize - 1/3: Invalid pointer - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemSize - 1/3: Invalid pointer - message");
 
     /* ----- Test case #2 - Invalid memory selection ----- */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "GetMemSize: Invalid Memory Option\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemSize(&uiSize, 100);
+    iReturnCode = CFE_PSP_GetMemSize(&uiSize, 100);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEMORY_GetMemSize - 2/3: Invalid memory option - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_GetMemSize - 2/3: Invalid memory option - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_GetMemSize - 2/3: Invalid memory option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemSize - 2/3: Invalid memory option - message");
 
     /* ----- Test case #3 - Get Mem Size ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemSize(&uiSize, OP_CDS);
+    iReturnCode = CFE_PSP_GetMemSize(&uiSize, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_GetMemSize - 3/3: Got memory size - return code");
-    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_MEMORY_GetMemSize - 3/3: Got memory size - value check");   
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetMemSize - 3/3: Got memory size - return code");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemSize - 3/3: Got memory size - value check");   
 }
 
 /*=======================================================================================
@@ -803,30 +803,30 @@ void Ut_CFE_PSP_GetMemArea(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "GetMemArea: NULL Pointer\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea(NULL, NULL, 99);
+    iReturnCode = CFE_PSP_GetMemArea(NULL, NULL, 99);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_GetMemArea - 1/3: Invalid pointer - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_GetMemArea - 1/3: Invalid pointer - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetMemArea - 1/3: Invalid pointer - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemArea - 1/3: Invalid pointer - message");
 
     /* ----- Test case #2 - Invalid memory selection ----- */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "GetMemArea: Invalid Memory Option\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, 99);
+    iReturnCode = CFE_PSP_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, 99);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_MEMORY_GetMemArea - 2/3: Invalid memory option - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_GetMemArea - 2/3: Invalid memory option - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_GetMemArea - 2/3: Invalid memory option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemArea - 2/3: Invalid memory option - message");
 
     /* ----- Test case #3 - Get Mem Size ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, OP_CDS);
+    iReturnCode = CFE_PSP_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_GetMemArea - 3/3: Got memory info - return code");
-    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_MEMORY_GetMemArea - 3/3: Got memory area size - value check");  
-    UtAssert_True((void *)uiLocalBlockPtr == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, "_CFE_PSP_MEMORY_GetMemArea - 3/3: Got memory area ptr - value check"); 
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetMemArea - 3/3: Got memory info - return code");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemArea - 3/3: Got memory area size - value check");  
+    UtAssert_True((void *)uiLocalBlockPtr == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, "_CFE_PSP_GetMemArea - 3/3: Got memory area ptr - value check"); 
 }
 
 /*=======================================================================================
@@ -877,9 +877,9 @@ void Ut_CFE_PSP_GetCDSArea(void)
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_WriteToRESET() test cases
+** Ut_CFE_PSP_WriteToRESET() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_WriteToRESET(void)
+void Ut_CFE_PSP_WriteToRESET(void)
 {
     int32   iRetCode = 0;
     char    cMsg[256] = {};
@@ -898,9 +898,9 @@ void Ut_CFE_PSP_MEMORY_WriteToRESET(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRESET() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 1/4: Nominal No changed since the data buffer unchanged");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -908,20 +908,20 @@ void Ut_CFE_PSP_MEMORY_WriteToRESET(void)
     memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes);
     uiBuffer[10] = 99;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRESET() - 2/4: Nominal");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 2/4: Nominal");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_WriteToRESET() - 2/4: Nominal - data match");
+                    "_CFE_PSP_WriteToRESET() - 2/4: Nominal - data match");
 
     /* ----- Test case #3 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRESET() - 3/4: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRESET() - 3/4: Input argument is NULL");
 
     /* ----- Test case #4 - Data offset is larger than ResetMemory block size ----- */
     /* Setup additional inputs */
@@ -929,15 +929,15 @@ void Ut_CFE_PSP_MEMORY_WriteToRESET(void)
     pucData = uiBuffer;
     uiRESETOffset = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToRESET() - 4/4: Failed data offset is larger than ResetMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToRESET() - 4/4: Failed data offset is larger than ResetMemory block size");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_ReadFromRESET() test cases
+** Ut_CFE_PSP_ReadFromRESET() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_ReadFromRESET(void)
+void Ut_CFE_PSP_ReadFromRESET(void)
 {
     int32 iRetCode = 0;
     char cMsg[256] = {};
@@ -961,35 +961,35 @@ void Ut_CFE_PSP_MEMORY_ReadFromRESET(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_ReadFromRESET() - 1/3: Nominal - Read data is matched with ResetMemory data");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_ReadFromRESET() - 1/3: Nominal - return value");
+                    "_CFE_PSP_ReadFromRESET() - 1/3: Nominal - Read data is matched with ResetMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromRESET() - 1/3: Nominal - return value");
 
     /* ----- Test case #2 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_ReadFromRESET() - 2/3: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRESET() - 2/3: Input argument is NULL");
 
     /* ----- Test case #3 - Data offset is larger than ResetMemory block size ----- */
     /* Setup additional inputs */
     pucData = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
     uiRESETOffset = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_ReadFromRESET() - 3/3: Failed data offset is larger than ResetMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromRESET() - 3/3: Failed data offset is larger than ResetMemory block size");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK() test cases
+** Ut_CFE_PSP_WriteToVOLATILEDISK() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK(void)
+void Ut_CFE_PSP_WriteToVOLATILEDISK(void)
 {
     int32   iRetCode = 0;
     char    cMsg[256] = {};
@@ -1008,9 +1008,9 @@ void Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToVOLATILEDISK() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 1/4: Nominal No changed since the data buffer unchanged");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -1018,20 +1018,20 @@ void Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK(void)
     memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes);
     uiBuffer[10] = 99;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToVOLATILEDISK() - 2/4: Nominal");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 2/4: Nominal");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_WriteToVOLATILEDISK() - 2/4: Nominal - data match");
+                    "_CFE_PSP_WriteToVOLATILEDISK() - 2/4: Nominal - data match");
 
     /* ----- Test case #3 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToVOLATILEDISK() - 3/4: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToVOLATILEDISK() - 3/4: Input argument is NULL");
 
     /* ----- Test case #4 - Data offset is larger than VolatileDiskMemory block size ----- */
     /* Setup additional inputs */
@@ -1039,16 +1039,16 @@ void Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK(void)
     pucData = uiBuffer;
     uiVOLATILEDISKOffset = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToVOLATILEDISK() - 4/4: Failed data offset is larger than VolatileDiskMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToVOLATILEDISK() - 4/4: Failed data offset is larger than VolatileDiskMemory block size");
 
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK() test cases
+** Ut_CFE_PSP_ReadFromVOLATILEDISK() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK(void)
+void Ut_CFE_PSP_ReadFromVOLATILEDISK(void)
 {
     int32 iRetCode = 0;
     char cMsg[256] = {};
@@ -1072,35 +1072,35 @@ void Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_ReadFromVOLATILEDISK() - 1/3: Nominal - Read data is matched with VolatileDiskMemory data");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_ReadFromVOLATILEDISK() - 1/3: Nominal - return value");
+                    "_CFE_PSP_ReadFromVOLATILEDISK() - 1/3: Nominal - Read data is matched with VolatileDiskMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromVOLATILEDISK() - 1/3: Nominal - return value");
 
     /* ----- Test case #2 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_ReadFromVOLATILEDISK() - 2/3: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromVOLATILEDISK() - 2/3: Input argument is NULL");
 
     /* ----- Test case #3 - Data offset is larger than VolatileDiskMemory block size ----- */
     /* Setup additional inputs */
     pucData = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
     uiVOLATILEDISKOffset = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_ReadFromVOLATILEDISK() - 3/3: Failed data offset is larger than VolatileDiskMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromVOLATILEDISK() - 3/3: Failed data offset is larger than VolatileDiskMemory block size");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED() test cases
+** Ut_CFE_PSP_WriteToUSERRESERVED() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED(void)
+void Ut_CFE_PSP_WriteToUSERRESERVED(void)
 {
     int32   iRetCode = 0;
     char    cMsg[256] = {};
@@ -1119,9 +1119,9 @@ void Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToUSERRESERVED() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 1/4: Nominal No changed since the data buffer unchanged");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -1129,20 +1129,20 @@ void Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED(void)
     memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes);
     uiBuffer[10] = 99;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToUSERRESERVED() - 2/4: Nominal");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 2/4: Nominal");
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_WriteToUSERRESERVED() - 2/4: Nominal - data match");
+                    "_CFE_PSP_WriteToUSERRESERVED() - 2/4: Nominal - data match");
 
     /* ----- Test case #3 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToUSERRESERVED() - 3/4: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToUSERRESERVED() - 3/4: Input argument is NULL");
 
     /* ----- Test case #4 - Data offset is larger than UserReservedMemory block size ----- */
     /* Setup additional inputs */
@@ -1150,16 +1150,16 @@ void Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED(void)
     pucData = uiBuffer;
     uiUSERRESERVEDOffset = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToUSERRESERVED() - 4/4: Failed data offset is larger than UserReservedMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToUSERRESERVED() - 4/4: Failed data offset is larger than UserReservedMemory block size");
 
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED() test cases
+** Ut_CFE_PSP_ReadFromUSERRESERVED() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED(void)
+void Ut_CFE_PSP_ReadFromUSERRESERVED(void)
 {
     int32 iRetCode = 0;
     char cMsg[256] = {};
@@ -1183,35 +1183,35 @@ void Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED(void)
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
     UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes, 
-                    "_CFE_PSP_MEMORY_ReadFromUSERRESERVED() - 1/3: Nominal - Read data is matched with UserReservedMemory data");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_ReadFromUSERRESERVED() - 1/3: Nominal - return value");
+                    "_CFE_PSP_ReadFromUSERRESERVED() - 1/3: Nominal - Read data is matched with UserReservedMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromUSERRESERVED() - 1/3: Nominal - return value");
 
     /* ----- Test case #2 - Input argument is NULL ----- */
     /* Setup additional inputs */
     UT_ResetState(0);
     pucData = NULL;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_ReadFromUSERRESERVED() - 2/3: Input argument is NULL");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromUSERRESERVED() - 2/3: Input argument is NULL");
 
     /* ----- Test case #3 - Data offset is larger than UserReservedMemory block size ----- */
     /* Setup additional inputs */
     pucData = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
     uiUSERRESERVEDOffset = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize + 1;
     /* Execute test */
-    iRetCode = CFE_PSP_MEMORY_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_ReadFromUSERRESERVED() - 3/3: Failed data offset is larger than UserReservedMemory block size");
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromUSERRESERVED() - 3/3: Failed data offset is larger than UserReservedMemory block size");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_RestoreRESET() test cases
+** Ut_CFE_PSP_RestoreReset() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
+void Ut_CFE_PSP_RestoreReset(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuffer[10];
@@ -1227,9 +1227,9 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 1/6: Failed to create file - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 1/6: Failed to create file - return code");
 
     /* ----- Test case #2 - File not on system, create success, write fail ----- */
     /* Set additional inputs */
@@ -1240,9 +1240,9 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 2/6: Successfully create file, write error - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 2/6: Successfully create file, write error - return code");
 
     /* ----- Test case #3 - File not on system, create success, write success ----- */
     /* Set additional inputs */
@@ -1255,9 +1255,9 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 3/6: Successfully create file, write success - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreReset - 3/6: Successfully create file, write success - return code");
 
     /* ----- Test case #4 - Fail to read from flash, error write ----- */
     /* Set additional inputs */
@@ -1266,9 +1266,9 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 4/6: Fail to read data, error write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 4/6: Fail to read data, error write - return code");
 
         /* ----- Test case #6 - Fail to read from flash, success write ----- */
     /* Set additional inputs */
@@ -1279,9 +1279,9 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 5/6: Fail to read data, success write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreReset - 5/6: Fail to read data, success write - return code");
 
     /* ----- Test case #6 - Successfully read from flash ----- */
      /* Set additional inputs */
@@ -1291,15 +1291,15 @@ void Ut_CFE_PSP_MEMORY_RestoreRESET(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreRESET();
+    iReturnCode = CFE_PSP_RestoreReset();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreRESET - 6/6: Successfully read from FLASH - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreReset - 6/6: Successfully read from FLASH - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_RestoreCDS() test cases
+** Ut_CFE_PSP_RestoreCDS() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
+void Ut_CFE_PSP_RestoreCDS(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuffer[10];
@@ -1315,7 +1315,7 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 1/6: Failed to create file - return code");
 
@@ -1328,7 +1328,7 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 2/6: Successfully create file, write error - return code");
 
@@ -1343,7 +1343,7 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 3/6: Successfully create file, write success - return code");
 
@@ -1354,7 +1354,7 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 4/6: Fail to read data, error write - return code");
 
@@ -1367,7 +1367,7 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 5/6: Fail to read data, success write - return code");
 
@@ -1379,15 +1379,15 @@ void Ut_CFE_PSP_MEMORY_RestoreCDS(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreCDS();
+    iReturnCode = CFE_PSP_RestoreCDS();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreCDS - 6/6: Successfully read from FLASH - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK() test cases
+** Ut_CFE_PSP_RestoreVolatileDisk() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
+void Ut_CFE_PSP_RestoreVolatileDisk(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuffer[10];
@@ -1403,9 +1403,9 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 1/6: Failed to create file - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 1/6: Failed to create file - return code");
 
     /* ----- Test case #2 - File not on system, create success, write fail ----- */
     /* Set additional inputs */
@@ -1416,9 +1416,9 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 2/6: Successfully create file, write error - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 2/6: Successfully create file, write error - return code");
 
     /* ----- Test case #3 - File not on system, create success, write success ----- */
     /* Set additional inputs */
@@ -1431,9 +1431,9 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 3/6: Successfully create file, write success - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 3/6: Successfully create file, write success - return code");
 
     /* ----- Test case #4 - Fail to read from flash, error write ----- */
     /* Set additional inputs */
@@ -1442,9 +1442,9 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 4/6: Fail to read data, error write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 4/6: Fail to read data, error write - return code");
 
         /* ----- Test case # 5- Fail to read from flash, success write ----- */
     /* Set additional inputs */
@@ -1455,9 +1455,9 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 5/6: Fail to read data, success write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 5/6: Fail to read data, success write - return code");
 
     /* ----- Test case #6 - Successfully read from flash ----- */
      /* Set additional inputs */
@@ -1467,15 +1467,15 @@ void Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+    iReturnCode = CFE_PSP_RestoreVolatileDisk();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVOLATILEDISK - 6/6: Successfully read from FLASH - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreVolatileDisk - 6/6: Successfully read from FLASH - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED() test cases
+** Ut_CFE_PSP_RestoreUserReserved() test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
+void Ut_CFE_PSP_RestoreUserReserved(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuffer[10];
@@ -1491,9 +1491,9 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 1/6: Failed to create file - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 1/6: Failed to create file - return code");
 
     /* ----- Test case #2 - File not on system, create success, write fail ----- */
     /* Set additional inputs */
@@ -1504,9 +1504,9 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 2/6: Successfully create file, write error - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 2/6: Successfully create file, write error - return code");
 
     /* ----- Test case #3 - File not on system, create success, write success ----- */
     /* Set additional inputs */
@@ -1519,9 +1519,9 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 3/6: Successfully create file, write success - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 3/6: Successfully create file, write success - return code");
 
     /* ----- Test case #4 - Fail to read from flash, error write ----- */
     /* Set additional inputs */
@@ -1530,9 +1530,9 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 4/6: Fail to read data, error write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 4/6: Fail to read data, error write - return code");
 
         /* ----- Test case #5 - Fail to read from flash, success write ----- */
     /* Set additional inputs */
@@ -1543,9 +1543,9 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 5/6: Fail to read data, success write - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 5/6: Fail to read data, success write - return code");
 
     /* ----- Test case #6 - Successfully read from flash ----- */
      /* Set additional inputs */
@@ -1555,15 +1555,15 @@ void Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+    iReturnCode = CFE_PSP_RestoreUserReserved();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUSERRESERVED - 6/6: Successfully read from FLASH - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreUserReserved - 6/6: Successfully read from FLASH - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_WriteToRAM test cases
+** Ut_CFE_PSP_WriteToRAM test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
+void Ut_CFE_PSP_WriteToRAM(void)
 {
     int32   iReturnCode = 0;
     char    cMsg[256] = {};
@@ -1584,10 +1584,10 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: NULL Pointer\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 1/8: Memory not allocated - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 1/8: Memory not allocated - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRAM - 1/8: Memory not allocated - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 1/8: Memory not allocated - message");
 
     /* ----- Test case #2 - Default switch/case ----- */
     /* Set additional inputs */
@@ -1596,10 +1596,10 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     pucData = uiBuffer;
     sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Memory Selection\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, 9999);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, 9999);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_MEMORY_WriteToRAM - 2/8: Invalid memory selection - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 2/8: Invalid memory selection - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_WriteToRAM - 2/8: Invalid memory selection - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 2/8: Invalid memory selection - message");
 
     /* ----- Test case #3 - Memory block ptr NULL ----- */
     /* Set additional inputs */
@@ -1607,9 +1607,9 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     Ut_OS_printf_Setup();
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_WriteToRAM - 3/8: Memory block ptr was null - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRAM - 3/8: Memory block ptr was null - return code");
 
     /* ----- Test case #4 - Illegal offset ----- */
     /* Set additional inputs */
@@ -1618,18 +1618,18 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Mem Range\n");
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 99, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 99, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_WriteToRAM - 4/8: Invalid offset - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 4/8: message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToRAM - 4/8: Invalid offset - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 4/8: message");
 
     /* ----- Test case #5 - Data is match/clean ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 5/8: Data match, no writing required - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 5/8: Data match, no writing required - return code");
 
     /* ----- Test case #6 - Data mismatch ----- */
     /* Set additional inputs */
@@ -1642,10 +1642,10 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 6/8: Data mismatch, data write - return code");
-    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_MEMORY_WriteToRAM - 6/8: Data mismatch, data write - memory compare");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 6/8: Data mismatch, data write - return code");
+    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_WriteToRAM - 6/8: Data mismatch, data write - memory compare");
 
     /* ----- Test case #7 - Fail to take semaphore ----- */
     /* Set additional inputs */
@@ -1659,10 +1659,10 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Failed to take bin sem, status: %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MEMORY_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 7/8: Fail to take binary semaphore - return code");
 
 
     /* ----- Test case #8 - Fail to give semaphore ----- */
@@ -1678,16 +1678,16 @@ void Ut_CFE_PSP_MEMORY_WriteToRAM(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_PRINT_SCOPE "WriteToRAM: Fail to give bin sem, status %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 8/8: Fail to give binary semaphore - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_ReadFromRAM test cases
+** Ut_CFE_PSP_ReadFromRAM test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_MEMORY_ReadFromRAM(void)
+void Ut_CFE_PSP_ReadFromRAM(void)
 {
     int32 iReturnCode = 0;
     char cMsg[256] = {};
@@ -1715,10 +1715,10 @@ void Ut_CFE_PSP_MEMORY_ReadFromRAM(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, MEMORY_PRINT_SCOPE "ReadFromRAM: NULL Pointer\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_ReadFromRAM - 1/6: Memory not allocated - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_ReadFromRAM - 1/6: Memory not allocated - message");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRAM - 1/6: Memory not allocated - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromRAM - 1/6: Memory not allocated - message");
 
     /* ----- Test case #2 - Default switch/case ----- */
     /* Set additional inputs */
@@ -1727,36 +1727,36 @@ void Ut_CFE_PSP_MEMORY_ReadFromRAM(void)
     sprintf(cMsg, MEMORY_PRINT_SCOPE "ReadFromRAM: Invalid Memory Option\n");
     pucData = uiBuffer;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, 999);
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, 999);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_MEMORY_ReadFromRAM - 2/6: Invalid memory section option - return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MEMORY_ReadFromRAM - 2/6: Invalid memory section option - message");    
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_ReadFromRAM - 2/6: Invalid memory section option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromRAM - 2/6: Invalid memory section option - message");    
 
     /* ----- Test case #3 - Memory block ptr NULL ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_MEMORY_ReadFromRAM - 3/6: Memory block ptr is NULL - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRAM - 3/6: Memory block ptr is NULL - return code");
 
     /* ----- Test case #4 - Illegal offset ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 999, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 999, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_MEMORY_ReadFromRAM - 4/6: Invalid offset value - return code");;
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromRAM - 4/6: Invalid offset value - return code");;
 
     /* ----- Test case #5 - Data is match/clean ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_WriteToRAM - 5/6: Data match, no writing required - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 5/6: Data match, no writing required - return code");
 
     /* ----- Test case #6 - Data mismatch ----- */
     /* Set additional inputs */
@@ -1764,17 +1764,17 @@ void Ut_CFE_PSP_MEMORY_ReadFromRAM(void)
     memset(uiBuffer, '0', uiNumBytes);
     memset(localCDSBuffer, '2', 100);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MEMORY_ReadFromRAM - 6/6: Data mismatch, data write - return code");
-    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_MEMORY_ReadFromRAM - 6/6: Data mismatch, data write - memory compare");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromRAM - 6/6: Data mismatch, data write - return code");
+    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_ReadFromRAM - 6/6: Data mismatch, data write - memory compare");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_MEMORY_RestoreDATA() test cases
+** Ut_CFE_PSP_RestoreData() test cases
 **=======================================================================================*/
 
-void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
+void Ut_CFE_PSP_RestoreData(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuffer[10];
@@ -1787,9 +1787,9 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     /* ----- Test case #1 - Invalid Memory Option or Invalid filename ----- */
     /* Set additional inputs */
     Ut_OS_printf_Setup();
-    sprintf(cMsg, MEMORY_PRINT_SCOPE "RestoreDATA: Invalid Memory Option\n");
+    sprintf(cMsg, MEMORY_PRINT_SCOPE "RestoreData: Invalid Memory Option\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(99999);
+    iReturnCode = CFE_PSP_RestoreData(99999);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, UT_MEMORY_PRINT_SCOPE "RestoreData - 1/7: Inavlid memory option - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_PRINT_SCOPE "RestoreData - 1/7: Invalid memory option - message");
@@ -1800,7 +1800,7 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 2/7: Failed to create file - return code");
 
@@ -1813,7 +1813,7 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 3/7: Successfully create file, write error - return code");
 
@@ -1828,7 +1828,7 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreReset - 4/7: Successfully create file, write success - return code");
 
@@ -1839,7 +1839,7 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_PRINT_SCOPE "RestoreReset - 5/7: Fail to read data, error write - return code");
 
@@ -1852,7 +1852,7 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreReset - 6/7: Fail to read data, success write - return code");
 
@@ -1864,15 +1864,15 @@ void Ut_CFE_PSP_MEMORY_RestoreDATA(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    iReturnCode = CFE_PSP_RestoreData(OP_RESET);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreDATA - 7/7: Successfully read from FLASH - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_PRINT_SCOPE "RestoreData - 7/7: Successfully read from FLASH - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_Init(void); Testcases
+ * void Ut_CFE_PSP_MemSyncInit(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
+void Ut_CFE_PSP_MemSyncInit(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -1884,7 +1884,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE \
                     "Init: Failed to create MEMORY SYNC TASK binary semaphore, status: %d\n", OS_ERROR);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - message");
@@ -1893,7 +1893,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 2/4: Successfully create binary semaphore - return code");
 
@@ -1907,7 +1907,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Init: Failed to start task\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
     UtAssert_True(iReturnCode ==CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start tasl - message");
@@ -1920,15 +1920,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_Init(void)
     g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Init();
+    iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 4/4: Failed to start task - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void); Testcases
+ * void Ut_CFE_PSP_MemSyncDestroy(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
+void Ut_CFE_PSP_MemSyncDestroy(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -1941,7 +1941,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Unable to kill MEMORY SYNC task\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/4: Fail to stop task - message");
@@ -1955,7 +1955,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", OS_SEM_FAILURE);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail to take bsem - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/4: Fail take bsem - message");
@@ -1970,7 +1970,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Destroy: Semaphore Error, status: %d\n", OS_SEM_FAILURE);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/4: Fail delete bsem - message");
@@ -1984,16 +1984,16 @@ void Ut_CFE_PSP_MEMORY_SYNC_Destroy(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
     OS_BinSemCreate(&g_MemorySyncTaskBinSem, MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Destroy();
+    iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/4: Success - return code");
     /* UtAssert_True(g_MemorySyncTaskBinSem == OS_OBJECT_ID_UNDEFINED, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/4: Success - Semaphore value check"); */
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_Start(void); Testcases
+ * void Ut_CFE_PSP_MemSyncStart(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
+void Ut_CFE_PSP_MemSyncStart(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -2004,7 +2004,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task already running\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    iReturnCode = CFE_PSP_MemSyncStart();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 1/4: Task already running - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 1/4: Task already running - message");
@@ -2017,7 +2017,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Start: Data not initialized\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    iReturnCode = CFE_PSP_MemSyncStart();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 2/4: Data not initialized - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 2/4: Data not initialized - message");
@@ -2031,7 +2031,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Error starting MEMORY SYNC task\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    iReturnCode = CFE_PSP_MemSyncStart();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 3/4: Failed to start task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 3/4: Failed to start task - message");
@@ -2043,15 +2043,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_Start(void)
     g_MemorySyncTaskBinSem = OS_ObjectIdFromInteger(10);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+    iReturnCode = CFE_PSP_MemSyncStart();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Start - 4/4: Start Task - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_Stop(void); Testcases
+ * void Ut_CFE_PSP_MemSyncStop(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
+void Ut_CFE_PSP_MemSyncStop(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -2062,7 +2062,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Task not running\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/5: Task not running - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 1/5: Task not running - message");
@@ -2075,7 +2075,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to take bsem, status: %d\n", OS_SEM_FAILURE);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - message");
@@ -2089,7 +2089,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Unable to delete task, status: %d\n", OS_ERROR);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - message");
@@ -2106,14 +2106,14 @@ void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
     OS_TaskCreate(
                     &g_uiMemorySyncTaskId,
                     MEMORY_SYNC_TASK_NAME,
-                    CFE_PSP_MEMORY_SYNC_Task,
+                    CFE_PSP_MemSyncTask,
                     OSAL_TASK_STACK_ALLOCATE,
                     OSAL_SIZE_C(4096),
                     g_uiMemorySyncTaskPriority,
                     0
                 );
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
     UtAssert_True(iReturnCode = CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - message");
@@ -2128,22 +2128,22 @@ void Ut_CFE_PSP_MEMORY_SYNC_Stop(void)
     OS_TaskCreate(
                     &g_uiMemorySyncTaskId,
                     MEMORY_SYNC_TASK_NAME,
-                    CFE_PSP_MEMORY_SYNC_Task,
+                    CFE_PSP_MemSyncTask,
                     OSAL_TASK_STACK_ALLOCATE,
                     OSAL_SIZE_C(4096),
                     g_uiMemorySyncTaskPriority,
                     0
                 );
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_Stop();
+    iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 5/5: Successfully stop task - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void); Testcases
+ * void Ut_CFE_PSP_MemSyncIsRunning(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void)
+void Ut_CFE_PSP_MemSyncIsRunning(void)
 {
     bool iReturnValue = true;
     char cMsg[256] = {};
@@ -2152,7 +2152,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void)
     /* Set additional inputs */
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     /* Execute tests */
-    iReturnValue = CFE_PSP_MEMORY_SYNC_isRunning();
+    iReturnValue = CFE_PSP_MemSyncIsRunning();
     /* Verify results */
     UtAssert_True(iReturnValue == false, UT_MEMORY_SYNC_PRINT_SCOPE "isRunning - 1/2: Task not running - return code");
 
@@ -2161,15 +2161,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_isRunning(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
     /* Execute tests */
-    iReturnValue = CFE_PSP_MEMORY_SYNC_isRunning();
+    iReturnValue = CFE_PSP_MemSyncIsRunning();
     /* Verify results */
     UtAssert_True(iReturnValue == true, UT_MEMORY_SYNC_PRINT_SCOPE "isRunning - 2/2: Task is running - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void); Testcases
+ * void Ut_CFE_PSP_MemSyncSetPriority(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
+void Ut_CFE_PSP_MemSyncSetPriority(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -2181,7 +2181,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too high\n");
     newPriority = 250;
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 1/5: New priority too high - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 1/5: New priority too high - message");
@@ -2193,7 +2193,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too low\n");
     newPriority = 1;
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 2/5: New priority too low- return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 2/5: New priority too low - message");
@@ -2204,7 +2204,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
     newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 3/5: New priority too low- return code");
     UtAssert_True(g_uiMemorySyncTaskPriority == newPriority, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 3/5: New priority set, task not running - priority value check");
@@ -2218,7 +2218,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: Failed to set new priority\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set priority - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set new priority - message");
@@ -2230,16 +2230,16 @@ void Ut_CFE_PSP_MEMORY_SYNC_setPriority(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_SUCCESS);
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setPriority(newPriority);
+    iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 5/5: New priority set, task running - return code");
     UtAssert_True(g_uiMemorySyncTaskPriority == newPriority, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 5/5: New priority set, task running - priority value check");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void); Testcases
+ * void Ut_CFE_PSP_MemSyncGetPriority(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void)
+void Ut_CFE_PSP_MemSyncGetPriority(void)
 {
     osal_priority_t basePriority = 99;
     osal_priority_t priority;
@@ -2248,15 +2248,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_getPriority(void)
     /* Set additional inputs */
     g_uiMemorySyncTaskPriority = basePriority;
     /* Execute tests */
-    priority = CFE_PSP_MEMORY_SYNC_getPriority();
+    priority = CFE_PSP_MemSyncGetPriority();
     /* Verify results */
     UtAssert_True(priority == basePriority, UT_MEMORY_SYNC_PRINT_SCOPE "getPriority - 1/1: Get priority value");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void); Testcases
+ * void Ut_CFE_PSP_MemSyncSetFrequency(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void)
+void Ut_CFE_PSP_MemSyncSetFrequency(void)
 {
     uint32 newFreq = 333;
     g_uiMemorySyncTime = 1;
@@ -2265,16 +2265,16 @@ void Ut_CFE_PSP_MEMORY_SYNC_setFrequency(void)
     /* ----- Test case #1: Set new frequency----- */
     /* Set additional inputs */
     /* Execute tests */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_setFrequency(newFreq);
+    iReturnCode = CFE_PSP_MemSyncSetFrequency(newFreq);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "setFrequency - 1/1: Set new frequency - return code");
     UtAssert_True(g_uiMemorySyncTime == newFreq, UT_MEMORY_SYNC_PRINT_SCOPE "setFrequency - 1/1: Set new frequency - frequency value check");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void); Testcases
+ * void Ut_CFE_PSP_MemSyncGetFrequency(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void)
+void Ut_CFE_PSP_MemSyncGetFrequency(void)
 {
     int32 retFreq = 33;
     
@@ -2282,15 +2282,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_getFrequency(void)
     /* Set additional inputs */
     g_uiMemorySyncTime = 999;
     /* Execute tests */
-    retFreq = CFE_PSP_MEMORY_SYNC_getFrequency();
+    retFreq = CFE_PSP_MemSyncGetFrequency();
     /* Verify results */
     UtAssert_True(g_uiMemorySyncTime == retFreq, UT_MEMORY_SYNC_PRINT_SCOPE "getFrequency - 1/1: Get frequency - frequency check");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void); Testcases
+ * void Ut_CFE_PSP_MemSyncgetStatus(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void)
+void Ut_CFE_PSP_MemSyncgetStatus(void)
 {
     uint32 retStat = 99;
     
@@ -2298,15 +2298,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_getStatus(void)
     /* Set additional inputs */
     g_uiMemorySyncStatistics = 333;
     /* Execute tests */
-    retStat = CFE_PSP_MEMORY_SYNC_getStatistics();
+    retStat = CFE_PSP_MemSyncGetStatistics();
     /* Verify results */
     UtAssert_True(retStat == g_uiMemorySyncStatistics, UT_MEMORY_SYNC_PRINT_SCOPE "getStatus - 1/1: Get statistics - stat check");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_Task(void); Testcases
+ * void Ut_CFE_PSP_MemSyncTask(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
+void Ut_CFE_PSP_MemSyncTask(void)
 {
     char cMsg[256] = {};
     uint8 buf[33] = {};
@@ -2323,7 +2323,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take TASK semaphore, status: %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 1/7: Unable to take task semaphore - message");
 
@@ -2335,7 +2335,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to take ENTRY binary semaphore, status: %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 2/7: Unable to take ENTRY semaphore - message");
 
@@ -2348,7 +2348,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     g_bCDSUpdateFlag = true;
     UT_SetDeferredRetcode(UT_KEY(open), 1, -1);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_True(g_bCDSUpdateFlag == true, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 3/7: Write Failed, memory section update flag check");
 
@@ -2364,7 +2364,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_True(g_bCDSUpdateFlag == false, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 4/7: Write SUCCESS, memory section update flag check");
 
@@ -2378,7 +2378,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Fail to give ENTRY binary semaphore, status: %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 5/7: Unable to give ENTRY semaphore - message");
 
@@ -2393,7 +2393,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to give TASK semaphore, status: %d\n", OS_SEM_FAILURE);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 6/7: Unable to give TASK semaphore - message");
 
@@ -2408,15 +2408,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_Task(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskDelay), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Task: Failed to delay task, status: %d\n", OS_ERROR);
     /* Execute test */
-    CFE_PSP_MEMORY_SYNC_Task();
+    CFE_PSP_MemSyncTask();
     /* Verify results */
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Task - 7/7: Unable to delay task - message");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void); Testcases
+ * void Ut_CFE_PSP_CDSFilepath(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
+void Ut_CFE_PSP_CDSFilepath(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -2428,15 +2428,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_CDS_FPATH();
+    iReturnCode = CFE_PSP_CDSFilepath();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_CDS_FPATH - 1/1: Generate fpath - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void); Testcases
+ * void Ut_CFE_PSP_ResetFilepath(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
+void Ut_CFE_PSP_ResetFilepath(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -2448,15 +2448,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_RESET_FPATH();
+    iReturnCode = CFE_PSP_ResetFilepath();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_RESET_FPATH - 1/1: Generate fpath - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void); Testcases
+ * void Ut_CFE_PSP_VolatileDiskFilepath(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
+void Ut_CFE_PSP_VolatileDiskFilepath(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -2468,15 +2468,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH();
+    iReturnCode = CFE_PSP_VolatileDiskFilepath();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_VOLATILEDISK_FPATH - 1/1: Generate fpath - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void); Testcases
+ * void Ut_CFE_PSP_UserReservedFilepath(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
+void Ut_CFE_PSP_UserReservedFilepath(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -2488,15 +2488,15 @@ void Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH();
+    iReturnCode = CFE_PSP_UserReservedFilepath();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_USERRESERVED_FPATH - 1/1: Generate fpath - return code");
 }
 
 /**********************************************************
- * void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void); Testcases
+ * void Ut_CFE_PSP_GenerateFilepath(void); Testcases
  *********************************************************/
-void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
+void Ut_CFE_PSP_GenerateFilepath(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -2508,7 +2508,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     // UT_SetDeferredRetcode(UT_KEY(snprintf), 1, -5);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error assembling active path, error: %d\n", -5);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(99);
+    iReturnCode = CFE_PSP_GenerateFilepath(99);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - message");
@@ -2522,7 +2522,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, -5);
     errno = 3;
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    iReturnCode = CFE_PSP_GenerateFilepath(1);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 2/5: Fail to create directory path - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 2/5: Fail to create directory path - message");
@@ -2536,7 +2536,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     UT_SetDeferredRetcode(UT_KEY(snprintf), 1, -5);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    iReturnCode = CFE_PSP_GenerateFilepath(1);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - message");
@@ -2553,7 +2553,7 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(99);
+    iReturnCode = CFE_PSP_GenerateFilepath(99);
     printf("MATT: tc 4 - return code: %d\n", iReturnCode);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 4/5: Invalid memory selection - return code");
@@ -2570,12 +2570,12 @@ void Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_SYNC_GenerateFilepath(1);
+    iReturnCode = CFE_PSP_GenerateFilepath(1);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 5/5: Success - return code");
 }
 
-void Ut_CFE_PSP_MEMORY_CheckURMFilesExists(void)
+void Ut_CFE_PSP_CheckURMFilesExists(void)
 {
     int32 iReturnCode = OS_SUCCESS;
 
@@ -2584,7 +2584,7 @@ void Ut_CFE_PSP_MEMORY_CheckURMFilesExists(void)
     UT_ResetState(0);
     UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_CheckURMFilesExists();
+    iReturnCode = CFE_PSP_CheckURMFilesExists();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE " - 1/2: File does not exist return code");
 
@@ -2593,12 +2593,12 @@ void Ut_CFE_PSP_MEMORY_CheckURMFilesExists(void)
     UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_MEMORY_CheckURMFilesExists();
+    iReturnCode = CFE_PSP_CheckURMFilesExists();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE " - 2/2: File does exist return code");
 }
 
-void Ut_CFE_PSP_MEMORY_FlushToFLASH(void)
+void Ut_CFE_PSP_FlushToFLASH(void)
 {
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 0;
@@ -2617,7 +2617,7 @@ void Ut_CFE_PSP_MEMORY_FlushToFLASH(void)
     UT_ResetState(0);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     /* Execute test */
-    CFE_PSP_MEMORY_FlushToFLASH();
+    CFE_PSP_FlushToFLASH();
     /* Verify results */
     UtAssert_STUB_COUNT(open, 0);
     UtAssert_STUB_COUNT(OS_BinSemTake, 0);

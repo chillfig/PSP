@@ -36,7 +36,7 @@
 ** PSP API Includes
 */
 #include "cfe_psp.h"
-#include "psp_flash.h"
+#include "cfe_psp_flash.h"
 
 /*
 ** Macro Definitions
@@ -46,12 +46,12 @@
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_ReadFromFLASH
+ * Function: CFE_PSP_ReadFromFlash
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname)
+int32 CFE_PSP_ReadFromFlash(uint32 *p_dest, size_t size, char *fname)
 {
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iFd           = 0;
@@ -103,12 +103,12 @@ int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_WriteToFLASH
+ * Function: CFE_PSP_WriteToFlash
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname)
+int32 CFE_PSP_WriteToFlash(uint32 *p_src, size_t size, char *fname)
 {
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iFd           = 0;
@@ -161,12 +161,12 @@ int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_DeleteFile
+ * Function: CFE_PSP_DeleteFile
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_FLASH_DeleteFile(char *fname)
+int32 CFE_PSP_DeleteFile(char *fname)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -177,7 +177,7 @@ int32 CFE_PSP_FLASH_DeleteFile(char *fname)
     }
     else
     {
-        if (CFE_PSP_FLASH_CheckFile(fname) == true)
+        if (CFE_PSP_CheckFile(fname) == true)
         {
             if (remove(fname) != OS_SUCCESS)
             {
@@ -192,12 +192,12 @@ int32 CFE_PSP_FLASH_DeleteFile(char *fname)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_CreateFile
+ * Function: CFE_PSP_CreateFile
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_FLASH_CreateFile(char *fname)
+int32 CFE_PSP_CreateFile(char *fname)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     int32 iFd = -1;
@@ -209,7 +209,7 @@ int32 CFE_PSP_FLASH_CreateFile(char *fname)
     }
     else
     {
-        if (CFE_PSP_FLASH_CheckFile(fname) == false)
+        if (CFE_PSP_CheckFile(fname) == false)
         {
             /* File does not exist */
             iFd = creat(fname, 0);
@@ -237,12 +237,12 @@ int32 CFE_PSP_FLASH_CreateFile(char *fname)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_CheckFile
+ * Function: CFE_PSP_CheckFile
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-bool CFE_PSP_FLASH_CheckFile(char *fname)
+bool CFE_PSP_CheckFile(char *fname)
 {
     bool bReturnValue = false;
     struct stat buf = {};
@@ -266,12 +266,12 @@ bool CFE_PSP_FLASH_CheckFile(char *fname)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_FLASH_CreateDirectory
+ * Function: CFE_PSP_CreateDirectory
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_FLASH_CreateDirectory(const char *p_dir)
+int32 CFE_PSP_CreateDirectory(const char *p_dir)
 {
     int32 iStatus = 0;
     int32 iReturnCode = CFE_PSP_SUCCESS;

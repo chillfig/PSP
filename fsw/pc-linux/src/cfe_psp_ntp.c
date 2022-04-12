@@ -29,7 +29,7 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_module.h"
 
-#include "psp_time_sync.h"
+#include "cfe_psp_timesync.h"
 
 /** \name NTP Sync Configuration - Linux */
 /** \{ */
@@ -52,7 +52,7 @@ extern uint32 CFE_TIME_Micro2SubSecs(uint32);
 /**** Global variables ****/
 
 /******************************************************************************
-**  Function:  CFE_PSP_TIME_NTPDaemon_isRunning(void)
+**  Function:  CFE_PSP_NTPDaemonIsRunning(void)
 **
 **  Purpose:
 **    Get status of NTP daemon
@@ -66,13 +66,13 @@ extern uint32 CFE_TIME_Micro2SubSecs(uint32);
               CFE_PSP_ERROR_NOT_IMPLEMENTED beacuse this function has not
               been implemented yet
 ******************************************************************************/
-int32 CFE_PSP_TIME_NTPDaemon_isRunning(void)
+int32 CFE_PSP_NTPDaemonIsRunning(void)
 {   
     return (CFE_PSP_ERROR_NOT_IMPLEMENTED);
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_TIME_Set_OS_Time()
+**  Function:  CFE_PSP_SetOSTime()
 **
 **  Purpose:
 **    Set the OS CLOCK_REALTIME to a specified timestamp
@@ -86,7 +86,7 @@ int32 CFE_PSP_TIME_NTPDaemon_isRunning(void)
 **  Return:
 **    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
+int32 CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec)
 {
     OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_Set_OS_Time not implemented in Linux OS");
 
@@ -101,7 +101,7 @@ int32 CFE_PSP_TIME_Set_OS_Time(const uint32 ts_sec, const uint32 ts_nsec)
  * Return: CFE_PSP_SUCCESS
  *         CFE_PSP_ERROR
  */
-int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
+int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 {
     struct timespec     unixTime;
     uint32              tv_sec = 0;
@@ -137,7 +137,7 @@ int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
     }
     else
     {
-        OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_TIME_Get_OS_Time called without a proper argument\n");
+        OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_GetOSTime called without a proper argument\n");
         return_code = CFE_PSP_ERROR;
     }
 
@@ -145,7 +145,7 @@ int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_TIME_StartNTPDaemon()
+**  Function:  CFE_PSP_StartNTPDaemon()
 **
 **  Purpose:
 **    Start the NTP daemon on OS that sync with NTP server
@@ -156,7 +156,7 @@ int32 CFE_PSP_TIME_Get_OS_Time(CFE_TIME_SysTime_t *myT)
 **  Return:
 **    int32 - Task ID or CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_TIME_StartNTPDaemon(void)
+int32 CFE_PSP_StartNTPDaemon(void)
 {
     OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_StartNTPDaemon not implemented in Linux OS");
 
@@ -164,7 +164,7 @@ int32 CFE_PSP_TIME_StartNTPDaemon(void)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_TIME_StopNTPDaemon()
+**  Function:  CFE_PSP_StopNTPDaemon()
 **
 **  Purpose:
 **    Stop the NTP daemon on OS that sync with NTP server
@@ -176,7 +176,7 @@ int32 CFE_PSP_TIME_StartNTPDaemon(void)
 **    int32 - CFE_PSP_SUCCESS or CFE_PSP_ERROR
 **            Note: NTP task already stopped, return CFE_PSP_ERROR
 ******************************************************************************/
-int32 CFE_PSP_TIME_StopNTPDaemon(void)
+int32 CFE_PSP_StopNTPDaemon(void)
 {
     OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_StopNTPDaemon not implemented in Linux OS");
 

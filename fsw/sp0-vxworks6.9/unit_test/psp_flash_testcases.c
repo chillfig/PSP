@@ -35,9 +35,9 @@
 **=======================================================================================*/
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_ReadFromFLASH(void) test cases
+** Ut_CFE_PSP_ReadFromFlash(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
+void Ut_CFE_PSP_ReadFromFlash(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuf[10];
@@ -50,7 +50,7 @@ void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "ReadFromFLASH: NULL pointer(s)\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_ReadFromFLASH(NULL, 0, NULL);
+    iReturnCode = CFE_PSP_ReadFromFlash(NULL, 0, NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 1/5: NULL Pointer(s) check - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 1/5: Error message - message");
@@ -62,7 +62,7 @@ void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "ReadFromFLASH: Failed to open file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_ReadFromFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_ReadFromFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 2/5: Failed to open file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 2/5: Failed to open file - message");
@@ -75,7 +75,7 @@ void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, 0);
     sprintf(cMsg, FLASH_PRINT_SCOPE "ReadFromFLASH: Read incorrect amount of data\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_ReadFromFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_ReadFromFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 3/5: Failed to read correct amount of data - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 3/5: Failed to read correct amount of data - message");
@@ -88,7 +88,7 @@ void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "ReadFromFLASH: Unable to close file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_ReadFromFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_ReadFromFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 4/5: Failed to close file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 4/5: Failed to close file - message");
@@ -99,15 +99,15 @@ void Ut_CFE_PSP_FLASH_ReadFromFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(read), 1, sLocalBufSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_ReadFromFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_ReadFromFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 5/5: Successful read - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_WriteToFLASH(void) test cases
+** Ut_CFE_PSP_WriteToFlash(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
+void Ut_CFE_PSP_WriteToFlash(void)
 {
     int32 iReturnCode;
     uint32 uiLocalBuf[10];
@@ -120,7 +120,7 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "WriteToFLASH: NULL pointer(s)\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_WriteToFLASH(NULL, 0, NULL);
+    iReturnCode = CFE_PSP_WriteToFlash(NULL, 0, NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 1/5: NULL Pointer(s) check - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 1/5: Error message - message");
@@ -132,7 +132,7 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(open), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "WriteToFLASH: Failed to open file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_WriteToFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_WriteToFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 2/5: Failed to open file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 2/5: Failed to open file - message");
@@ -145,7 +145,7 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, 0);
     sprintf(cMsg, FLASH_PRINT_SCOPE "WriteToFLASH: Wrote incorrect amount of data\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_WriteToFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_WriteToFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 3/5: Failed to write correct amount of data - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 3/5: Failed to write correct amount of data - message");
@@ -158,7 +158,7 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "WriteToFLASH: Unable to close file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_WriteToFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_WriteToFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 4/5: Failed to close file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 4/5: Failed to close file - message");
@@ -169,15 +169,15 @@ void Ut_CFE_PSP_FLASH_WriteToFLASH(void)
     UT_SetDeferredRetcode(UT_KEY(write), 1, sLocalBufSize);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_WriteToFLASH(uiLocalBuf, sLocalBufSize, FAKEFILE);
+    iReturnCode = CFE_PSP_WriteToFlash(uiLocalBuf, sLocalBufSize, FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "WriteToFLASH - 5/5: Successful write - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_DeleteFile(void) test cases
+** Ut_CFE_PSP_DeleteFile(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_DeleteFile(void)
+void Ut_CFE_PSP_DeleteFile(void)
 {
     int32 iReturnCode;
     char cMsg[256] = {};
@@ -187,7 +187,7 @@ void Ut_CFE_PSP_FLASH_DeleteFile(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "DeleteFile: NULL filename\n");
     /* Execute tests */
-    iReturnCode = CFE_PSP_FLASH_DeleteFile(NULL);
+    iReturnCode = CFE_PSP_DeleteFile(NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "DeleteFile - 1/4: NULL Pointer - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "DeleteFile - 1/4: NULL Pointer - message");
@@ -197,7 +197,7 @@ void Ut_CFE_PSP_FLASH_DeleteFile(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_DeleteFile(FAKEFILE);
+    iReturnCode = CFE_PSP_DeleteFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "DeleteFile - 2/4: File not present on sysem - return code");
 
@@ -209,7 +209,7 @@ void Ut_CFE_PSP_FLASH_DeleteFile(void)
     UT_SetDeferredRetcode(UT_KEY(remove), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "DeleteFile: Failed to remove file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_DeleteFile(FAKEFILE);
+    iReturnCode = CFE_PSP_DeleteFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "DeleteFile - 3/4: Failed to remove file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "DeleteFile - 3/4: Failed to remove file - messsage");
@@ -220,15 +220,15 @@ void Ut_CFE_PSP_FLASH_DeleteFile(void)
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 0);
     UT_SetDeferredRetcode(UT_KEY(remove), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_DeleteFile(FAKEFILE);
+    iReturnCode = CFE_PSP_DeleteFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "DeleteFile - 4/4: Failed to remove file - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_CreateFile(void) test cases
+** Ut_CFE_PSP_CreateFile(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_CreateFile(void)
+void Ut_CFE_PSP_CreateFile(void)
 {
     int32 iReturnCode;
     char cMsg[256] = {};
@@ -238,7 +238,7 @@ void Ut_CFE_PSP_FLASH_CreateFile(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "CreateFile: NULL filename\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateFile(NULL);
+    iReturnCode = CFE_PSP_CreateFile(NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "CreateFile - 1/5: NULL filename - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 1/5: NULL filename - messsage");
@@ -248,7 +248,7 @@ void Ut_CFE_PSP_FLASH_CreateFile(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateFile(FAKEFILE);
+    iReturnCode = CFE_PSP_CreateFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "CreateFile - 2/5 File exists - return code");
 
@@ -260,7 +260,7 @@ void Ut_CFE_PSP_FLASH_CreateFile(void)
     UT_SetDeferredRetcode(UT_KEY(creat), 1, -1);
     sprintf(cMsg, FLASH_PRINT_SCOPE "CreateFile: Failed to create file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateFile(FAKEFILE);
+    iReturnCode = CFE_PSP_CreateFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "CreateFile - 3/5: Failed to create file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 3/5: Failed to create file - messsage");
@@ -274,7 +274,7 @@ void Ut_CFE_PSP_FLASH_CreateFile(void)
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_ERROR);
     sprintf(cMsg, FLASH_PRINT_SCOPE "CreateFile: Failed to close file\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateFile(FAKEFILE);
+    iReturnCode = CFE_PSP_CreateFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "CreateFile - 4/5: Failed to close file - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 4/5: Failed to close file - messsage");
@@ -286,15 +286,15 @@ void Ut_CFE_PSP_FLASH_CreateFile(void)
     UT_SetDeferredRetcode(UT_KEY(creat), 1, 99);
     UT_SetDeferredRetcode(UT_KEY(close), 1, OS_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateFile(FAKEFILE);
+    iReturnCode = CFE_PSP_CreateFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "CreateFile - 5/5: Failed to close file - return code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_CheckFile(void) test cases
+** Ut_CFE_PSP_CheckFile(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_CheckFile(void)
+void Ut_CFE_PSP_CheckFile(void)
 {
     bool iReturnValue;
     char cMsg[256] = {};
@@ -304,7 +304,7 @@ void Ut_CFE_PSP_FLASH_CheckFile(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "CheckFile: NULL filename\n");
     /* Execute test */
-    iReturnValue = CFE_PSP_FLASH_CheckFile(NULL);
+    iReturnValue = CFE_PSP_CheckFile(NULL);
     /* Verify results */
     UtAssert_True(iReturnValue == false, UT_FLASH_PRINT_SCOPE "CheckFile - 1/3: NULL filename - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CheckFile - 1/3: NULL filename - messsage");
@@ -314,7 +314,7 @@ void Ut_CFE_PSP_FLASH_CheckFile(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 0);
     /* Execute test */
-    iReturnValue = CFE_PSP_FLASH_CheckFile(FAKEFILE);
+    iReturnValue = CFE_PSP_CheckFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnValue == true, UT_FLASH_PRINT_SCOPE "CheckFile - 2/3: File exists - return code");
 
@@ -323,7 +323,7 @@ void Ut_CFE_PSP_FLASH_CheckFile(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
     /* Execute test */
-    iReturnValue = CFE_PSP_FLASH_CheckFile(FAKEFILE);
+    iReturnValue = CFE_PSP_CheckFile(FAKEFILE);
     /* Verify results */
     UtAssert_True(iReturnValue == false, UT_FLASH_PRINT_SCOPE "CheckFile - 3/3: File does not exists - return code");
 }
@@ -331,7 +331,7 @@ void Ut_CFE_PSP_FLASH_CheckFile(void)
 /*=======================================================================================
 ** Ut_CFE_PSP_FLASH_CreateDirecotry(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_FLASH_CreateDirectory(void)
+void Ut_CFE_PSP_CreateDirectory(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     char cMsg[256] = {};
@@ -343,7 +343,7 @@ void Ut_CFE_PSP_FLASH_CreateDirectory(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "CreateDirectory: Invalid Pointer\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateDirectory((char *)NULL);
+    iReturnCode = CFE_PSP_CreateDirectory((char *)NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "CreateDirectory - 1/3: NULL check - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateDirectory - 1/3: NULL check - message");
@@ -356,7 +356,7 @@ void Ut_CFE_PSP_FLASH_CreateDirectory(void)
     errno = 2;
     sprintf(cMsg, FLASH_PRINT_SCOPE "CreateDirectory: STATUS: %d\n", -5);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateDirectory(caDirectory);
+    iReturnCode = CFE_PSP_CreateDirectory(caDirectory);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_FLASH_PRINT_SCOPE "CreateDirectory - 2/3: mkdir error - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateDirectory - 2/3: mkdir error - message");
@@ -366,7 +366,7 @@ void Ut_CFE_PSP_FLASH_CreateDirectory(void)
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
-    iReturnCode = CFE_PSP_FLASH_CreateDirectory(caDirectory);
+    iReturnCode = CFE_PSP_CreateDirectory(caDirectory);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_FLASH_PRINT_SCOPE "CreateDirectory - 3/3: Successful execution - return code");
 }

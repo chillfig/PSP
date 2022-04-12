@@ -48,7 +48,7 @@
 /* Include PSP API */
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
-#include "psp_sp0_info.h"
+#include "cfe_psp_sp0info.h"
 
 /** \name Max number of Voltage and Temperature sensors per target generation */
 /** \{ */
@@ -80,8 +80,8 @@
 /*
 ** Static Function Declarations
 */
-static int32 PSP_SP0_PrintToBuffer(void);
-static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode);
+static int32 CFE_PSP_SP0PrintToBuffer(void);
+static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode);
 
 /*
 ** Static Variables
@@ -97,16 +97,16 @@ static int32 g_iSP0DataDumpLength;
 /**
  ** \brief SP0 Data Table
  */
-static SP0_info_table_t g_sp0_info_table;
+static CFE_PSP_SP0InfoTable_t g_sp0_info_table;
 
 /**********************************************************
  * 
- * Function: PSP_SP0_GetInfo
+ * Function: CFE_PSP_SP0GetInfo
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 PSP_SP0_GetInfo(void)
+int32 CFE_PSP_SP0GetInfo(void)
 {
     RESET_SRC_REG_ENUM          resetSrc = 0;
     USER_SAFE_MODE_DATA_STRUCT  safeModeUserData = {};
@@ -337,7 +337,7 @@ int32 PSP_SP0_GetInfo(void)
     }
     
     /* Print data to string */
-    if(PSP_SP0_PrintToBuffer())
+    if(CFE_PSP_SP0PrintToBuffer())
     {
         OS_printf(SP0_PRINT_SCOPE "Could not print to buffer. Data is left in the structure.");
         iRet_code = CFE_PSP_ERROR_LEVEL_0;
@@ -360,7 +360,7 @@ int32 PSP_SP0_GetInfo(void)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 PSP_SP0_PrintToBuffer(void)
+static int32 CFE_PSP_SP0PrintToBuffer(void)
 {
     uint32     uiTotalMemory_MiB = 0;
     char       *pActiveBootString = NULL;
@@ -459,12 +459,12 @@ static int32 PSP_SP0_PrintToBuffer(void)
 
 /**********************************************************
  * 
- * Function: PSP_SP0_GetInfoTable
+ * Function: CFE_PSP_SP0GetInfoTable
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console)
+int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to_console)
 {
     int32   iRetCode = CFE_PSP_ERROR;
 
@@ -492,12 +492,12 @@ int32 PSP_SP0_GetInfoTable(SP0_info_table_t *sp0_info, uint8_t print_to_console)
 
 /**********************************************************
  * 
- * Function: PSP_SP0_DumpData
+ * Function: CFE_PSP_SP0DumpData
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 PSP_SP0_DumpData(void)
+int32 CFE_PSP_SP0DumpData(void)
 {
     char    cFilename[] = SP0_DATA_DUMP_FILEPATH;
     int32   iFD = -1;
@@ -550,12 +550,12 @@ int32 PSP_SP0_DumpData(void)
 
 /**********************************************************
  * 
- * Function: PSP_SP0_GetDiskFreeSize
+ * Function: CFE_PSP_SP0GetDiskFreeSize
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
+int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path)
 {
     int64_t lFree_size_bytes = CFE_PSP_ERROR;
     long block_size = 0;
@@ -576,50 +576,50 @@ int64_t PSP_SP0_GetDiskFreeSize(char *ram_disk_root_path)
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM1_LOCK
+ * Function: CFE_PSP_SP0ROM1Lock
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 PSP_SP0_ROM1_LOCK(void)
+int32 CFE_PSP_SP0ROM1Lock(void)
 {
-    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM1_CODE_LOCK);
+    return CFE_PSP_SP0ROMXCmd((uint32_t)SP0_ROM1_CODE_LOCK);
 }
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM1_UNLOCK
+ * Function: CFE_PSP_SP0ROM1Unlock
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 PSP_SP0_ROM1_UNLOCK(void)
+int32 CFE_PSP_SP0ROM1Unlock(void)
 {
-    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM1_CODE_UNLOCK);
+    return CFE_PSP_SP0ROMXCmd((uint32_t)SP0_ROM1_CODE_UNLOCK);
 }
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM2_LOCK
+ * Function: CFE_PSP_SP0ROM2Lock
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 PSP_SP0_ROM2_LOCK(void)
+int32 CFE_PSP_SP0ROM2Lock(void)
 {
-    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM2_CODE_LOCK);
+    return CFE_PSP_SP0ROMXCmd((uint32_t)SP0_ROM2_CODE_LOCK);
 }
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM2_UNLOCK
+ * Function: CFE_PSP_SP0ROM2Unlock
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 PSP_SP0_ROM2_UNLOCK(void)
+int32 CFE_PSP_SP0ROM2Unlock(void)
 {
-    return PSP_SP0_ROMX_COMMAND((uint32_t)SP0_ROM2_CODE_UNLOCK);
+    return CFE_PSP_SP0ROMXCmd((uint32_t)SP0_ROM2_CODE_UNLOCK);
 }
 
 /**
@@ -641,7 +641,7 @@ int32 PSP_SP0_ROM2_UNLOCK(void)
  ** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
  ** \return #CFE_PSP_ERROR - Unsuccessfully executed intended sequence
  */
-static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
+static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
@@ -655,7 +655,7 @@ static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
     {
         case SP0_ROM1_CODE_LOCK:
             *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM1_CODE_LOCK;
-            if (PSP_SP0_ROM1_Status() == true)
+            if (CFE_PSP_SP0ROM1Status() == true)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -663,7 +663,7 @@ static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
         
         case SP0_ROM1_CODE_UNLOCK:
             *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM1_CODE_UNLOCK;
-            if (PSP_SP0_ROM1_Status() == false)
+            if (CFE_PSP_SP0ROM1Status() == false)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -671,7 +671,7 @@ static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
 
         case SP0_ROM2_CODE_LOCK:
             *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM2_CODE_LOCK;
-            if (PSP_SP0_ROM2_Status() == true)
+            if (CFE_PSP_SP0ROM2Status() == true)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -679,7 +679,7 @@ static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
         
         case SP0_ROM2_CODE_UNLOCK:
             *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM2_CODE_UNLOCK;
-            if (PSP_SP0_ROM2_Status() == false)
+            if (CFE_PSP_SP0ROM2Status() == false)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -696,24 +696,24 @@ static int32 PSP_SP0_ROMX_COMMAND(uint32_t uiCode)
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM1_Status
+ * Function: CFE_PSP_SP0ROM1Status
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-bool PSP_SP0_ROM1_Status(void)
+bool CFE_PSP_SP0ROM1Status(void)
 {
     return (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM1_MASK) >> SP0_ROM1_STATUS_SHIFT);
 }
 
 /**********************************************************
  * 
- * Function: PSP_SP0_ROM2_Status
+ * Function: CFE_PSP_SP0ROM2Status
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-bool PSP_SP0_ROM2_Status(void)
+bool CFE_PSP_SP0ROM2Status(void)
 {
     return (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
 }

@@ -36,17 +36,17 @@
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp.h"
 #include "cfe_psp_memory.h"
-#include "psp_mem_sync.h"
+#include "cfe_psp_memsync.h"
 #include "cfe_psp_config.h"
-#include "psp_start.h"
-#include "psp_exceptions.h"
-#include "psp_support.h"
-#include "psp_flash.h"
-#include "psp_mem_scrub.h"
-#include "psp_sp0_info.h"
-#include "psp_time_sync.h"
-#include "psp_verify.h"
-#include "psp_version.h"
+#include "cfe_psp_start.h"
+#include "cfe_psp_exception.h"
+#include "cfe_psp_support.h"
+#include "cfe_psp_flash.h"
+#include "cfe_psp_memscrub.h"
+#include "cfe_psp_sp0info.h"
+#include "cfe_psp_timesync.h"
+#include "cfe_psp_verify.h"
+#include "cfe_psp_version.h"
 
 #include "psp_ft.h"
 
@@ -392,7 +392,7 @@ void ft_memory_sync(void)
     }
 
     /* Write to USER RESERVED area */
-    CFE_PSP_MEMORY_WriteToUSERRESERVED((void *)uiBuf_original, 0, 256);
+    CFE_PSP_WriteToUSERRESERVED((void *)uiBuf_original, 0, 256);
 
     /* Clear test data */
     memset((void *)uiBuf_original, 0, 256);
@@ -401,9 +401,9 @@ void ft_memory_sync(void)
     OS_TaskDelay(MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
 
     /* Simulate a reset, kind of */
-    extern int32 CFE_PSP_MEMORY_RestoreUSERRESERVED();
-    CFE_PSP_MEMORY_RestoreUSERRESERVED();
-    CFE_PSP_MEMORY_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
+    extern int32 CFE_PSP_RestoreUserReserved(void);
+    CFE_PSP_RestoreUserReserved();
+    CFE_PSP_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
 
     /* Validate Data */
     int memcmpResult = memcmp((void *)uiBuf_original, (void *)uiBuf_backup, 256);
@@ -524,50 +524,50 @@ void ft_mem_scrub(void)
     int32       ret_code = 0;
     bool        mem_scrub_running = false;
     uint32      index_counter = 0;
-    MEM_SCRUB_STATUS_t  mem_scrub_stats1;
-    MEM_SCRUB_STATUS_t  mem_scrub_stats2;
-    MEM_SCRUB_ERRSTATS_t mem_scrub_ddr_stats;
+    CFE_PSP_MemScrubStatus_t  mem_scrub_stats1;
+    CFE_PSP_MemScrubStatus_t  mem_scrub_stats2;
+    CFE_PSP_MemScrubErrStats_t mem_scrub_ddr_stats;
 
     OS_printf("[MEM_SCRUB]\n");
 
     /* Disable MEM Scrub task */
-    CFE_PSP_MEM_SCRUB_Disable();
-    mem_scrub_running = CFE_PSP_MEM_SCRUB_isRunning();
+    CFE_PSP_MemScrubDisable();
+    mem_scrub_running = CFE_PSP_MemScrubIsRunning();
     FT_Assert_True(mem_scrub_running == false, "Mem Scrub task disabled and confirm is not running")
     
     /* Status should return all zeros */
-    CFE_PSP_MEM_SCRUB_Status(&mem_scrub_stats1,false);
+    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
     FT_Assert_True(mem_scrub_stats1.uiMemScrubTotalPages == 0, "MEM Scrub status cannot be checked since it does not return a value")
 
     /* Enable MEM Scrub task */
-    ret_code = CFE_PSP_MEM_SCRUB_Enable();
+    ret_code = CFE_PSP_MemScrubEnable();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Mem Scrub task enabled and confirm is running")
 
-    CFE_PSP_MEM_SCRUB_ErrStats(&mem_scrub_ddr_stats,false);
+    CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats,false);
     FT_Assert_True(true, "Mem Scrub DDR statistics")
 
     /* Set different values */
-    ret_code = CFE_PSP_MEM_SCRUB_Set(20*4096, 120*4096, 240);
-    CFE_PSP_MEM_SCRUB_Status(&mem_scrub_stats1,false);
+    ret_code = CFE_PSP_MemScrubSet(20*4096, 120*4096, 240);
+    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
     FT_Assert_True(mem_scrub_stats1.uiMemScrubStartAddr == 20*4096, "Mem Scrub Start Address successfully changed")
     FT_Assert_True(mem_scrub_stats1.uiMemScrubEndAddr == 120*4096, "Mem Scrub End Address successfully changed")
     FT_Assert_True(mem_scrub_stats1.opMemScrubTaskPriority == 240, "Mem Scrub priority successfully changed")
 
     /* Delete Task */
-    ret_code = CFE_PSP_MEM_SCRUB_Delete();
+    ret_code = CFE_PSP_MemScrubDelete();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Deleted task return code")
-    FT_Assert_True(CFE_PSP_MEM_SCRUB_isRunning() == false, "Deleted task confirmed is not running")
+    FT_Assert_True(CFE_PSP_MemScrubIsRunning() == false, "Deleted task confirmed is not running")
     
     /* Re-Initialize Task */
-    ret_code = CFE_PSP_MEM_SCRUB_Init();
-    FT_Assert_True(CFE_PSP_MEM_SCRUB_isRunning() == true, "Initialized task confirmed is running")
+    ret_code = CFE_PSP_MemScrubInit();
+    FT_Assert_True(CFE_PSP_MemScrubIsRunning() == true, "Initialized task confirmed is running")
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Mem Scrub task enabled and confirm is running")
 
     /* Check if value of memory pages scrubbed changes after 10 seconds */
-    CFE_PSP_MEM_SCRUB_Status(&mem_scrub_stats1,false);
+    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
     for (index_counter = 0; index_counter < 10; index_counter++)
     {
-        CFE_PSP_MEM_SCRUB_Status(&mem_scrub_stats2,false);
+        CFE_PSP_MemScrubStatus(&mem_scrub_stats2,false);
         if (mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages)
         {
             break;
@@ -599,24 +599,24 @@ void ft_sp0_info(void)
     int64_t             fs_size_ram = 0;
     int64_t             fs_size_flash = 0;
     char                local_SP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
-    SP0_info_table_t    sp0_table;
+    CFE_PSP_SP0InfoTable_t    sp0_table;
     int32               ret_code = CFE_PSP_ERROR;
 
     OS_printf("[SP0_INFO]\n");
 
     /*** Collect SP0 Info ***/
     /* Get the hardware/software information from target */
-    ret_code = PSP_SP0_GetInfo();
+    ret_code = CFE_PSP_SP0GetInfo();
     /* Check result */
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get SP0 info - returned success")
 
     /*** Get SP0 Info Table and check their values ***/
     /* Get the table that was filled up by the GetInfo function */
-    ret_code = PSP_SP0_GetInfoTable(&sp0_table, 0);
+    ret_code = CFE_PSP_SP0GetInfoTable(&sp0_table, 0);
     OS_printf("Data gathered at %s UTC\n",ctime(&sp0_table.lastUpdatedUTC.tv_sec));
     FT_Assert_True(
         ret_code == CFE_PSP_SUCCESS,
-        "PSP_SP0_GetInfoTable returns SUCCESS"
+        "CFE_PSP_SP0GetInfoTable returns SUCCESS"
     )
     /* Check that it is a predicted SP0 or SP0s target */
     FT_Assert_True(
@@ -675,7 +675,7 @@ void ft_sp0_info(void)
     /* Prepare */
     remove(sp0_filename);
     /* Execute function */
-    ret_code = PSP_SP0_DumpData();
+    ret_code = CFE_PSP_SP0DumpData();
     /* Check result */
     FT_Assert_True(check_file_exists(sp0_filename),"Dump SP0 Info - check file exists")
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Dump SP0 Info - returned success")
@@ -688,8 +688,8 @@ void ft_sp0_info(void)
     /* Prepare */
 
     /* Execute function */
-    fs_size_ram = PSP_SP0_GetDiskFreeSize(local_ram_disk);
-    fs_size_flash = PSP_SP0_GetDiskFreeSize(local_flash_disk);
+    fs_size_ram = CFE_PSP_SP0GetDiskFreeSize(local_ram_disk);
+    fs_size_flash = CFE_PSP_SP0GetDiskFreeSize(local_flash_disk);
     /* Check result */
     FT_Assert_True(fs_size_ram > 0, "Check file system sizes - /ram0 file system size = %lld bytes", fs_size_ram)
     FT_Assert_True(fs_size_flash > 0, "Check file system sizes - /ffx0 file system size = %lld bytes", fs_size_flash)
@@ -700,30 +700,30 @@ void ft_sp0_info(void)
     /*** UNLOCK ROM1 ***/
     /* Prepare */
     /* Execute */
-    PSP_SP0_ROM1_UNLOCK();
+    CFE_PSP_SP0ROM1Unlock();
     /* Results */
-    FT_Assert_True(PSP_SP0_ROM1_Status() == false, "Check ROM1 Status after UNLOCK");
+    FT_Assert_True(CFE_PSP_SP0ROM1Status() == false, "Check ROM1 Status after UNLOCK");
     
     /*** LOCK ROM1 ***/
     /* Prepare */
     /* Execute */
-    PSP_SP0_ROM1_LOCK();
+    CFE_PSP_SP0ROM1Lock();
     /* Results */
-    FT_Assert_True(PSP_SP0_ROM1_Status() == true, "Check ROM1 Status after LOCK");
+    FT_Assert_True(CFE_PSP_SP0ROM1Status() == true, "Check ROM1 Status after LOCK");
 
     /*** UNLOCK ROM1 ***/
     /* Prepare */
     /* Execute */
-    PSP_SP0_ROM2_UNLOCK();
+    CFE_PSP_SP0ROM2Unlock();
     /* Results */
-    FT_Assert_True(PSP_SP0_ROM2_Status() == false, "Check ROM2 Status after UNLOCK");
+    FT_Assert_True(CFE_PSP_SP0ROM2Status() == false, "Check ROM2 Status after UNLOCK");
     
     /*** LOCK ROM1 ***/
     /* Prepare */
     /* Execute */
-    PSP_SP0_ROM2_LOCK();
+    CFE_PSP_SP0ROM2Lock();
     /* Results */
-    FT_Assert_True(PSP_SP0_ROM2_Status() == true, "Check ROM2 Status after LOCK");
+    FT_Assert_True(CFE_PSP_SP0ROM2Status() == true, "Check ROM2 Status after LOCK");
 
     OS_printf("[SP0_INFO END]\n\n");
 }
@@ -751,7 +751,7 @@ void ft_ntp_sync(void)
     /* PSP OS_Application_Startup starts the NTP Sync Task */
 
     /* Make sure that NTPd client is running */
-    ret_code = CFE_PSP_TIME_StartNTPDaemon();
+    ret_code = CFE_PSP_StartNTPDaemon();
 
     /* Test Turning ON/OFF NTP Synchronization */
 
@@ -759,7 +759,7 @@ void ft_ntp_sync(void)
     /* Get current CFE time */
     cfe_time_utc = CFE_TIME_GetUTC();
     cfe_time = CFE_TIME_GetMET();
-    ret_code = CFE_PSP_TIME_Get_OS_Time(&psp_time);
+    ret_code = CFE_PSP_GetOSTime(&psp_time);
 
     /* Print it out */
     CFE_TIME_Print(strMsg, cfe_time);
@@ -775,17 +775,17 @@ void ft_ntp_sync(void)
               strMsg, cfe_time_utc.Seconds, cfe_time_utc.Subseconds);
 
     /* Test NTPd client daemon APIs */
-    ret_code = CFE_PSP_TIME_NTPDaemon_isRunning();
+    ret_code = CFE_PSP_NTPDaemonIsRunning();
     if (ret_code == CFE_PSP_SUCCESS)
     {
         FT_Assert_True(true,"NTPd client daemon is running")
-        ret_code = CFE_PSP_TIME_StopNTPDaemon();
+        ret_code = CFE_PSP_StopNTPDaemon();
         FT_Assert_True(ret_code == CFE_PSP_SUCCESS,"NTPd client daemon successfully stopped")
     }
     else
     {
         FT_Assert_True(true,"NTPd client daemon is not running")
-        ret_code = CFE_PSP_TIME_StartNTPDaemon();
+        ret_code = CFE_PSP_StartNTPDaemon();
         FT_Assert_True(ret_code,"NTPd client daemon successfully started")
     }
 

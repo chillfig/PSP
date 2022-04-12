@@ -51,78 +51,78 @@ void UtTest_Setup(void)
     /* Test NTP Sync */
     #if TEST_NTP == 1
 
-    UtTest_Add(Ut_CFE_PSP_TIME_Set_OS_Time,
+    UtTest_Add(Ut_CFE_PSP_SetOSTime,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_Set_OS_Time");
+              "Ut_CFE_PSP_SetOSTime");
     
-    UtTest_Add(Ut_CFE_PSP_TIME_Get_OS_Time,
+    UtTest_Add(Ut_CFE_PSP_GetOSTime,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_Get_OS_Time");
+              "Ut_CFE_PSP_GetOSTime");
     
-    UtTest_Add(Ut_CFE_PSP_TIME_NTPDaemon_isRunning,
+    UtTest_Add(Ut_CFE_PSP_NTPDaemonIsRunning,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_NTPDaemon_isRunning");
+              "Ut_CFE_PSP_NTPDaemonIsRunning");
 
-    UtTest_Add(Ut_CFE_PSP_TIME_StartNTPDaemon,
+    UtTest_Add(Ut_CFE_PSP_StartNTPDaemon,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_StartNTPDaemon");
+              "Ut_CFE_PSP_StartNTPDaemon");
 
-    UtTest_Add(Ut_CFE_PSP_TIME_StopNTPDaemon,
+    UtTest_Add(Ut_CFE_PSP_StopNTPDaemon,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_TIME_StopNTPDaemon");
+              "Ut_CFE_PSP_StopNTPDaemon");
 
     #endif /* TEST_NTP_SYNC == 1 */
 
     #if TEST_SP0_INFO == 1
-    /* cfe_psp_sp0_info.c test cases area */
+    /* cfe_psp_sp0info.c test cases area */
 
-    UtTest_Add(Ut_PSP_SP0_GetInfo,
+    UtTest_Add(Ut_CFE_PSP_SP0GetInfo,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_GetInfo");
+              "Ut_CFE_PSP_SP0GetInfo");
 
-    UtTest_Add(Ut_PSP_SP0_PrintToBuffer,
+    UtTest_Add(Ut_CFE_PSP_SP0PrintToBuffer,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_PrintToBuffer");
+              "Ut_CFE_PSP_SP0PrintToBuffer");
 
-    UtTest_Add(Ut_PSP_SP0_GetInfoTable,
+    UtTest_Add(Ut_CFE_PSP_SP0GetInfoTable,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_GetInfoTable");
+              "Ut_CFE_PSP_SP0GetInfoTable");
 
-    UtTest_Add(Ut_PSP_SP0_DumpData,
+    UtTest_Add(Ut_CFE_PSP_SP0DumpData,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_DumpData");
+              "Ut_CFE_PSP_SP0DumpData");
 
-    UtTest_Add(Ut_PSP_SP0_GetDiskFreeSize,
+    UtTest_Add(Ut_CFE_PSP_SP0GetDiskFreeSize,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_GetDiskFreeSize");
+              "Ut_CFE_PSP_SP0GetDiskFreeSize");
 
-    UtTest_Add(Ut_PSP_SP0_ROM1_LOCK,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM1Lock,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM1_LOCK");
+              "Ut_CFE_PSP_SP0ROM1Lock");
 
-    UtTest_Add(Ut_PSP_SP0_ROM1_UNLOCK,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM1Unlock,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM1_UNLOCK");
+              "Ut_CFE_PSP_SP0ROM1Unlock");
 
-    UtTest_Add(Ut_PSP_SP0_ROM2_LOCK,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM2Lock,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM2_LOCK");
+              "Ut_CFE_PSP_SP0ROM2Lock");
 
-    UtTest_Add(Ut_PSP_SP0_ROM2_UNLOCK,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM2Unlock,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM1_UNLOCK");
+              "Ut_CFE_PSP_SP0ROM1Unlock");
 
-    UtTest_Add(Ut_PSP_SP0_ROMX_COMMAND,
+    UtTest_Add(Ut_CFE_PSP_SP0ROMXCmd,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROMX_COMMAND");
+              "Ut_CFE_PSP_SP0ROMXCmd");
 
-    UtTest_Add(Ut_PSP_SP0_ROM1_Status,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM1Status,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM1_Status");
+              "Ut_CFE_PSP_SP0ROM1Status");
 
-    UtTest_Add(Ut_PSP_SP0_ROM2_Status,
+    UtTest_Add(Ut_CFE_PSP_SP0ROM2Status,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_PSP_SP0_ROM2_Status");
+              "Ut_CFE_PSP_SP0ROM2Status");
 
     #endif /* TEST_SP0_INFO == 1 */
 
@@ -270,200 +270,200 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetCDSArea");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_WriteToRESET,
+    UtTest_Add(Ut_CFE_PSP_WriteToRESET,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_WriteToRESET");
+               "Ut_CFE_PSP_WriteToRESET");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_ReadFromRESET,
+    UtTest_Add(Ut_CFE_PSP_ReadFromRESET,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_ReadFromRESET");
+               "Ut_CFE_PSP_ReadFromRESET");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK,
+    UtTest_Add(Ut_CFE_PSP_WriteToVOLATILEDISK,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_WriteToVOLATILEDISK");
+               "Ut_CFE_PSP_WriteToVOLATILEDISK");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK,
+    UtTest_Add(Ut_CFE_PSP_ReadFromVOLATILEDISK,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_ReadFromVOLATILEDISK");
+               "Ut_CFE_PSP_ReadFromVOLATILEDISK");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED,
+    UtTest_Add(Ut_CFE_PSP_WriteToUSERRESERVED,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_WriteToUSERRESERVED");
+               "Ut_CFE_PSP_WriteToUSERRESERVED");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED,
+    UtTest_Add(Ut_CFE_PSP_ReadFromUSERRESERVED,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_ReadFromUSERRESERVED");
+               "Ut_CFE_PSP_ReadFromUSERRESERVED");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreCDS,
+    UtTest_Add(Ut_CFE_PSP_RestoreCDS,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_RestoreCDS");
+               "Ut_CFE_PSP_RestoreCDS");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreRESET,
+    UtTest_Add(Ut_CFE_PSP_RestoreReset,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_RestoreRESET");
+               "Ut_CFE_PSP_RestoreReset");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK,
+    UtTest_Add(Ut_CFE_PSP_RestoreVolatileDisk,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_RestoreVOLATILEDISK");
+               "Ut_CFE_PSP_RestoreVolatileDisk");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED,
+    UtTest_Add(Ut_CFE_PSP_RestoreUserReserved,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_RestoreUSERRESERVED");
+               "Ut_CFE_PSP_RestoreUserReserved");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_WriteToRAM,
+    UtTest_Add(Ut_CFE_PSP_WriteToRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_WriteToRAM");
+               "Ut_CFE_PSP_WriteToRAM");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_ReadFromRAM,
+    UtTest_Add(Ut_CFE_PSP_ReadFromRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_ReadFromRAM");
+               "Ut_CFE_PSP_ReadFromRAM");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_RestoreDATA,
+    UtTest_Add(Ut_CFE_PSP_RestoreData,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_RestoreDATA");
+               "Ut_CFE_PSP_RestoreData");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Init,
+    UtTest_Add(Ut_CFE_PSP_MemSyncInit,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_Init");
+               "Ut_CFE_PSP_MemSyncInit");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Destroy,
+    UtTest_Add(Ut_CFE_PSP_MemSyncDestroy,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_Destroy");
+               "Ut_CFE_PSP_MemSyncDestroy");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Start,
+    UtTest_Add(Ut_CFE_PSP_MemSyncStart,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_Start");
+               "Ut_CFE_PSP_MemSyncStart");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Stop,
+    UtTest_Add(Ut_CFE_PSP_MemSyncStop,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_Stop");
+               "Ut_CFE_PSP_MemSyncStop");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_isRunning,
+    UtTest_Add(Ut_CFE_PSP_MemSyncIsRunning,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_isRunning");
+               "Ut_CFE_PSP_MemSyncIsRunning");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_setPriority,
+    UtTest_Add(Ut_CFE_PSP_MemSyncSetPriority,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_setPriority");
+               "Ut_CFE_PSP_MemSyncSetPriority");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getPriority,
+    UtTest_Add(Ut_CFE_PSP_MemSyncGetPriority,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_getPriority");
+               "Ut_CFE_PSP_MemSyncGetPriority");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_setFrequency,
+    UtTest_Add(Ut_CFE_PSP_MemSyncSetFrequency,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_setFrequency");
+               "Ut_CFE_PSP_MemSyncSetFrequency");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getFrequency,
+    UtTest_Add(Ut_CFE_PSP_MemSyncGetFrequency,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_getFrequency");
+               "Ut_CFE_PSP_MemSyncGetFrequency");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_getStatus,
+    UtTest_Add(Ut_CFE_PSP_MemSyncgetStatus,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_getStatus");
+               "Ut_CFE_PSP_MemSyncgetStatus");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_Task,
+    UtTest_Add(Ut_CFE_PSP_MemSyncTask,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_Task");
+               "Ut_CFE_PSP_MemSyncTask");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH,
+    UtTest_Add(Ut_CFE_PSP_CDSFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_CDS_FPATH");
+               "Ut_CFE_PSP_CDSFilepath");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH,
+    UtTest_Add(Ut_CFE_PSP_ResetFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_RESET_FPATH");
+               "Ut_CFE_PSP_ResetFilepath");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH,
+    UtTest_Add(Ut_CFE_PSP_VolatileDiskFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH");
+               "Ut_CFE_PSP_VolatileDiskFilepath");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH,
+    UtTest_Add(Ut_CFE_PSP_UserReservedFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH");
+               "Ut_CFE_PSP_UserReservedFilepath");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath,
+    UtTest_Add(Ut_CFE_PSP_GenerateFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_SYNC_GenerateFilepath");
+               "Ut_CFE_PSP_GenerateFilepath");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_CheckURMFilesExists,
+    UtTest_Add(Ut_CFE_PSP_CheckURMFilesExists,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_CheckURMFilesExists");
+               "Ut_CFE_PSP_CheckURMFilesExists");
 
-    UtTest_Add(Ut_CFE_PSP_MEMORY_FlushToFLASH,
+    UtTest_Add(Ut_CFE_PSP_FlushToFLASH,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_MEMORY_FlushToFLASH");
+               "Ut_CFE_PSP_FlushToFLASH");
 
     #endif /* TEST_MEMORY == 1 */
 
     #if TEST_FLASH == 1
     /* cfe_psp_flash.c test case area */
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_ReadFromFLASH,
+    UtTest_Add(Ut_CFE_PSP_ReadFromFlash,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_ReadFromFLASH");
+               "Ut_CFE_PSP_ReadFromFlash");
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_WriteToFLASH,
+    UtTest_Add(Ut_CFE_PSP_WriteToFlash,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_WriteToFLASH");
+               "Ut_CFE_PSP_WriteToFlash");
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_DeleteFile,
+    UtTest_Add(Ut_CFE_PSP_DeleteFile,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_DeleteFile");
+               "Ut_CFE_PSP_DeleteFile");
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_CreateFile,
+    UtTest_Add(Ut_CFE_PSP_CreateFile,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_CreateFile");
+               "Ut_CFE_PSP_CreateFile");
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_CheckFile,
+    UtTest_Add(Ut_CFE_PSP_CheckFile,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_CheckFile");
+               "Ut_CFE_PSP_CheckFile");
 
-    UtTest_Add(Ut_CFE_PSP_FLASH_CreateDirectory,
+    UtTest_Add(Ut_CFE_PSP_CreateDirectory,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_FLASH_CreateDirectory");
+               "Ut_CFE_PSP_CreateDirectory");
 
     #endif /* TEST_FLASH == 1 */
 
     #if TEST_MEM_SCRUB == 1
-    /* cfe_psp_mem_scrub.c test cases area*/
+    /* cfe_psp_memscrub.c test cases area*/
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Init,
+    UtTest_Add(Ut_CFE_PSP_MemScrubInit,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Init");
+            "Ut_CFE_PSP_MemScrubInit");
 
     /* Below test will never exit unless task is deleted */
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Task,
+    UtTest_Add(Ut_CFE_PSP_MemScrubTask,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Task");
+            "Ut_CFE_PSP_MemScrubTask");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_isRunning,
+    UtTest_Add(Ut_CFE_PSP_MemScrubIsRunning,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_isRunning");
+            "Ut_CFE_PSP_MemScrubIsRunning");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Set,
+    UtTest_Add(Ut_CFE_PSP_MemScrubSet,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Set");
+            "Ut_CFE_PSP_MemScrubSet");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Status,
+    UtTest_Add(Ut_CFE_PSP_MemScrubStatus,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Status");
+            "Ut_CFE_PSP_MemScrubStatus");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Enable,
+    UtTest_Add(Ut_CFE_PSP_MemScrubEnable,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Enable");
+            "Ut_CFE_PSP_MemScrubEnable");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Disable,
+    UtTest_Add(Ut_CFE_PSP_MemScrubDisable,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Disable");
+            "Ut_CFE_PSP_MemScrubDisable");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_Delete,
+    UtTest_Add(Ut_CFE_PSP_MemScrubDelete,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_Delete");
+            "Ut_CFE_PSP_MemScrubDelete");
 
-    UtTest_Add(Ut_CFE_PSP_MEM_SCRUB_ErrStats,
+    UtTest_Add(Ut_CFE_PSP_MemScrubErrStats,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MEM_SCRUB_ErrStats");
+            "Ut_CFE_PSP_MemScrubErrStats");
 
     #endif /* TEST_MEM_SCRUB */
 

@@ -3,7 +3,7 @@
 ** File:  psp_sp0_info_testcases.c
 **
 ** Purpose:
-**    This file contains test cases for the PSP cfe_psp_sp0_info.c.
+**    This file contains test cases for the PSP cfe_psp_sp0info.c.
 **
 ** Modification History:
 **    Date       | Author           | Description
@@ -24,7 +24,7 @@
 #include "cfe_psp.h"
 
 #include "psp_sp0_info_testcases.h"
-#include "../src/cfe_psp_sp0_info.c"
+#include "../src/cfe_psp_sp0info.c"
 
 /**********************************************************
  * PREPROCESSOR DIRECTIVES
@@ -41,9 +41,9 @@ extern int       PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 **=======================================================================================*/
 
 /*=======================================================================================
-** Ut_PSP_SP0_GetInfo(void) test cases
+** Ut_CFE_PSP_SP0GetInfo(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_GetInfo(void)
+void Ut_CFE_PSP_SP0GetInfo(void)
 {
     int32 ret;
     /* Set "Marching Address Test" tests for long and word to run. The rest tests are not run */
@@ -94,9 +94,9 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 1/13: Nominal SP0s");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 1/13: Nominal SP0s");
 
     Ut_OS_printf_Setup();
 
@@ -125,10 +125,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_readreset,"_PSP_SP0_GetInfo - 2/13: ReadResetSourceReg failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 2/13: Failed return code");
+    UtAssert_OS_print(cMsg_readreset,"_CFE_PSP_SP0GetInfo - 2/13: ReadResetSourceReg failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 2/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -154,10 +154,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_retrieve,"_PSP_SP0_GetInfo - 3/13: ReadSafeModeUserData failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 3/13: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_retrieve,"_CFE_PSP_SP0GetInfo - 3/13: ReadSafeModeUserData failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 3/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -186,9 +186,9 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 4/13: Nominal with REMOTE SBC");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 4/13: Nominal with REMOTE SBC");
     
     Ut_OS_printf_Setup();
 
@@ -216,10 +216,10 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
 
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_nowrite,"_PSP_SP0_GetInfo - 5/13: ReadSafeModeUserData snprintf failed");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 5/13: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0GetInfo - 5/13: ReadSafeModeUserData snprintf failed");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 5/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -245,9 +245,9 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 6/13: Nominal 2nd boot device");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 6/13: Nominal 2nd boot device");
 
     Ut_OS_printf_Setup();
 
@@ -273,10 +273,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_temp,"_PSP_SP0_GetInfo - 7/13: Temperature failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 7/13: Failed return code");
+    UtAssert_OS_print(cMsg_temp,"_CFE_PSP_SP0GetInfo - 7/13: Temperature failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 7/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -302,9 +302,9 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_PSP_SP0_GetInfo - 8/13: Nominal SP0");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 8/13: Nominal SP0");
 
     Ut_OS_printf_Setup();
 
@@ -331,10 +331,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_volt,"_PSP_SP0_GetInfo - 9/13: Voltage failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 9/13: Failed return code");
+    UtAssert_OS_print(cMsg_volt,"_CFE_PSP_SP0GetInfo - 9/13: Voltage failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 9/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -360,10 +360,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitexec,"_PSP_SP0_GetInfo - 10/13: aimonGetBITExecute failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 10/13: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitexec,"_CFE_PSP_SP0GetInfo - 10/13: aimonGetBITExecute failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 10/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -389,10 +389,10 @@ void Ut_PSP_SP0_GetInfo(void)
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitres,"_PSP_SP0_GetInfo - 11/13: aimonGetBITResults failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 11/13: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitres,"_CFE_PSP_SP0GetInfo - 11/13: aimonGetBITResults failed message");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 11/13: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -418,10 +418,10 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_localtime, "_PSP_SP0_GetInfo - 12/13: clock_gettime error");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_PSP_SP0_GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
+    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0GetInfo - 12/13: clock_gettime error");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
 
     /* ----- Test case #13 - last snprintf error ----- */
     /* Setup additional inputs */
@@ -447,16 +447,16 @@ void Ut_PSP_SP0_GetInfo(void)
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
 
     /* Execute test */
-    ret = PSP_SP0_GetInfo();
+    ret = CFE_PSP_SP0GetInfo();
     /* Verify outputs */
-    UtAssert_True(g_iSP0DataDumpLength == -1, "_PSP_SP0_GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
-    UtAssert_True(ret == CFE_PSP_ERROR_LEVEL_0, "_PSP_SP0_GetInfo - 13/13: although snprintf return code success");
+    UtAssert_True(g_iSP0DataDumpLength == -1, "_CFE_PSP_SP0GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
+    UtAssert_True(ret == CFE_PSP_ERROR_LEVEL_0, "_CFE_PSP_SP0GetInfo - 13/13: although snprintf return code success");
 }
 
 /*=======================================================================================
-** Ut_PSP_SP0_PrintToBuffer(void) test cases
+** Ut_CFE_PSP_SP0PrintToBuffer(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_PrintToBuffer(void)
+void Ut_CFE_PSP_SP0PrintToBuffer(void)
 {
     int32 ret_code = CFE_PSP_SUCCESS;
 
@@ -466,33 +466,33 @@ void Ut_PSP_SP0_PrintToBuffer(void)
     /* Set the content of the output data to a fixed value for testing */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     /* Execute test */
-    ret_code = PSP_SP0_PrintToBuffer();
+    ret_code = CFE_PSP_SP0PrintToBuffer();
     /* Verify outputs */
 
-    UtAssert_NA("_PSP_SP0_PrintToBuffer - 1/1: N/A");
+    UtAssert_NA("_CFE_PSP_SP0PrintToBuffer - 1/1: N/A");
 }
 
 /*=======================================================================================
-** Ut_PSP_SP0_GetInfoTable(void) test cases
+** Ut_CFE_PSP_SP0GetInfoTable(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_GetInfoTable(void)
+void Ut_CFE_PSP_SP0GetInfoTable(void)
 {
-    SP0_info_table_t sp0_data;
+    CFE_PSP_SP0InfoTable_t sp0_data;
     int32 iRetCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - Nominal with no console print ----- */
     /* Setup additional inputs */
     g_sp0_info_table.lastUpdatedUTC.tv_sec = 1000;
     /* Execute test */
-    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 0);
+    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 0);
     /* Verify outputs */
     UtAssert_True(
         iRetCode == CFE_PSP_SUCCESS,
-        "_PSP_SP0_GetInfoTable - 1/4: Nominal return success"
+        "_CFE_PSP_SP0GetInfoTable - 1/4: Nominal return success"
         );
     UtAssert_True(
         sp0_data.lastUpdatedUTC.tv_sec == g_sp0_info_table.lastUpdatedUTC.tv_sec,
-        "_PSP_SP0_GetInfoTable - 1/4: Nominal without console print"
+        "_CFE_PSP_SP0GetInfoTable - 1/4: Nominal without console print"
         );
 
     /* ----- Test case #2 - Nominal with console print ----- */
@@ -500,13 +500,13 @@ void Ut_PSP_SP0_GetInfoTable(void)
     /* Set the content of the output data to a fixed value for testing */
     g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
     /* Execute test */
-    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 1);
+    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 1);
     /* Verify outputs */
     UtAssert_True(
         iRetCode == CFE_PSP_SUCCESS,
-        "_PSP_SP0_GetInfoTable - 2/4: Nominal return success"
+        "_CFE_PSP_SP0GetInfoTable - 2/4: Nominal return success"
         );
-    UtAssert_NA("_PSP_SP0_GetInfoTable - 2/4: Nominal with console print");
+    UtAssert_NA("_CFE_PSP_SP0GetInfoTable - 2/4: Nominal with console print");
 
     /* ----- Test case #3 - data length is zero ----- */
     /* Setup additional inputs */
@@ -514,29 +514,29 @@ void Ut_PSP_SP0_GetInfoTable(void)
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     g_iSP0DataDumpLength = 0;
     /* Execute test */
-    iRetCode = PSP_SP0_GetInfoTable(&sp0_data, 0);
+    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 0);
     /* Verify outputs */
     UtAssert_True(
         iRetCode == CFE_PSP_ERROR,
-        "_PSP_SP0_GetInfoTable - 3/4: Data length zero return error"
+        "_CFE_PSP_SP0GetInfoTable - 3/4: Data length zero return error"
         );
 
     /* ----- Test case #4 - Null structure ----- */
     /* Setup additional inputs */
     /* Set the content of the output data to a fixed value for testing */
     /* Execute test */
-    iRetCode = PSP_SP0_GetInfoTable(NULL, 0);
+    iRetCode = CFE_PSP_SP0GetInfoTable(NULL, 0);
     /* Verify outputs */
     UtAssert_True(
         iRetCode == CFE_PSP_ERROR,
-        "_PSP_SP0_GetInfoTable - 4/4: Nominal return success"
+        "_CFE_PSP_SP0GetInfoTable - 4/4: Nominal return success"
         );
 }
 
 /*=======================================================================================
-** Ut_PSP_SP0_DumpData(void) test cases
+** Ut_CFE_PSP_SP0DumpData(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_DumpData(void)
+void Ut_CFE_PSP_SP0DumpData(void)
 {
     char cMsg_creat[200] = {};
     char cMsg_write[200] = {};
@@ -562,9 +562,9 @@ void Ut_PSP_SP0_DumpData(void)
     UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
     /* Verify outputs */
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_PSP_SP0_DumpData - 1/5: Nominal");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SP0DumpData - 1/5: Nominal");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -575,9 +575,9 @@ void Ut_PSP_SP0_DumpData(void)
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(open), ERROR);
     /* Execute test */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_creat, "_PSP_SP0_DumpData - 2/5: Could not create dump file");
+    UtAssert_OS_print(cMsg_creat, "_CFE_PSP_SP0DumpData - 2/5: Could not create dump file");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -590,9 +590,9 @@ void Ut_PSP_SP0_DumpData(void)
     UT_SetDefaultReturnValue(UT_KEY(write), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_write, "_PSP_SP0_DumpData - 3/5: Could not write to dump file");
+    UtAssert_OS_print(cMsg_write, "_CFE_PSP_SP0DumpData - 3/5: Could not write to dump file");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -605,9 +605,9 @@ void Ut_PSP_SP0_DumpData(void)
     UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), ERROR);
     /* Execute test */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_close, "_PSP_SP0_DumpData - 4/5: Could not close dump file");
+    UtAssert_OS_print(cMsg_close, "_CFE_PSP_SP0DumpData - 4/5: Could not close dump file");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -621,15 +621,15 @@ void Ut_PSP_SP0_DumpData(void)
     UT_SetDefaultReturnValue(UT_KEY(write), g_iSP0DataDumpLength);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
     /* Execute test */
-    PSP_SP0_DumpData();
+    CFE_PSP_SP0DumpData();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_nodump, "_PSP_SP0_DumpData - 5/5: Data not available");
+    UtAssert_OS_print(cMsg_nodump, "_CFE_PSP_SP0DumpData - 5/5: Data not available");
 }
 
 /*=======================================================================================
 ** Ut_PSP_SP0_GetRAMDiskFreeSize(void) test cases
 **=======================================================================================*/
-void Ut_PSP_SP0_GetDiskFreeSize(void)
+void Ut_CFE_PSP_SP0GetDiskFreeSize(void)
 {
     char        ram_disk_path_ram[] = "/ram0";
     char        ram_disk_path_flash[] = "/ffx0";
@@ -639,44 +639,44 @@ void Ut_PSP_SP0_GetDiskFreeSize(void)
 
     /* Function is not stubbed */
     /* Execute test */
-    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_ram);
+    return_value = CFE_PSP_SP0GetDiskFreeSize(ram_disk_path_ram);
     /* Verify outputs */
-    UtAssert_True(return_value > 0, "_PSP_SP0_GetDiskFreeSize - 1/4: Nominal");
+    UtAssert_True(return_value > 0, "_CFE_PSP_SP0GetDiskFreeSize - 1/4: Nominal");
 
     /* Function is not stubbed */
     /* Execute test */
-    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_bad);
+    return_value = CFE_PSP_SP0GetDiskFreeSize(ram_disk_path_bad);
     /* Verify outputs */
-    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 2/4: Bad path");
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_SP0GetDiskFreeSize - 2/4: Bad path");
 
     /* Function is not stubbed */
     /* Execute test */
-    return_value = PSP_SP0_GetDiskFreeSize(NULL);
+    return_value = CFE_PSP_SP0GetDiskFreeSize(NULL);
     /* Verify outputs */
-    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 3/4: NULL path");
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_SP0GetDiskFreeSize - 3/4: NULL path");
 
     memset(ram_disk_path_too_long,0x11,sizeof(ram_disk_path_too_long));
     /* Execute test */
-    return_value = PSP_SP0_GetDiskFreeSize(ram_disk_path_too_long);
+    return_value = CFE_PSP_SP0GetDiskFreeSize(ram_disk_path_too_long);
     /* Verify outputs */
-    UtAssert_True(return_value == CFE_PSP_ERROR, "_PSP_SP0_GetDiskFreeSize - 4/4: Path too long");
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_SP0GetDiskFreeSize - 4/4: Path too long");
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROM1_LOCK(void) test cases
+ * void Ut_CFE_PSP_SP0ROM1Lock(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM1_LOCK(void)
+void Ut_CFE_PSP_SP0ROM1Lock(void)
 {
     /* Capture original ROM1 status */
-    bool bROM1Status = PSP_SP0_ROM1_Status();
+    bool bROM1Status = CFE_PSP_SP0ROM1Status();
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - LOCK ROM1 ----- */
     /* Set additional inputs */
-    PSP_SP0_ROM1_UNLOCK();
+    CFE_PSP_SP0ROM1Unlock();
     /* Execute test */
-    iReturnCode = PSP_SP0_ROM1_LOCK();
+    iReturnCode = CFE_PSP_SP0ROM1Lock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_LOCK - 1/1: LOCK ROM1 - return code");
 
@@ -687,29 +687,29 @@ void Ut_PSP_SP0_ROM1_LOCK(void)
     */
     if (bROM1Status == true)
     {
-        PSP_SP0_ROM1_LOCK();
+        CFE_PSP_SP0ROM1Lock();
     }
     else
     {
-        PSP_SP0_ROM1_UNLOCK();
+        CFE_PSP_SP0ROM1Unlock();
     }
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROM1_UNLOCK(void) test cases
+ * void Ut_CFE_PSP_SP0ROM1Unlock(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM1_UNLOCK(void)
+void Ut_CFE_PSP_SP0ROM1Unlock(void)
 {
     /* Capture original ROM1 status */
-    bool bROM1Status = PSP_SP0_ROM1_Status();
+    bool bROM1Status = CFE_PSP_SP0ROM1Status();
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - UNLOCK ROM1 ----- */
     /* Set additional inputs */
-    PSP_SP0_ROM1_LOCK();
+    CFE_PSP_SP0ROM1Lock();
     /* Execute test */
-    iReturnCode = PSP_SP0_ROM1_UNLOCK();
+    iReturnCode = CFE_PSP_SP0ROM1Unlock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_UNLOCK - 1/1: UNLOCK ROM1 - return code");
 
@@ -720,29 +720,29 @@ void Ut_PSP_SP0_ROM1_UNLOCK(void)
     */
     if (bROM1Status == true)
     {
-        PSP_SP0_ROM1_LOCK();
+        CFE_PSP_SP0ROM1Lock();
     }
     else
     {
-        PSP_SP0_ROM1_UNLOCK();
+        CFE_PSP_SP0ROM1Unlock();
     }
 }
 
 /**********************************************************
  * void Ut_PSP_SP1_ROM2_LOCK(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM2_LOCK(void)
+void Ut_CFE_PSP_SP0ROM2Lock(void)
 {
     /* Capture original ROM2 Status */
-    bool bROM2Status = PSP_SP0_ROM2_Status();
+    bool bROM2Status = CFE_PSP_SP0ROM2Status();
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - UNLOCK ROM2 ----- */
     /* Set additional inputs */
-    PSP_SP0_ROM2_UNLOCK();
+    CFE_PSP_SP0ROM2Unlock();
     /* Execute test */
-    iReturnCode = PSP_SP0_ROM2_LOCK();
+    iReturnCode = CFE_PSP_SP0ROM2Lock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_LOCK - 1/1: LOCK ROM2 - return code");
 
@@ -753,28 +753,28 @@ void Ut_PSP_SP0_ROM2_LOCK(void)
     */
     if (bROM2Status == true)
     {
-        PSP_SP0_ROM2_LOCK();
+        CFE_PSP_SP0ROM2Lock();
     }
     else
     {
-		PSP_SP0_ROM2_UNLOCK();
+		CFE_PSP_SP0ROM2Unlock();
     }
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROM2_UNLOCK(void) test cases
+ * void Ut_CFE_PSP_SP0ROM2Unlock(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM2_UNLOCK(void)
+void Ut_CFE_PSP_SP0ROM2Unlock(void)
 {
 	/* Capture original ROM2 Status */
-	bool bROM2Status = PSP_SP0_ROM2_Status();
+	bool bROM2Status = CFE_PSP_SP0ROM2Status();
 
 	int32 iReturnCode = CFE_PSP_SUCCESS;
     /* ----- Test case #1 - UNLOCK ROM1 ----- */
     /* Set additional inputs */
-    PSP_SP0_ROM2_LOCK();
+    CFE_PSP_SP0ROM2Lock();
 	/* Execute test */
-	iReturnCode = PSP_SP0_ROM2_UNLOCK();
+	iReturnCode = CFE_PSP_SP0ROM2Unlock();
     /* Verify results */
 	UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_UNLOCK - 1/1: UNLOCK ROM2 - return code");
 
@@ -785,50 +785,50 @@ void Ut_PSP_SP0_ROM2_UNLOCK(void)
 	*/
 	if (bROM2Status == true)
 	{
-		PSP_SP0_ROM2_LOCK();
+		CFE_PSP_SP0ROM2Lock();
 	}
 	else
 	{
-		PSP_SP0_ROM2_UNLOCK();
+		CFE_PSP_SP0ROM2Unlock();
 	}
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROMX_COMMAND(void) test cases
+ * void Ut_CFE_PSP_SP0ROMXCmd(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROMX_COMMAND(void)
+void Ut_CFE_PSP_SP0ROMXCmd(void)
 {
     /* Get current status */
-    bool bROM1Status = PSP_SP0_ROM1_Status();
-    bool bROM2Status = PSP_SP0_ROM2_Status();
+    bool bROM1Status = CFE_PSP_SP0ROM1Status();
+    bool bROM2Status = CFE_PSP_SP0ROM2Status();
 
     int32_t iReturnCode = CFE_PSP_SUCCESS;
 
     /* ----- Test case #1 - ROM1 LOCK ----- */
     /* Set additional inputs */
     /* Execute test */
-    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM1_CODE_LOCK);
+    iReturnCode = CFE_PSP_SP0ROMXCmd(SP0_ROM1_CODE_LOCK);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 1/5: ROM1 LOCK - return code");
 
     /* ----- Test case #2 - ROM1 UNLOCK ----- */
     /* Set additional inputs */
     /* Execute test */
-    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM1_CODE_UNLOCK);
+    iReturnCode = CFE_PSP_SP0ROMXCmd(SP0_ROM1_CODE_UNLOCK);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 2/5: ROM1 UNLOCK - return code");
 
     /* ----- Test case #3 - ROM2 LOCK ----- */
     /* Set additional inputs */
     /* Execute test */
-    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM2_CODE_LOCK);
+    iReturnCode = CFE_PSP_SP0ROMXCmd(SP0_ROM2_CODE_LOCK);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 3/5: ROM2 LOCK - return code");
 
     /* ----- Test case #4 - ROM2 UNLOCK ----- */
     /* Set additional inputs */
     /* Execute test */
-    iReturnCode = PSP_SP0_ROMX_COMMAND(SP0_ROM2_CODE_UNLOCK);
+    iReturnCode = CFE_PSP_SP0ROMXCmd(SP0_ROM2_CODE_UNLOCK);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 4/5: ROM2 UNLOCK - return code");
 
@@ -837,34 +837,34 @@ void Ut_PSP_SP0_ROMX_COMMAND(void)
     */
     if (bROM1Status == true)
     {
-        PSP_SP0_ROM1_LOCK();
+        CFE_PSP_SP0ROM1Lock();
     }
     else
     {
-        PSP_SP0_ROM1_UNLOCK();
+        CFE_PSP_SP0ROM1Unlock();
     }
 
     if (bROM2Status == true)
     {
-        PSP_SP0_ROM2_LOCK();
+        CFE_PSP_SP0ROM2Lock();
     }
     else
     {
-        PSP_SP0_ROM2_UNLOCK();
+        CFE_PSP_SP0ROM2Unlock();
     }
 
     /* ----- Test case #5 - Hit Default case ----- */
     /* Set additional inputs */
     /* Execute test */
-    iReturnCode = PSP_SP0_ROMX_COMMAND((uint32_t) 0x00000000);
+    iReturnCode = CFE_PSP_SP0ROMXCmd((uint32_t) 0x00000000);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_SP0_PRINT_SCOPE "ROMX_COMMAND 5/5: Default switch case - return code");
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROM1_Status(void) test cases
+ * void Ut_CFE_PSP_SP0ROM1Status(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM1_Status(void)
+void Ut_CFE_PSP_SP0ROM1Status(void)
 {
     /* Get current status manually */
     bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM1_MASK) >> SP0_ROM1_STATUS_SHIFT);
@@ -873,24 +873,24 @@ void Ut_PSP_SP0_ROM1_Status(void)
     /* ----- Test case #1 - Get Status ----- */
     /* Set additional inputs */
     /* Execute test */
-    bReturnValue = PSP_SP0_ROM1_Status();
+    bReturnValue = CFE_PSP_SP0ROM1Status();
     /* Verify results */
     UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM1 Status - return value");
 
     if (bOriginalValue == true)
     {
-        PSP_SP0_ROM1_LOCK();
+        CFE_PSP_SP0ROM1Lock();
     }
     else
     {
-        PSP_SP0_ROM1_UNLOCK();
+        CFE_PSP_SP0ROM1Unlock();
     }
 }
 
 /**********************************************************
- * void Ut_PSP_SP0_ROM2_Status(void) test cases
+ * void Ut_CFE_PSP_SP0ROM2Status(void) test cases
  *********************************************************/
-void Ut_PSP_SP0_ROM2_Status(void)
+void Ut_CFE_PSP_SP0ROM2Status(void)
 {
     /* Get current status manually */
     bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
@@ -899,17 +899,17 @@ void Ut_PSP_SP0_ROM2_Status(void)
     /* ----- Test case #1 - Get Status ----- */
     /* Set additional inputs */
     /* Execute test */
-    bReturnValue = PSP_SP0_ROM2_Status();
+    bReturnValue = CFE_PSP_SP0ROM2Status();
     /* Verify results */
     UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM2 Status - return value");
 
     if (bOriginalValue == true)
     {
-        PSP_SP0_ROM2_LOCK();
+        CFE_PSP_SP0ROM2Lock();
     }
     else
     {
-        PSP_SP0_ROM2_UNLOCK();
+        CFE_PSP_SP0ROM2Unlock();
     }
 }
 

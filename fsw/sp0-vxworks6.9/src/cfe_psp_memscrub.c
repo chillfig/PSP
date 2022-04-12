@@ -29,8 +29,8 @@
 #include "cfe_psp.h"
 
 /* For CFE_PSP_SetTaskPrio() */
-#include "psp_start.h"
-#include "psp_mem_scrub.h"
+#include "cfe_psp_start.h"
+#include "cfe_psp_memscrub.h"
 #include "cfe_psp_config.h"
 
 /*
@@ -38,7 +38,7 @@
 **
 ** See function definition for details
 */
-static void CFE_PSP_MEM_SCRUB_Task(void);
+static void CFE_PSP_MemScrubTask(void);
 
 /* Defined in sysLib.c */
 /** \name External definition of variables containing error statistics */
@@ -113,7 +113,7 @@ static uint32 g_uiMemScrubTotalPages = 0;
  ** Cannot initialize static variable to non-constant expression. I believe
  ** compiler is interpreting OS_OBJECT_ID_UNDEFINED as non constant expression
  ** because of type cast in preprocessor macro. Instead, assign variable to
- ** OS_OBJECT_ID_UNDEFINED in CFE_PSP_MEM_SCRUB_Init. Since CFE_PSP_MEM_SCRUB_Init
+ ** OS_OBJECT_ID_UNDEFINED in CFE_PSP_MemScrubInit. Since CFE_PSP_MemScrubInit
  ** will be the first mem scrub-related function to be called and below variable
  ** is static, this will be safe. 
  */
@@ -130,12 +130,12 @@ static bool g_bScrubAddrUpdates_flag = false;
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Set
+ * Function: CFE_PSP_MemScrubSet
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
+int32 CFE_PSP_MemScrubSet(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
@@ -222,21 +222,21 @@ int32 CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priorit
     }
 
     return iReturnCode;
-} /* end CFE_PSP_MEM_SCRUB_Set */
+} /* end CFE_PSP_MemScrubSet */
 
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Delete
+ * Function: CFE_PSP_MemScrubDelete
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MEM_SCRUB_Delete(void)
+int32 CFE_PSP_MemScrubDelete(void)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
-    if (CFE_PSP_MEM_SCRUB_Disable() == CFE_PSP_SUCCESS)
+    if (CFE_PSP_MemScrubDisable() == CFE_PSP_SUCCESS)
     {
         /* Reset all memory scrub related values to default */
         g_uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
@@ -274,12 +274,12 @@ int32 CFE_PSP_MEM_SCRUB_Delete(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Status
+ * Function: CFE_PSP_MemScrubStatus
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk)
+void CFE_PSP_MemScrubStatus(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk)
 {
     mss_Status->uiMemScrubStartAddr = g_uiMemScrubStartAddr;
     mss_Status->uiMemScrubEndAddr = g_uiMemScrubEndAddr;
@@ -310,7 +310,7 @@ void CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk)
 ** \par Assumptions, External Events, and Notes:
 ** The scrubMemory function implemented by AiTech may never return an error.
 ** The function may never exit, the task is meant to be deleted using 
-** CFE_PSP_MEM_SCRUB_Delete. Additionally, changes to global Mem Scrub
+** CFE_PSP_MemScrubDelete. Additionally, changes to global Mem Scrub
 ** start and end address (by some other thread/task) will not have an affect
 ** on the thread running this scrub task.
 ** Global scrub memory start/end addresses should only be set via ...SCRUB_Set
@@ -320,7 +320,7 @@ void CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk)
 **
 ** \return None
 */
-static void CFE_PSP_MEM_SCRUB_Task(void)
+static void CFE_PSP_MemScrubTask(void)
 {
     STATUS status = CFE_PSP_ERROR;
 
@@ -370,12 +370,12 @@ static void CFE_PSP_MEM_SCRUB_Task(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Init
+ * Function: CFE_PSP_MemScrubInit
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MEM_SCRUB_Init(void)
+int32 CFE_PSP_MemScrubInit(void)
 {
     /* Initialize */
     int32 iReturnCode = CFE_PSP_ERROR;
@@ -395,10 +395,10 @@ int32 CFE_PSP_MEM_SCRUB_Init(void)
             ** Manually set memory scrub start/end addresses
             **
             ** We manually set these in initialization. We do not call
-            ** CFE_PSP_MEM_SCRUB_Set because that function will attempt
+            ** CFE_PSP_MemScrubSet because that function will attempt
             ** to set task priority when mem scrub task hasn't been started
             ** yet, resulting in an error. We can ignore the error, but there are
-            ** other statements in CFE_PSP_MEM_SCRUB_Set that may elicit errors
+            ** other statements in CFE_PSP_MemScrubSet that may elicit errors
             **
             ** When startup process reaches this point, g_uiEndOfRam should already
             ** be initialized to physical end of RAM via CFE_PSP_SetupReservedMemoryMap()
@@ -429,7 +429,7 @@ int32 CFE_PSP_MEM_SCRUB_Init(void)
             }
 
             /* Attempt to enable memory scrub task */
-            if (CFE_PSP_MEM_SCRUB_Enable() == CFE_PSP_SUCCESS)
+            if (CFE_PSP_MemScrubEnable() == CFE_PSP_SUCCESS)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -449,12 +449,12 @@ int32 CFE_PSP_MEM_SCRUB_Init(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_isRunning
+ * Function: CFE_PSP_MemScrubIsRunning
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-bool CFE_PSP_MEM_SCRUB_isRunning(void)
+bool CFE_PSP_MemScrubIsRunning(void)
 {
     /* Initialize */
     bool        bReturnValue = true;
@@ -473,17 +473,17 @@ bool CFE_PSP_MEM_SCRUB_isRunning(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Enable
+ * Function: CFE_PSP_MemScrubEnable
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MEM_SCRUB_Enable(void)
+int32 CFE_PSP_MemScrubEnable(void)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
     /* Check if memory scrub task is already running */
-    if (CFE_PSP_MEM_SCRUB_isRunning() == true)
+    if (CFE_PSP_MemScrubIsRunning() == true)
     {
         /* Memory scrub task already running */
         OS_printf(MEM_SCRUB_PRINT_SCOPE "Active Memory Scrubbing task is already running\n");
@@ -500,7 +500,7 @@ int32 CFE_PSP_MEM_SCRUB_Enable(void)
         /* Attempt to start memory scrubbing task */
         iReturnCode = OS_TaskCreate(&g_uiMemScrubTaskId, 
                                     MEMSCRUB_TASK_NAME, 
-                                    CFE_PSP_MEM_SCRUB_Task,
+                                    CFE_PSP_MemScrubTask,
                                     OSAL_TASK_STACK_ALLOCATE, 
                                     OSAL_SIZE_C(1024), 
                                     g_uiMemScrubTaskPriority, 
@@ -519,17 +519,17 @@ int32 CFE_PSP_MEM_SCRUB_Enable(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_Disable
+ * Function: CFE_PSP_MemScrubDisable
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MEM_SCRUB_Disable(void)
+int32 CFE_PSP_MemScrubDisable(void)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
     /* Check if memory scrub task is running */
-    if (CFE_PSP_MEM_SCRUB_isRunning() == true)
+    if (CFE_PSP_MemScrubIsRunning() == true)
     {
         /* Attempt to take semaphore */
         if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
@@ -573,12 +573,12 @@ int32 CFE_PSP_MEM_SCRUB_Disable(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEM_SCRUB_ErrStats
+ * Function: CFE_PSP_MemScrubErrStats
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_MEM_SCRUB_ErrStats(MEM_SCRUB_ERRSTATS_t *errStats, bool talkative)
+void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative)
 {
     if (talkative == true)
     {

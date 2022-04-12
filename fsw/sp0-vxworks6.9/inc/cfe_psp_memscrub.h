@@ -66,14 +66,14 @@ extern "C" {
  **     - opMemScrubTaskPriority
  **     - bIsRunning
 */
-typedef struct MEM_SCRUB_STATUS_s
+typedef struct
 {
     uint32              uiMemScrubStartAddr;
     uint32              uiMemScrubEndAddr;
     uint32              uiMemScrubCurrentPage;
     uint32              uiMemScrubTotalPages;
     osal_priority_t     opMemScrubTaskPriority;
-} MEM_SCRUB_STATUS_t;
+} CFE_PSP_MemScrubStatus_t;
 
 /**
  ** \brief Memory Error Statistics struct
@@ -93,7 +93,7 @@ typedef struct MEM_SCRUB_STATUS_s
  ** \par Assumptions, External Events, and Notes:
  ** From sysLib.c: "The machine check ISR will update these counters"
  */
-typedef struct MEM_SCRUB_ERRSTATS_s
+typedef struct
 {
     uint32              uil2errTotal;
     uint32              uil2errMult;
@@ -103,7 +103,7 @@ typedef struct MEM_SCRUB_ERRSTATS_s
     uint32              uil2errCfg;
     uint32              uimchCause;
     uint32              uimchkHook;
-} MEM_SCRUB_ERRSTATS_t;
+} CFE_PSP_MemScrubErrStats_t;
 
 /**
 ** \func Set the Memory Scrubbing parameters
@@ -130,7 +130,7 @@ typedef struct MEM_SCRUB_ERRSTATS_s
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
 */
-int32  CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority);
+int32  CFE_PSP_MemScrubSet(uint32 newStartAddr, uint32 newEndAddr, osal_priority_t task_priority);
 
 /**
 ** \func Check if the Memory Scrubbing task is running
@@ -146,14 +146,14 @@ int32  CFE_PSP_MEM_SCRUB_Set(uint32 newStartAddr, uint32 newEndAddr, osal_priori
 ** \return true - If task is running
 ** \return false - If task is not running
 */
-bool  CFE_PSP_MEM_SCRUB_isRunning(void);
+bool  CFE_PSP_MemScrubIsRunning(void);
 
 /**
 ** \func Stop the memory scrubbing task
 **
 ** \par Description:
 ** This function resets all memory scrub related variables,
-** then call CFE_PSP_MEM_SCRUB_Disable to delete the memory scrubbing
+** then call CFE_PSP_MemScrubDisable to delete the memory scrubbing
 ** task.
 ** 
 ** \par Assumptions, External Events, and Notes:
@@ -165,7 +165,7 @@ bool  CFE_PSP_MEM_SCRUB_isRunning(void);
 ** \return #CFE_PSP_SUCCESS - If successfully deleted
 ** \return #CFE_PSP_ERROR - If unsuccessfully deleted
 */
-int32  CFE_PSP_MEM_SCRUB_Delete(void);
+int32  CFE_PSP_MemScrubDelete(void);
 
 /**
 ** \func Print the Memory Scrubbing statistics
@@ -183,7 +183,7 @@ int32  CFE_PSP_MEM_SCRUB_Delete(void);
 **
 ** \return None
 */
-void  CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk);
+void  CFE_PSP_MemScrubStatus(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk);
 
 /**
 ** \func Initialize the Memory Scrubbing task
@@ -199,7 +199,7 @@ void  CFE_PSP_MEM_SCRUB_Status(MEM_SCRUB_STATUS_t *mss_Status, bool talk);
 ** \return #CFE_PSP_SUCCESS - If successful initialization
 ** \return #CFE_PSP_ERROR - If unsuccessful initialization
 */
-int32  CFE_PSP_MEM_SCRUB_Init(void);
+int32  CFE_PSP_MemScrubInit(void);
 
 /**
 ** \func Enable the Memory Scrubbing task
@@ -216,7 +216,7 @@ int32  CFE_PSP_MEM_SCRUB_Init(void);
 ** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
 ** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
 */
-int32  CFE_PSP_MEM_SCRUB_Enable(void);
+int32  CFE_PSP_MemScrubEnable(void);
 
 /**
 ** \func Disable the Memory Scrubbing task
@@ -233,24 +233,24 @@ int32  CFE_PSP_MEM_SCRUB_Enable(void);
 ** \return #CFE_PSP_SUCCESS - If successfully disabled memory scrub task
 ** \return #CFE_PSP_ERROR - If unsuccessfully disabled memory scrub task
 */
-int32  CFE_PSP_MEM_SCRUB_Disable(void);
+int32  CFE_PSP_MemScrubDisable(void);
 
 /**
  ** \func Get the memory error statistics
  **
  ** \par Description:
- ** This function will fill the provided MEM_SCRUB_ERRSTATS_t pointer with
+ ** This function will fill the provided CFE_PSP_MemScrubErrStats_t pointer with
  ** memory error statistics
  **
  ** \par Assumptions, External Events, and Notes:
  ** TBD what these individual values truely represent
  **
- ** \param errStats - Pointer to MEM_SCRUB_ERRSTATS_t structure
+ ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
  ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
  **
  ** \return None
  */
-void CFE_PSP_MEM_SCRUB_ErrStats(MEM_SCRUB_ERRSTATS_t *errStats, bool talkative);
+void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

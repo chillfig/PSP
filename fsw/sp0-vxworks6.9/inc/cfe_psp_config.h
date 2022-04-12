@@ -504,7 +504,7 @@ typedef struct
  ** \brief Memory Scrub Maximum Allowed Priority
  ** \par Description:
  ** Set the Active Memory Scrub Task Up Range Allowable Priority
- ** Task Priority can be changed using CFE_PSP_MEM_SCRUB_Set.
+ ** Task Priority can be changed using CFE_PSP_MemScrubSet.
  ** Up Range priority is capped by VxWorks OS.
  */
 #define MEMSCRUB_PRIORITY_UP_RANGE          255
@@ -513,7 +513,7 @@ typedef struct
  ** \brief Memory Scrub Minimum Allowed Priority
  ** \par Description:
  ** Set the Active Memory Scrub Task Down Range Allowable Priority
- ** Task Priority can be changed using CFE_PSP_MEM_SCRUB_Set.
+ ** Task Priority can be changed using CFE_PSP_MemScrubSet.
  ** Down Range priority should not be lower than your apps.
  */
 #define MEMSCRUB_PRIORITY_DOWN_RANGE        120

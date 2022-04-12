@@ -1,5 +1,5 @@
 /**
- ** \file psp_mem_sync.h
+ ** \file cfe_psp_memsync.h
  **
  ** \brief
  ** API header to control memory sync to filesystem
@@ -53,7 +53,7 @@ extern "C" {
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_MEMORY_SYNC_Init(void);
+int32 CFE_PSP_MemSyncInit(void);
 
 /**
  ** \brief Destroy data for memory sync task
@@ -70,7 +70,7 @@ int32 CFE_PSP_MEMORY_SYNC_Init(void);
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_MEMORY_SYNC_Destroy(void);
+int32 CFE_PSP_MemSyncDestroy(void);
 
 /**
  ** \brief Start Memory Sync Task
@@ -86,7 +86,7 @@ int32 CFE_PSP_MEMORY_SYNC_Destroy(void);
  ** \return #CFE_PSP_SUCCESS - If task successfully started
  ** \return #CFE_PSP_ERROR - If task unsuccessfully started
  */
-int32 CFE_PSP_MEMORY_SYNC_Start(void);
+int32 CFE_PSP_MemSyncStart(void);
 
 /**
  ** \brief Stop memory sync Task
@@ -102,7 +102,7 @@ int32 CFE_PSP_MEMORY_SYNC_Start(void);
  ** \return #CFE_PSP_SUCCESS - If successfully stopped task
  ** \return #CFE_PSP_ERROR - If unsuccessfully stopped task
  */
-int32 CFE_PSP_MEMORY_SYNC_Stop(void);
+int32 CFE_PSP_MemSyncStop(void);
 
 /**
  ** \brief Check if memory sync task is running
@@ -118,7 +118,7 @@ int32 CFE_PSP_MEMORY_SYNC_Stop(void);
  ** \return true - If task is running
  ** \return false - If task is not running
  */
-bool CFE_PSP_MEMORY_SYNC_isRunning(void);
+bool CFE_PSP_MemSyncIsRunning(void);
 
 /**
  ** \brief Set new memory sync task priority
@@ -134,7 +134,7 @@ bool CFE_PSP_MEMORY_SYNC_isRunning(void);
  ** \return #CFE_PSP_SUCCESS - If successfuly set new priority
  ** \return #CFE_PSP_ERROR - If unsuccessfully set new priority
  */
-int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority);
+int32 CFE_PSP_MemSyncSetPriority(osal_priority_t priority);
 
 /**
  ** \brief Get the memory sync task priority
@@ -149,7 +149,7 @@ int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority);
  **
  ** \return osal_priority_t Memory sync task priority
  */
-osal_priority_t CFE_PSP_MEMORY_SYNC_getPriority(void);
+osal_priority_t CFE_PSP_MemSyncGetPriority(void);
 
 /**
  ** \brief Set the time between memory syncs in seconds
@@ -165,7 +165,7 @@ osal_priority_t CFE_PSP_MEMORY_SYNC_getPriority(void);
  ** \return #CFE_PSP_SUCCESS - If successfully set new time
  ** \return #CFE_PSP_ERROR - If unsuccessfully set new time
  */
-int32 CFE_PSP_MEMORY_SYNC_setFrequency(uint32 sec_time);
+int32 CFE_PSP_MemSyncSetFrequency(uint32 sec_time);
 
 /**
  ** \brief Get the time between memory syncs in seconds
@@ -180,7 +180,7 @@ int32 CFE_PSP_MEMORY_SYNC_setFrequency(uint32 sec_time);
  **
  ** \return uint32 Time between memory sync
  */
-uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void);
+uint32 CFE_PSP_MemSyncGetFrequency(void);
 
 /**
  ** \brief Return stat tracking
@@ -198,7 +198,7 @@ uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void);
  **
  ** \return Statistic (currently, number of syncs that occur)
  */
-uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void);
+uint32 CFE_PSP_MemSyncGetStatistics(void);
 
 /**
  ** \} <!-- End of group "psp_public_api" -->

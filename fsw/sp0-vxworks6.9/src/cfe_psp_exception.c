@@ -67,7 +67,7 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
-#include "psp_exceptions.h"
+#include "cfe_psp_exception.h"
 
 /*
 ** Defines

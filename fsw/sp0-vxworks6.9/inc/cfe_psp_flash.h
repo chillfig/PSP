@@ -49,7 +49,7 @@ extern "C" {
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname);
+int32 CFE_PSP_ReadFromFlash(uint32 *p_dest, size_t size, char *fname);
 
 /**
  ** \func  Write data to flash
@@ -68,7 +68,7 @@ int32 CFE_PSP_FLASH_ReadFromFLASH(uint32 *p_dest, size_t size, char *fname);
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname);
+int32 CFE_PSP_WriteToFlash(uint32 *p_src, size_t size, char *fname);
 
 /**
  ** \func Delete a file
@@ -85,7 +85,7 @@ int32 CFE_PSP_FLASH_WriteToFLASH(uint32 *p_src, size_t size, char *fname);
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_FLASH_DeleteFile(char *fname);
+int32 CFE_PSP_DeleteFile(char *fname);
 
 /**
  ** \func Create a file
@@ -102,7 +102,7 @@ int32 CFE_PSP_FLASH_DeleteFile(char *fname);
  ** \return #CFE_PSP_ERROR
  ** \return #CFE_PSP_SUCCESS
  */
-int32 CFE_PSP_FLASH_CreateFile(char *fname);
+int32 CFE_PSP_CreateFile(char *fname);
 
 /**
  ** \func Check if a file exists
@@ -119,7 +119,7 @@ int32 CFE_PSP_FLASH_CreateFile(char *fname);
  ** \return false - file does not exist or invalid pointer
  ** \return true - file does exist
  */
-bool CFE_PSP_FLASH_CheckFile(char *fname);
+bool CFE_PSP_CheckFile(char *fname);
 
 /**
  ** \brief Create a directory
@@ -137,7 +137,7 @@ bool CFE_PSP_FLASH_CheckFile(char *fname);
  ** \return #CFE_PSP_ERROR - Unsuccessfully created directory
  ** \return #CFE_PSP_INVALID_POINTER - Invalid pointer
  */
-int32 CFE_PSP_FLASH_CreateDirectory(const char *p_dir);
+int32 CFE_PSP_CreateDirectory(const char *p_dir);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

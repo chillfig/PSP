@@ -219,7 +219,7 @@ int32 CFE_PSP_GetRESETSize(uint32 *size);
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_WriteToRESET(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Read from the RESET memory area
@@ -239,7 +239,7 @@ int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_ReadFromRESET(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_ReadFromRESET(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Get the size of the VOLATILEDISK memory area
@@ -276,7 +276,7 @@ int32 CFE_PSP_GetVOLATILEDISKSize(uint32 *size);
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Read from the VOLATILEDISK memory area
@@ -296,7 +296,7 @@ int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Get the size of the USERRESERVED memory area
@@ -333,7 +333,7 @@ int32 CFE_PSP_GetUSERRESERVEDSize(uint32 *size);
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Read from the USERRESERVED memory area
@@ -353,7 +353,7 @@ int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint
  ** \return #CFE_PSP_INVALID_POINTER
  ** \return #CFE_PSP_INVALID_MEM_RANGE
  */
-int32 CFE_PSP_MEMORY_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
+int32 CFE_PSP_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size);
 
 /**
  ** \func Get pointer ot the CDS memory area
@@ -389,4 +389,4 @@ extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
 ** \} <!-- End of group "psp_public_api" -->
 */
 
-#endif /* _cfe_psp_memory_ */
+#endif /* CFE_PSP_MEMORY_H */

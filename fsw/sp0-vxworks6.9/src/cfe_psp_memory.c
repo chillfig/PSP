@@ -48,11 +48,11 @@
 #include "cfe_psp.h"
 
 /* For CFE_PSP_SetTaskPrio() */
-#include "psp_start.h"
-#include "psp_exceptions.h"
+#include "cfe_psp_start.h"
+#include "cfe_psp_exception.h"
 #include "cfe_psp_memory.h"
-#include "psp_flash.h"
-#include "psp_mem_sync.h"
+#include "cfe_psp_flash.h"
+#include "cfe_psp_memsync.h"
 
 /*
 ** Macro Definitions
@@ -67,12 +67,14 @@
 /*
 ** ENUM Definitions
 */
-enum MEMORY_SECTION
-    {OP_CDS = 0,
-    OP_RESET = 1,
+typedef enum MEMORY_SECTION_tAG
+{
+    OP_CDS          = 0,
+    OP_RESET        = 1,
     OP_VOLATILEDISK = 2,
     OP_USERRESERVED = 3,
-    OP_NA = 4};
+    OP_NA           = 4
+} MEMORY_SECTION_t;
 
 /*
 **  External Declarations
@@ -88,21 +90,21 @@ extern unsigned int GetWrsKernelTextEnd(void);
 ** See function definitions for details
 */
 static uint32 CFE_PSP_CalculateCRC(const void *DataPtr, uint32 DataLength, uint32 InputCRC);
-static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op);
-static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEMORY_SECTION op);
-static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op);
-static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op);
-static int32 CFE_PSP_MEMORY_RestoreRESET(void);
-static int32 CFE_PSP_MEMORY_RestoreCDS(void);
-static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK(void);
-static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED(void);
-static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op);
-static void CFE_PSP_MEMORY_SYNC_Task(void);
-static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void);
-static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void);
-static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void);
-static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void);
-static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op);
+static int32 CFE_PSP_GetMemSize(uint32 *p_size, MEMORY_SECTION_t op);
+static int32 CFE_PSP_GetMemArea(cpuaddr *p_area, uint32 *p_size, MEMORY_SECTION_t op);
+static int32 CFE_PSP_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op);
+static int32 CFE_PSP_WriteToRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op);
+static int32 CFE_PSP_RestoreReset(void);
+static int32 CFE_PSP_RestoreCDS(void);
+static int32 CFE_PSP_RestoreVolatileDisk(void);
+static int32 CFE_PSP_RestoreUserReserved(void);
+static int32 CFE_PSP_RestoreData(MEMORY_SECTION_t op);
+static void CFE_PSP_MemSyncTask(void);
+static int32 CFE_PSP_CDSFilepath(void);
+static int32 CFE_PSP_ResetFilepath(void);
+static int32 CFE_PSP_VolatileDiskFilepath(void);
+static int32 CFE_PSP_UserReservedFilepath(void);
+static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op);
 
 /*
 ** Global variables
@@ -325,52 +327,52 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
         }
 
         /* RESET MEMORY - Not sure if still valid */
-        iStatus = CFE_PSP_MEMORY_RestoreRESET();
+        iStatus = CFE_PSP_RestoreReset();
 
         if (iStatus != CFE_PSP_SUCCESS)
         {
             memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+            CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
                                         CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
                                         g_RESETFilepath);
         }
 
         /* CDS MEMORY */
-        iStatus = CFE_PSP_MEMORY_RestoreCDS();
+        iStatus = CFE_PSP_RestoreCDS();
         
         if (iStatus != CFE_PSP_SUCCESS)
         {
             OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore CDS data\n");
             memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+            CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
                                     g_CDSFilepath);
         }
 
         /* VOLATILE DISK MEMORY */
-        iStatus = CFE_PSP_MEMORY_RestoreVOLATILEDISK();
+        iStatus = CFE_PSP_RestoreVolatileDisk();
 
         if (iStatus != CFE_PSP_SUCCESS)
         {
             OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore Volatile Disk data\n");
             memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
-            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+            CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
                                     g_VOLATILEDISKFilepath);
         }
 
         /* USER RESERVED MEMORY */
-        iStatus = CFE_PSP_MEMORY_RestoreUSERRESERVED();
+        iStatus = CFE_PSP_RestoreUserReserved();
 
         if (iStatus != CFE_PSP_SUCCESS)
         {
             OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore User Reserved data\n");
             memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-            CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+            CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                                     CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
                                     g_USERRESERVEDFilepath);
         }
@@ -408,7 +410,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
  ** \return #CFE_PSP_SUCCESS - When the file does exist
  ** \return #CFE_PSP_ERROR - When the file does not exist
  */
-int32 CFE_PSP_MEMORY_CheckURMFilesExists(void)
+int32 CFE_PSP_CheckURMFilesExists(void)
 {
     int32   iReturnCode = CFE_PSP_SUCCESS;
     int     iFD = -1;
@@ -440,23 +442,23 @@ int32 CFE_PSP_MEMORY_CheckURMFilesExists(void)
  **
  ** \return None
  */
-void CFE_PSP_MEMORY_FlushToFLASH(void)
+void CFE_PSP_FlushToFLASH(void)
 {
-    CFE_PSP_MEMORY_SYNC_Stop();
+    CFE_PSP_MemSyncStop();
 
-    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
+    CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
                                 CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, 
                                 g_RESETFilepath);
 
-    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+    CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize,
                             g_CDSFilepath);
 
-    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
+    CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                             CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize,
                             g_VOLATILEDISKFilepath);
 
-    CFE_PSP_FLASH_WriteToFLASH((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
+    CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                         CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize,
                         g_USERRESERVEDFilepath);
 }
@@ -622,10 +624,10 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     
 
     /* Construct filepaths */
-    CFE_PSP_MEMORY_SYNC_CDS_FPATH();
-    CFE_PSP_MEMORY_SYNC_RESET_FPATH();
-    CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH();
-    CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH();
+    CFE_PSP_CDSFilepath();
+    CFE_PSP_ResetFilepath();
+    CFE_PSP_VolatileDiskFilepath();
+    CFE_PSP_UserReservedFilepath();
 
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "CDS FILEPATH: <%s>\n", g_CDSFilepath);
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "RESET FILEPATH: <%s>\n", g_RESETFilepath);
@@ -682,22 +684,22 @@ void CFE_PSP_DeleteProcessorReservedMemory(void)
     /* RESET */
     memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(g_RESETFilepath);
+    CFE_PSP_DeleteFile(g_RESETFilepath);
 
     /* CDS */
     memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(g_CDSFilepath);
+    CFE_PSP_DeleteFile(g_CDSFilepath);
 
     /* VOLATILE DISK */
     memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(g_VOLATILEDISKFilepath);
+    CFE_PSP_DeleteFile(g_VOLATILEDISKFilepath);
 
     /* User Reserved */
     memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, 0,
             CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
-    CFE_PSP_FLASH_DeleteFile(g_USERRESERVEDFilepath);
+    CFE_PSP_DeleteFile(g_USERRESERVEDFilepath);
 }
 
 /*
@@ -833,7 +835,7 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
  **********************************************************/
 int32 CFE_PSP_GetRESETSize(uint32 *size)
 {
-    return CFE_PSP_MEMORY_GetMemSize(size, OP_RESET);
+    return CFE_PSP_GetMemSize(size, OP_RESET);
 }
 
 /**********************************************************
@@ -847,7 +849,7 @@ int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToResetArea, SizeOfResetArea, OP_RESET);
+    iReturnCode = CFE_PSP_GetMemArea(PtrToResetArea, SizeOfResetArea, OP_RESET);
 
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -865,14 +867,14 @@ int32 CFE_PSP_GetResetArea(cpuaddr *PtrToResetArea, uint32 *SizeOfResetArea)
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_ReadFromRESET(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_ReadFromRESET(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_RESET);
+    return CFE_PSP_ReadFromRAM(p_data, offset, size, OP_RESET);
 }
 
-int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_WriteToRESET(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_RESET);
+    return CFE_PSP_WriteToRAM(p_data, offset, size, OP_RESET);
 }
 
 /**
@@ -889,9 +891,9 @@ int32 CFE_PSP_MEMORY_WriteToRESET(const void *p_data, uint32 offset, uint32 size
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_RestoreRESET()
+static int32 CFE_PSP_RestoreReset()
 {
-    return CFE_PSP_MEMORY_RestoreDATA(OP_RESET);
+    return CFE_PSP_RestoreData(OP_RESET);
 }
 
 /**********************************************************
@@ -911,7 +913,7 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_GetMemSize(SizeOfCDS, OP_CDS);
+    iReturnCode = CFE_PSP_GetMemSize(SizeOfCDS, OP_CDS);
     
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -930,7 +932,7 @@ int32 CFE_PSP_GetCDSSize(uint32 *SizeOfCDS)
  **********************************************************/
 int32 CFE_PSP_GetCDSArea(cpuaddr *p_area, uint32 *p_size)
 {
-    return CFE_PSP_MEMORY_GetMemArea(p_area, p_size, OP_CDS);
+    return CFE_PSP_GetMemArea(p_area, p_size, OP_CDS);
 }
 
 /**********************************************************
@@ -944,7 +946,7 @@ int32 CFE_PSP_ReadFromCDS(void *PtrToDataFromRead, uint32 CDSOffset, uint32 NumB
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_ReadFromRAM(PtrToDataFromRead, CDSOffset, NumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_ReadFromRAM(PtrToDataFromRead, CDSOffset, NumBytes, OP_CDS);
 
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -965,7 +967,7 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_WriteToRAM(PtrToDataToWrite, CDSOffset, NumBytes, OP_CDS);
+    iReturnCode = CFE_PSP_WriteToRAM(PtrToDataToWrite, CDSOffset, NumBytes, OP_CDS);
 
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -989,9 +991,9 @@ int32 CFE_PSP_WriteToCDS(const void *PtrToDataToWrite, uint32 CDSOffset, uint32 
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_RestoreCDS()
+static int32 CFE_PSP_RestoreCDS()
 {
-    return CFE_PSP_MEMORY_RestoreDATA(OP_CDS);
+    return CFE_PSP_RestoreData(OP_CDS);
 }
 
 /**********************************************************
@@ -1009,7 +1011,7 @@ static int32 CFE_PSP_MEMORY_RestoreCDS()
  **********************************************************/
 int32 CFE_PSP_GetVOLATILEDISKSize(uint32 *size)
 {
-    return CFE_PSP_MEMORY_GetMemSize(size, OP_VOLATILEDISK);   
+    return CFE_PSP_GetMemSize(size, OP_VOLATILEDISK);   
 }
 
 /**********************************************************
@@ -1023,7 +1025,7 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToVolDisk, SizeOfVolDisk, OP_VOLATILEDISK);
+    iReturnCode = CFE_PSP_GetMemArea(PtrToVolDisk, SizeOfVolDisk, OP_VOLATILEDISK);
     
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -1040,21 +1042,21 @@ int32 CFE_PSP_GetVolatileDiskMem(cpuaddr *PtrToVolDisk, uint32 *SizeOfVolDisk)
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_ReadFromVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_VOLATILEDISK);
+    return CFE_PSP_ReadFromRAM(p_data, offset, size, OP_VOLATILEDISK);
 }
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_WriteToVOLATILEDISK
+ * Function: CFE_PSP_WriteToVOLATILEDISK
  * 
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_VOLATILEDISK);
+    return CFE_PSP_WriteToRAM(p_data, offset, size, OP_VOLATILEDISK);
 }
 
 /**
@@ -1071,9 +1073,9 @@ int32 CFE_PSP_MEMORY_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK()
+static int32 CFE_PSP_RestoreVolatileDisk()
 {
-    return CFE_PSP_MEMORY_RestoreDATA(OP_VOLATILEDISK);
+    return CFE_PSP_RestoreData(OP_VOLATILEDISK);
 }
 
 /**********************************************************
@@ -1091,7 +1093,7 @@ static int32 CFE_PSP_MEMORY_RestoreVOLATILEDISK()
  **********************************************************/
 int32 CFE_PSP_GetUSERRESERVEDSize(uint32 *size)
 {
-    return CFE_PSP_MEMORY_GetMemSize(size, OP_USERRESERVED);
+    return CFE_PSP_GetMemSize(size, OP_USERRESERVED);
 }
 
 /**********************************************************
@@ -1105,7 +1107,7 @@ int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
-    iReturnCode = CFE_PSP_MEMORY_GetMemArea(PtrToUserArea, SizeOfUserArea, OP_USERRESERVED);
+    iReturnCode = CFE_PSP_GetMemArea(PtrToUserArea, SizeOfUserArea, OP_USERRESERVED);
 
     if (iReturnCode != CFE_PSP_SUCCESS)
     {
@@ -1117,26 +1119,26 @@ int32 CFE_PSP_GetUserReservedArea(cpuaddr *PtrToUserArea, uint32 *SizeOfUserArea
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_ReadFromUSERRESERVED
+ * Function: CFE_PSP_ReadFromUSERRESERVED
  * 
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_ReadFromRAM(p_data, offset, size, OP_USERRESERVED);
+    return CFE_PSP_ReadFromRAM(p_data, offset, size, OP_USERRESERVED);
 }
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_WriteToUSERRESERVED
+ * Function: CFE_PSP_WriteToUSERRESERVED
  * 
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
+int32 CFE_PSP_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint32 size)
 {
-    return CFE_PSP_MEMORY_WriteToRAM(p_data, offset, size, OP_USERRESERVED);
+    return CFE_PSP_WriteToRAM(p_data, offset, size, OP_USERRESERVED);
 }
 
 /**
@@ -1153,9 +1155,9 @@ int32 CFE_PSP_MEMORY_WriteToUSERRESERVED(const void *p_data, uint32 offset, uint
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED()
+static int32 CFE_PSP_RestoreUserReserved()
 {
-    return CFE_PSP_MEMORY_RestoreDATA(OP_USERRESERVED);
+    return CFE_PSP_RestoreData(OP_USERRESERVED);
 }
 
 /**********************************************************
@@ -1180,7 +1182,7 @@ static int32 CFE_PSP_MEMORY_RestoreUSERRESERVED()
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op)
+static int32 CFE_PSP_GetMemSize(uint32 *p_size, MEMORY_SECTION_t op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -1237,7 +1239,7 @@ static int32 CFE_PSP_MEMORY_GetMemSize(uint32 *p_size, enum MEMORY_SECTION op)
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEMORY_SECTION op)
+static int32 CFE_PSP_GetMemArea(cpuaddr *p_area, uint32 *p_size, MEMORY_SECTION_t op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -1301,7 +1303,7 @@ static int32 CFE_PSP_MEMORY_GetMemArea(cpuaddr *p_area, uint32 *p_size, enum MEM
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
+static int32 CFE_PSP_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op)
 {
     uint8                   *pCopyPtr       = NULL;
     int32                   iReturnCode     = CFE_PSP_SUCCESS;
@@ -1387,7 +1389,7 @@ static int32 CFE_PSP_MEMORY_ReadFromRAM(const void *p_data, uint32 offset, uint3
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32 size, enum MEMORY_SECTION op)
+static int32 CFE_PSP_WriteToRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op)
 {
     uint8                   *pCopyPtr       = NULL;
     int32                   iReturnCode     = CFE_PSP_ERROR;
@@ -1509,7 +1511,7 @@ static int32 CFE_PSP_MEMORY_WriteToRAM(const void *p_data, uint32 offset, uint32
  ** \return #CFE_PSP_INVALID_MEM_TYPE
  ** \return #CFE_PSP_INVALID_POINTER
  */
-static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
+static int32 CFE_PSP_RestoreData(MEMORY_SECTION_t op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -1546,7 +1548,7 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
             iReturnCode = CFE_PSP_INVALID_MEM_TYPE;
             memBlock.BlockPtr = (void *)0x00000000;
             memBlock.BlockSize = (size_t)0x00000000;
-            OS_printf(MEMORY_PRINT_SCOPE "RestoreDATA: Invalid Memory Option\n");
+            OS_printf(MEMORY_PRINT_SCOPE "RestoreData: Invalid Memory Option\n");
             break;
     }
 
@@ -1558,10 +1560,10 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
     {
         /* We have detected a valid memory option */
         /* Check if file exists */
-        if (CFE_PSP_FLASH_CheckFile(p_caFilename) == false)
+        if (CFE_PSP_CheckFile(p_caFilename) == false)
         {
             /* File does not exist on system. Create file */
-            iReturnCode = CFE_PSP_FLASH_CreateFile(p_caFilename);
+            iReturnCode = CFE_PSP_CreateFile(p_caFilename);
             if (iReturnCode == CFE_PSP_SUCCESS)
             {
                 /* Indicate that we need to write to FLASH */
@@ -1575,7 +1577,7 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
         else
         {
             /* File does exist on system */
-            if (CFE_PSP_FLASH_ReadFromFLASH(
+            if (CFE_PSP_ReadFromFlash(
                                 (uint32 *)memBlock.BlockPtr,
                                 memBlock.BlockSize,
                                 p_caFilename) != CFE_PSP_SUCCESS)
@@ -1598,7 +1600,7 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
         if (iReturnCode == CFE_PSP_MEM_INVALID)
         {
             /* Write data to flash */
-            iReturnCode = CFE_PSP_FLASH_WriteToFLASH(
+            iReturnCode = CFE_PSP_WriteToFlash(
                                 (uint32 *)memBlock.BlockPtr,
                                 memBlock.BlockSize,
                                 p_caFilename);
@@ -1626,7 +1628,7 @@ static int32 CFE_PSP_MEMORY_RestoreDATA(enum MEMORY_SECTION op)
  ** If a user attempts to stop this task during execution, the task will finish
  ** out it's current sync of reserved memory.
  */
-static void CFE_PSP_MEMORY_SYNC_Task(void)
+static void CFE_PSP_MemSyncTask(void)
 {
     int32                   iReturnCode         = CFE_PSP_ERROR;
     int32                   iStatus             = OS_SUCCESS;
@@ -1635,7 +1637,7 @@ static void CFE_PSP_MEMORY_SYNC_Task(void)
     CFE_PSP_MemoryBlock_t   memBlock            = {0, 0};
     char                    *p_caFilename       = NULL;
 
-    enum MEMORY_SECTION op = 0;
+    MEMORY_SECTION_t op = 0;
 
     while (iStatus == OS_SUCCESS)
     {
@@ -1704,7 +1706,7 @@ static void CFE_PSP_MEMORY_SYNC_Task(void)
                 {
                     if (*p_bUpdateFlag == true)
                     {
-                        iReturnCode = CFE_PSP_FLASH_WriteToFLASH((uint32 *)memBlock.BlockPtr, 
+                        iReturnCode = CFE_PSP_WriteToFlash((uint32 *)memBlock.BlockPtr, 
                                                         memBlock.BlockSize,
                                                         p_caFilename);
                         if (iReturnCode == CFE_PSP_SUCCESS)
@@ -1742,12 +1744,12 @@ static void CFE_PSP_MEMORY_SYNC_Task(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_Init
+ * Function: CFE_PSP_MemSyncInit
  * 
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_Init(void)
+int32 CFE_PSP_MemSyncInit(void)
 {
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iStatus       = OS_ERROR;
@@ -1764,7 +1766,7 @@ int32 CFE_PSP_MEMORY_SYNC_Init(void)
     {
         if (MEMORY_SYNC_START_ON_STARTUP == true)
         {
-            iReturnCode = CFE_PSP_MEMORY_SYNC_Start();
+            iReturnCode = CFE_PSP_MemSyncStart();
             if (iReturnCode != CFE_PSP_SUCCESS)
             {
                 OS_printf(MEMORY_SYNC_PRINT_SCOPE "Init: Failed to start task\n");
@@ -1777,18 +1779,18 @@ int32 CFE_PSP_MEMORY_SYNC_Init(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_Destroy
+ * Function: CFE_PSP_MemSyncDestroy
  * 
  * Description: See function declaration for info
  * 
  **********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_Destroy(void)
+int32 CFE_PSP_MemSyncDestroy(void)
 {
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iStatus       = OS_ERROR;
 
     /* Ensure MEMORY SYNC task is not running */
-    if (CFE_PSP_MEMORY_SYNC_Stop() == CFE_PSP_SUCCESS)
+    if (CFE_PSP_MemSyncStop() == CFE_PSP_SUCCESS)
     {
         if (!OS_ObjectIdEqual(g_MemorySyncTaskBinSem, OS_OBJECT_ID_UNDEFINED))
         {
@@ -1821,17 +1823,17 @@ int32 CFE_PSP_MEMORY_SYNC_Destroy(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_Start
+ * Function: CFE_PSP_MemSyncStart
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_Start(void)
+int32 CFE_PSP_MemSyncStart(void)
 {
     int32 iReturnCode   = CFE_PSP_ERROR;
     int32 iStatus       = OS_ERROR;
 
-    if (CFE_PSP_MEMORY_SYNC_isRunning() == true)
+    if (CFE_PSP_MemSyncIsRunning() == true)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "Task already running\n");
         iReturnCode = CFE_PSP_SUCCESS;
@@ -1846,7 +1848,7 @@ int32 CFE_PSP_MEMORY_SYNC_Start(void)
         iReturnCode = OS_TaskCreate(
                                     &g_uiMemorySyncTaskId,
                                     MEMORY_SYNC_TASK_NAME,
-                                    CFE_PSP_MEMORY_SYNC_Task,
+                                    CFE_PSP_MemSyncTask,
                                     OSAL_TASK_STACK_ALLOCATE,
                                     OSAL_SIZE_C(4096),
                                     g_uiMemorySyncTaskPriority,
@@ -1865,17 +1867,17 @@ int32 CFE_PSP_MEMORY_SYNC_Start(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_Stop
+ * Function: CFE_PSP_MemSyncStop
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_Stop(void)
+int32 CFE_PSP_MemSyncStop(void)
 {
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iStatus       = OS_ERROR;
 
-    if (CFE_PSP_MEMORY_SYNC_isRunning() == false)
+    if (CFE_PSP_MemSyncIsRunning() == false)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "Stop: Task not running\n");
     }
@@ -1910,12 +1912,12 @@ int32 CFE_PSP_MEMORY_SYNC_Stop(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_isRunning
+ * Function: CFE_PSP_MemSyncIsRunning
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-bool CFE_PSP_MEMORY_SYNC_isRunning(void)
+bool CFE_PSP_MemSyncIsRunning(void)
 {
     bool        bReturnValue    = true;
     osal_id_t   osidTaskId      = OS_OBJECT_ID_UNDEFINED;
@@ -1930,12 +1932,12 @@ bool CFE_PSP_MEMORY_SYNC_isRunning(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_setPriority
+ * Function: CFE_PSP_MemSyncSetPriority
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority)
+int32 CFE_PSP_MemSyncSetPriority(osal_priority_t priority)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
@@ -1947,7 +1949,7 @@ int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too low\n");
     }
-    else if (CFE_PSP_MEMORY_SYNC_isRunning() == false)
+    else if (CFE_PSP_MemSyncIsRunning() == false)
     {
         /*
         ** Task is not running, we only
@@ -1980,24 +1982,24 @@ int32 CFE_PSP_MEMORY_SYNC_setPriority(osal_priority_t priority)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_getPriority
+ * Function: CFE_PSP_MemSyncGetPriority
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-osal_priority_t CFE_PSP_MEMORY_SYNC_getPriority(void)
+osal_priority_t CFE_PSP_MemSyncGetPriority(void)
 {
     return g_uiMemorySyncTaskPriority;
 }
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_setFrequency
+ * Function: CFE_PSP_MemSyncSetFrequency
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-int32 CFE_PSP_MEMORY_SYNC_setFrequency(uint32 sec_time_ms)
+int32 CFE_PSP_MemSyncSetFrequency(uint32 sec_time_ms)
 {
     g_uiMemorySyncTime = sec_time_ms;
     return CFE_PSP_SUCCESS;
@@ -2005,24 +2007,24 @@ int32 CFE_PSP_MEMORY_SYNC_setFrequency(uint32 sec_time_ms)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_getFrequency
+ * Function: CFE_PSP_MemSyncGetFrequency
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-uint32 CFE_PSP_MEMORY_SYNC_getFrequency(void)
+uint32 CFE_PSP_MemSyncGetFrequency(void)
 {
     return g_uiMemorySyncTime;
 }
 
 /**********************************************************
  * 
- * Function: CFE_PSP_MEMORY_SYNC_getStatistics
+ * Function: CFE_PSP_MemSyncGetStatistics
  * 
  * Description: See function declaration for info
  * 
  *********************************************************/
-uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void)
+uint32 CFE_PSP_MemSyncGetStatistics(void)
 {
     return g_uiMemorySyncStatistics;
 }
@@ -2040,9 +2042,9 @@ uint32 CFE_PSP_MEMORY_SYNC_getStatistics(void)
  **
  ** \param None
  */
-static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
+static int32 CFE_PSP_CDSFilepath(void)
 {
-    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_CDS);
+    return CFE_PSP_GenerateFilepath(OP_CDS);
 }
 
 /**
@@ -2058,9 +2060,9 @@ static int32 CFE_PSP_MEMORY_SYNC_CDS_FPATH(void)
  **
  ** \param None
  */
-static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
+static int32 CFE_PSP_ResetFilepath(void)
 {
-    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_RESET);
+    return CFE_PSP_GenerateFilepath(OP_RESET);
 }
 
 /**
@@ -2076,9 +2078,9 @@ static int32 CFE_PSP_MEMORY_SYNC_RESET_FPATH(void)
  **
  ** \param None
  */
-static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
+static int32 CFE_PSP_VolatileDiskFilepath(void)
 {
-    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_VOLATILEDISK);
+    return CFE_PSP_GenerateFilepath(OP_VOLATILEDISK);
 }
 
 /**
@@ -2094,9 +2096,9 @@ static int32 CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH(void)
  **
  ** \param None
  */
-static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
+static int32 CFE_PSP_UserReservedFilepath(void)
 {
-    return CFE_PSP_MEMORY_SYNC_GenerateFilepath(OP_USERRESERVED);
+    return CFE_PSP_GenerateFilepath(OP_USERRESERVED);
 }
 
 /**
@@ -2117,7 +2119,7 @@ static int32 CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH(void)
  ** \return #CFE_PSP_SUCCESS - Successfully created full filepaths
  ** \return #CFE_PSP_ERROR - Unsuccessfully created full filepaths
  */
-static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op)
+static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op)
 {
     int32 iReturnCode = CFE_PSP_SUCCESS;
     int32 iStatus = OS_SUCCESS;
@@ -2142,7 +2144,7 @@ static int32 CFE_PSP_MEMORY_SYNC_GenerateFilepath(enum MEMORY_SECTION op)
         /*
         ** Ensure active directory is present on system
         */
-        iReturnCode = CFE_PSP_FLASH_CreateDirectory(caActivePath);
+        iReturnCode = CFE_PSP_CreateDirectory(caActivePath);
         if (iReturnCode != CFE_PSP_SUCCESS)
         {
             OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error creating path\n");

@@ -35,9 +35,9 @@
 **=======================================================================================*/
 
 /*=======================================================================================
-** Ut_CFE_PSP_TIME_NTPDaemon_isRunning(void) test cases
+** Ut_CFE_PSP_NTPDaemonIsRunning(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_NTPDaemon_isRunning(void)
+void Ut_CFE_PSP_NTPDaemonIsRunning(void)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
     
@@ -45,24 +45,24 @@ void Ut_CFE_PSP_TIME_NTPDaemon_isRunning(void)
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     /* Execute test */
-    iReturnCode = CFE_PSP_TIME_NTPDaemon_isRunning();
+    iReturnCode = CFE_PSP_NTPDaemonIsRunning();
     /* Verify result */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_NTPDaemon_isRunning - 1/2: Nominal - NTP Client task is running");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_NTPDaemonIsRunning - 1/2: Nominal - NTP Client task is running");
     
     /* ----- Test case #2 - PSP Error, Unable to get status ----- */
     /* Set additional variables */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
     /* Execute test */
-    iReturnCode = CFE_PSP_TIME_NTPDaemon_isRunning();
+    iReturnCode = CFE_PSP_NTPDaemonIsRunning();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_TIME_NTPDaemon_isRunning - 2/2: NTP Client task is not running");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_NTPDaemonIsRunning - 2/2: NTP Client task is not running");
     
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_TIME_Set_OS_Time(void) test cases
+** Ut_CFE_PSP_SetOSTime(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_Set_OS_Time(void)
+void Ut_CFE_PSP_SetOSTime(void)
 {
     uint32 ts_sec;
     uint32 ts_nsec;
@@ -82,12 +82,12 @@ void Ut_CFE_PSP_TIME_Set_OS_Time(void)
     UT_SetDeferredRetcode(UT_KEY(clock_settime), 1, OK);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "Clock set");
     /* Execute test */
-    return_status = CFE_PSP_TIME_Set_OS_Time(ts_sec, ts_nsec);
+    return_status = CFE_PSP_SetOSTime(ts_sec, ts_nsec);
     /* Verify results */
-    UtAssert_True(ts_sec == BASE_ts_sec, "_CFE_PSP_TIME_Set_OS_Time - 1/2: ts_sec was not changed");
-    UtAssert_True(ts_nsec == BASE_ts_nsec, "_CFE_PSP_TIME_Set_OS_Time - 1/2: ts_nsec was not changed");
-    UtAssert_True(return_status == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_Set_OS_Time - 1/2: Nominal, Successful");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_Set_OS_Time - 1/2: " NTPSYNC_PRINT_SCOPE "Clock set");
+    UtAssert_True(ts_sec == BASE_ts_sec, "_CFE_PSP_SetOSTime - 1/2: ts_sec was not changed");
+    UtAssert_True(ts_nsec == BASE_ts_nsec, "_CFE_PSP_SetOSTime - 1/2: ts_nsec was not changed");
+    UtAssert_True(return_status == CFE_PSP_SUCCESS, "_CFE_PSP_SetOSTime - 1/2: Nominal, Successful");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetOSTime - 1/2: " NTPSYNC_PRINT_SCOPE "Clock set");
 
     /* ----- Test case #2 - Clock Not set ----- */
     /* Set additional variables */
@@ -100,19 +100,19 @@ void Ut_CFE_PSP_TIME_Set_OS_Time(void)
     UT_SetDeferredRetcode(UT_KEY(clock_settime), 1, CFE_PSP_ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
     /* Execute test */
-    return_status = CFE_PSP_TIME_Set_OS_Time(ts_sec, ts_nsec);
+    return_status = CFE_PSP_SetOSTime(ts_sec, ts_nsec);
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_Set_OS_Time - 2/2: " NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
-    UtAssert_True(return_status == CFE_PSP_ERROR, "_CFE_PSP_TIME_Set_OS_Time - 2/2: Unable to set clock");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetOSTime - 2/2: " NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
+    UtAssert_True(return_status == CFE_PSP_ERROR, "_CFE_PSP_SetOSTime - 2/2: Unable to set clock");
 
-    UtAssert_True(ts_sec == BASE_ts_sec, "_CFE_PSP_TIME_Set_OS_Time - 2/2: ts_sec was not changed");
-    UtAssert_True(ts_nsec == BASE_ts_nsec, "_CFE_PSP_TIME_Set_OS_Time - 2/2: ts_nsec was not changed");
+    UtAssert_True(ts_sec == BASE_ts_sec, "_CFE_PSP_SetOSTime - 2/2: ts_sec was not changed");
+    UtAssert_True(ts_nsec == BASE_ts_nsec, "_CFE_PSP_SetOSTime - 2/2: ts_nsec was not changed");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_TIME_Get_OS_Time(void) test cases
+** Ut_CFE_PSP_GetOSTime(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_Get_OS_Time(void)
+void Ut_CFE_PSP_GetOSTime(void)
 {
     int32 return_code;
     char cMsg[256] = {};
@@ -129,14 +129,14 @@ void Ut_CFE_PSP_TIME_Get_OS_Time(void)
 
     /* ----- Test #1 - &myT == NULL ----- */
     /* Set additional variables */
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "CFE_PSP_TIME_Get_OS_Time called without a proper argument\n");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "CFE_PSP_GetOSTime called without a proper argument\n");
     /* Execute test */
-    return_code = CFE_PSP_TIME_Get_OS_Time(NULL);
+    return_code = CFE_PSP_GetOSTime(NULL);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_Get_OS_Time - 1/3: Null pointer");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_Get_OS_Time - 1/4: " NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_TIME_Get_OS_Time - 1/3: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_TIME_Get_OS_Time - 1/3: myT.Subseconds did not change");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 1/3: Null pointer");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 1/4: " NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 1/3: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 1/3: myT.Subseconds did not change");
 
     /* ----- Test #2 - &myT != NULL, clock_gettime fail ----- */
     /* Set additional variables */
@@ -145,12 +145,12 @@ void Ut_CFE_PSP_TIME_Get_OS_Time(void)
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
     /* Execute test */
-    return_code = CFE_PSP_TIME_Get_OS_Time(&myT);
+    return_code = CFE_PSP_GetOSTime(&myT);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_Get_OS_Time - 2/3: not null pointer, clock_gettime fail");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_Get_OS_Time - 2/3: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_TIME_Get_OS_Time - 2/3: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_TIME_Get_OS_Time - 2/3: myT.Subseconds did not change");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 2/3: not null pointer, clock_gettime fail");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 2/3: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 2/3: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 2/3: myT.Subseconds did not change");
 
     /* ----- Test #3 - &myT != NUll, clock_gettime success, unixTime > CFE...UNIX_DIFF ----- */
     UT_ResetState(0);
@@ -160,16 +160,16 @@ void Ut_CFE_PSP_TIME_Get_OS_Time(void)
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), OK);
     /* Execute test */
-    return_code = CFE_PSP_TIME_Get_OS_Time(&myT);
+    return_code = CFE_PSP_GetOSTime(&myT);
     /* Not necessarily a failed test. Is there anyway to set variables from clock_gettime? */
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_Get_OS_Time - 3/3: clock_gettime success");
-    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_TIME_Get_OS_Time - 3/3: myT.Seconds changed");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 3/3: clock_gettime success");
+    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_GetOSTime - 3/3: myT.Seconds changed");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_TIME_StartNTPDaemon(void) test cases
+** Ut_CFE_PSP_StartNTPDaemon(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
+void Ut_CFE_PSP_StartNTPDaemon(void)
 {
     char cMsg[256] = {};
     int32 return_code;
@@ -182,10 +182,10 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StartNTPDaemon();
+    return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StartNTPDaemon - 1/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_StartNTPDaemon - 1/5: NTP Daemon started successfully, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 1/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_StartNTPDaemon - 1/5: NTP Daemon started successfully, correct return code");
 
     /* ----- Test case #2: ipcom success, taskNameToId failure ----- */
     /* Set additional variables */
@@ -193,10 +193,10 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StartNTPDaemon();
+    return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StartNTPDaemon - 2/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_StartNTPDaemon - 2/5: NTP Daemon started succesfully, taskNameToId failure, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 2/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 2/5: NTP Daemon started succesfully, taskNameToId failure, correct return code");
 
     /* ----- Test case #3: ipcom already started, taskNameToId success ----- */
     UT_ResetState(0);
@@ -207,10 +207,10 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     /* Not sure what would/should be returned in real execution */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_SUCCESS);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StartNTPDaemon();
+    return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StartNTPDaemon - 3/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_StartNTPDaemon - 3/5: NTP Daemon already started, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 3/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_StartNTPDaemon - 3/5: NTP Daemon already started, correct return code");
 
     /* ----- Test case #4: ipcom already started, taskNameToId failure ----- */
     UT_ResetState(0);
@@ -221,10 +221,10 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     /* Not sure what would/should be returned in real execution */
     UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, CFE_PSP_ERROR);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StartNTPDaemon();
+    return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StartNTPDaemon - 4/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_StartNTPDaemon - 4/5: NTP Daemon started succesffully, taskNameToId failure, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 4/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 4/5: NTP Daemon started succesffully, taskNameToId failure, correct return code");
 
     /* ----- Test case #5: some other ipcom error ----- */
     UT_ResetState(0);
@@ -233,16 +233,16 @@ void Ut_CFE_PSP_TIME_StartNTPDaemon(void)
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_start), 1, CFE_PSP_ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)\n", CFE_PSP_ERROR);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StartNTPDaemon();
+    return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StartNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_StartNTPDaemon - 5/5: NTP Daemon did not start, check error code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 5/5: NTP Daemon did not start, check error code");
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_TIME_StopNTPDaemon(void) test cases
+** Ut_CFE_PSP_StopNTPDaemon(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
+void Ut_CFE_PSP_StopNTPDaemon(void)
 {
     char cMsg[256] = {};
     int32 return_code;
@@ -254,10 +254,10 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, IPCOM_SUCCESS);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully\n");
     /* Execute test */
-    return_code = CFE_PSP_TIME_StopNTPDaemon();
+    return_code = CFE_PSP_StopNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StopNTPDaemon - 1/3: " NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully");
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_TIME_StopNTPDaemon - 1/3: NTP Daemon stopped successfully, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StopNTPDaemon - 1/3: " NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_StopNTPDaemon - 1/3: NTP Daemon stopped successfully, correct return code");
 
     /* ----- Test case #2: ipcom already started ----- */
     UT_ResetState(0);
@@ -266,10 +266,10 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, IPCOM_ERR_NOT_STARTED);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped\n");
     /* Execute test */
-    return_code = CFE_PSP_TIME_StopNTPDaemon();
+    return_code = CFE_PSP_StopNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StopNTPDaemon - 2/3: " NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_StopNTPDaemon - 2/3: NTP Daemon already stopped, correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StopNTPDaemon - 2/3: " NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StopNTPDaemon - 2/3: NTP Daemon already stopped, correct return code");
 
     /* ----- Test case #3: some other ipcom error ----- */
     UT_ResetState(0);
@@ -278,10 +278,10 @@ void Ut_CFE_PSP_TIME_StopNTPDaemon(void)
     UT_SetDeferredRetcode(UT_KEY(ipcom_ipd_kill), 1, CFE_PSP_ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = %d)\n", CFE_PSP_ERROR);
     /* Execute test */
-    return_code = CFE_PSP_TIME_StopNTPDaemon();
+    return_code = CFE_PSP_StopNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_TIME_StopNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_TIME_StopNTPDaemon - 3/3: NTP Daemon did not stop, check error code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StopNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not stop (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StopNTPDaemon - 3/3: NTP Daemon did not stop, check error code");
 }
 
 /*=======================================================================================

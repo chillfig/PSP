@@ -117,21 +117,21 @@ Kernel must include the following services:
   - PSP_MEM_SCRUB_BSEM_NAME `*`
 
 - Structures
-  - MEM_SCRUB_STATUS_t
-  - MEM_SCRUB_ERRSTATS_t
+  - CFE_PSP_MemScrubStatus_t
+  - CFE_PSP_MemScrubErrStats_t
 
 - Public Functions
-  - CFE_PSP_MEM_SCRUB_Set
-  - CFE_PSP_MEM_SCRUB_isRunning
-  - CFE_PSP_MEM_SCRUB_Delete
-  - CFE_PSP_MEM_SCRUB_Status
-  - CFE_PSP_MEM_SCRUB_Init
-  - CFE_PSP_MEM_SCRUB_Enable
-  - CFE_PSP_MEM_SCRUB_Disable
-  - CFE_PSP_MEM_SCRUB_ErrStats
+  - CFE_PSP_MemScrubSet
+  - CFE_PSP_MemScrubIsRunning
+  - CFE_PSP_MemScrubDelete
+  - CFE_PSP_MemScrubStatus
+  - CFE_PSP_MemScrubInit
+  - CFE_PSP_MemScrubEnable
+  - CFE_PSP_MemScrubDisable
+  - CFE_PSP_MemScrubErrStats
 
 - Static Functions
-  - CFE_PSP_MEM_SCRUB_Task
+  - CFE_PSP_MemScrubTask
 
 - Static Variables
   - g_uiEndOfRam
@@ -145,7 +145,7 @@ Kernel must include the following services:
   - g_bScrubAddrUpdates_flag
 
 - Static Functions
-  - CFE_PSP_MEM_SCRUB_Task
+  - CFE_PSP_MemScrubTask
 
 ### FLASH Interaction
 
@@ -158,12 +158,12 @@ Kernel must include the following services:
 - Structures
 
 - Public Functions
-  - CFE_PSP_FLASH_ReadFromFLASH
-  - CFE_PSP_FLASH_WriteToFLASH
-  - CFE_PSP_FLASH_DeleteFile
-  - CFE_PSP_FLASH_CreateFile
-  - CFE_PSP_FLASH_CheckFile
-  - CFE_PSP_FLASH_CreateDirectory
+  - CFE_PSP_ReadFromFlash
+  - CFE_PSP_WriteToFlash
+  - CFE_PSP_DeleteFile
+  - CFE_PSP_CreateFile
+  - CFE_PSP_CheckFile
+  - CFE_PSP_CreateDirectory
 
 - Static Functions
 
@@ -181,17 +181,17 @@ Kernel must include the following services:
   - SP0_ORIGINAL_MAX_TEMP_SENSORS
 
 - Structures
-  - SP0_info_table_t
+  - CFE_PSP_SP0InfoTable_t
 
 - Public Functions
-  - PSP_SP0_GetInfo
-  - PSP_SP0_PrintToBuffer
-  - PSP_SP0_GetInfoTable
-  - PSP_SP0_DumpData
-  - PSP_SP0_GetDiskFreeSize
+  - CFE_PSP_SP0GetInfo
+  - CFE_PSP_SP0PrintToBuffer
+  - CFE_PSP_SP0GetInfoTable
+  - CFE_PSP_SP0DumpData
+  - CFE_PSP_SP0GetDiskFreeSize
 
 - Static Functions
-  - PSP_SP0_PrintToBuffer
+  - CFE_PSP_SP0PrintToBuffer
 
 - Static Variables
   - g_cSP0DataDump
@@ -208,12 +208,12 @@ Kernel must include the following services:
 - Structures
 
 - Public Functions
-  - CFE_PSP_TIME_NTPDaemon_isRunning
-  - CFE_PSP_TIME_Set_OS_Time
-  - CFE_PSP_TIME_Get_OS_Time
-  - CFE_PSP_TIME_NTPDaemon_isRunning
-  - CFE_PSP_TIME_StartNTPDaemon
-  - CFE_PSP_TIME_StopNTPDaemon
+  - CFE_PSP_NTPDaemonIsRunning
+  - CFE_PSP_SetOSTime
+  - CFE_PSP_GetOSTime
+  - CFE_PSP_NTPDaemonIsRunning
+  - CFE_PSP_StartNTPDaemon
+  - CFE_PSP_StopNTPDaemon
 
 - Static Functions
 
@@ -248,40 +248,40 @@ Kernel must include the following services:
 
 ### Memory/Memory Sync
 - Defines
-  - enum MEMORY_SECTION
+  - MEMORY_SECTION_t
 
 - Structures
 
 - Public Functions
-  - CFE_PSP_MEMORY_SYNC_Init
-  - CFE_PSP_MEMORY_SYNC_Destroy
-  - CFE_PSP_MEMORY_SYNC_Start
-  - CFE_PSP_MEMORY_SYNC_Stop
-  - CFE_PSP_MEMORY_SYNC_isRunning
-  - CFE_PSP_MEMORY_SYNC_setPriority
-  - CFE_PSP_MEMORY_SYNC_getPriority
-  - CFE_PSP_MEMORY_SYNC_setFrequency
-  - CFE_PSP_MEMORY_SYNC_getFrequency
-  - CFE_PSP_MEMORY_SYNC_getStatus
+  - CFE_PSP_MemSyncInit
+  - CFE_PSP_MemSyncDestroy
+  - CFE_PSP_MemSyncStart
+  - CFE_PSP_MemSyncStop
+  - CFE_PSP_MemSyncIsRunning
+  - CFE_PSP_MemSyncSetPriority
+  - CFE_PSP_MemSyncGetPriority
+  - CFE_PSP_MemSyncSetFrequency
+  - CFE_PSP_MemSyncGetFrequency
+  - CFE_PSP_MemSyncgetStatus
 
 - Static Functions
-  - CFE_PSP_MEMORY_GetMemSize
-  - CFE_PSP_MEMORY_GetMemArea
-  - CFE_PSP_MEMORY_ReadFromRAM
-  - CFE_PSP_MEMORY_WriteToRAM
-  - CFE_PSP_MEMORY_RestoreRESET
-  - CFE_PSP_MEMORY_RestoreCDS
-  - CFE_PSP_MEMORY_RestoreVOLATILEDISK
-  - CFE_PSP_MEMORY_RestoreUSERRESERVED
-  - CFE_PSP_MEMORY_RestoreDATA
-  - CFE_PSP_MEMORY_SYNC_Task
-  - CFE_PSP_MEMORY_SYNC_CDS_FPATH
-  - CFE_PSP_MEMORY_SYNC_RESET_FPATH
-  - CFE_PSP_MEMORY_SYNC_VOLATILEDISK_FPATH
-  - CFE_PSP_MEMORY_SYNC_USERRESERVED_FPATH
-  - CFE_PSP_MEMORY_SYNC_GenerateFilepath
-  - CFE_PSP_MEMORY_FlushToFLASH
-  - CFE_PSP_MEMORY_CheckURMFilesExists
+  - CFE_PSP_GetMemSize
+  - CFE_PSP_GetMemArea
+  - CFE_PSP_ReadFromRAM
+  - CFE_PSP_WriteToRAM
+  - CFE_PSP_RestoreReset
+  - CFE_PSP_RestoreCDS
+  - CFE_PSP_RestoreVolatileDisk
+  - CFE_PSP_RestoreUserReserved
+  - CFE_PSP_RestoreData
+  - CFE_PSP_MemSyncTask
+  - CFE_PSP_CDSFilepath
+  - CFE_PSP_ResetFilepath
+  - CFE_PSP_VolatileDiskFilepath
+  - CFE_PSP_UserReservedFilepath
+  - CFE_PSP_GenerateFilepath
+  - CFE_PSP_FlushToFLASH
+  - CFE_PSP_CheckURMFilesExists
 
 - Static Variables
   - g_ReservedMemBlock

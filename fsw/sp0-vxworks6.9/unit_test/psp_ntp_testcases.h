@@ -23,7 +23,7 @@
 
 #include "utassert.h"
 #include "cfe_time_extern_typedefs.h"
-#include "psp_time_sync.h"
+#include "cfe_psp_timesync.h"
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -32,11 +32,11 @@
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
-void Ut_CFE_PSP_TIME_Set_OS_Time(void);
-void Ut_CFE_PSP_TIME_Get_OS_Time(void);
-void Ut_CFE_PSP_TIME_NTPDaemon_isRunning(void);
-void Ut_CFE_PSP_TIME_StartNTPDaemon(void);
-void Ut_CFE_PSP_TIME_StopNTPDaemon(void);
+void Ut_CFE_PSP_SetOSTime(void);
+void Ut_CFE_PSP_GetOSTime(void);
+void Ut_CFE_PSP_NTPDaemonIsRunning(void);
+void Ut_CFE_PSP_StartNTPDaemon(void);
+void Ut_CFE_PSP_StopNTPDaemon(void);
 
 #endif  /* UT_PSP_NTP_TESTCASES_H */
 
