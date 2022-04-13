@@ -1,3 +1,5 @@
+## Generated PDFs to exclude in src code branch
+docs/*.pdf
 
 ### Unit Test temporary files
 fsw/sp0-vxworks6.9/unit_test/tmp_code_coverage
