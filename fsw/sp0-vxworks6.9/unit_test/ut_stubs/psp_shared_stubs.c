@@ -5,6 +5,26 @@
 #include "ut_psp_utils.h"
 #include "cfe_psp_exceptionstorage_types.h"
 
+/* ----------------------------------------- */
+/* types normally defined in moduleLib.h */
+/* ----------------------------------------- */
+typedef struct MODULE { int m; }    MODULE;
+typedef MODULE*                     MODULE_ID;
+
+typedef struct MODULE_INFO
+{
+    struct
+    {
+        unsigned long textAddr;
+        unsigned long textSize;
+        unsigned long dataAddr;
+        unsigned long dataSize;
+        unsigned long bssAddr;
+        unsigned long bssSize;
+    } segInfo;
+
+} MODULE_INFO;
+
 /* From PSP Shared */
 CFE_PSP_Exception_LogData_t * CFE_PSP_Exception_GetNextContextBuffer(void)
 {
@@ -53,18 +73,6 @@ int32 CFE_PSP_MemRangeSet(uint32 RangeNum,
     return iStatus;
 }
 
-/* From PSP Shared */
-int32 CFE_PSP_MemValidateRange(cpuaddr Address,
-                               size_t Size,
-                               uint32 MemoryType)
-{
-    int32 iStatus;
-
-    iStatus = UT_DEFAULT_IMPL(CFE_PSP_MemValidateRange);
-    
-    return iStatus;
-}
-
 int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug)
 {
     int32 iStatus;
@@ -108,72 +116,37 @@ int edrPolicyHandlerHookAdd(void * pPtrFunc)
     return iStatus;
 }
 
+MODULE_ID moduleFindByName(const char *moduleName)
+{
+    MODULE_ID retval;
+    int32 iStatus;
+
+    retval = NULL;
+    iStatus = UT_DEFAULT_IMPL(moduleFindByName);
+    if (iStatus == 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(moduleFindByName), &retval, sizeof(retval));
+    }
+
+    return retval;
+}
+
+int moduleInfoGet(MODULE_ID moduleId, MODULE_INFO *pModuleInfo)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(moduleInfoGet);
+
+    if (iStatus == 0 &&
+        UT_Stub_CopyToLocal(UT_KEY(moduleInfoGet), (MODULE_INFO *)pModuleInfo, sizeof(*pModuleInfo)) < sizeof(*pModuleInfo))
+    {
+        memset(pModuleInfo, 0, sizeof(*pModuleInfo));
+    }
+
+    return iStatus;
+}
+
 void CFE_PSP_ModuleInit(void)
-{   
-
-}
-
-/**
- ** \brief Unit Test userNvRamGet
- **
- ** \par Description:
- ** Deferred Return Code = 0 --> Success
- ** Deferred Return Code < 0 --> Error
- ** 
- ** \param[inout] dat_ptr 
- ** \param[inout] nbytes 
- ** \param[inout] offset 
- ** \return STATUS 
- */
-STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset)
 {
-    int32   iStatus;
-    int32   ret_code = CFE_PSP_SUCCESS;
 
-    iStatus = UT_DEFAULT_IMPL(userNvRamGet);
-
-    /* Nominal */
-    if (iStatus == 0)
-    {
-        /* Return requested data */
-        memcpy(dat_ptr, nvram + offset, nbytes);
-    }
-    else if (iStatus < 0)
-    {
-        ret_code = CFE_PSP_ERROR;
-    }
-
-    return ret_code;
-}
-
-/**
- ** \brief Unit Test userNvRamSet
- **
- ** \par Description:
- ** Deferred Return Code = 0 --> Success
- ** Deferred Return Code < 0 --> Error
- ** 
- ** \param[inout] dat_ptr 
- ** \param[inout] nbytes 
- ** \param[inout] offset 
- ** \return STATUS 
- */
-STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset)
-{
-    int32   iStatus;
-    int32   ret_code = CFE_PSP_SUCCESS;
-
-    iStatus = UT_DEFAULT_IMPL(userNvRamSet);
-
-    /* Nominal */
-    if (iStatus == 0)
-    {
-        memcpy(nvram, dat_ptr + offset, nbytes);
-    }
-    else if (iStatus < 0)
-    {
-        ret_code = CFE_PSP_ERROR;
-    }
-
-    return ret_code;
 }

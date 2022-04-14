@@ -155,6 +155,8 @@ static bool g_bCDSUpdateFlag = false;
 static bool g_bVOLATILEDISKUpdateFlag = false;
 /** \brief USER RESERVED Bool flag to indicate a sync needs to occur */
 static bool g_bUSERRESERVEDUpdateFlag = false;
+/** \brief MEMORY SYNC Start on Startup */
+static uint32 g_uiMemorySyncStartup = MEMORY_SYNC_START_ON_STARTUP;
 /** \brief MEMORY SYNC Time Between Sync Value */
 static uint32 g_uiMemorySyncTime = MEMORY_SYNC_DEFAULT_SYNC_TIME_MS;
 /** \brief MEMORY SYNC Statistics */
@@ -758,7 +760,7 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
     MODULE_ID   cFEModuleId = NULL;
     MODULE_INFO cFEModuleInfo = {};
     cpuaddr     GetModuleIdAddr = 0;
-    MODULE_ID   (*GetModuldIdFunc)(void) = NULL;
+    MODULE_ID   (*GetModuleIdFunc)(void) = NULL;
 
     if ((PtrToCFESegment == NULL) || (SizeOfCFESegment == NULL))
     {
@@ -783,8 +785,8 @@ int32 CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFES
         return_code     = OS_SymbolLookup(&GetModuleIdAddr, "GetCfeCoreModuleID");
         if ((return_code == OS_SUCCESS) && (GetModuleIdAddr != 0))
         {
-            GetModuldIdFunc = (MODULE_ID(*)(void))GetModuleIdAddr;
-            cFEModuleId     = GetModuldIdFunc();
+            GetModuleIdFunc = (MODULE_ID(*)(void))GetModuleIdAddr;
+            cFEModuleId     = GetModuleIdFunc();
         }
 
         /*
@@ -1764,7 +1766,7 @@ int32 CFE_PSP_MemSyncInit(void)
     }
     else
     {
-        if (MEMORY_SYNC_START_ON_STARTUP == true)
+        if (g_uiMemorySyncStartup == true)
         {
             iReturnCode = CFE_PSP_MemSyncStart();
             if (iReturnCode != CFE_PSP_SUCCESS)

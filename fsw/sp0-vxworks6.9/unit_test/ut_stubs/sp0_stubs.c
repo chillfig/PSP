@@ -1,8 +1,10 @@
+#include <vxWorks.h>
 #include <string.h>
 #include <ioLib.h>
 #include <stdio.h>
 #include <bootLib.h>
 #include "utstubs.h"
+#include "ut_psp_utils.h"
 
 #define MAX_RDWR_SIZE       0x01000000  /* 16MB */
 
@@ -12,6 +14,7 @@ char UserReservedMemory[4000] = {'\0'};
 char *pURM = UserReservedMemory;
 size_t uURM = 4000;
 char bString[BOOT_FILE_LEN] = "/ffx0/startup";
+
 
 void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize )
 {
@@ -114,50 +117,7 @@ int32 ReadSafeModeUserData(void *pSafeModeUserData, uint32 uiTalkAtive)
     return ERROR;
 }
 
-int32 taskPriorityGet(int32 iTid, int32 *piCurPrio)
-{
-    int32 iStatus;
-    UT_Stub_RegisterContext(UT_KEY(taskPriorityGet), piCurPrio);
 
-    iStatus = UT_DEFAULT_IMPL(taskPriorityGet);
-
-    if (iStatus >= 0)
-    {
-        UT_Stub_CopyToLocal(UT_KEY(taskPriorityGet), (int32 *) piCurPrio, sizeof(*piCurPrio));
-    }
-    
-    return iStatus;
-}
-
-int32 taskPrioritySet(int32 iTid, int32 iNewPrio)
-{
-    int32 iStatus;
-
-    iStatus = UT_DEFAULT_IMPL(taskPrioritySet);
-
-    return iStatus;
-}
-
-char * taskName(TASK_ID tid)
-{
-    char * iStatus;
-
-    iStatus = (char *) UT_DEFAULT_IMPL(taskName);
-
-    return iStatus;
-}
-
-/* STATUS statfs64 (
-    char          *name,
-    struct statfs64 *pStat
-    )
-{
-    int32 iStatus;
-
-    iStatus = UT_DEFAULT_IMPL(statfs64);
-
-    return iStatus;
-} */
 
 char *sysModel(void)
 {
@@ -232,6 +192,15 @@ int sysSetFpgaWdt(float secs /* Number of seconds for timeout */)
     return iStatus;
 }
 
+int sysClkRateGet(void)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(sysClkRateGet);
+
+    return iStatus;
+}
+
 /**
  * SP0_ORIGINAL = 1
  * SP0_UPGRADE =2
@@ -270,49 +239,141 @@ char *PCS_bootStringToStruct (char * bootString, BOOT_PARAMS * pBootParams)
     return bString;
 }
 
-char *PCS_strncpy(char *dst, const char *src, size_t size)
-{
-    int32 Status;
-
-    Status = UT_DEFAULT_IMPL(PCS_strncpy);
-
-    if (Status == 0)
-    {
-        /* "nominal" response */
-        return strncpy(dst, src, size);
-    }
-
-    return (char *)0;
-}
-
-int PCS_snprintf(char *s, size_t maxlen, const char *format, ...)
-{
-    int32   Status;
-    int     actual = 0;
-    va_list ap;
-
-    Status = UT_DEFAULT_IMPL(PCS_snprintf);
-
-    /* need to actually _do_ the snprintf */
-    if (Status >= 0)
-    {
-        va_start(ap, format);
-        actual = vsnprintf(s, maxlen, format, ap);
-        va_end(ap);
-    }
-
-    if (Status != 0)
-    {
-        actual = Status;
-    }
-    return actual;
-}
-
 int PCS_OS_BSPMain(void)
 {
     int iStatus;
 
     iStatus = UT_DEFAULT_IMPL(PCS_OS_BSPMain);
+
+    return iStatus;
+}
+
+/**
+ ** \brief Unit Test userNvRamGet
+ **
+ ** \par Description:
+ ** Deferred Return Code = 0 --> Success
+ ** Deferred Return Code < 0 --> Error
+ ** 
+ ** \param[inout] dat_ptr 
+ ** \param[inout] nbytes 
+ ** \param[inout] offset 
+ ** \return STATUS 
+ */
+STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset)
+{
+    int32   iStatus;
+    int32   ret_code = OK;
+
+    iStatus = UT_DEFAULT_IMPL(userNvRamGet);
+
+    /* Nominal */
+    if (iStatus == 0)
+    {
+        /* Return requested data */
+        memcpy(dat_ptr, nvram + offset, nbytes);
+    }
+    else if (iStatus < 0)
+    {
+        ret_code = ERROR;
+    }
+
+    return ret_code;
+}
+
+/**
+ ** \brief Unit Test userNvRamSet
+ **
+ ** \par Description:
+ ** Deferred Return Code = 0 --> Success
+ ** Deferred Return Code < 0 --> Error
+ ** 
+ ** \param[inout] dat_ptr 
+ ** \param[inout] nbytes 
+ ** \param[inout] offset 
+ ** \return STATUS 
+ */
+STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset)
+{
+    int32   iStatus;
+    int32   ret_code = OK;
+
+    iStatus = UT_DEFAULT_IMPL(userNvRamSet);
+
+    /* Nominal */
+    if (iStatus == 0)
+    {
+        memcpy(nvram, dat_ptr + offset, nbytes);
+    }
+    else if (iStatus < 0)
+    {
+        ret_code = ERROR;
+    }
+
+    return ret_code;
+}
+
+int tempSensorRead (int8 sensor, uint8 dataType, float *temperature, bool talkative )
+{
+    int32 iStatus;
+    iStatus = UT_DEFAULT_IMPL(tempSensorRead);
+    *temperature = 25.5f;
+
+    return iStatus;
+}
+
+int volSensorRead(int8 sensor, uint8 dataType, float *voltage, bool talkative )
+{
+    int32 iStatus;
+    iStatus = UT_DEFAULT_IMPL(volSensorRead);
+    *voltage = 5.05f;
+
+    return iStatus;
+}
+
+/* GetUsecTime( ) – gets the time in micro-seconds since startup. */
+double GetUsecTime(void)
+{
+    /* Time in microseconds */
+    return (double)100.00;
+}
+
+STATUS scrubMemory(uint32_t startAddr, uint32_t endAddr, uint32_t *pNumPagesScrubbed)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(scrubMemory);
+
+    return iStatus;
+}
+
+STATUS sysNvRamGet(
+char *dat_ptr, /* pointer to data location */
+int nbytes, /* size of the buffer */
+int offset /* byte offset in EEPROM */
+)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(sysNvRamGet);
+
+    if (iStatus >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(sysNvRamGet), (char *) dat_ptr, nbytes);
+    }
+
+    return iStatus;
+}
+
+STATUS sysNvRamSet(
+char *dat_ptr, /* pointer to data location */
+int nbytes, /* size of the buffer */
+int offset /* byte offset in EEPROM */
+)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(sysNvRamSet);
 
     return iStatus;
 }

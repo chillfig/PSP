@@ -2,13 +2,32 @@
 #
 # author: claudio.olmi@nasa.gov
 #
+# Script will run the Unit Tests for SP0 on target.
+# + software Requirements:
+#     - WindRiver environment
+#     - IP network communication to the target (to load and run the tests)
+#     - Serial communication to the target (to save the console logs)
+#     - GNU screen (to establish the serial communication)
+#     - xmllint (to extract data from results)
+#
+# + Revision:
+#     - Initial
+#
+# + Known Issues:
+#     - If the serial port is already being used, the script will continue but
+#       no reports will be saved.
+#     - If the target has not completed loading before starting this script,
+#       the command to start loading the functional test will not work.
+
+REPORT_FILENAME="psp_sp0-vxworks6.9_ut_results.log"
+ZIP_COVERAGE_FILENAME="psp_sp0-vxworks6.9_ut_coverage.zip"
 
 ERROR=`tput setaf 1`
 SUCCESS=`tput setaf 2`
 INFO=`tput setaf 4`
 RESET=`tput sgr0`
 
-RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]\n"
+RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]\n"
 
 SCRIPT_ROOT=$(readlink -f $(dirname $0))
 CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))
@@ -17,6 +36,18 @@ CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))
 if ! command -v tgtsvr &> /dev/null
 then
     echo "${ERROR}Please enable WindRiver environment${RESET}"
+    exit 1
+fi
+# Check that the screen command is available
+if ! command -v screen &> /dev/null
+then
+    echo "${ERROR}Please install the application `screen`${RESET}"
+    exit 1
+fi
+# Check that the xmllint command is available
+if ! command -v xmllint &> /dev/null
+then
+    echo "${ERROR}Please install the application `xmllint`${RESET}"
     exit 1
 fi
 
@@ -49,15 +80,14 @@ if [ ! -f $2 ]; then
 fi
 TARGET_KERNEL=$2
 
-TARGET_NAME="PSP_UT"
-
-WTXREGD=`ps ax | grep wtxregd | grep workbench`
-if [ -z "$WTXREGD" ]
-then
-    echo "${ERROR}WTX Register Daemon not found${RESET}"
-    echo "Run: $ wtxregd start"
-    exit
+if [ -z $3 ]; then
+    echo -e "Please enter target serial port? [TARGET_SERIAL]\n"
+    echo -e $RUN_PSP_HELP
+    exit 1
 fi
+TARGET_SERIAL=$3
+
+TARGET_NAME="PSP_UT"
 
 # Check that the zip application is available
 DO_ZIP=1
@@ -78,13 +108,30 @@ cd $TCL_SCRIPT_ROOT
 # Start the target servers
 tgtsvr -V -n $TARGET_NAME -RW -Bt 3 -c $TARGET_KERNEL $TARGET_IP &
 
+# Build log file full path
+logfilename=$SCRIPT_ROOT"/"$REPORT_FILENAME
+# Remove log and zip files in case they are already there
+if [ -e $logfilename ]; then
+    rm $logfilename
+fi
+if [ -e $SCRIPT_ROOT"/"$ZIP_COVERAGE_FILENAME ]; then
+    rm $SCRIPT_ROOT"/"$ZIP_COVERAGE_FILENAME
+fi
+
+# Prepare a screen configuration file
+cat << EOT >> startup_screenrc
+logfile $logfilename
+EOT
+
+# Start a screen session and save the output to file
+screen -L -c startup_screenrc -S PSP_UT_SCREEN -dm $TARGET_SERIAL
+
 echo "${INFO}Starting tests on $TARGET_NAME${RESET}"
 # Call tcl script that downloads the object modules from the
 # target and runs the tests
-wtxtcl runcoveragetests.tcl
+wtxtcl run_coverage_tests.tcl
 
 # Remove coverage data and reports from the last run
-rm -f $SCRIPT_ROOT/psp_ut*.zip
 rm -f $RUNS_ROOT/*
 rm -f $SCRIPT_ROOT/html/*
 
@@ -96,11 +143,6 @@ echo "${INFO}Download from Target Coverage Data...${RESET}"
 # Use coverageupload to upload the coverage data from the targets
 coverageupload -configuration ~/pne_vxworks_69_Config -t $TARGET_NAME -f $RUNS_ROOT/psp_ut_coverage.run -p $SCRIPT_ROOT/vx_code_coverage.prj -d 3 -data ~
 
-echo "${INFO}Kill tgtsvr...${RESET}"
-
-# Shutdown the target servers
-wtxtcl killtgtsvrs.tcl
-
 sleep 2
 
 echo "${INFO}Preparing HTML output...${RESET}"
@@ -110,12 +152,24 @@ coverageconvert -configuration ~/pne_vxworks_69_Config -f $RUNS_ROOT/psp_ut_cove
 
 echo "${INFO}Preparing ZIP of HTML output...${RESET}"
 
+# Quit the screen session
+screen -XS PSP_UT_SCREEN quit
+# Delete screen configuration file
+rm "startup_screenrc"
+
+sleep 1
+
+echo "${INFO}Kill tgtsvr...${RESET}"
+
+# Shutdown the target servers
+wtxtcl kill_target_service.tcl
+
 cd $SCRIPT_ROOT
 
 # Pack all html files into a single zip file
 if [ $DO_ZIP == 1 ]; then
-    echo "${SUCCESS}Packing HTML folder to psp_ut_html_report.zip${RESET}"
-    zip -r -q psp_ut_html_report.zip html
+    echo "${SUCCESS}Packing HTML folder to $ZIP_COVERAGE_FILENAME${RESET}"
+    zip -r -q $ZIP_COVERAGE_FILENAME html
 fi
 
 # Extract Code Coverage Results from HTML

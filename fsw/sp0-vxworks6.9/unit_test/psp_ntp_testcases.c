@@ -158,7 +158,7 @@ void Ut_CFE_PSP_GetOSTime(void)
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
     getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), OK);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(&myT);
     /* Not necessarily a failed test. Is there anyway to set variables from clock_gettime? */

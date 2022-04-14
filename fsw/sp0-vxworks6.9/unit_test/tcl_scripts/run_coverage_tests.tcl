@@ -43,10 +43,6 @@ wtxRegisterForEvent USER.*
 
 puts stdout [wtxEventpointListGet]
 
-# Find Module ID so we can kill it later
-set task_info [wtxObjModuleInfoGet psp_ut.exe]
-set moduleID [lindex $task_info 0]
-
 # Resume task
 wtxContextResume CONTEXT_TASK $task_id
 
@@ -70,7 +66,7 @@ if {($event != "")} {
 if {($waiting_for == $max_wait)} {
     puts stdout "Timeout waiting for Unit Test"
     puts stdout "Killing Task"
-    wtxContextKill $moduleID
+    wtxContextKill CONTEXT_TASK $task_id
 }
 
 # If we waited less than max_wait seconds, nothing to do?
@@ -78,7 +74,7 @@ if {($waiting_for < $max_wait)} {
     puts stdout "Unit Test run for $waiting_for seconds"
     puts stdout "Closing"
     # Give it another second for printing on target
-    msleep 1
+    msleep 1000
     return "OK"
 }
 

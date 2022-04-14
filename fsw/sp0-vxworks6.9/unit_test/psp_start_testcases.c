@@ -31,7 +31,6 @@
 ** External Global Variable Declarations
 **=======================================================================================*/
 extern int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
-extern char *PCS_strncpy(char *dst, const char *src, size_t size);
 extern int volSensorRead(int8 sensor, uint8 dataType, float *voltage, bool talkative );
 extern int tempSensorRead (int8 sensor, uint8 dataType, float *temperature, bool talkative );
 
@@ -696,7 +695,6 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(memchr), 6);
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
@@ -711,7 +709,6 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(memchr), 0);
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
@@ -725,7 +722,6 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
@@ -749,7 +745,6 @@ void Ut_CFE_PSP_StartupTimer(void)
 
     /* ----- Test case #1 - Nominal ----- */
     /* Set additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS);
@@ -766,7 +761,6 @@ void Ut_CFE_PSP_StartupTimer(void)
 
     /* ----- Test case #2 - Error creating Timer ----- */
     /* Set additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_ERROR);
     /* UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS); */
@@ -784,7 +778,6 @@ void Ut_CFE_PSP_StartupTimer(void)
 
     /* ----- Test case #3 - Error setting the Timer ----- */
     /* Set additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_ERROR);
@@ -841,7 +834,6 @@ void Ut_OS_Application_Startup(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), ERROR);
 
     /* For CFE_PSP_StartupTimer - return CFE_PSP_ERROR */
-    UT_SetDefaultReturnValue(UT_KEY(PCS_strncpy), 0);
     /* UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0); */
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_ERROR);

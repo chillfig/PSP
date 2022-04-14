@@ -2,14 +2,6 @@
 #include <ioLib.h>
 #include <stdio.h>
 #include "utstubs.h"
-/* #include "cfe_es.h" */
-
-#define MAX_ES_WRITETOSYSLOG_MESSAGES      100
-#define ES_BUFFER_SIZE 172
-
-/* Global array for CFE_ES_WriteToSysLog messages */
-char    gcES_WriteToSysLogMsgList[MAX_ES_WRITETOSYSLOG_MESSAGES][ES_BUFFER_SIZE];
-uint8   gucES_WriteToSysLogMsgCounts = 0;
 
 typedef struct CFE_TIME_SysTime
 {
@@ -42,20 +34,9 @@ typedef struct CFE_TIME_SysTime
 
 uint32 CFE_TIME_Micro2SubSecs(uint32 MicroSeconds)
 {
-    int32 iStatus;
+    int32 iVal;
 
-    iStatus = UT_DEFAULT_IMPL(CFE_TIME_Micro2SubSecs);
+    iVal = UT_DEFAULT_IMPL(CFE_TIME_Micro2SubSecs);
     
-    if (iStatus == OK)
-    {
-        return 1000;
-    }
-    return 0;
-}
-
-void CFE_TIME_SetTime(CFE_TIME_SysTime_t NewTime)
-{
-    int32 iStatus;
-    iStatus = UT_DEFAULT_IMPL(CFE_TIME_SetTime);
-
+    return iVal;
 }

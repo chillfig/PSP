@@ -21,12 +21,22 @@
 /**
  * Stub for the main system entry function implemented in CFE ES
  */
-void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char *StartFilePath);
+void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char *StartFilePath)
+{
+    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartType);
+    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartSubtype);
+    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), ModeId);
+    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartFilePath);
+    UT_DEFAULT_IMPL(SystemMain); 
+}
 
 /**
  * Stub for notification function implemented in CFE ES
  */
-void SystemNotify(void);
+void SystemNotify(void)
+{
+    UT_DEFAULT_IMPL(SystemNotify);
+}
 
 CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] = {{NULL}};
 
@@ -63,26 +73,3 @@ Target_ConfigData GLOBAL_CONFIGDATA =
         .CfeConfig = &GLOBAL_CFE_CONFIGDATA,
         .PspModuleList = NULL
 };
-
-
-
-/**
- * Stub for the main system entry function implemented in CFE ES
- */
-void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char *StartFilePath)
-{
-    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartType);
-    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartSubtype);
-    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), ModeId);
-    UT_Stub_RegisterContextGenericArg(UT_KEY(SystemMain), StartFilePath);
-    UT_DEFAULT_IMPL(SystemMain); 
-}
-
-/**
- * Stub for notification function implemented in CFE ES
- */
-void SystemNotify(void)
-{
-    UT_DEFAULT_IMPL(SystemNotify);
-}
-

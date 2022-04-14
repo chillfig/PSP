@@ -210,10 +210,9 @@ void PSP_FT_Start(void)
     OS_printf("[END PSP Functional Test]\n\n");
 
     OS_printf("[RESULTS]\n"
-              "Num tests: %u\n"
-              "Passed: %u\n"
-              "Failed: %u\n\n",
-              cnt_tests, cnt_pass, cnt_fail);
+              "Passed: %u - "
+              "Failed: %u\n",
+              cnt_pass, cnt_fail);
 
     PSP_FT_SendEndTestEvent();
 }

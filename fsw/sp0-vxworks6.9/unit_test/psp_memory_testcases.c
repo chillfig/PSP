@@ -579,49 +579,50 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     MODULE_ID  moduleID;
     MODULE_INFO moduleInfo;
 
-    extern cpuaddr GetModuleId(void);
-
     moduleInfo.segInfo.textAddr = task_name;
     moduleInfo.segInfo.textSize = strlen(task_name);
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #1 - Nominal ----- */
+    /* ----- Test case #1 - Module found by Name and Get ----- */
     /* Setup additional inputs */
+    CFESegment = 0;
     pCFESegment = &CFESegment;
     puiSizeOfCFESegment = &uiSizeOfCFESegment;
-    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &GetModuleId, sizeof(&GetModuleId), false);
-    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(moduleInfo), true);
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(moduleFindByName), &moduleInfo, sizeof(&moduleInfo), false);
+    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OK);
+    UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(&moduleInfo), false);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(pCFESegment != 0, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: CFESegment was changed");
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: Nominal return code");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/5: Nominal moduleInfoGet returned success");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
-    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 1);
-    UtAssert_STUB_COUNT(GetModuleId, 1);
 
     Ut_OS_printf_Setup();
     UT_ResetState(0);
 
-    /* ----- Test case #2 - Nominal moduleInfoGet return error ----- */
+    /* ----- Test case #2 - Module found by Name but could not Get ----- */
     /* Setup additional inputs */
     CFESegment = 0;
     pCFESegment = &CFESegment;
-    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    /* UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &moduleID, sizeof(moduleID), false); */
-    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), ERROR);
+    puiSizeOfCFESegment = &uiSizeOfCFESegment;
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(moduleFindByName), &moduleInfo, sizeof(&moduleInfo), false);
+    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OS_ERROR);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: CFESegment was not changed");
     UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/5: Nominal moduleInfoGet returned error");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
-    UtAssert_STUB_COUNT(moduleFindByName, 0);
+    UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 1);
+
 
     Ut_OS_printf_Setup();
     UT_ResetState(0);
@@ -1892,6 +1893,7 @@ void Ut_CFE_PSP_MemSyncInit(void)
     /* ----- Test case #2: Start on startup false ----- */
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    g_uiMemorySyncStartup = true;
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
@@ -1904,6 +1906,7 @@ void Ut_CFE_PSP_MemSyncInit(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
+    g_uiMemorySyncStartup = true;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Init: Failed to start task\n");
     /* Execute tests */
@@ -1919,6 +1922,7 @@ void Ut_CFE_PSP_MemSyncInit(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
+    g_uiMemorySyncStartup = true;
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
@@ -2423,7 +2427,6 @@ void Ut_CFE_PSP_CDSFilepath(void)
     /* ----- Test case #1 - ----- */
     /* Additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2443,7 +2446,6 @@ void Ut_CFE_PSP_ResetFilepath(void)
     /* ----- Test case #1 - ----- */
     /* Additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2463,7 +2465,6 @@ void Ut_CFE_PSP_VolatileDiskFilepath(void)
     /* ----- Test case #1 - ----- */
     /* Additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2483,7 +2484,6 @@ void Ut_CFE_PSP_UserReservedFilepath(void)
     /* ----- Test case #1 - ----- */
     /* Additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2548,7 +2548,6 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     // UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
     UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2567,7 +2566,6 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_MemValidateRange), CFE_PSP_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
     /* Execute test */
     iReturnCode = CFE_PSP_GenerateFilepath(1);
