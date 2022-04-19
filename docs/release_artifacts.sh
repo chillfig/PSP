@@ -5,7 +5,6 @@
 # -------------------------------------------------------------------------------
 
 SW_DIR=$(git rev-parse --show-toplevel)
-SW_REPO=git@js-er-code.jsc.nasa.gov:gateway/cfs/psp.git
 
 # -------------------------------------------------------------------------------------
 # Main
@@ -29,15 +28,16 @@ echo -e "\n5. Move PDF files into \"release-artifacts\" directory\n"
 mv *.pdf psp-release-artifacts
 
 echo -e "\n6. Copy PDF version of Word documents from \"documentation\" branch to \"release-artifact\"\n"
-git clone -b documentation $SW_REPO && \
-mv -f psp/docs/masters/*.pdf psp-release-artifacts
+git checkout origin/documentation masters
+mv -f masters/*.pdf psp-release-artifacts
 
 echo -e "\n7. Create a release-artifacts.tar file\n"
 rm -f psp-release-artifacts.tar && \
 tar -zcvf psp-release-artifacts.tgz psp-release-artifacts
 
 echo -e "\n8. Remove unwanted files/dirs\n"
-rm -rf psp-release-artifacts psp
+git reset HEAD masters
+rm -rf psp-release-artifacts masters
 
 echo -e "\nFinished!\n"
 
