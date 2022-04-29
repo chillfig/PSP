@@ -133,10 +133,10 @@ void Ut_CFE_PSP_GetOSTime(void)
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(NULL);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 1/3: Null pointer");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 1/4: Null pointer");
     UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 1/4: " NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 1/3: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 1/3: myT.Subseconds did not change");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 1/4: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 1/4: myT.Subseconds did not change");
 
     /* ----- Test #2 - &myT != NULL, clock_gettime fail ----- */
     /* Set additional variables */
@@ -147,10 +147,10 @@ void Ut_CFE_PSP_GetOSTime(void)
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(&myT);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 2/3: not null pointer, clock_gettime fail");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 2/3: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 2/3: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 2/3: myT.Subseconds did not change");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 2/4: not null pointer, clock_gettime fail");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 2/4: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 2/4: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 2/4: myT.Subseconds did not change");
 
     /* ----- Test #3 - &myT != NUll, clock_gettime success, unixTime > CFE...UNIX_DIFF ----- */
     UT_ResetState(0);
@@ -161,9 +161,25 @@ void Ut_CFE_PSP_GetOSTime(void)
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(&myT);
-    /* Not necessarily a failed test. Is there anyway to set variables from clock_gettime? */
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 3/3: clock_gettime success");
-    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_GetOSTime - 3/3: myT.Seconds changed");
+    /* Verify results */
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 3/4: clock_gettime success");
+    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_GetOSTime - 3/4: myT.Seconds changed");
+
+
+    /* ----- Test #4 - &myT != NUll, clock_gettime success, unixTime < CFE...UNIX_DIFF ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF - 1;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
+    /* Execute test */
+    return_code = CFE_PSP_GetOSTime(&myT);
+    /* Verify results */
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 4/4: clock_gettime success");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 4/4: myT.Seconds did not change");
 }
 
 /*=======================================================================================
@@ -235,7 +251,7 @@ void Ut_CFE_PSP_StartNTPDaemon(void)
     /* Execute test */
     return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 3/3: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 5/5: " NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = CFE_PSP_ERROR (SEE RETURN CODE ABOVE))");
     UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 5/5: NTP Daemon did not start, check error code");
 }
 

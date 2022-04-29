@@ -464,17 +464,25 @@ typedef struct
 /** \{ */
 
 /**
+ ** \brief Start mem scrub on startup option 
+ ** \par Description:
+ ** This option can be set to indicate if PSP should start 
+ ** mem scrub task on startup.
+ ** 0 = Do not start task during startup
+ ** 1 = Start task during startup
+*/
+#define MEM_SCRUB_TASK_START_ON_STARTUP      1
+
+/**
  ** \brief Memory Scrub Default Start Address
  **
  ** \par Description:
  ** Default, configurable memory scrub start address
  **
  ** \par Assumptions, External Events, and Notes:
- ** Value must be set to a valid address. This will not be checked when
- ** starting memory scrub task. Set to (-1) to allow program to 
- ** use general start address.
+ ** Value must be set to a valid address.
  */
-#define MEM_SCRUB_DEFAULT_START_ADDR        (-1)
+#define MEM_SCRUB_DEFAULT_START_ADDR        (0)
 
 /**
  ** \brief Memory Scrub Default End Address
@@ -485,10 +493,10 @@ typedef struct
  ** \par Assumptions, External Events, and Notes:
  ** Value must be set to a valid address, in relation to physical
  ** end of RAM and configured start address. This will not be checked when
- ** starting memory scrub task. Set to (-1) to allow program to 
+ ** starting memory scrub task. Set to (0) to allow program to 
  ** use general start address (physical end of RAM).
  */
-#define MEM_SCRUB_DEFAULT_END_ADDR          (-1)
+#define MEM_SCRUB_DEFAULT_END_ADDR          (0)
 
 /**
  ** \brief Memory Scrub Default Priority

@@ -131,7 +131,7 @@ int32   CFE_PSP_LoadFromNVRAM(void)
 {
     int32       iStatus = OK;
     int32       iRet_code = CFE_PSP_SUCCESS;
-    int32       *pURM_size = NULL;
+    int32       iURM_size = 0;
     int32       edr_size = 0;
     const int32 boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
     const int32 urm_pack_size = 7;
@@ -150,7 +150,7 @@ int32   CFE_PSP_LoadFromNVRAM(void)
         if (memcmp(urm_word, urm_signature, 3) == 0)
         {
             /* Extract URM size from signature */
-            pURM_size = (int32 *)(urm_signature + 3);
+            memcpy(&iURM_size, (urm_signature + 3), sizeof(iURM_size));
 
             /* Prints the Signature Pack for debugging */
             OS_printf(PSP_EXCEP_PRINT_SCOPE 
@@ -164,10 +164,10 @@ int32   CFE_PSP_LoadFromNVRAM(void)
                     urm_signature[6]
             );
 
-            if (*pURM_size >= boot_size)
+            if (iURM_size >= boot_size)
             {
 
-                edr_size = *pURM_size - boot_size;
+                edr_size = iURM_size - boot_size;
 
                 /* Load Boot Record data from EEPROM */
                 iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
@@ -185,7 +185,7 @@ int32   CFE_PSP_LoadFromNVRAM(void)
                     num_exceptions_in_urm = CFE_PSP_Exception_GetCount();
 
                     OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
-                            *pURM_size,
+                            iURM_size,
                             num_exceptions_in_urm
                     );
                 }
@@ -235,12 +235,11 @@ int32   CFE_PSP_SaveToNVRAM(void)
     int32       iRet_code = CFE_PSP_SUCCESS;
     char        urm_signature_pack[7] = { 'U', 'R', 'M', 0x00, 0x00, 0x00, 0x00 };
     const int32 urm_pack_size = sizeof(urm_signature_pack);
-    int32       *pURM_size = NULL;
+    int32       iURM_size = 0;
     int32       edr_size = 0;
     int32       boot_size = 0;
 
     /* Assign the urm size pointer */
-    pURM_size = (int32 *)(urm_signature_pack + 3);
 
     /*
     Get the size of ED&R structure and save it in the signature pack.
@@ -248,7 +247,8 @@ int32   CFE_PSP_SaveToNVRAM(void)
     */
     edr_size = (int32) sizeof(CFE_PSP_ExceptionStorage_t);
     boot_size = (int32) sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    *pURM_size = edr_size + boot_size;
+    iURM_size = edr_size + boot_size;
+    memcpy((urm_signature_pack + 3), &iURM_size, sizeof(iURM_size));
 
     /* Prints the Signature Pack for debugging */
     OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Signature Pack {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n", 
@@ -277,7 +277,7 @@ int32   CFE_PSP_SaveToNVRAM(void)
 
         if (iStatus == OK)
         {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Data to EEPROM (%u bytes)\n", *pURM_size);
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Data to EEPROM (%u bytes)\n", iURM_size);
         }
         else
         {
@@ -453,7 +453,7 @@ void CFE_PSP_AttachExceptions(void)
         if (edrErrorPolicyHookRemove() != OK)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE
-                      "edrErrorPolicyHookRemove() failed for address 0x%x\n", 
+                      "edrErrorPolicyHookRemove() failed for address 0x%p\n", 
                       g_pDefaultedrPolicyHandlerHook);
 
             g_pDefaultedrPolicyHandlerHook = NULL;

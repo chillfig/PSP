@@ -50,7 +50,7 @@ void Ut_CFE_PSP_ReadFromFlash(void)
     Ut_OS_printf_Setup();
     sprintf(cMsg, FLASH_PRINT_SCOPE "ReadFromFLASH: NULL pointer(s)\n");
     /* Execute test */
-    iReturnCode = CFE_PSP_ReadFromFlash(NULL, 0, NULL);
+    iReturnCode = CFE_PSP_ReadFromFlash(NULL, 0, (char *)NULL);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 1/5: NULL Pointer(s) check - return code");
     UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "ReadFromFLASH - 1/5: Error message - message");

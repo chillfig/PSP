@@ -306,11 +306,8 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
 void Ut_CFE_PSP_GetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    BOOT_PARAMS test_param = {'\0'};
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
-    char cMsg_talkative[] = {"PSP: Boot String:\n"};
     char cMsg_error[200] = "";
-    char cMsg_error1[] = "PSP: bufferSize to small, it needs to be 160 bytes\n";
     char str_buffer[250] = "";
     char str_buffer_check[] = "/ffx0/startup";
 
@@ -330,7 +327,7 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     /* ----- Test case #2 - Input 1 error ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
-    PCS_snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize to small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+    PCS_snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(NULL, 100, 0);
     /* Verify outputs */
@@ -340,7 +337,7 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     /* ----- Test case #3 - Input 2 error ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
-    snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize to small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+    snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(str_buffer, 10, 0);
     /* Verify outputs */
@@ -457,7 +454,7 @@ void Ut_CFE_PSP_SetBootStartupString(void)
 void Ut_CFE_PSP_GetBootStructure(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    BOOT_PARAMS test_param = {'\0'};
+    BOOT_PARAMS test_param = {{0}};
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char cMsg_talkative[] = {"PSP: Boot String:\n"};
     char cMsg_error[] = {"PSP: Could not get boot string\n"};
@@ -501,9 +498,8 @@ void Ut_CFE_PSP_GetBootStructure(void)
 void Ut_CFE_PSP_SetBootStructure(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    BOOT_PARAMS test_param = {'\0'};
+    BOOT_PARAMS test_param = {{0}};
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
-    char boot_string_bad[] = "FAULT";
     char cMsg_talkative[] = {"PSP: New Boot String:\n"};
     char cMsg_error_saving[] = {"PSP: Could not set new boot string\n"};
     char cMsg_error_structure[] = {"PSP: Could not convert structure to boot string\n"};
@@ -565,10 +561,8 @@ void Ut_CFE_PSP_SetBootStructure(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_PrintBootParameters(void)
 {
-    BOOT_PARAMS test_param = {'\0'};
+    BOOT_PARAMS test_param = {{0}};
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
-    char output_1[] = "";
-    char output_2[] = "";
 
     Ut_OS_printf_Setup();
     bootStringToStruct(boot_string, &test_param);

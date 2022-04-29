@@ -76,8 +76,6 @@ extern void CFE_PSP_FlushToFLASH(void);
 void CFE_PSP_Restart(uint32 resetType)
 {
     char    cStartupString[BOOT_FILE_LEN] = {'\0'};
-    uint32  uiSyncCount = 0;
-    uint32  uiDelayTime_msec = 50;
 
     /* Delay to make sure that all prints have been printed to console */
     OS_printf("WARNING: PSP Restart called with %d\n", resetType);
@@ -122,7 +120,10 @@ void CFE_PSP_Restart(uint32 resetType)
     }
     else
     {
-        CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
+        if (CFE_PSP_ReservedMemoryMap.BootPtr != NULL)
+        {
+            CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
+        }
 
         /* Increase the frequency of memory synchronization */
         CFE_PSP_FlushToFLASH();
@@ -260,7 +261,6 @@ void CFE_PSP_ToggleCFSBootPartition(void)
     uint8   ucEffectiveIndex = 0U;
     uint8   ucMaxIterations = sizeof(g_cAvailable_cfs_partitions) / sizeof(g_cAvailable_cfs_partitions[0]);
     char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
-    int32   testmemcmp = 0;
     
     for (ucIndex = 0; ucIndex < ucMaxIterations; ucIndex++)
     {
@@ -314,12 +314,12 @@ void CFE_PSP_ToggleCFSBootPartition(void)
 int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
-    BOOT_PARAMS target_boot = {'\0'};
+    BOOT_PARAMS target_boot = {};
 
     /* Check startupBootString length */
-    if ((startupBootString == NULL) || (bufferSize <= BOOT_FILE_LEN))
+    if ((startupBootString == NULL) || (bufferSize < BOOT_FILE_LEN))
     {
-        OS_printf("PSP: bufferSize to small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+        OS_printf("PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
         iRet_code = CFE_PSP_ERROR;
     }
     else
@@ -356,7 +356,7 @@ int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize,
 int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
-    BOOT_PARAMS target_boot = {'\0'};
+    BOOT_PARAMS target_boot = {};
 
     /* Check startupBootString length */
     /* We don't need to check for minimum length because there might be a 

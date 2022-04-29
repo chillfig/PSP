@@ -258,7 +258,7 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id);
+int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id);
 
 
 /**

@@ -16,13 +16,14 @@
 **=======================================================================================*/
 #include <unistd.h>
 #include <string.h>
-#include <target_config.h>
 #include <ioLib.h>
 
 #include "uttest.h"
 #include "utstubs.h"
 #include "ut_psp_utils.h"
+#include "target_config.h"
 #include "cfe_psp.h"
+#include "cfe_psp_start.h"
 
 #include "psp_start_testcases.h"
 #include "../src/cfe_psp_start.c"
@@ -33,6 +34,8 @@
 extern int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 extern int volSensorRead(int8 sensor, uint8 dataType, float *voltage, bool talkative );
 extern int tempSensorRead (int8 sensor, uint8 dataType, float *temperature, bool talkative );
+extern char UserReservedMemory[URM_SIZE];
+extern char *pEndOfURM;
 
 /*=======================================================================================
 ** Function definitions
@@ -66,6 +69,7 @@ void Ut_CFE_PSP_Main(void)
     /* ----- Test case #3: - Nominal ----- */
     UT_ResetState(0);
     /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), TASK_ID_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_SUCCESS);
     /* Execute test */
     CFE_PSP_Main();
@@ -504,7 +508,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 3/7: Startup timer expired message");
-    UtAssert_True(g_StartupInfo.startup_failed_attempts = 1, "_CFE_PSP_StartupFailed - 3/7: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 3/7: Increase number of failed attempts");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not set the write pointer for `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: lseek error message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not close file `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
@@ -581,8 +585,8 @@ void Ut_CFE_PSP_StartupFailed(void)
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 6/7: Startup timer expired message");
-    UtAssert_True(g_StartupInfo.startup_failed_attempts == 1, "_CFE_PSP_StartupFailed - 6/7: Increase number of failed attempts");
-    UtAssert_True(g_StartupInfo.startup_failed_reset_attempts == 0, "_CFE_PSP_StartupFailed - 6/7: Reset attempts not changed");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 6/7: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 0), "_CFE_PSP_StartupFailed - 6/7: Reset attempts not changed");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 6/7: Restart Message");
 
@@ -606,8 +610,8 @@ void Ut_CFE_PSP_StartupFailed(void)
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 7/7: Startup timer expired message");
-    UtAssert_True(g_StartupInfo.startup_failed_attempts == 0, "_CFE_PSP_StartupFailed - 7/7: Increase number of failed attempts");
-    UtAssert_True(g_StartupInfo.startup_failed_reset_attempts == 1, "_CFE_PSP_StartupFailed - 7/7: Reset attempts not changed");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 0), "_CFE_PSP_StartupFailed - 7/7: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 1), "_CFE_PSP_StartupFailed - 7/7: Reset attempts not changed");
     sprintf(cMsg, "PSP DEBUG: iBytes_read = %d --> POWERON\n", sizeof(buffer));
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/7: PSP DEBUG message");    
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_POWERON);
@@ -626,6 +630,8 @@ void Ut_CFE_PSP_StartupClear(void)
     char timer_name[] = "TEST";
 
     g_StartupInfo.uMaxWaitTime_sec = 10;
+    /* Set watchdog static g_uiCFE_PSP_WatchdogValue_ms */
+    CFE_PSP_WatchdogSet(20000); 
     sprintf(g_StartupInfo.fullpath_failed_startup_filename,"/ffx0/fail2.txt");
 
     Ut_OS_printf_Setup();
@@ -685,48 +691,52 @@ void Ut_CFE_PSP_StartupClear(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_GetActiveCFSPartition(void)
 {
-    char cMsg[256] = {'\0'};
     char buffer[40] = {'\0'};
-    char filepath[40] = "/ffx0/fail.txt";
+    char PartitionName[6] = "/ffx1";
+    cpuaddr pPartitionName = (cpuaddr)&PartitionName;
+    cpuaddr pbuffer = (cpuaddr)&buffer;
+
+    char cMsg_Bad1[] = "PSP: Warning, kernel variable does not contain a string\n";
+    char cMsg_Bad2[] = "PSP: Warning, kernel does not support reading the currently active CFS flash partition\n";
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #1 - Nominal ----- */
+    /* ----- Test case #1 - Nominal kernel support ----- */
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(memchr), 6);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pPartitionName, sizeof(pPartitionName), false);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/3: Output buffer nominal");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal no Messages");
+    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/3: Output buffer nominal with kernel support");
+    UtAssert_NoOS_print(cMsg_Bad1, "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal no Messages");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #2 - Variable is not a string ----- */
-    /* Set additional inputs */
-    memset(buffer, '\0', sizeof(buffer));
-    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(memchr), 0);
-    /* Execute test */
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
-    /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/3: Output buffer nominal");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Messages");
-
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-
-    /* ----- Test case #3 - Bad memory range ----- */
+    /* ----- Test case #2 - Nominal kernel does not support ----- */
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
     /* Execute test */
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/3: Output buffer nominal without kernel support");
+    UtAssert_OS_print(cMsg_Bad2, "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Kernel support Messages");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - kernel support but invalid string ----- */
+    /* Set additional inputs */
+    memset(buffer, '0', sizeof(buffer));
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pbuffer, sizeof(pbuffer), false);
+    /* Execute test */
+    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    /* Verify outputs */
     UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/3: Output buffer nominal");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_GetActiveCFSPartition - 3/3: Nominal no Messages");
+    UtAssert_OS_print(cMsg_Bad1, "_CFE_PSP_GetActiveCFSPartition - 3/3: Nominal no Messages");
 }
 
 /*=======================================================================================
@@ -800,32 +810,13 @@ void Ut_CFE_PSP_StartupTimer(void)
 void Ut_OS_Application_Startup(void)
 {
     char cMsg[256] = {""};
-    char cMsg_notice[] = "PSP: PSP Application Startup Complete\n";
-    uint32 uiResetSrc = 0;
-    uint64 bitResult   = 1ULL;
-    uint64 bitExecuted = 3ULL;
-    USER_SAFE_MODE_DATA_STRUCT smud;
-
-    memset(nvram,0x00,sizeof(nvram));
+    char cMsg_notice[] = "PSP: Application Startup Complete\n";
+    char cMsg_mem_init_failed[] = "PSP: CFS is rebooting due to not having enough User Reserved Memory\n";
+    uint32_t uiResetSrc = 0;
+    uint64_t bitResult   = 1ULL;
+    uint64_t bitExecuted = 3ULL;
 
     Ut_OS_printf_Setup();
-
-    /* For CFE_PSP_ProcessResetType */
-    uiResetSrc = RESET_SRC_POR;
-    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
-
-    /* For CFE_PSP_InitProcessorReservedMemory */
-    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), 4000);
-
-    UT_SetDefaultReturnValue(UT_KEY(open), 99);
-    UT_SetDefaultReturnValue(UT_KEY(write), 10);
-    UT_SetDefaultReturnValue(UT_KEY(close), OK);
-
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
-
-    UT_SetDefaultReturnValue(UT_KEY(userMemAlloc), OK);
-    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, CFE_PSP_SUCCESS);
 
     /* For CFE_PSP_GetActiveCFSPartition */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
@@ -833,25 +824,24 @@ void Ut_OS_Application_Startup(void)
     /* For CFE_PSP_GetBootStartupString */
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), ERROR);
 
-    /* For CFE_PSP_StartupTimer - return CFE_PSP_ERROR */
-    /* UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0); */
-    UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_ERROR);
-    /* UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), OS_SUCCESS); */
-    UT_SetDefaultReturnValue(UT_KEY(sysEnableFpgaWdt), OS_SUCCESS);
-
     /* For CFE_PSP_StartupFailedRestartSP0_hook */
     UT_SetDefaultReturnValue(UT_KEY(read), 0);
     UT_SetDefaultReturnValue(UT_KEY(lseek), -1);
     UT_SetDefaultReturnValue(UT_KEY(remove), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
 
+    /* For CFE_PSP_StartupTimer - return CFE_PSP_ERROR */
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 0);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerCreate), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysEnableFpgaWdt), OS_SUCCESS);
+    /* For CFE_PSP_WatchdogInit */
+    UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), OK);
+
     /* CFE_PSP_SP0GetInfo SPE Functions - We are setting them once for all cases */
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
     UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
-/*     UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_ERROR);
-    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true); */
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_ERROR);
     UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_ERROR);
@@ -861,24 +851,45 @@ void Ut_OS_Application_Startup(void)
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_ERROR);
 
-    /* For CFE_PSP_WatchdogInit */
-    UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), OK);
+    /* For CFE_PSP_ProcessResetType */
+    uiResetSrc = RESET_SRC_POR;
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+
+    /* For CFE_PSP_InitProcessorReservedMemory */
+    pEndOfURM = UserReservedMemory;
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(open), 99);
+    UT_SetDefaultReturnValue(UT_KEY(write), 10);
+    UT_SetDefaultReturnValue(UT_KEY(close), OK);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
+    UT_SetDefaultReturnValue(UT_KEY(userMemAlloc), OK);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    
+    /* For CFE_PSP_SetupReservedMemoryMap */
+    UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, CFE_PSP_SUCCESS);
 
     /* For CFE_PSP_MemScrubInit */
+    /* For CFE_PSP_MemSyncInit */
     UT_SetDefaultReturnValue(UT_KEY(OS_BinSemCreate), OS_ERROR);
-
-    /* For CFE_PSP_LogSoftwareResetType */
-    g_StartupInfo.safeModeUserData.sbc == SM_LOCAL_SBC;
 
     /* For CFE_PSP_SetSysTasksPrio */
     UT_SetDefaultReturnValue(UT_KEY(taskNameToId), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(taskPriorityGet), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(taskPrioritySet), OS_SUCCESS);
+
+    /* For CFE_PSP_LogSoftwareResetType */
+    g_StartupInfo.safeModeUserData.safeMode = 0;
+    g_StartupInfo.safeModeUserData.sbc = SM_LOCAL_SBC;
+    g_StartupInfo.safeModeUserData.mckCause = 1;
+    g_StartupInfo.safeModeUserData.reason = 0;
 
     /* For CFE_PSP_StartupClear */
     g_StartupInfo.uMaxWaitTime_sec = 10;
-    UT_SetDefaultReturnValue(UT_KEY(OS_TimerDelete), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(remove), OK);
+    sprintf(g_StartupInfo.fullpath_failed_startup_filename,"/ffx0/fail2.txt");
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerDelete), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysDisableFpgaWdt), OK);
 
     /* For CFE_PSP_Reset */
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
@@ -890,39 +901,57 @@ void Ut_OS_Application_Startup(void)
     /* Execute test */
     UT_OS_Application_Startup();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 1/3: Successful startup notice message");
-    sprintf(cMsg, "PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x0)\n");
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 1/3: Initialization of User Reserved Memory failed message");
+    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 1/4: Successful startup notice message");
+    UtAssert_STUB_COUNT(userReservedGet, 2);
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #2 - Initialize the OS API data structures failed ----- */
+    /* ----- Test case #2 - Failed to initialize URM ----- */
     /* Setup additional inputs */
+    pEndOfURM = UserReservedMemory;
+    UT_SetDefaultReturnValue(UT_KEY(OS_API_Init), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), 100);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS);
+    /* Execute test */
+    UT_OS_Application_Startup();
+    /* Verify outputs */
+    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 2/4: Missing startup notice message");
+    UtAssert_OS_print(cMsg_mem_init_failed, "_OS_Application_Startup - 2/4: Initialization of User Reserved Memory failed message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Initialize the OS API data structures failed ----- */
+    /* Setup additional inputs */
+    pEndOfURM = UserReservedMemory;
     UT_SetDefaultReturnValue(UT_KEY(OS_API_Init), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     /* Execute test */
     UT_OS_Application_Startup();
     /* Verify outputs */
     sprintf(cMsg, "PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n", OS_ERROR);
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 2/3: OS_API_Init error message");
-    /* Cannot check for No OS_printf because the function keeps running after reboot is called */
-    /* UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 2/3: Successful startup notice message missing"); */
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/4: OS_API_Init error message");
+    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 3/4: Successful startup notice message missing");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #3 - Setup FS mapping \"/cf\" directorys failed ----- */
+    /* ----- Test case #4 - Fail to add FS mapping folder and fail to set priorities ----- */
     /* Setup additional inputs */
+    pEndOfURM = UserReservedMemory;
     UT_SetDefaultReturnValue(UT_KEY(OS_API_Init), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(taskNameToId), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_ERROR);
     /* Execute test */
     UT_OS_Application_Startup();
     /* Verify outputs */
     sprintf(cMsg, "PSP: OS_FileSysAddFixedMap() failure: %d\n", OS_ERROR);
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/3: CFE_PSP_SetFileSysAddFixedMap error Message");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: CFE_PSP_SetFileSysAddFixedMap error Message");
+    sprintf(cMsg, "PSP: Some or all Virtual FS Mapping has failed\n");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: OS_Application_Startup error Message");
     sprintf(cMsg, "PSP: At least one vxWorks task priority set failed. System may have degraded performance.\n");
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/3: SetSysTasksPrio error Message");
-    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 3/3: Successful startup notice message");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: SetSysTasksPrio error Message");
+    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 4/4: Successful startup notice message");
 }
 
 /*=======================================================================================
@@ -1197,12 +1226,23 @@ void Ut_CFE_PSP_SetFileSysAddFixedMap(void)
     /* ----- Test #1 - Nominal ----- */
     /* Set additional inputs */
     Ut_OS_printf_Setup();
-    UT_SetDeferredRetcode(UT_KEY(OS_FileSysAddFixedMap), 1, CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), CFE_PSP_SUCCESS);
     /* Execute test */
     ret = CFE_PSP_SetFileSysAddFixedMap(&fid);
     /* Verify results */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SetFileSysAddFixedMap - 1/1: Virtual Mapping Returned Success");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetFileSysAddFixedMap - 1/1: Printed Nominal String");
+    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SetFileSysAddFixedMap - 1/2: Virtual Mapping Returned Success");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetFileSysAddFixedMap - 1/2: Printed Nominal String");
+
+    /* ----- Test #2 - Error mapping one or more filesystems ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), CFE_PSP_ERROR);
+    /* Execute test */
+    ret = CFE_PSP_SetFileSysAddFixedMap(&fid);
+    /* Verify results */
+    snprintf(cMsg, 256, "PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)CFE_PSP_ERROR);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetFileSysAddFixedMap - 2/2: Printed Error String");
+    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SetFileSysAddFixedMap - 2/2: Virtual Mapping Returned Error");
 }
 
 /*=======================================================================================
@@ -1219,7 +1259,7 @@ void Ut_CFE_PSP_InitSSR(void)
     sprintf(cMsg, "PSP: CFE_PSP_InitSSR function not implemented for SP0\n");
 
     ret = CFE_PSP_InitSSR(bus, device, DeviceName);
-    UtAssert_True(ret = CFE_PSP_ERROR_NOT_IMPLEMENTED,"_CFE_PSP_InitSSR - 1/1: Not Implemented Return Code");
+    UtAssert_True((ret == CFE_PSP_ERROR_NOT_IMPLEMENTED),"_CFE_PSP_InitSSR - 1/1: Not Implemented Return Code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_InitSSR - 1/1: Not Implemented Message");
 }
 

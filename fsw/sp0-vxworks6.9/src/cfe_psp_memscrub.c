@@ -60,46 +60,6 @@ extern void ckCtrs(void);
 /* Defined in cfe_psp_memory.c */
 extern uint32 g_uiEndOfRam;
 
-/** \brief Task Priority of Memory Scrubbing Task */
-static osal_priority_t g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
-
-/**
- ** \brief Contains the Active Memory Scrubbing Task ID
- ** \par Description:
- ** If 0, task is not running
- */
-static osal_id_t g_uiMemScrubTaskId;
-
-/**
- ** \brief Contains the Active Memory Scrubbing Start Address
- ** \par Description:
- ** The start address can be anything in the address space.
- */
-static uint32 g_uiMemScrubStartAddr = 0;
-
-/**
- ** \brief Contains the Active Memory Scrubbing End Address
- ** \par Description:
- ** End Address cannot be larger than the maximum RAM
- */
-static uint32 g_uiMemScrubEndAddr = 0;
-
-/**
- ** \brief Contains the Active Memory Scrubbing Current Page
- ** \par Description:
- ** Current page that the task is working on. This value gets
- ** reset whenever task restart.
- */
-static uint32 g_uiMemScrubCurrentPage = 0;
-
-/**
- ** \brief Contains the Active Memory Scrubbing Total Pages
- ** \par Description:
- ** Total number of pages processed since the start of the task. This value gets
- ** reset whenever task restart.
- */
-static uint32 g_uiMemScrubTotalPages = 0;
-
 /**
  ** \brief Binary semaphore id used for mem scrub addresses changes
  ** \par Description:
@@ -128,6 +88,18 @@ static osal_id_t g_semUpdateMemAddr_id;
  */
 static bool g_bScrubAddrUpdates_flag = false;
 
+static CFE_PSP_MemScrubStatus_t g_MemScrub_Status = 
+{
+    .uiMemScrubStartAddr = MEM_SCRUB_DEFAULT_START_ADDR,
+    .uiMemScrubEndAddr = MEM_SCRUB_DEFAULT_END_ADDR,
+    .uiMemScrubTotalPages = 0,
+    .uiMemScrubCurrentPage = 0,
+    .opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY,
+    .uiMemScrubStartOnStartup = MEM_SCRUB_TASK_START_ON_STARTUP,
+    .uiMemScrub_MaxPriority = MEMSCRUB_PRIORITY_UP_RANGE,
+    .uiMemScrub_MinPriority = MEMSCRUB_PRIORITY_DOWN_RANGE
+};
+
 /**********************************************************
  * 
  * Function: CFE_PSP_MemScrubSet
@@ -154,7 +126,7 @@ int32 CFE_PSP_MemScrubSet(uint32 newStartAddr, uint32 newEndAddr, osal_priority_
             /* Indicate that address values are being updated */
             g_bScrubAddrUpdates_flag = true;
 
-            g_uiMemScrubStartAddr = newStartAddr;
+            g_MemScrub_Status.uiMemScrubStartAddr = newStartAddr;
 
             /* If top of memory has not been initialized, then initialize it */
             if (g_uiEndOfRam == 0)
@@ -164,18 +136,18 @@ int32 CFE_PSP_MemScrubSet(uint32 newStartAddr, uint32 newEndAddr, osal_priority_
 
             if (newEndAddr > g_uiEndOfRam)
             {
-                g_uiMemScrubEndAddr = g_uiEndOfRam;
+                g_MemScrub_Status.uiMemScrubEndAddr = g_uiEndOfRam;
                 OS_printf(MEM_SCRUB_PRINT_SCOPE "Invalid newEndAddr. Range set to end of RAM\n");
             }
             else
             {
-                g_uiMemScrubEndAddr = newEndAddr;
+                g_MemScrub_Status.uiMemScrubEndAddr = newEndAddr;
             }
             
             /*
             * Task Priority does not need to be changed
             */
-            if (task_priority == g_uiMemScrubTaskPriority)
+            if (task_priority == g_MemScrub_Status.opMemScrubTaskPriority)
             {
                 iReturnCode = CFE_PSP_SUCCESS;
             }
@@ -189,21 +161,22 @@ int32 CFE_PSP_MemScrubSet(uint32 newStartAddr, uint32 newEndAddr, osal_priority_
                 * If the Task Priority is set outside the range, use default priority and
                 * report error
                 */
-                if ((task_priority > MEMSCRUB_PRIORITY_UP_RANGE) || (task_priority < MEMSCRUB_PRIORITY_DOWN_RANGE))
+                if ((task_priority > g_MemScrub_Status.uiMemScrub_MaxPriority) || 
+                    (task_priority < g_MemScrub_Status.uiMemScrub_MinPriority))
                 {
                     /* Apply default priority */
-                    g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+                    g_MemScrub_Status.opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
                     /* Report error */
                     OS_printf(MEM_SCRUB_PRINT_SCOPE "Priority is outside range, using default `%u`\n",
-                            g_uiMemScrubTaskPriority);
+                            g_MemScrub_Status.opMemScrubTaskPriority);
                 }
                 else
                 {
                     /* Apply new priority */
-                    g_uiMemScrubTaskPriority = task_priority;
+                    g_MemScrub_Status.opMemScrubTaskPriority = task_priority;
                 }
 
-                iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_uiMemScrubTaskPriority);
+                iReturnCode = CFE_PSP_SetTaskPrio(MEMSCRUB_TASK_NAME, g_MemScrub_Status.opMemScrubTaskPriority);
             }
         }
         else
@@ -239,12 +212,15 @@ int32 CFE_PSP_MemScrubDelete(void)
     if (CFE_PSP_MemScrubDisable() == CFE_PSP_SUCCESS)
     {
         /* Reset all memory scrub related values to default */
-        g_uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
-        g_uiMemScrubCurrentPage = 0;
-        g_uiMemScrubTotalPages = 0;
-        g_uiMemScrubStartAddr = 0;
-        g_uiMemScrubEndAddr = g_uiEndOfRam;
-        g_uiMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+        g_MemScrub_Status.uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
+        g_MemScrub_Status.uiMemScrubCurrentPage = 0;
+        g_MemScrub_Status.uiMemScrubTotalPages = 0;
+        g_MemScrub_Status.uiMemScrubStartAddr = MEM_SCRUB_DEFAULT_START_ADDR;
+        g_MemScrub_Status.uiMemScrubEndAddr = MEM_SCRUB_DEFAULT_END_ADDR;
+        g_MemScrub_Status.opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY;
+        g_MemScrub_Status.uiMemScrubStartOnStartup = MEM_SCRUB_TASK_START_ON_STARTUP;
+        g_MemScrub_Status.uiMemScrub_MaxPriority = MEMSCRUB_PRIORITY_UP_RANGE;
+        g_MemScrub_Status.uiMemScrub_MinPriority = MEMSCRUB_PRIORITY_DOWN_RANGE;
 
         /* Attempt to delete semaphore */
         if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
@@ -281,11 +257,11 @@ int32 CFE_PSP_MemScrubDelete(void)
  *********************************************************/
 void CFE_PSP_MemScrubStatus(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk)
 {
-    mss_Status->uiMemScrubStartAddr = g_uiMemScrubStartAddr;
-    mss_Status->uiMemScrubEndAddr = g_uiMemScrubEndAddr;
-    mss_Status->uiMemScrubCurrentPage = g_uiMemScrubCurrentPage;
-    mss_Status->uiMemScrubTotalPages = g_uiMemScrubTotalPages;
-    mss_Status->opMemScrubTaskPriority = g_uiMemScrubTaskPriority;
+    mss_Status->uiMemScrubStartAddr = g_MemScrub_Status.uiMemScrubStartAddr;
+    mss_Status->uiMemScrubEndAddr = g_MemScrub_Status.uiMemScrubEndAddr;
+    mss_Status->uiMemScrubCurrentPage = g_MemScrub_Status.uiMemScrubCurrentPage;
+    mss_Status->uiMemScrubTotalPages = g_MemScrub_Status.uiMemScrubTotalPages;
+    mss_Status->opMemScrubTaskPriority = g_MemScrub_Status.opMemScrubTaskPriority;
 
     if (talk == true)
     {
@@ -338,8 +314,8 @@ static void CFE_PSP_MemScrubTask(void)
         {
             if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
             {
-                uiLocalMemScrubStartAddr = g_uiMemScrubStartAddr;
-                uiLocalMemScrubEndAddr = g_uiMemScrubEndAddr;
+                uiLocalMemScrubStartAddr = g_MemScrub_Status.uiMemScrubStartAddr;
+                uiLocalMemScrubEndAddr = g_MemScrub_Status.uiMemScrubEndAddr;
                 g_bScrubAddrUpdates_flag = false;
                 if (OS_BinSemGive(g_semUpdateMemAddr_id) != OS_SUCCESS)
                 {
@@ -354,7 +330,10 @@ static void CFE_PSP_MemScrubTask(void)
             }
         }
         /* Call the active memory scrubbing function */
-        status = scrubMemory(uiLocalMemScrubStartAddr, uiLocalMemScrubEndAddr, &g_uiMemScrubCurrentPage);
+        status = scrubMemory(uiLocalMemScrubStartAddr,
+                             uiLocalMemScrubEndAddr,
+                             &g_MemScrub_Status.uiMemScrubCurrentPage
+        );
 
         if (status == CFE_PSP_ERROR)
         {
@@ -363,7 +342,7 @@ static void CFE_PSP_MemScrubTask(void)
         }
         else
         {
-            g_uiMemScrubTotalPages += g_uiMemScrubCurrentPage;
+            g_MemScrub_Status.uiMemScrubTotalPages += g_MemScrub_Status.uiMemScrubCurrentPage;
         }
     }
 }
@@ -389,7 +368,7 @@ int32 CFE_PSP_MemScrubInit(void)
     */
     if (OS_BinSemCreate(&g_semUpdateMemAddr_id, PSP_MEM_SCRUB_BSEM_NAME, OS_SEM_FULL, 0) == OS_SUCCESS)
     {
-        if (MEM_SCRUB_TASK_START_ON_STARTUP == true)
+        if (g_MemScrub_Status.uiMemScrubStartOnStartup == true)
         {
             /*
             ** Manually set memory scrub start/end addresses
@@ -404,28 +383,11 @@ int32 CFE_PSP_MemScrubInit(void)
             ** be initialized to physical end of RAM via CFE_PSP_SetupReservedMemoryMap()
             */
 
-            /* Set memory scrub start address */
-            if (MEM_SCRUB_DEFAULT_START_ADDR == -1)
-            {
-                /* User indicates to use general case */
-                g_uiMemScrubStartAddr = 0;
-            }
-            else
-            {
-                /* User indicates to use configured start addr */
-                g_uiMemScrubStartAddr = (uint32)MEM_SCRUB_DEFAULT_START_ADDR;
-            }
-
             /* Set memory scrub end address */
-            if (MEM_SCRUB_DEFAULT_END_ADDR == -1)
+            if (g_MemScrub_Status.uiMemScrubEndAddr == 0)
             {
                 /* User indicates to use end of RAM */
-                g_uiMemScrubEndAddr = g_uiEndOfRam;
-            }
-            else
-            {
-                /* User indicates to use configured address */
-                g_uiMemScrubEndAddr = (uint32)MEM_SCRUB_DEFAULT_END_ADDR;
+                g_MemScrub_Status.uiMemScrubEndAddr = g_uiEndOfRam;
             }
 
             /* Attempt to enable memory scrub task */
@@ -498,12 +460,12 @@ int32 CFE_PSP_MemScrubEnable(void)
     else
     {
         /* Attempt to start memory scrubbing task */
-        iReturnCode = OS_TaskCreate(&g_uiMemScrubTaskId, 
+        iReturnCode = OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
                                     MEMSCRUB_TASK_NAME, 
                                     CFE_PSP_MemScrubTask,
                                     OSAL_TASK_STACK_ALLOCATE, 
                                     OSAL_SIZE_C(1024), 
-                                    g_uiMemScrubTaskPriority, 
+                                    g_MemScrub_Status.opMemScrubTaskPriority, 
                                     0);
         
         /* Check that task was successfully created */
@@ -535,7 +497,7 @@ int32 CFE_PSP_MemScrubDisable(void)
         if (OS_BinSemTake(g_semUpdateMemAddr_id) == OS_SUCCESS)
         {
             /* Attempt to delete memory scrub task */
-            if (OS_TaskDelete(g_uiMemScrubTaskId) == OS_SUCCESS)
+            if (OS_TaskDelete(g_MemScrub_Status.uiMemScrubTaskId) == OS_SUCCESS)
             {
                 if (OS_BinSemGive(g_semUpdateMemAddr_id) == OS_SUCCESS)
                 {
@@ -565,8 +527,8 @@ int32 CFE_PSP_MemScrubDisable(void)
     /*
     ** No matter what happens, reset values
     */
-    g_uiMemScrubTotalPages = 0;
-    g_uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
+    g_MemScrub_Status.uiMemScrubTotalPages = 0;
+    g_MemScrub_Status.uiMemScrubTaskId = OS_OBJECT_ID_UNDEFINED;
 
     return iReturnCode;
 }

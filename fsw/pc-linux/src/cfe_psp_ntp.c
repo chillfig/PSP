@@ -104,7 +104,6 @@ int32 CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec)
 int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 {
     struct timespec     unixTime;
-    uint32              tv_sec = 0;
     uint32              tv_msec = 0;
     int                 ret;
     int32               return_code = CFE_PSP_SUCCESS;

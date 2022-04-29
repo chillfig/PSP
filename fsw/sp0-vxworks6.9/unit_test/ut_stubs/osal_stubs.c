@@ -20,10 +20,10 @@ int32 OS_SymbolLookup(cpuaddr *symbol_address, const char *symbol_name)
     UT_Stub_RegisterContext(UT_KEY(OS_SymbolLookup), symbol_name);
 
     iStatus = UT_DEFAULT_IMPL(OS_SymbolLookup);
-    if (iStatus == 0 &&
-        UT_Stub_CopyToLocal(UT_KEY(OS_SymbolLookup), (cpuaddr *)symbol_address, sizeof(*symbol_address)) < sizeof(*symbol_address))
+
+    if (iStatus >= 0)
     {
-        memset(symbol_address, 0, sizeof(*symbol_address));
+        UT_Stub_CopyToLocal(UT_KEY(OS_SymbolLookup), (cpuaddr *)symbol_address, sizeof(*symbol_address));
     }
     else
     {

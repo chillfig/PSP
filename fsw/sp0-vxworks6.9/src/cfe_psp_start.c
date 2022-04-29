@@ -39,7 +39,7 @@
 #include <aimonUtil.h>
 
 /*
-** cFE includes
+** cFE/OSAL includes
 */
 #include "common_types.h"
 #include "target_config.h"
@@ -139,7 +139,7 @@ void CFE_PSP_Main(void)
     int32   iStatus = 0;
     TASK_ID iTaskID = 0;
     /* Add method to check if another CFS instance is already running then exit */
-    iTaskID = taskNameToId("CFE_ES");
+    iTaskID = taskNameToId((char *)"CFE_ES");
     if (iTaskID != TASK_ID_ERROR)
     {
         // UndCC_NextLine(SSET134)
@@ -235,7 +235,6 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 iStatus = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
-    int iFD = -1;
 
     /* Reset the content of the safe mode user data buffer */
     memset(&g_StartupInfo.safeModeUserData, 0, sizeof(g_StartupInfo.safeModeUserData));
@@ -404,17 +403,17 @@ static void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 static int32 CFE_PSP_SetSysTasksPrio(void)
 {
     int32 iStatus = CFE_PSP_SUCCESS;
-    int32 iIndex = 0;
+    uint32 uiIndex = 0;
     int32 iRet_code = OS_ERROR;
 
-    int32 iNumberOfTask = sizeof(g_VxWorksTaskList) / sizeof(CFE_PSP_OS_Task_and_priority_t);
+    uint32 uiNumberOfTask = sizeof(g_VxWorksTaskList) / sizeof(CFE_PSP_OS_Task_and_priority_t);
 
-    OS_printf("PSP: Setting system tasks' priorities for %d tasks.\n", iNumberOfTask);
+    OS_printf("PSP: Setting system tasks' priorities for %d tasks.\n", uiNumberOfTask);
 
-    for (iIndex = 0; iIndex < iNumberOfTask; iIndex++)
+    for (uiIndex = 0; uiIndex < uiNumberOfTask; uiIndex++)
     {
-        iRet_code = CFE_PSP_SetTaskPrio(g_VxWorksTaskList[iIndex].VxWorksTaskName, 
-                                  g_VxWorksTaskList[iIndex].VxWorksTaskPriority);
+        iRet_code = CFE_PSP_SetTaskPrio(g_VxWorksTaskList[uiIndex].VxWorksTaskName, 
+                                  g_VxWorksTaskList[uiIndex].VxWorksTaskPriority);
         if (iRet_code != OS_SUCCESS)
         {
             iStatus = CFE_PSP_ERROR;
@@ -445,7 +444,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
     - If CFS is restarting for 1 time with POWERON, change Boot Startup String
     */
     int32   iFD = 0;
-    CFE_PSP_Startup_structure_t startup_buffer = {'\0'};
+    CFE_PSP_Startup_structure_t startup_buffer = {};
     ssize_t iBytes_read = 0;
     ssize_t iBytes_wrote = 0;
     off_t   lOffset = 0;
@@ -760,7 +759,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
 
     /*
     Get current Boot Startup Filename from SP0 memory
-    The string is used in case we need to switch to alterante CFS flash partition
+    The string is used in case we need to switch to alternate CFS flash partition
     */
     CFE_PSP_GetBootStartupString(g_StartupInfo.boot_startup_filename,
                                  sizeof(g_StartupInfo.boot_startup_filename),
@@ -775,6 +774,8 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
 
         /* Is OSAL fails, log the startup failure and restart target */
         CFE_PSP_StartupFailedRestartSP0_hook(g_StartupInfo.timerID);
+        /* This call should never happen, but it aids the unit test */
+        goto OS_Application_Startup_Exit_Tag;
     }
 
     /* Set up all the virtual FS mappings */
@@ -806,18 +807,19 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
         OS_printf("PSP: Error while collecting SP0 information\n");
     }
 
-    CFE_PSP_SetupReservedMemoryMap();
-
     /* PSP Determine the reset type */
     resetSrc = CFE_PSP_ProcessResetType();
+
+    CFE_PSP_SetupReservedMemoryMap();
 
     /* Initialize the reserved memory */
     if (CFE_PSP_InitProcessorReservedMemory(g_StartupInfo.ResetType) != OS_SUCCESS)
     {
-        OS_printf("PSP: OS_Application_Startup() - CFE_PSP_InitProcessorReservedMemory() failed (0x%x)\n", iStatus);
-
+        OS_printf("PSP: CFS is rebooting due to not having enough User Reserved Memory\n");
         /* Is OSAL fails, log the startup failure and restart target */
         CFE_PSP_StartupFailedRestartSP0_hook(g_StartupInfo.timerID);
+        /* This call should never happen, but it aids the unit test */
+        goto OS_Application_Startup_Exit_Tag;
     }
 
     /*
@@ -843,11 +845,11 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
 
     /* Print all POST results */
     CFE_PSP_ProcessPOSTResults();
-
+    
     /* Set the resource configuration flags */
     OS_BSP_SetResourceTypeConfig(OS_OBJECT_TYPE_OS_TASK, VX_SPE_TASK);
 
-    OS_printf("PSP: PSP Application Startup Complete\n");
+    OS_printf("PSP: Application Startup Complete\n");
 
     /* Call cFE entry point. This will return when cFE startup is complete. */
     CFE_PSP_MAIN_FUNCTION(g_StartupInfo.ResetType, g_StartupInfo.ResetSubtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
@@ -857,6 +859,9 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     handles this task.
     */
     CFE_PSP_StartupClear();
+
+OS_Application_Startup_Exit_Tag:
+    return;
 }
 
 /**********************************************************
@@ -893,7 +898,7 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
     /* Get the Shell Task ID if we have not done it already */
     if (g_uiShellTaskID == 0)
     {
-        g_uiShellTaskID = taskNameToId("tShell0");
+        g_uiShellTaskID = taskNameToId((char *)"tShell0");
     }
 
     if (suspend)
@@ -1003,7 +1008,7 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
+int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
 {
     int32   iRet_code      = CFE_PSP_SUCCESS;
     int32   iStatus        = OS_SUCCESS;

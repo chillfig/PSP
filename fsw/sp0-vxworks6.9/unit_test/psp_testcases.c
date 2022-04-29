@@ -27,10 +27,10 @@
 #define TEST_MEMORY     1
 #define TEST_FLASH      1
 #define TEST_MEM_SCRUB  1
-#define TEST_START      1
 #define TEST_EXCEPTION  1
 #define TEST_SUPPORT    1
 #define TEST_WATCHDOG   1
+#define TEST_START      1
 
 
 /*=======================================================================================
@@ -125,75 +125,6 @@ void UtTest_Setup(void)
               "Ut_CFE_PSP_SP0ROM2Status");
 
     #endif /* TEST_SP0_INFO == 1 */
-
-    #if TEST_START == 1
-    /* cfe_psp_start.c test cases area */
-
-    UtTest_Add(Ut_CFE_PSP_ProcessPOSTResults,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_ProcessPOSTResults");
-               
-    UtTest_Add(Ut_CFE_PSP_Main,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_Main");
-
-    UtTest_Add(Ut_OS_Application_Run,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Run");
-
-    UtTest_Add(Ut_CFE_PSP_SuspendConsoleShellTask,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SuspendConsoleShellTask");
-
-    UtTest_Add(Ut_CFE_PSP_ProcessResetType,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_ProcessResetType");
-
-    UtTest_Add(Ut_CFE_PSP_LogSoftwareResetType,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_LogSoftwareResetType");
-
-    UtTest_Add(Ut_CFE_PSP_StartupFailed,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_StartupFailed");
-
-    UtTest_Add(Ut_CFE_PSP_StartupClear,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_StartupClear");
-
-    UtTest_Add(Ut_CFE_PSP_GetActiveCFSPartition,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetActiveCFSPartition");
-
-    UtTest_Add(Ut_CFE_PSP_StartupTimer,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_StartupTimer");
-
-/*     UtTest_Add(Ut_OS_Application_Startup,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_OS_Application_Startup");  */
-
-    UtTest_Add(Ut_CFE_PSP_GetRestartType,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_GetRestartType"); 
-
-    UtTest_Add(Ut_CFE_PSP_SetTaskPrio,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SetTaskPrio");
-
-    UtTest_Add(Ut_CFE_PSP_SetSysTasksPrio,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SetSysTasksPrio");
-
-    UtTest_Add(Ut_CFE_PSP_SetFileSysAddFixedMap,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_SetFileSysAddFixedMap");
-
-    UtTest_Add(Ut_CFE_PSP_InitSSR,
-               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-               "Ut_CFE_PSP_InitSSR");
-
-    #endif  /* TEST_START == 1 */
     
     #if TEST_MEMORY == 1
     /* cfe_psp_memory.c test cases area */
@@ -587,6 +518,75 @@ void UtTest_Setup(void)
 
     #endif /* TEST_WATCHDOG == 1 */
 
+    #if TEST_START == 1
+    /* cfe_psp_start.c test cases area */
+
+    UtTest_Add(Ut_CFE_PSP_ProcessPOSTResults,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ProcessPOSTResults");
+               
+    UtTest_Add(Ut_CFE_PSP_Main,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Main");
+
+    UtTest_Add(Ut_OS_Application_Run,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_OS_Application_Run");
+
+    UtTest_Add(Ut_CFE_PSP_SuspendConsoleShellTask,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SuspendConsoleShellTask");
+
+    UtTest_Add(Ut_CFE_PSP_ProcessResetType,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ProcessResetType");
+
+    UtTest_Add(Ut_CFE_PSP_LogSoftwareResetType,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_LogSoftwareResetType");
+
+    UtTest_Add(Ut_CFE_PSP_StartupFailed,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupFailed");
+
+    UtTest_Add(Ut_CFE_PSP_StartupClear,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupClear");
+
+    UtTest_Add(Ut_CFE_PSP_GetActiveCFSPartition,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetActiveCFSPartition");
+
+    UtTest_Add(Ut_CFE_PSP_StartupTimer,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_StartupTimer");
+
+    UtTest_Add(Ut_CFE_PSP_GetRestartType,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetRestartType"); 
+
+    UtTest_Add(Ut_CFE_PSP_SetTaskPrio,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetTaskPrio");
+
+    UtTest_Add(Ut_CFE_PSP_SetSysTasksPrio,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetSysTasksPrio");
+
+    UtTest_Add(Ut_CFE_PSP_SetFileSysAddFixedMap,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SetFileSysAddFixedMap");
+
+    UtTest_Add(Ut_CFE_PSP_InitSSR,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_InitSSR");
+
+    UtTest_Add(Ut_OS_Application_Startup,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_OS_Application_Startup"); 
+
+    #endif  /* TEST_START == 1 */
+
     UtTest_Add(Ut_CFE_PSP_EndTests,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_EndTests");
@@ -598,8 +598,7 @@ void UtTest_Setup(void)
  */
 void Ut_CFE_PSP_EndTests(void)
 {
-    if (wdbUserEvtPost ("End of Tests") != OK)
-        OS_printf ("Can't send message to host tools");
+    wdbUserEvtPost ("End of Tests");
 }
 
 /*=======================================================================================

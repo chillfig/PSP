@@ -45,16 +45,6 @@ extern "C" {
 #define MEM_SCRUB_PRINT_SCOPE           "PSP MEM SCRUB: "
 
 /**
- ** \brief Start mem scrub on startup option 
- ** \par Description:
- ** This option can be set to indicate if PSP should start 
- ** mem scrub task on startup.
- ** 0 = Do not start task during startup
- ** 1 = Start task during startup
-*/
-#define MEM_SCRUB_TASK_START_ON_STARTUP      true
-
-/**
  ** \brief Memory Scrubbing information struct
  ** 
  ** \par Description:
@@ -64,15 +54,57 @@ extern "C" {
  **     - uiMemScrubCurrentPage
  **     - uiMemScrubTotalPages
  **     - opMemScrubTaskPriority
- **     - bIsRunning
 */
 typedef struct
 {
+    /**
+     ** \brief Contains the Active Memory Scrubbing Start Address
+     ** \par Description:
+     ** The start address can be anything in the address space.
+     */
     uint32              uiMemScrubStartAddr;
+    /**
+     ** \brief Contains the Active Memory Scrubbing End Address
+     ** \par Description:
+     ** End Address cannot be larger than the maximum RAM
+     */
     uint32              uiMemScrubEndAddr;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Current Page
+     ** \par Description:
+     ** Current page that the task is working on. This value gets
+     ** reset whenever task restart.
+     */
     uint32              uiMemScrubCurrentPage;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Total Pages
+     ** \par Description:
+     ** Total number of pages processed since the start of the task. This value gets
+     ** reset whenever task restart.
+     */
     uint32              uiMemScrubTotalPages;
+    /** \brief Contains the Memory Scrubbing task priority
+     **
+     */
     osal_priority_t     opMemScrubTaskPriority;
+    /** \brief Contains the boolean value if Mem Scrub should start at startup
+     **
+     */
+    uint32              uiMemScrubStartOnStartup;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Task ID
+     ** \par Description:
+     ** If 0, task is not running
+     */
+    osal_id_t           uiMemScrubTaskId;
+    /** \brief Contains the maximum allowed task priority
+     **
+     */
+    osal_priority_t     uiMemScrub_MaxPriority;
+    /** \brief Contains the minimum allowed task priority
+     **
+     */
+    osal_priority_t     uiMemScrub_MinPriority;
 } CFE_PSP_MemScrubStatus_t;
 
 /**

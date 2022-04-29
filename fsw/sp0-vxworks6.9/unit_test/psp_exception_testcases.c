@@ -46,7 +46,6 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     int32   iType = 0;
     EDR_TASK_INFO InfoParam = {};
     bool    bDebug = false;
-    char    cMsg_handler_null[] = {PSP_EXCEP_PRINT_SCOPE "Override enabled, but Handler Hook is not setup\n"};
     char    cMsg_increase_buffer[] = {PSP_EXCEP_PRINT_SCOPE "No more storage available in exception buffer. Increase PSP_EXCEP_PRINT_SCOPE\n"};
 
     /* ----- Test case #1 - Nominal ----- */
@@ -132,7 +131,7 @@ void Ut_CFE_PSP_AttachExceptions(void)
     UT_SetDeferredRetcode(UT_KEY(edrPolicyHandlerHookGet), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(edrErrorPolicyHookRemove), 1, OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(edrPolicyHandlerHookAdd), 1, OS_SUCCESS);
-    sprintf(cMsg, PSP_EXCEP_PRINT_SCOPE "edrErrorPolicyHookRemove() failed for address 0x%x\n", &currentedrPolicyHandlerHook1);
+    sprintf(cMsg, PSP_EXCEP_PRINT_SCOPE "edrErrorPolicyHookRemove() failed for address 0x%p\n", &currentedrPolicyHandlerHook1);
     /* Execute test */
     CFE_PSP_AttachExceptions();
     /* Verify outputs */

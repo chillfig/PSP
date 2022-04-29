@@ -6,35 +6,49 @@
 #include "utstubs.h"
 #include "ut_psp_utils.h"
 
-#define MAX_RDWR_SIZE       0x01000000  /* 16MB */
+
 
 typedef enum {SP0_ORIGINAL = 1, SP0_UPGRADE = 2} SP0_BOARD_GENERATION_TYPE;
 
-char UserReservedMemory[4000] = {'\0'};
+char UserReservedMemory[URM_SIZE] = {'\0'};
+size_t uURM = URM_SIZE;
 char *pURM = UserReservedMemory;
-size_t uURM = 4000;
+char *pEndOfURM = UserReservedMemory;
 char bString[BOOT_FILE_LEN] = "/ffx0/startup";
-
 
 void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize )
 {
-    int iSize;
+    uint32 iSize;
 
     iSize = UT_DEFAULT_IMPL(userReservedGet);
 
-    pUserReservedAddr = &pURM;
-    uURM = iSize;
-    pUserReservedSize = &uURM;
+    *pUserReservedAddr = pURM;
+    uURM = (size_t)iSize;
+    *pUserReservedSize = uURM;
 }
 
+/*
+Function will keep track of the allocated memory and return a pointer within
+the UserReservedMemory array.
+*/
 int userMemAlloc(uint32 *addr, uint32 size, bool talk)
 {
     int iStatus;
 
     iStatus = UT_DEFAULT_IMPL(userMemAlloc);
+    
     if (iStatus >= 0)
     {
-        *addr = (uint32)pURM;
+        /* Check that there is enough memory available in the UserReservedMemory array */
+        if ( ((uint32)pEndOfURM + size) <= ((uint32)UserReservedMemory + URM_SIZE) )
+        {
+            *addr = (uint32)pEndOfURM;
+            pEndOfURM = pEndOfURM + size;
+        }
+        else
+        {
+            pEndOfURM = UserReservedMemory;
+        }
     }
 
     return iStatus;
@@ -122,11 +136,7 @@ int32 ReadSafeModeUserData(void *pSafeModeUserData, uint32 uiTalkAtive)
 char *sysModel(void)
 {
     int iStatus;
-
-    iStatus = UT_DEFAULT_IMPL(sysModel);
-    if (iStatus == 1)
-    {
-        return "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
+    static char long_message[] = "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
                "THE CURRENT MAXIMUM LENGTH IS 1000 CHARACTERS. SO THIS MESSAGE"
                "MUST BE VERY VERY LONG TO MAKE A DIFFERENCE"
                "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
@@ -141,8 +151,14 @@ char *sysModel(void)
                "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
                "THE CURRENT MAXIMUM LENGTH IS 1000 CHARACTERS. SO THIS MESSAGE"
                "MUST BE VERY VERY LONG TO MAKE A DIFFERENCE";
+    static char short_message[] = "Typical Message";
+
+    iStatus = UT_DEFAULT_IMPL(sysModel);
+    if (iStatus == 1)
+    {
+        return long_message;
     }
-    return "Typical Message";
+    return short_message;
 }
 
 uint32 getCoreClockSpeed(void)

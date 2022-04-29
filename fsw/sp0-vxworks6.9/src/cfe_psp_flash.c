@@ -141,8 +141,8 @@ int32 CFE_PSP_WriteToFlash(uint32 *p_src, size_t size, char *fname)
             {
                 OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Wrote incorrect amount of data\n");
                 OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
-                OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Wrote %lu of %lu bytes. strerror: %s\n", 
-                                            wroteBytes, size, strerror(errno));
+                OS_printf(FLASH_PRINT_SCOPE "WriteToFLASH: Wrote %ld of %lu bytes. strerror: %s\n", 
+                                            (long)wroteBytes, (unsigned long)size, strerror(errno));
                 iReturnCode = CFE_PSP_ERROR;
             }
 

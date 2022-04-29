@@ -24,6 +24,8 @@
 #ifndef _UT_PSP_UTILS_H_
 #define _UT_PSP_UTILS_H_
 
+#define     URM_SIZE        10000
+
 /*=======================================================================================
 ** Macro Definitions
 **=======================================================================================*/
@@ -91,6 +93,7 @@ int returnSelectedBootFlash(void);
 int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 int PCS_OS_BSPMain(void);
 STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
+STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
 void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize );
 void reboot(int iBootType);
 

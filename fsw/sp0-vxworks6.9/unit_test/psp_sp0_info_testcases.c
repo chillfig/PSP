@@ -632,7 +632,6 @@ void Ut_CFE_PSP_SP0DumpData(void)
 void Ut_CFE_PSP_SP0GetDiskFreeSize(void)
 {
     char        ram_disk_path_ram[] = "/ram0";
-    char        ram_disk_path_flash[] = "/ffx0";
     char        ram_disk_path_bad[] = "/f";
     char        ram_disk_path_too_long[200];
     int64_t     return_value = 0;
@@ -667,8 +666,9 @@ void Ut_CFE_PSP_SP0GetDiskFreeSize(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM1Lock(void)
 {
-    /* Capture original ROM1 status */
-    bool bROM1Status = CFE_PSP_SP0ROM1Status();
+    /* NOTE: Testing on target will actually modify the ROM lock/unlock status.
+     * By default, this unit test will keep ROM1 LOCKED after testing.
+     */
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -679,20 +679,7 @@ void Ut_CFE_PSP_SP0ROM1Lock(void)
     iReturnCode = CFE_PSP_SP0ROM1Lock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_LOCK - 1/1: LOCK ROM1 - return code");
-
-    /*
-    ** No matter what happens, 
-    ** attempt to restore original
-    ** ROM1 status
-    */
-    if (bROM1Status == true)
-    {
-        CFE_PSP_SP0ROM1Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM1Unlock();
-    }
+    UtAssert_True(CFE_PSP_SP0ROM1Status(), UT_SP0_PRINT_SCOPE "ROM1_LOCK - 1/1: LOCK ROM1 - Confirmed");
 }
 
 /**********************************************************
@@ -700,8 +687,9 @@ void Ut_CFE_PSP_SP0ROM1Lock(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM1Unlock(void)
 {
-    /* Capture original ROM1 status */
-    bool bROM1Status = CFE_PSP_SP0ROM1Status();
+    /* NOTE: Testing on target will actually modify the ROM lock/unlock status.
+     * By default, this unit test will keep ROM1 UNLOCKED after testing.
+     */
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -712,20 +700,7 @@ void Ut_CFE_PSP_SP0ROM1Unlock(void)
     iReturnCode = CFE_PSP_SP0ROM1Unlock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM1_UNLOCK - 1/1: UNLOCK ROM1 - return code");
-
-    /*
-    ** No matter what happens, 
-    ** attempt to restore original
-    ** ROM1 status
-    */
-    if (bROM1Status == true)
-    {
-        CFE_PSP_SP0ROM1Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM1Unlock();
-    }
+    UtAssert_True(!CFE_PSP_SP0ROM1Status(), UT_SP0_PRINT_SCOPE "ROM1_UNLOCK - 1/1: UNLOCK ROM1 - Confirmed");
 }
 
 /**********************************************************
@@ -733,8 +708,9 @@ void Ut_CFE_PSP_SP0ROM1Unlock(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM2Lock(void)
 {
-    /* Capture original ROM2 Status */
-    bool bROM2Status = CFE_PSP_SP0ROM2Status();
+    /* NOTE: Testing on target will actually modify the ROM lock/unlock status.
+     * By default, this unit test will keep ROM2 LOCKED after testing.
+     */
 
     int32 iReturnCode = CFE_PSP_SUCCESS;
 
@@ -745,20 +721,7 @@ void Ut_CFE_PSP_SP0ROM2Lock(void)
     iReturnCode = CFE_PSP_SP0ROM2Lock();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_LOCK - 1/1: LOCK ROM2 - return code");
-
-    /*
-    ** No matter what happens,
-    ** attemt to restore original
-    ** ROM2 status
-    */
-    if (bROM2Status == true)
-    {
-        CFE_PSP_SP0ROM2Lock();
-    }
-    else
-    {
-		CFE_PSP_SP0ROM2Unlock();
-    }
+    UtAssert_True(CFE_PSP_SP0ROM2Status(), UT_SP0_PRINT_SCOPE "ROM2_LOCK - 1/1: LOCK ROM2 - Confirmed");
 }
 
 /**********************************************************
@@ -766,8 +729,9 @@ void Ut_CFE_PSP_SP0ROM2Lock(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM2Unlock(void)
 {
-	/* Capture original ROM2 Status */
-	bool bROM2Status = CFE_PSP_SP0ROM2Status();
+    /* NOTE: Testing on target will actually modify the ROM lock/unlock status.
+     * By default, this unit test will keep ROM2 UNLOCKED after testing.
+     */
 
 	int32 iReturnCode = CFE_PSP_SUCCESS;
     /* ----- Test case #1 - UNLOCK ROM1 ----- */
@@ -777,20 +741,7 @@ void Ut_CFE_PSP_SP0ROM2Unlock(void)
 	iReturnCode = CFE_PSP_SP0ROM2Unlock();
     /* Verify results */
 	UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROM2_UNLOCK - 1/1: UNLOCK ROM2 - return code");
-
-	/*
-	** No matter what happens,
-	** attempt to restore original
-	** ROM2 status
-	*/
-	if (bROM2Status == true)
-	{
-		CFE_PSP_SP0ROM2Lock();
-	}
-	else
-	{
-		CFE_PSP_SP0ROM2Unlock();
-	}
+    UtAssert_True(!CFE_PSP_SP0ROM2Status(), UT_SP0_PRINT_SCOPE "ROM2_UNLOCK - 1/1: UNLOCK ROM2 - Confirmed");
 }
 
 /**********************************************************
@@ -798,9 +749,9 @@ void Ut_CFE_PSP_SP0ROM2Unlock(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROMXCmd(void)
 {
-    /* Get current status */
-    bool bROM1Status = CFE_PSP_SP0ROM1Status();
-    bool bROM2Status = CFE_PSP_SP0ROM2Status();
+    /* NOTE: Testing on target will actually modify the ROM lock/unlock status.
+     * By default, the unit test will keep the ROMs UNLOCKED after testing.
+     */
 
     int32_t iReturnCode = CFE_PSP_SUCCESS;
 
@@ -832,33 +783,12 @@ void Ut_CFE_PSP_SP0ROMXCmd(void)
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 4/5: ROM2 UNLOCK - return code");
 
-    /*
-    ** Restore ROM1/2 Status
-    */
-    if (bROM1Status == true)
-    {
-        CFE_PSP_SP0ROM1Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM1Unlock();
-    }
-
-    if (bROM2Status == true)
-    {
-        CFE_PSP_SP0ROM2Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM2Unlock();
-    }
-
     /* ----- Test case #5 - Hit Default case ----- */
     /* Set additional inputs */
     /* Execute test */
     iReturnCode = CFE_PSP_SP0ROMXCmd((uint32_t) 0x00000000);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_SP0_PRINT_SCOPE "ROMX_COMMAND 5/5: Default switch case - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 5/5: Default switch case - return code");
 }
 
 /**********************************************************
@@ -866,25 +796,13 @@ void Ut_CFE_PSP_SP0ROMXCmd(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM1Status(void)
 {
-    /* Get current status manually */
-    bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM1_MASK) >> SP0_ROM1_STATUS_SHIFT);
-
     bool bReturnValue = false;
     /* ----- Test case #1 - Get Status ----- */
     /* Set additional inputs */
     /* Execute test */
     bReturnValue = CFE_PSP_SP0ROM1Status();
     /* Verify results */
-    UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM1 Status - return value");
-
-    if (bOriginalValue == true)
-    {
-        CFE_PSP_SP0ROM1Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM1Unlock();
-    }
+    UtAssert_NA(UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM1 Status - NA");
 }
 
 /**********************************************************
@@ -892,25 +810,13 @@ void Ut_CFE_PSP_SP0ROM1Status(void)
  *********************************************************/
 void Ut_CFE_PSP_SP0ROM2Status(void)
 {
-    /* Get current status manually */
-    bool bOriginalValue = (bool) (((*(uint32 *)SP0_BOOT_ROM_STATUS_ADDR) & SP0_ROM2_MASK) >> SP0_ROM2_STATUS_SHIFT);
-
     bool bReturnValue = false;
     /* ----- Test case #1 - Get Status ----- */
     /* Set additional inputs */
     /* Execute test */
     bReturnValue = CFE_PSP_SP0ROM2Status();
     /* Verify results */
-    UtAssert_True(bReturnValue == bOriginalValue, UT_SP0_PRINT_SCOPE "ROM1_Status - 1/1: Get ROM2 Status - return value");
-
-    if (bOriginalValue == true)
-    {
-        CFE_PSP_SP0ROM2Lock();
-    }
-    else
-    {
-        CFE_PSP_SP0ROM2Unlock();
-    }
+    UtAssert_NA(UT_SP0_PRINT_SCOPE "ROM2_Status - 1/1: Get ROM2 Status - NA");
 }
 
 /*=======================================================================================
