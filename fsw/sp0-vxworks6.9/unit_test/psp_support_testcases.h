@@ -41,6 +41,8 @@ void Ut_CFE_PSP_SetBootStartupString(void);
 void Ut_CFE_PSP_GetBootStructure(void);
 void Ut_CFE_PSP_SetBootStructure(void);
 void Ut_CFE_PSP_PrintBootParameters(void);
+void Ut_CFE_PSP_KernelGetCRC(void);
+void Ut_CFE_PSP_KernelLoadNew(void);
 
 #endif  /* UT_PSP_SUPPORT_TESTCASES_H */
 

@@ -3,6 +3,8 @@
 #include <ioLib.h>
 #include <stdio.h>
 #include <bootLib.h>
+#include <bflashCt.h>
+#include <progUtil.h>
 #include "utstubs.h"
 #include "ut_psp_utils.h"
 
@@ -131,12 +133,10 @@ int32 ReadSafeModeUserData(void *pSafeModeUserData, uint32 uiTalkAtive)
     return ERROR;
 }
 
-
-
 char *sysModel(void)
 {
     int iStatus;
-    static char long_message[] = "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
+    static char cLongMessage[] = "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
                "THE CURRENT MAXIMUM LENGTH IS 1000 CHARACTERS. SO THIS MESSAGE"
                "MUST BE VERY VERY LONG TO MAKE A DIFFERENCE"
                "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
@@ -151,14 +151,14 @@ char *sysModel(void)
                "VERY LONG MESSAGE TO FILL THE BUFFER ABOVE THE MAXIMUM LENGTH ALLOWED"
                "THE CURRENT MAXIMUM LENGTH IS 1000 CHARACTERS. SO THIS MESSAGE"
                "MUST BE VERY VERY LONG TO MAKE A DIFFERENCE";
-    static char short_message[] = "Typical Message";
+    static char cShortMessage[] = "Typical Message";
 
     iStatus = UT_DEFAULT_IMPL(sysModel);
     if (iStatus == 1)
     {
-        return long_message;
+        return cLongMessage;
     }
-    return short_message;
+    return cShortMessage;
 }
 
 uint32 getCoreClockSpeed(void)
@@ -387,9 +387,60 @@ int nbytes, /* size of the buffer */
 int offset /* byte offset in EEPROM */
 )
 {
-    int32 iStatus;
+    STATUS iStatus;
 
     iStatus = UT_DEFAULT_IMPL(sysNvRamSet);
+
+    return iStatus;
+}
+
+cat_struct_type *getCatalogPointer (BOOL first_catalog)
+{
+    STATUS iStatus;
+    static cat_struct_type catStruct = {{0}};
+    sprintf(catStruct.fcatalog_s[2].id, "VXWORKS");
+    catStruct.fcatalog_s[2].crc = 0x12345678;
+
+    iStatus = UT_DEFAULT_IMPL(getCatalogPointer);
+
+    if (iStatus == OK)
+    {
+        return &catStruct;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+int getCatalogEntryCount (cat_struct_type *catPtr)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(getCatalogEntryCount);
+
+    return iStatus;
+}
+
+STATUS  CreateProgrammingBuffer(uint32_t size)
+{
+    STATUS iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(CreateProgrammingBuffer);
+
+    return iStatus;
+}
+
+int flashProgFile (
+    char *pathName,         /* host pathname of binary image */
+    char *fileName,         /* file name for catalog */
+    uint32_t    ramAddr,    /* Load address when loaded later */
+    BOOL    force           /* Do without prompts */
+    )
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(flashProgFile);
 
     return iStatus;
 }

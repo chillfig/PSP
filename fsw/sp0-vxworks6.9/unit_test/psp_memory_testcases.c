@@ -92,7 +92,7 @@ void Ut_CFE_PSP_CalculateCRC(void)
     /* Execute test */
     uiRetCode = CFE_PSP_CalculateCRC(pData, sizeof(pData), 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode = uiCrcCode, "_CFE_PSP_CalculateCRC - 1/1: Nominal");
+    UtAssert_True((uiRetCode == uiCrcCode), "_CFE_PSP_CalculateCRC - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -1991,7 +1991,7 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - message");
 
     /* ----- Test case #2: Fail to take binsem ----- */
@@ -2005,7 +2005,7 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail to take bsem - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail to take bsem - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail take bsem - message");
 
     /* ----- Test case #3: Fail to delete bsem ----- */
@@ -2020,7 +2020,7 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail delete bsem - message");
 
     /* ----- Test case #4: Successfully destroy ----- */
@@ -2124,7 +2124,7 @@ void Ut_CFE_PSP_MemSyncStop(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 2/5: Fail to take binary semaphore - message");
 
     /* ----- Test case #3: Fail to delete task ----- */
@@ -2138,7 +2138,7 @@ void Ut_CFE_PSP_MemSyncStop(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 3/5: Fail to delete task - message");
 
     /* ----- Test case #4: fail to give binsem----- */
@@ -2162,7 +2162,7 @@ void Ut_CFE_PSP_MemSyncStop(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncStop();
     /* Verify results */
-    UtAssert_True((iReturnCode = CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Stop - 4/5: Fail to give binary semaphore - message");
 
     /* ----- Test case #5: Successful stop----- */

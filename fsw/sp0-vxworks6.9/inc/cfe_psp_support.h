@@ -70,7 +70,7 @@ void CFE_PSP_ToggleCFSBootPartition(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative);
+int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative);
 
 /**
  ** \func Sets new boot startup string
@@ -87,7 +87,7 @@ int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize,
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
+int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
 
 /**
  ** \func Prints the boot paramters to console
@@ -102,7 +102,7 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
  **
  ** \return None
  */
-void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
+void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
 
 /**
  ** \func Gets current boot parameter structure
@@ -120,7 +120,7 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative);
+int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative);
 
 /**
  ** \func Sets new boot parameter structure
@@ -138,7 +138,48 @@ int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 tal
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+
+/**
+ ** \func Get CRC of Kernel in Catalog
+ **
+ ** \par Description:
+ ** Function gets the CRC of the catalog entry name.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** On a SP0 there are 2 catalogs. If there are no errors, the first catalog is 
+ ** exactly the same as the second catalog.
+ ** 
+ ** \param[in] pCatalogEntryName - Name of the catalog entry
+ ** \param[in] bFirstCatalog - Catalog number (TRUE == 1,  FALSE == 2)
+ **
+ ** \return 0 - When the Kernel is not found or bad inputs
+ ** \return CRC
+ */
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, BOOL bFirstCatalog);
+
+/**
+ ** \func Load new kernel on SP0 target
+ **
+ ** \par Description:
+ ** This function programs a new kernel on the SP0 target.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The kernel file is saved in a special location on the SP0 Flash memory. This
+ ** function is a blocking function and thus, it will slow down cFS. It is also 
+ ** recommended to restart the target immediately.
+ ** The function will set the new kernel file as the default kernel.
+ ** Validity of the kernel path and file structure is left to the end user.
+ ** Name of the Kernel pKernelCatalogName must be no more than 8 characters.
+ ** 
+ ** \param[in] pKernelPath - Kernel file path
+ ** \param[in] pKernelCatalogName - Name of the kernel
+ **
+ ** \return #CFE_PSP_SUCCESS - When the kernel is successfully loaded
+ ** \return #CFE_PSP_ERROR - When the kernel could not be loaded
+ */
+
+int32 CFE_PSP_KernelLoadNew(char *pKernelPath, char *pKernelCatalogName);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

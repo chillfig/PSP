@@ -102,13 +102,11 @@ void Ut_CFE_PSP_Restart(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
     uiResetType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
-    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
+    CFE_PSP_ReservedMemoryMap.BootPtr = NULL;
     sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);
     /* Verify outputs */
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR,
-                  "_CFE_PSP_Restart() - 3/3: Nominal PROCESSOR reboot");
     UtAssert_STUB_COUNT(reboot,1);
 }
 
@@ -566,10 +564,134 @@ void Ut_CFE_PSP_PrintBootParameters(void)
 
     Ut_OS_printf_Setup();
     bootStringToStruct(boot_string, &test_param);
-
+    /* Execute test */
     CFE_PSP_PrintBootParameters(&test_param);
-
+    /* Verify outputs */
     UtAssert_True(Ut_OS_printf_MsgCount() == 2, "_CFE_PSP_PrintBootParameters() - 1/1: Nominal");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_KernelGetCRC(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_KernelGetCRC(void)
+{
+    /* This kernel name must match the predefined name in the stub */
+    char cKernelName[] = "VXWORKS";
+    uint32 iRetCRC = 0;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogPointer), OK);
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogEntryCount), 5);
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), 0);
+    /* Execute test */
+    iRetCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
+    /* Verify outputs */
+    UtAssert_True((iRetCRC == 0), "_CFE_PSP_KernelGetCRC() - 1/5: Nominal found CRC");
+    UtAssert_STUB_COUNT(strncmp, 1);
+    UtAssert_STUB_COUNT(getCatalogEntryCount, 1);
+
+    UT_ResetState(0);
+
+    /* ----- Test case #2 - Could not find entry ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogPointer), OK);
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogEntryCount), 5);
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), 1);
+    /* Execute test */
+    iRetCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
+    /* Verify outputs */
+    UtAssert_True((iRetCRC == 0), "_CFE_PSP_KernelGetCRC() - 2/5: Nominal kernel name not found");
+    UtAssert_STUB_COUNT(strncmp, 5);
+    UtAssert_STUB_COUNT(getCatalogEntryCount, 1);
+
+    UT_ResetState(0);
+
+    /* ----- Test case #3 - Number of entries is wrong ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogPointer), OK);
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogEntryCount), 500);
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), 1);
+    /* Execute test */
+    iRetCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
+    /* Verify outputs */
+    UtAssert_True((iRetCRC == 0), "_CFE_PSP_KernelGetCRC() - 3/5: Error, wrong number of entries in catalog");
+    UtAssert_STUB_COUNT(strncmp, 0);
+    UtAssert_STUB_COUNT(getCatalogEntryCount, 1);
+
+    UT_ResetState(0);
+
+    /* ----- Test case #4 - Catalog Pointer wrong ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogPointer), ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(getCatalogEntryCount), 5);
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), 1);
+    /* Execute test */
+    iRetCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
+    /* Verify outputs */
+    UtAssert_True((iRetCRC == 0), "_CFE_PSP_KernelGetCRC() - 4/5: Error, bad catalog pointer");
+    UtAssert_STUB_COUNT(strncmp, 0);
+    UtAssert_STUB_COUNT(getCatalogEntryCount, 0);
+
+    UT_ResetState(0);
+
+    /* ----- Test case #3 - NULL pCatalogEntryName ----- */
+    /* Execute test */
+    iRetCRC = CFE_PSP_KernelGetCRC(NULL, true);
+    /* Verify outputs */
+    UtAssert_True((iRetCRC == 0), "_CFE_PSP_KernelGetCRC() - 5/5: Error, pCatalogEntryName null");
+    UtAssert_STUB_COUNT(getCatalogEntryCount, 0);
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_KernelLoadNew(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_KernelLoadNew(void)
+{
+    char cKernelPath[] = "/ram0/test.bin";
+    char cKernelName[] = "VXWORKS";
+    char cMsgError1[] = "PSP: Could not flash new kernel\n";
+    char cMsgError2[] = "PSP: Could not pre-allocate buffer for new kernel\n";
+    int32 iRetCode = CFE_PSP_ERROR;
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(CreateProgrammingBuffer), OK);
+    UT_SetDefaultReturnValue(UT_KEY(flashProgFile), OK);
+    /* Execute test */
+    iRetCode = CFE_PSP_KernelLoadNew(cKernelPath, cKernelName);
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_KernelLoadNew() - 1/1: Nominal");
+    UtAssert_STUB_COUNT(flashProgFile, 1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Could not flash program file ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(CreateProgrammingBuffer), OK);
+    UT_SetDefaultReturnValue(UT_KEY(flashProgFile), ERROR);
+    /* Execute test */
+    iRetCode = CFE_PSP_KernelLoadNew(cKernelPath, cKernelName);
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_KernelLoadNew() - 2/3: Could not flash - Return error");
+    UtAssert_STUB_COUNT(flashProgFile, 1);
+    UtAssert_OS_print(cMsgError1, "_CFE_PSP_KernelLoadNew() - 2/3: Could not flash - Message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Could not allocate buffer ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(CreateProgrammingBuffer), ERROR);
+    /* Execute test */
+    iRetCode = CFE_PSP_KernelLoadNew(cKernelPath, cKernelName);
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_KernelLoadNew() - 3/3: Could not allocate - Retun Error");
+    UtAssert_STUB_COUNT(flashProgFile, 0);
+    UtAssert_OS_print(cMsgError2, "_CFE_PSP_KernelLoadNew() - 3/3: Could not allocate - Message");
 }
 
 /*=======================================================================================

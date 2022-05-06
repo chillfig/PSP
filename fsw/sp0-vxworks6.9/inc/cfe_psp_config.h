@@ -164,7 +164,7 @@ extern "C" {
 #define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH      32
 
 /**
- ** \brief Maximum length of failed stratup filename with path
+ ** \brief Maximum length of failed startup filename with path
  **
  ** \par Limits:
  ** This value is the total length of the active partition max length plus
@@ -175,8 +175,12 @@ extern "C" {
                         CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
 
 /**
- ** \brief Define the file name of the boot startup
+ ** \brief Define the file name of the boot startup script
  **
+ ** \par Description:
+ ** This filename is used by PSP to build the boot startup path. The kernel will
+ ** automatically run the script pointed by the boot startup path on boot.
+ ** 
  ** \par Limits:
  ** Minimum 1 character, and maximum of #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH
  */
@@ -457,7 +461,7 @@ typedef struct
 #define CFE_PSP_VOLATILEDISK_FLASH_FILEPATH         "VODI.bkp"
 
 /** \brief User Reserved File name on FLASH */
-#define CFE_PSP_USERRESERVED_FLASH_FILEPATH        "USRR.bkp"
+#define CFE_PSP_USERRESERVED_FLASH_FILEPATH         "USRR.bkp"
 
 
 /** \name Memory Scrubbing Configuration Parameters */

@@ -4,7 +4,7 @@
  * Functions are tested without OSAL and CFE, and they run on target.
  * Standard VxWorks functions must be used in place of OSAL.
  * 
- * /
+ */
 
 /*
 **  Include Files
@@ -166,7 +166,8 @@ void PSP_FT_Setup(void)
  */
 void PSP_FT_SendEndTestEvent(void)
 {
-    if (wdbUserEvtPost ("End of Tests") != OK) {
+    char cEventMessage[] = "End of Tests";
+    if (wdbUserEvtPost (cEventMessage) != OK) {
         OS_printf ("Can't send message to host tools");
         CFE_Config_Init();
         CFE_Config_GetString(CFE_CONFIGID_CORE_BUILDINFO_DATE);
@@ -223,6 +224,9 @@ void ft_support(void)
     char    bs_original[200] = {'\0'};
     char    bs_new[200] = "/ram0/test";
     char    bs_confirm[200] = {'\0'};
+    char    cKernelName[] = "AITECH20";
+    char    cKernelNameBad[] = "IEH0";
+    uint32  uiCRC = 0;
 
     OS_printf("[SUPPORT START]\n");
 
@@ -250,6 +254,14 @@ void ft_support(void)
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
     FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) == 0, "Confirming string boot has been restored to original")
 
+    /* Read CRC of AITECH20 kernel */
+    uiCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
+    FT_Assert_True((uiCRC != 0), "Get `AITECH20` CRC");
+
+    /* Read CRC of random name kernel */
+    uiCRC = CFE_PSP_KernelGetCRC(cKernelNameBad, true);
+    FT_Assert_True((uiCRC == 0), "Could not get `IEH0` CRC");
+
     OS_printf("[SUPPORT END]\n");
 }
 
@@ -261,7 +273,6 @@ void ft_exception(void)
     osal_id_t TaskId;
     int32     ret_code = 0;
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
-    uint32    value = 10;
 
     OS_printf("[EXCEPTION START]\n");
 
@@ -426,7 +437,6 @@ void ft_start(void)
 {
     bool        test_case = false;
     uint32      last_reset_type;
-    RESET_SRC_REG_ENUM   resetSrc = RESET_SRC_POR | RESET_SRC_SWR;
     char        buffer[256];
     int32       ret_code;
 
@@ -481,7 +491,6 @@ Functional Tests:
 void ft_cds_flash(void)
 {
     uint32      uCDSSize;
-    int         cnt_index = 0;
     int32       ret_value;
     int         char_data = 0x11;
     char        data_buffer[100] = {};
@@ -734,13 +743,8 @@ Functional Tests:
 */
 void ft_ntp_sync(void)
 {
-    bool        status = false;
     int32       ret_code = CFE_PSP_ERROR;
     char        strMsg[256] = "";
-    uint16_t    test_index = 0;
-    uint32_t    previous_subsec = 0;
-    uint32_t    subsec_change = 0;
-    CFE_TIME_SysTime_t cfe_stcf;
     CFE_TIME_SysTime_t cfe_time_utc;
     CFE_TIME_SysTime_t cfe_time;
     CFE_TIME_SysTime_t psp_time;

@@ -241,6 +241,15 @@ int PCS_snprintf(char *s, size_t maxlen, const char *format, ...)
     return actual;
 }
 
+int strncmp(const char *__s1, const char *__s2, size_t __n)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(strncmp);
+
+    return Status;
+}
+
 int32 taskPriorityGet(int32 iTid, int32 *piCurPrio)
 {
     int32 iStatus;

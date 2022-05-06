@@ -97,6 +97,8 @@ STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
 void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize );
 void reboot(int iBootType);
 
+void SystemMain(uint32 StartType, uint32 StartSubtype, uint32 ModeId, const char *StartFilePath);
+
 #endif  /* _UT_PSP_UTILS_H_ */
 
 /*=======================================================================================

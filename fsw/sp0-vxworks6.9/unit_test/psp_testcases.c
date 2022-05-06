@@ -482,6 +482,13 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_PrintBootParameters");
 
+    UtTest_Add(Ut_CFE_PSP_KernelGetCRC,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_KernelGetCRC");
+
+    UtTest_Add(Ut_CFE_PSP_KernelLoadNew,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_KernelLoadNew");
 
     #endif /* TEST_SUPPORT == 1 */
 
@@ -598,7 +605,8 @@ void UtTest_Setup(void)
  */
 void Ut_CFE_PSP_EndTests(void)
 {
-    wdbUserEvtPost ("End of Tests");
+    char cEventMessage[] = "End of Tests";
+    wdbUserEvtPost(cEventMessage);
 }
 
 /*=======================================================================================

@@ -26,8 +26,6 @@
 #include "../src/cfe_psp_exception.c"
 
 extern int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug);
-extern void SystemNotify(void);
-extern Target_CfeConfigData GLOBAL_CFE_CONFIGDATA;
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -58,7 +56,7 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     /* Execute test */
     iRetCode = CFE_PSP_edrPolicyHandlerHook(iType, &InfoParam, bDebug);
     /* Verify outputs */
-    UtAssert_True(iRetCode == true, "_CFE_PSP_edrPolicyHandlerHook() - 1/5: Nominal");
+    UtAssert_True((iRetCode == true), "_CFE_PSP_edrPolicyHandlerHook() - 1/4: Nominal");
 
     /* ----- Test case #2 - Nominal with Override Policy Enabled ----- */
     UT_ResetState(0);
@@ -69,7 +67,7 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     /* Execute test */
     iRetCode = CFE_PSP_edrPolicyHandlerHook(iType, &InfoParam, bDebug);
     /* Verify outputs */
-    UtAssert_True(iRetCode == false, "_CFE_PSP_edrPolicyHandlerHook() - 2/5: Nominal with Override Policy Enabled");
+    UtAssert_True((iRetCode == false), "_CFE_PSP_edrPolicyHandlerHook() - 2/4: Nominal with Override Policy Enabled");
 
     /* ----- Test case #3 - Failed CFE_PSP_Exception_GetNextContextBuffer returned NULL ----- */
     UT_ResetState(0);
@@ -81,14 +79,10 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     /* Execute test */
     iRetCode = CFE_PSP_edrPolicyHandlerHook(iType, &InfoParam, bDebug);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_increase_buffer, "_CFE_PSP_edrPolicyHandlerHook() - 3/5: Failed to get context buffer - message");
-    UtAssert_True(iRetCode == false, "_CFE_PSP_edrPolicyHandlerHook() - 3/5: Failed to get context buffer - return code error");
+    UtAssert_OS_print(cMsg_increase_buffer, "_CFE_PSP_edrPolicyHandlerHook() - 3/4: Failed to get context buffer - message");
+    UtAssert_True((iRetCode == false), "_CFE_PSP_edrPolicyHandlerHook() - 3/4: Failed to get context buffer - return code error");
 
     /* ----- Test case #4 - Nominal - g_pDefaultedrPolicyHandlerHook False ----- */
-    /* Decision "g_pDefaultedrPolicyHandlerHook != ( ( void * ) 0 )" never evaluated to false is an Impossible Condition */
-    /* Add to increase code coverage? If it is impossible, then should we remove? 
-     * If not remove, then let's test for code coverage sake 
-     */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     /* Setup additional inputs */
@@ -100,8 +94,7 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     /* Execute test */
     iRetCode = CFE_PSP_edrPolicyHandlerHook(iType, &InfoParam, bDebug);
     /* Verify outputs */
-    UtAssert_True(iRetCode == false, "_CFE_PSP_edrPolicyHandlerHook() - 4/5: Failed No context buffer received");
-
+    UtAssert_True((iRetCode == false), "_CFE_PSP_edrPolicyHandlerHook() - 4/4: Failed No context buffer received");
 }
 
 /*=======================================================================================
@@ -212,7 +205,7 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
     iRetCode = CFE_PSP_ExceptionGetSummary_Impl(&buffer, cReasonBuf, uiReasonSize);
     /* Verify outputs */
     UtAssert_True(strlen(cReasonBuf) != 0, "_CFE_PSP_ExceptionGetSummary_Impl() - 1/5: Nominal output string parameter value was set");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ExceptionGetSummary_Impl() - 1/5: Nominal");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_ExceptionGetSummary_Impl() - 1/5: Nominal");
 
     /* ----- Test case #2 - task name not found ----- */
     /* Setup additional inputs */
@@ -221,21 +214,21 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
     iRetCode = CFE_PSP_ExceptionGetSummary_Impl(&buffer, cReasonBuf, uiReasonSize);
     /* Verify outputs */
     UtAssert_True(strlen(cReasonBuf) != 0, "_CFE_PSP_ExceptionGetSummary_Impl() - 2/5: TASK ID not found");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ExceptionGetSummary_Impl() - 2/5: TASK ID not found");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_ExceptionGetSummary_Impl() - 2/5: TASK ID not found");
 
     /* ----- Test case #3 - ReasonBuf is null ----- */
     /* Setup additional inputs */
     /* Execute tests*/
     iRetCode = CFE_PSP_ExceptionGetSummary_Impl(&buffer, NULL, uiReasonSize);
     /* Verify results */
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ExceptionGetSummary_Impl() - 3/5: ReasonBuf is NULL");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_ExceptionGetSummary_Impl() - 3/5: ReasonBuf is NULL");
 
     /* ----- Test case #4 - Buffer is null ----- */
     /* Setup additional inputs */
     /* Execute tests*/
     iRetCode = CFE_PSP_ExceptionGetSummary_Impl(NULL, cReasonBuf, uiReasonSize);
     /* Verify results */
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ExceptionGetSummary_Impl() - 4/5: Buffer is NULL");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_ExceptionGetSummary_Impl() - 4/5: Buffer is NULL");
 
     /* ----- Test case #5 - Nominal ReasonBuf too short ----- */
     /* Setup additional inputs */
@@ -245,7 +238,7 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg, "_CFE_PSP_ExceptionGetSummary_Impl() - 5/6: Nominal - ReasonBuf too short - Message");
     UtAssert_True(strlen(cReasonBuf) == (uiReasonSize - 1), "_CFE_PSP_ExceptionGetSummary_Impl() - 5/6: Nominal - ReasonBuf length same as ReasonSize");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ExceptionGetSummary_Impl() - 5/6: ReasonBuf too short - Return code error");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_ExceptionGetSummary_Impl() - 5/6: ReasonBuf too short - Return code error");
 
     /* ----- Test case #6 - snprintf error ----- */
     /* Setup additional inputs */
@@ -255,7 +248,7 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
     iRetCode = CFE_PSP_ExceptionGetSummary_Impl(&buffer, cReasonBuf, uiReasonSize);
     /* Verify outputs */
     UtAssert_OS_print(cMsg_snprintf_error, "_CFE_PSP_ExceptionGetSummary_Impl() - 6/6: Nominal - snprintf error - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_ExceptionGetSummary_Impl() - 6/6: snprintf error - Return code error");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_ExceptionGetSummary_Impl() - 6/6: snprintf error - Return code error");
 }
 
 /*=======================================================================================
@@ -271,7 +264,7 @@ void Ut_CFE_PSP_ClearNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_ClearNVRAM();
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_edrClearEEPROM() - 1/2: Nominal - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_edrClearEEPROM() - 1/2: Nominal - Return Code");
 
     /* ----- Test case #2 - Error ----- */
     /* Setup additional inputs */
@@ -279,7 +272,7 @@ void Ut_CFE_PSP_ClearNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_ClearNVRAM();
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_edrClearEEPROM() - 2/2: userNvRamGet error - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_edrClearEEPROM() - 2/2: userNvRamGet error - Return Code");
 }
 
 /*=======================================================================================
@@ -335,7 +328,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
     UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Error Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Error Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -349,7 +342,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
     UtAssert_OS_print(cMsg_bad4, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -363,7 +356,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
     UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_LoadFromNVRAM() - 3/4: Error URM Signature - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 3/4: Error URM Signature - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 3/4: Error URM Signature - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -375,7 +368,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
     UtAssert_OS_print(cMsg_bad3, "_Ut_CFE_PSP_LoadFromNVRAM() - 4/4: Error userNvRamGet - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_LoadFromNVRAM() - 4/4: Error userNvRamGet - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 4/4: Error userNvRamGet - Return Code");
 }
 
 /*=======================================================================================
@@ -410,7 +403,7 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: URM Pack Signature - Message");
     UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - URM Data Saved - Message");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - Return Code");
     
 
     UT_ResetState(0);
@@ -424,7 +417,7 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: URM Pack Signature - Message");
     UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error URM Data - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -436,7 +429,7 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Verify outputs */
     UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: URM Pack Signature - Message");
     UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: userNvRamSet error URM Signature - Message");
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: Nominal - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: Nominal - Return Code");
 }
 
 /*=======================================================================================

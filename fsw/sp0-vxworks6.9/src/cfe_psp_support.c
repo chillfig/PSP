@@ -33,6 +33,10 @@
 #include <cacheLib.h>
 #include <rebootLib.h>
 #include <bootLib.h>
+/* For manipulating target catalog */
+#include <bflashCt.h>
+/* For loading a new kernel on catalog */
+#include <progUtil.h>
 
 #include "common_types.h"
 #include "target_config.h"
@@ -311,7 +315,7 @@ void CFE_PSP_ToggleCFSBootPartition(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative)
+int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
     BOOT_PARAMS target_boot = {};
@@ -353,7 +357,7 @@ int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize,
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
+int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
     BOOT_PARAMS target_boot = {};
@@ -408,7 +412,7 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
  * Description: See function declaration for info
  *
  *********************************************************/
-void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
+void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
 {
     OS_printf(
         "[\n"
@@ -456,7 +460,7 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative)
+int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative)
 {
     int32   iRet_code = CFE_PSP_ERROR;
     char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
@@ -491,7 +495,7 @@ int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 tal
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative)
+int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative)
 {
     int32       iRet_code = CFE_PSP_ERROR;
     char        cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
@@ -520,4 +524,84 @@ int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkati
     }
 
     return iRet_code;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_KernelGetCRC
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, BOOL bFirstCatalog)
+{
+    int32_t iNumCatEntries = 0;
+    uint8_t uiIndex = 0;
+    uint32_t uiCRC = 0;
+    cat_struct_type *pCatStruct = NULL;
+
+    /* If the catalog entry name is not set and the catalog number is outside the required range [1, 2] skip */
+    if (pCatalogEntryName != NULL)
+    {
+        /* Get pointer to the first catalog */
+        pCatStruct = getCatalogPointer(bFirstCatalog);
+
+        if (pCatStruct != NULL)
+        {
+            /* Get number of entries in the catalog */
+            iNumCatEntries = getCatalogEntryCount(pCatStruct);
+
+            if (iNumCatEntries < MAX_CATALOG_ENTRIES)
+            {
+                /* Loop through all catalog entries */
+                for (uiIndex = 0; uiIndex < iNumCatEntries; uiIndex++)
+                {
+                    /* Check if name of catalog entry is the same as our target */
+                    if (strncmp(pCatStruct->fcatalog_s[uiIndex].id, pCatalogEntryName, 8) == 0)
+                    {
+                        /* Save locally the pre computed CRC */
+                        uiCRC = pCatStruct->fcatalog_s[uiIndex].crc;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return uiCRC;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_KernelLoadNew
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+int32 CFE_PSP_KernelLoadNew(char *pKernelPath, char *pKernelCatalogName)
+{
+    int32 iRetCode = CFE_PSP_ERROR;
+    /* Buffer Size for Programming */
+    const uint32_t uiBufferSize = 0x1000000;
+    /* RAM address where kernel will start from */
+    const uint32_t uiRAMAddress = 0x00200000;
+
+    /* Create Buffer for kernel writing */
+    if (CreateProgrammingBuffer(uiBufferSize) == OK)
+    {
+        /* Flash kernel file and automatically set it to default */
+        if (flashProgFile(pKernelPath, pKernelCatalogName, uiRAMAddress, 1) == OK)
+        {
+            iRetCode = CFE_PSP_SUCCESS;
+        }
+        else
+        {
+            OS_printf("PSP: Could not flash new kernel\n");
+        }
+    }
+    else
+    {
+        OS_printf("PSP: Could not pre-allocate buffer for new kernel\n");
+    }
+    
+    return iRetCode;
 }
