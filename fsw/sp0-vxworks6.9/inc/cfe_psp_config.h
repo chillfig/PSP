@@ -475,7 +475,45 @@ typedef struct
  ** 0 = Do not start task during startup
  ** 1 = Start task during startup
 */
-#define MEM_SCRUB_TASK_START_ON_STARTUP      1
+#define MEMSCRUB_TASK_START_ON_STARTUP      1
+
+/**
+ ** \brief Memory Scrub Run Mode
+ **
+ ** \par Description:
+ ** Mem Scrub can be run in multiple modes depending on the PSP config.
+ ** - Idle Mode
+ **   - A task is created that runs continuously in a while loop with
+ **     low priority
+ ** - Timed Mode
+ **   - A task is created that runs every X number of seconds. The start and
+ **     end address are scrubbed through in blocks.
+ ** - Manual Mode
+ **   - End user calls the mem scrub function when appropriate. The start and
+ **     end address are scrubbed through in blocks.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Value mustbe one of three options:
+ ** - MEMSCRUB_IDLE_MODE
+ ** - MEMSCRUB_TIMED_MODE
+ ** - MEMSCRUB_MANUAL_MODE
+ **
+ */
+#define MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
+
+/**
+ ** \brief Defines the block size in pages (4096 bytes each) to scrub
+ ** \par Description:
+ ** This applies only for Timed and Manual Mode
+ */
+#define MEMSCRUB_BLOCKSIZE_PAGES           10
+
+/**
+ ** \brief Defines the number of milliseconds to wait before scrubbing another block
+ ** \par Description:
+ ** This applies only for Timed Mode
+ */
+#define MEMSCRUB_TASK_DELAY_MSEC           500
 
 /**
  ** \brief Memory Scrub Default Start Address
@@ -486,7 +524,7 @@ typedef struct
  ** \par Assumptions, External Events, and Notes:
  ** Value must be set to a valid address.
  */
-#define MEM_SCRUB_DEFAULT_START_ADDR        (0)
+#define MEMSCRUB_DEFAULT_START_ADDR        0
 
 /**
  ** \brief Memory Scrub Default End Address
@@ -500,7 +538,7 @@ typedef struct
  ** starting memory scrub task. Set to (0) to allow program to 
  ** use general start address (physical end of RAM).
  */
-#define MEM_SCRUB_DEFAULT_END_ADDR          (0)
+#define MEMSCRUB_DEFAULT_END_ADDR          0
 
 /**
  ** \brief Memory Scrub Default Priority
@@ -536,6 +574,9 @@ typedef struct
  ** Set the Active Memory Scrub Task Name
  */
 #define MEMSCRUB_TASK_NAME                  "PSPMemScrub"
+
+/** \brief MEM SCRUB Binary semaphore name */
+#define MEMSCRUB_BSEM_NAME             "PSP_BSEM_NAME"
 
 /** \} */
 
@@ -587,10 +628,6 @@ typedef struct
  ** 
  */
 #define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
-
-/** \brief MEM SCRUB Binary semaphore name */
-#define PSP_MEM_SCRUB_BSEM_NAME             "PSP_BSEM_NAME"
-
 
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000

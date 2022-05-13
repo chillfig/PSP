@@ -37,6 +37,8 @@ Kernel must include the following services:
 
 > **NOTE 3**: A `$` next to a name means that it is defined in both Linux and SP0 targets
 
+> **NOTE 4**: A `@` next to a function name means that it is Thread-Safe and Reentrant
+
 ### Base PSP
 
 - Defines
@@ -105,42 +107,49 @@ Kernel must include the following services:
 
 ### Active Memory Scrubbing
 
+The define MEM_SCRUB_RUN_MODE defines how the Memory Scrubbing works in CFS.
+
+When Run Mode is set to Idle Mode or Timed Mode, a Task is created during initialization via the function CFE_PSP_MemScrubInit. The Task runs in a low priority continuos while loop in automatic, but in Timed Mode, the while loop includes a task delay defined by MEM_SCRUB_TASK_DELAY_MSEC. It can only be terminated by using functions CFE_PSP_MemScrubDisable or CFE_PSP_MemScrubDelete.
+
+When running in Manual Mode, no task is created. Run To call memory scrubbing
+
 - Defines
-  - MEM_SCRUB_PRINT_SCOPE
-  - MEM_SCRUB_TASK_START_ON_STARTUP
-  - MEM_SCRUB_DEFAULT_START_ADDR `*`
-  - MEM_SCRUB_DEFAULT_END_ADDR `*`
+  - MEMSCRUB_PRINT_SCOPE
+  - MEMSCRUB_PAGE_SIZE
+  - MEMSCRUB_TASK_START_ON_STARTUP `*`
+  - MEMSCRUB_RUN_MODE `*`
+  - MEMSCRUB_BLOCKSIZE_PAGES `*`
+  - MEMSCRUB_TASK_DELAY_MSEC `*`
+  - MEMSCRUB_DEFAULT_START_ADDR `*`
+  - MEMSCRUB_DEFAULT_END_ADDR `*`
   - MEMSCRUB_DEFAULT_PRIORITY `*`
   - MEMSCRUB_PRIORITY_UP_RANGE `*`
   - MEMSCRUB_PRIORITY_DOWN_RANGE `*`
   - MEMSCRUB_TASK_NAME `*`
-  - PSP_MEM_SCRUB_BSEM_NAME `*`
+  - MEMSCRUB_BSEM_NAME `*`
 
 - Structures
-  - CFE_PSP_MemScrubStatus_t
-  - CFE_PSP_MemScrubErrStats_t
+  - CFE_PSP_MemScrubStatus_t `^`
+  - CFE_PSP_MemScrubErrStats_t `^`
 
 - Public Functions
-  - CFE_PSP_MemScrubSet
-  - CFE_PSP_MemScrubIsRunning
-  - CFE_PSP_MemScrubDelete
-  - CFE_PSP_MemScrubStatus
   - CFE_PSP_MemScrubInit
+  - CFE_PSP_MemScrubSet
+  - CFE_PSP_MemScrubGet
   - CFE_PSP_MemScrubEnable
   - CFE_PSP_MemScrubDisable
+  - CFE_PSP_MemScrubDelete
+  - CFE_PSP_MemScrubTrigger
+  - CFE_PSP_MemScrubIsRunning
   - CFE_PSP_MemScrubErrStats
 
 - Static Functions
   - CFE_PSP_MemScrubTask
+  - CFE_PSP_MemScrubValidate
 
 - Static Variables
   - g_uiEndOfRam
-  - g_uiMemScrubTaskPriority
-  - g_uiMemScrubTaskId
-  - g_uiMemScrubStartAddr
-  - g_uiMemScrubEndAddr
-  - g_uiMemScrubCurrentPage
-  - g_uiMemScrubTotalPages
+  - g_MemScrub_Status
   - g_uiSemUpdateMemAddr_id
   - g_bScrubAddrUpdates_flag
 

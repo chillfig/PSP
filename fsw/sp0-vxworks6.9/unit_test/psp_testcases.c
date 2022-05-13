@@ -363,7 +363,10 @@ void UtTest_Setup(void)
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MemScrubInit");
 
-    /* Below test will never exit unless task is deleted */
+    UtTest_Add(Ut_CFE_PSP_MemScrubValidate,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MemScrubValidate");
+
     UtTest_Add(Ut_CFE_PSP_MemScrubTask,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MemScrubTask");
@@ -376,9 +379,9 @@ void UtTest_Setup(void)
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MemScrubSet");
 
-    UtTest_Add(Ut_CFE_PSP_MemScrubStatus,
+    UtTest_Add(Ut_CFE_PSP_MemScrubGet,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-            "Ut_CFE_PSP_MemScrubStatus");
+            "Ut_CFE_PSP_MemScrubGet");
 
     UtTest_Add(Ut_CFE_PSP_MemScrubEnable,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
@@ -391,6 +394,10 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_MemScrubDelete,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
             "Ut_CFE_PSP_MemScrubDelete");
+
+    UtTest_Add(Ut_CFE_PSP_MemScrubTrigger,
+            Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+            "Ut_CFE_PSP_MemScrubTrigger");
 
     UtTest_Add(Ut_CFE_PSP_MemScrubErrStats,
             Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

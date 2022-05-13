@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <vxWorks.h>
 #include <edrLib.h>
+#include <usrLib.h>
 
 #include <scratchRegMap.h>
 #include <aimonUtil.h>
@@ -156,6 +157,9 @@ void PSP_FT_Setup(void)
     remove("/ffx0/URM/RESET.bkp");
     remove("/ffx0/URM/CDS.bkp");
 
+    /* Start CPU Activity Function */
+    spyClkStart(0);
+
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     CFE_PSP_Main();
 }
@@ -208,7 +212,13 @@ void PSP_FT_Start(void)
 
     ft_watchdog();
 
+    /* End CPU Activity Function */
+    spyClkStop();
+
     OS_printf("[END PSP Functional Test]\n\n");
+
+    /* Print CPU activity report */
+    spyReport();
 
     OS_printf("[RESULTS]\n"
               "Passed: %u - "
@@ -262,7 +272,7 @@ void ft_support(void)
     uiCRC = CFE_PSP_KernelGetCRC(cKernelNameBad, true);
     FT_Assert_True((uiCRC == 0), "Could not get `IEH0` CRC");
 
-    OS_printf("[SUPPORT END]\n");
+    OS_printf("[SUPPORT END]\n\n");
 }
 
 void ft_exception(void)
@@ -308,7 +318,7 @@ void ft_exception(void)
     ret_code = CFE_PSP_Exception_GetSummary(&LogId, &TaskId, ReasonBuf, sizeof(ReasonBuf));
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Summary of Exception Data returned Success")
 
-    OS_printf("[EXCEPTION END]\n");
+    OS_printf("[EXCEPTION END]\n\n");
 }
 
 /*
@@ -358,7 +368,7 @@ void ft_memory(void)
     CFE_PSP_DeleteProcessorReservedMemory
     */
 
-    OS_printf("[MEMORY END]\n");
+    OS_printf("[MEMORY END]\n\n");
 }
 
 /*
@@ -530,52 +540,62 @@ void ft_cds_flash(void)
 void ft_mem_scrub(void)
 {
     int32       ret_code = 0;
-    bool        mem_scrub_running = false;
     uint32      index_counter = 0;
+
     CFE_PSP_MemScrubStatus_t  mem_scrub_stats1;
     CFE_PSP_MemScrubStatus_t  mem_scrub_stats2;
     CFE_PSP_MemScrubErrStats_t mem_scrub_ddr_stats;
 
     OS_printf("[MEM_SCRUB]\n");
 
-    /* Disable MEM Scrub task */
-    CFE_PSP_MemScrubDisable();
-    mem_scrub_running = CFE_PSP_MemScrubIsRunning();
-    FT_Assert_True(mem_scrub_running == false, "Mem Scrub task disabled and confirm is not running")
-    
     /* Status should return all zeros */
-    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
-    FT_Assert_True(mem_scrub_stats1.uiMemScrubTotalPages == 0, "MEM Scrub status cannot be checked since it does not return a value")
+    CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
+    FT_Assert_True((mem_scrub_stats1.uiMemScrubEndAddr != 0), "Retrieved MEM Scrub configuration and status")
+
+    if (mem_scrub_stats1.RunMode != MEMSCRUB_MANUAL_MODE)
+    {
+        /* Disable MEM Scrub task */
+        CFE_PSP_MemScrubDisable();
+        FT_Assert_True((CFE_PSP_MemScrubIsRunning() == false), "Mem Scrub task disabled and confirm is not running")
+    }    
+
+    mem_scrub_stats1.RunMode = MEMSCRUB_IDLE_MODE;
+    ret_code = CFE_PSP_MemScrubSet(&mem_scrub_stats1);
+    FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub Run Mode configuration applied")
 
     /* Enable MEM Scrub task */
     ret_code = CFE_PSP_MemScrubEnable();
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Mem Scrub task enabled and confirm is running")
+    FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
 
-    CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats,false);
+    /* Get error statistics */
+    CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats, false);
     FT_Assert_True(true, "Mem Scrub DDR statistics")
 
     /* Set different values */
-    ret_code = CFE_PSP_MemScrubSet(20*4096, 120*4096, 240);
-    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
-    FT_Assert_True(mem_scrub_stats1.uiMemScrubStartAddr == 20*4096, "Mem Scrub Start Address successfully changed")
-    FT_Assert_True(mem_scrub_stats1.uiMemScrubEndAddr == 120*4096, "Mem Scrub End Address successfully changed")
-    FT_Assert_True(mem_scrub_stats1.opMemScrubTaskPriority == 240, "Mem Scrub priority successfully changed")
+    mem_scrub_stats1.uiMemScrubStartAddr = 20 * MEMSCRUB_PAGE_SIZE;
+    mem_scrub_stats1.uiMemScrubEndAddr = 120 * MEMSCRUB_PAGE_SIZE;
+    mem_scrub_stats1.opMemScrubTaskPriority = 240;
+    ret_code = CFE_PSP_MemScrubSet(&mem_scrub_stats1);
+    CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
+    FT_Assert_True((mem_scrub_stats2.uiMemScrubStartAddr == mem_scrub_stats1.uiMemScrubStartAddr), "Mem Scrub Start Address successfully changed")
+    FT_Assert_True((mem_scrub_stats2.uiMemScrubEndAddr == mem_scrub_stats1.uiMemScrubEndAddr), "Mem Scrub End Address successfully changed")
+    FT_Assert_True((mem_scrub_stats2.opMemScrubTaskPriority == mem_scrub_stats1.opMemScrubTaskPriority), "Mem Scrub priority successfully changed")
 
     /* Delete Task */
     ret_code = CFE_PSP_MemScrubDelete();
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Deleted task return code")
-    FT_Assert_True(CFE_PSP_MemScrubIsRunning() == false, "Deleted task confirmed is not running")
+    FT_Assert_True((CFE_PSP_MemScrubIsRunning() == false), "Deleted task confirmed is not running")
     
     /* Re-Initialize Task */
     ret_code = CFE_PSP_MemScrubInit();
-    FT_Assert_True(CFE_PSP_MemScrubIsRunning() == true, "Initialized task confirmed is running")
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Mem Scrub task enabled and confirm is running")
+    FT_Assert_True((CFE_PSP_MemScrubIsRunning() == true), "Initialized task confirmed is running")
+    FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
 
     /* Check if value of memory pages scrubbed changes after 10 seconds */
-    CFE_PSP_MemScrubStatus(&mem_scrub_stats1,false);
+    CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
     for (index_counter = 0; index_counter < 10; index_counter++)
     {
-        CFE_PSP_MemScrubStatus(&mem_scrub_stats2,false);
+        CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
         if (mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages)
         {
             break;
@@ -585,7 +605,7 @@ void ft_mem_scrub(void)
             OS_TaskDelay(1000);
         }
     }
-    FT_Assert_True(mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages, 
+    FT_Assert_True((mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages), 
         "MEM Scrub status returns progress after %u sec", index_counter
         )
 
