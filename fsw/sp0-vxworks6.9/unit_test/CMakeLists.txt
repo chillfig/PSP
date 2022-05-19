@@ -64,6 +64,9 @@ endif()
 
 ### ### ###
 
+# Remove stop on error flag so that compiler can skip over the Coverage intermediate files
+add_compile_options(-w)
+
 # Source for this app's UT executable
 aux_source_directory(${IMPL_DIR}/unit_test/ut_stubs UT_SRCS)
 

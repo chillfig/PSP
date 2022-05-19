@@ -293,7 +293,7 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     uint8   localURMBuffer[urm_data_size];
     memset(localURMBuffer, 0x00, urm_data_size);
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
-    CFE_PSP_ReservedMemoryMap.BootPtr = (void*)localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t);
+    CFE_PSP_ReservedMemoryMap.BootPtr = (void*)(localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t));
 
     snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_data_size);
 

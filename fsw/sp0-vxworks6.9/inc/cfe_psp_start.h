@@ -89,6 +89,9 @@ void CFE_PSP_ProcessPOSTResults(void);
  ** If for some reason the file containing the restart attempts located in the 
  ** currently active CFS flash partition is corrupted, the file will be deleted
  ** and new data will be added with counters starting from zero.
+ ** This function requires the execution of #CFE_PSP_GetActiveCFSPartition and
+ ** #CFE_PSP_GetBootStartupString to gather the active CFS flash partition and
+ ** the boot string respectively.
  **
  ** \param[in] timer_id - is the ID of the timer that triggered the call
  **
@@ -123,15 +126,19 @@ int32 CFE_PSP_StartupClear(void);
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** To figure out which one is loaded in RAM, this function will check if the
- ** kernel is exposing a specific CFS support funtion GetActiveCFSPartition().
- ** If not available, function will assume a single Flash partition "/ffx0".
+ ** kernel is exposing a specific CFS support variable that containes the 
+ ** currently active CFS partition.
+ ** If variable is not available, function will assume a single Flash partition 
+ ** and fallback to "/ffx0".
+ ** Return code only refers to the availabilty of the kernel variable.
  ** 
  ** \param[out] pBuffer - Pointer to the buffer that will receive the string
  ** \param[in] uBuffer_size - Maximum size of the buffer
  ** 
- ** \return None
+ ** \return #CFE_PSP_SUCCESS - when Kernel has symbol
+ ** \return #CFE_PSP_ERROR - when Kernel does not have support
  */
-void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
+int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
 
 /**
  **

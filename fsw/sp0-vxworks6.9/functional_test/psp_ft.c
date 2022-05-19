@@ -61,7 +61,7 @@ uint16_t cnt_fail = 0;
 /* Helper functions */
 bool check_file_exists(char *filename)
 {
-    int f_ret = 0;
+    int32_t f_ret = 0;
     bool return_value = false;
 
     f_ret = open(filename,O_RDONLY,0644);
@@ -75,7 +75,7 @@ bool check_file_exists(char *filename)
 
 int32_t get_file_content(char *filename, char *buffer, uint16_t buffer_size)
 {
-    int         f_ret = 0;
+    int32_t     f_ret = 0;
     uint32_t    uSize = 0;
     uint32_t    return_value = CFE_PSP_ERROR;
 
@@ -145,7 +145,7 @@ void PSP_FT_Setup(void)
     char buffer[10];
 
     /** Create an empty cfe_es_startup to remove the error **/
-    int tmp_fd;
+    int32_t tmp_fd;
     tmp_fd = creat("/ram0/cf/cfe_es_startup.scr",O_RDWR);
     close(tmp_fd);
 
@@ -230,13 +230,13 @@ void PSP_FT_Start(void)
 
 void ft_support(void)
 {
-    int32   ret_code = 0;
-    char    bs_original[200] = {'\0'};
-    char    bs_new[200] = "/ram0/test";
-    char    bs_confirm[200] = {'\0'};
-    char    cKernelName[] = "AITECH20";
-    char    cKernelNameBad[] = "IEH0";
-    uint32  uiCRC = 0;
+    int32_t  ret_code = 0;
+    char     bs_original[200] = {'\0'};
+    char     bs_new[200] = "/ram0/test";
+    char     bs_confirm[200] = {'\0'};
+    char     cKernelName[] = "AITECH20";
+    char     cKernelNameBad[] = "IEH0";
+    uint32_t uiCRC = 0;
 
     OS_printf("[SUPPORT START]\n");
 
@@ -277,11 +277,11 @@ void ft_support(void)
 
 void ft_exception(void)
 {
-    uint32    exceptionCount = 0;
+    uint32_t  exceptionCount = 0;
     char      ReasonBuf[128];
-    uint32    LogId = 0;
+    uint32_t  LogId = 0;
     osal_id_t TaskId;
-    int32     ret_code = 0;
+    int32_t   ret_code = 0;
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
 
     OS_printf("[EXCEPTION START]\n");
@@ -327,7 +327,7 @@ Functional Tests:
 */
 void ft_memory(void)
 {
-    int32       ret_code = 0;
+    int32_t     ret_code = 0;
 
     cpuaddr     ptrResetAddr = 0;
     cpuaddr     ptrUserAddr = 0;
@@ -335,11 +335,11 @@ void ft_memory(void)
     cpuaddr     ptrKernelSeg = 0;
     cpuaddr     ptrCFETextSeg = 0;
 
-    uint32      size_of_resetArea = 0;
-    uint32      size_of_UserArea = 0;
-    uint32      size_of_VolArea = 0;
-    uint32      size_of_KernelSeg = 0;
-    uint32      size_of_CFETestSeg = 0;
+    uint32_t    size_of_resetArea = 0;
+    uint32_t    size_of_UserArea = 0;
+    uint32_t    size_of_VolArea = 0;
+    uint32_t    size_of_KernelSeg = 0;
+    uint32_t    size_of_CFETestSeg = 0;
 
 
     OS_printf("[MEMORY START]\n");
@@ -399,12 +399,15 @@ void ft_memory_sync(void)
     uint8 uiBuf_original[256];
     uint8 uiBuf_backup[256];
     uint8 fillValue = 0;
+    uint32_t i = 0;
+    int32_t memcmpResult = 0;
+    extern int32_t CFE_PSP_RestoreUserReserved(void);
 
     cnt_tests = 1;
     cnt_pass = 0;
     cnt_fail = 0;
 
-    for (uint32 i = 0; i < 256; i++)
+    for (i = 0; i < 256; i++)
     {
         fillValue = (uint8) rand();
         uiBuf_original[i] = fillValue;
@@ -421,12 +424,11 @@ void ft_memory_sync(void)
     OS_TaskDelay(MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
 
     /* Simulate a reset, kind of */
-    extern int32 CFE_PSP_RestoreUserReserved(void);
     CFE_PSP_RestoreUserReserved();
     CFE_PSP_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
 
     /* Validate Data */
-    int memcmpResult = memcmp((void *)uiBuf_original, (void *)uiBuf_backup, 256);
+    memcmpResult = memcmp((void *)uiBuf_original, (void *)uiBuf_backup, 256);
     FT_Assert_True(memcmpResult == 0, "MemorySync Data Check");
     
 #endif /* RUN_MEM_SYNC_TEST */
@@ -446,9 +448,9 @@ Functional Tests:
 void ft_start(void)
 {
     bool        test_case = false;
-    uint32      last_reset_type;
+    uint32_t    last_reset_type;
     char        buffer[256];
-    int32       ret_code;
+    int32_t     ret_code;
 
     OS_printf("[START]\n");
 
@@ -462,8 +464,8 @@ void ft_start(void)
     /* Get Active CFS Partition */
     memset(buffer,'\0', sizeof(buffer));
     CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
-    memset(buffer,(int) NULL, sizeof(buffer));
-    FT_Assert_True(memchr(buffer, (int) NULL, sizeof(buffer)) != NULL,"CFE_PSP_GetActiveCFSPartition returned a string")
+    memset(buffer,(int32_t) NULL, sizeof(buffer));
+    FT_Assert_True(memchr(buffer, (int32_t) NULL, sizeof(buffer)) != NULL,"CFE_PSP_GetActiveCFSPartition returned a string")
 
     /* CFE_PSP_StartupTimer, CFE_PSP_StartupFailedRestartSP0_hook, CFE_PSP_StartupClear */
     CFE_PSP_StartupTimer();
@@ -500,9 +502,9 @@ Functional Tests:
 */
 void ft_cds_flash(void)
 {
-    uint32      uCDSSize;
-    int32       ret_value;
-    int         char_data = 0x11;
+    uint32_t    uCDSSize;
+    int32_t     ret_value;
+    int32_t     char_data = 0x11;
     char        data_buffer[100] = {};
     char        data_buffer_readback[100] = {};
     
@@ -539,8 +541,8 @@ void ft_cds_flash(void)
 
 void ft_mem_scrub(void)
 {
-    int32       ret_code = 0;
-    uint32      index_counter = 0;
+    int32_t       ret_code = 0;
+    uint32_t      index_counter = 0;
 
     CFE_PSP_MemScrubStatus_t  mem_scrub_stats1;
     CFE_PSP_MemScrubStatus_t  mem_scrub_stats2;
@@ -628,7 +630,7 @@ void ft_sp0_info(void)
     int64_t             fs_size_flash = 0;
     char                local_SP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
     CFE_PSP_SP0InfoTable_t    sp0_table;
-    int32               ret_code = CFE_PSP_ERROR;
+    int32_t             ret_code = CFE_PSP_ERROR;
 
     OS_printf("[SP0_INFO]\n");
 
@@ -763,7 +765,7 @@ Functional Tests:
 */
 void ft_ntp_sync(void)
 {
-    int32       ret_code = CFE_PSP_ERROR;
+    int32_t     ret_code = CFE_PSP_ERROR;
     char        strMsg[256] = "";
     CFE_TIME_SysTime_t cfe_time_utc;
     CFE_TIME_SysTime_t cfe_time;
@@ -825,11 +827,11 @@ void ft_ntp_sync(void)
  */
 void ft_watchdog(void)
 {
-    int             status = 0;
-    uint32          wd_time_ms = 1000;
-    uint32          wd_time_ms_default;
-    int             i = 0;
-    uint32          iter_max = 20;
+    int32_t           status = 0;
+    uint32_t          wd_time_ms = 1000;
+    uint32_t          wd_time_ms_default;
+    int32_t           i = 0;
+    uint32_t          iter_max = 20;
 
     OS_printf("[WATCHDOG]\n");
 

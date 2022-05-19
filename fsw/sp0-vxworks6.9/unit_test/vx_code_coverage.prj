@@ -15,8 +15,8 @@
 -verbosity=0
 
 # Processed source code flags
--keep-ppc=on
--keep-instr=on
+-keep-ppc=off
+-keep-instr=off
 
 # Inlined function handling flags
 -tag-inlined=off

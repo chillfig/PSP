@@ -360,7 +360,7 @@ typedef struct
     /**
      ** \brief vector number
      */
-    int             vector;
+    int32           vector;
     /**
      ** \brief Exception stack frame
      */

@@ -691,41 +691,35 @@ void Ut_CFE_PSP_StartupClear(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_GetActiveCFSPartition(void)
 {
+    int32 iRetCode = CFE_PSP_SUCCESS;
     char buffer[40] = {'\0'};
     char PartitionName[6] = "/ffx1";
     cpuaddr pPartitionName = (cpuaddr)&PartitionName;
     cpuaddr pbuffer = (cpuaddr)&buffer;
-
-    char cMsg_Bad1[] = "PSP: Warning, kernel variable does not contain a string\n";
-    char cMsg_Bad2[] = "PSP: Warning, kernel does not support reading the currently active CFS flash partition\n";
-
-    Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal kernel support ----- */
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pPartitionName, sizeof(pPartitionName), false);
     /* Execute test */
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
     UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/3: Output buffer nominal with kernel support");
-    UtAssert_NoOS_print(cMsg_Bad1, "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal no Messages");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal ret code");
 
     UT_ResetState(0);
-    Ut_OS_printf_Setup();
 
     /* ----- Test case #2 - Nominal kernel does not support ----- */
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
     /* Execute test */
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
     UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/3: Output buffer nominal without kernel support");
-    UtAssert_OS_print(cMsg_Bad2, "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Kernel support Messages");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Kernel support return code");
 
     UT_ResetState(0);
-    Ut_OS_printf_Setup();
 
     /* ----- Test case #3 - kernel support but invalid string ----- */
     /* Set additional inputs */
@@ -733,10 +727,10 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pbuffer, sizeof(pbuffer), false);
     /* Execute test */
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
     UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/3: Output buffer nominal");
-    UtAssert_OS_print(cMsg_Bad1, "_CFE_PSP_GetActiveCFSPartition - 3/3: Nominal no Messages");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 3/3: Kernel no support ret code");
 }
 
 /*=======================================================================================

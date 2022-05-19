@@ -85,7 +85,7 @@ int32 CFE_PSP_ReadFromFlash(uint32 *p_dest, size_t size, char *fname)
                 OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read incorrect amount of data\n");
                 OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
                 OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read %d of %d bytes. strerror: %s \n", 
-                                            (int)readBytes, (int)size, strerror(errno));
+                                            (int32)readBytes, (int32)size, strerror(errno));
                 iReturnCode = CFE_PSP_ERROR;
             }
 

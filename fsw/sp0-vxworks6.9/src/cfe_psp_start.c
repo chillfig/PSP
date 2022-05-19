@@ -631,33 +631,37 @@ int32 CFE_PSP_StartupClear(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
+int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
 {
     int32   iReturn_code = CFE_PSP_ERROR;
     cpuaddr pAddressActiveFlashPartitionName = 0;
     char    cFallback_partition_name[] = "/ffx0";
 
     iReturn_code = OS_SymbolLookup(&pAddressActiveFlashPartitionName, "address_of_active_flash_partition_name");
-    
     if ((iReturn_code == OS_SUCCESS) && (pAddressActiveFlashPartitionName != 0))
     {
         /* Validate String */
         if (memchr((void *)pAddressActiveFlashPartitionName, EOS, 6) != NULL)
         {
-            /* Copy string to pBuffer */
+            /* Copy kernel string to pBuffer */
             strncpy(pBuffer, (char *)pAddressActiveFlashPartitionName, uBuffer_size);
+            iReturn_code = CFE_PSP_SUCCESS;
         }
         else
         {
-            OS_printf("PSP: Warning, kernel variable does not contain a string\n");
+            /* Copy fallback string to pBuffer */
             strncpy(pBuffer, cFallback_partition_name, uBuffer_size);
+            iReturn_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf("PSP: Warning, kernel does not support reading the currently active CFS flash partition\n");
+        /* Copy fallback string to pBuffer */
         strncpy(pBuffer, cFallback_partition_name, uBuffer_size);
+        iReturn_code = CFE_PSP_ERROR;
     }
+
+    return iReturn_code;
 }
 
 /**********************************************************
@@ -757,15 +761,6 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     */
     CFE_PSP_GetActiveCFSPartition(g_StartupInfo.active_cfs_partition, sizeof(g_StartupInfo.active_cfs_partition));
 
-    /*
-    Get current Boot Startup Filename from SP0 memory
-    The string is used in case we need to switch to alternate CFS flash partition
-    */
-    CFE_PSP_GetBootStartupString(g_StartupInfo.boot_startup_filename,
-                                 sizeof(g_StartupInfo.boot_startup_filename),
-                                 false
-    );
-
     /* Initialize the OS API data structures */
     iStatus = OS_API_Init();
     if (iStatus != OS_SUCCESS)
@@ -777,6 +772,12 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
         /* This call should never happen, but it aids the unit test */
         goto OS_Application_Startup_Exit_Tag;
     }
+
+    /* Get current Boot Startup Filename from SP0 memory */
+    CFE_PSP_GetBootStartupString(g_StartupInfo.boot_startup_filename,
+                                 sizeof(g_StartupInfo.boot_startup_filename),
+                                 false
+    );
 
     /* Set up all the virtual FS mappings */
     iStatus = CFE_PSP_SetFileSysAddFixedMap(&fs_id);
@@ -1030,7 +1031,7 @@ int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id)
             Print for informational purposes --
             startup can continue, but something else may fail later, depending on config.
             */
-            OS_printf("PSP: OS_FileSysAddFixedMap() failure: %d\n", (int)iStatus);
+            OS_printf("PSP: OS_FileSysAddFixedMap() failure: %d\n", (int32)iStatus);
             iRet_code = CFE_PSP_ERROR;
         }
     }

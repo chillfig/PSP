@@ -334,7 +334,7 @@ int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, u
             /* Save startupScript to provided pointer, but no more than provided bufferSize */
             strncpy(startupBootString, target_boot.startupScript, bufferSize);
 
-            /* If talkative is turned ON, print the boot structure, and copied startup boot string */
+            /* If talkative is turned ON, print the boot structure startup boot string */
             if (talkative > 0)
             {
                 CFE_PSP_PrintBootParameters(&target_boot);
@@ -347,6 +347,7 @@ int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, u
             iRet_code = CFE_PSP_ERROR;
         }
     }
+
     return iRet_code;
 }
 

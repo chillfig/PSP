@@ -82,9 +82,9 @@ typedef struct
     /** \brief Top of the System Physical Memory */
     uint32 systemPhysMemTop;
     /** \brief Number of Processors */
-    int systemProcNum;
+    int32 systemProcNum;
     /** \brief Slod ID in the chassis */
-    int systemSlotId;
+    int32 systemSlotId;
     /** \brief Identifies if the SP0 is the cPCI main system controller */
     bool systemCpciSysCtrl;
     /** \brief System Core Clock Speed in MHz */
@@ -94,9 +94,9 @@ typedef struct
     /** \brief Identifies the EEPROM to successfully booted the kernel */
     uint8 active_boot;
     /** \brief System Clock Rate */
-    int systemClkRateGet;
+    int32 systemClkRateGet;
     /** \brief System Aux Clock Rate */
-    int systemAuxClkRateGet;
+    int32 systemAuxClkRateGet;
     /** \brief Identifies the POST Test Bit Executed */
     uint64 bitExecuted;
     /** \brief Identifies the POST Test Results */
