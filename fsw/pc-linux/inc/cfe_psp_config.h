@@ -27,6 +27,44 @@
 #include <time.h>
 #include <pthread.h>
 
+/** \brief The list of CFS tasks affinity
+ **
+ ** \par Description:
+ ** This is the list of task names with associated processor number. The function
+ ** matching the task name will only match up to the string length identified in
+ ** this list. Thus, if there is an entry as {"CFE", 0}, anything starting with 
+ ** the 3 characters CFE will be assigned core zero.
+ **
+ ** \par Note:
+ ** Processor number is up to number of available processors - 1.
+ */
+#define CFS_TASK_AFFINITY       {"CFE",        0},\
+                                {"HS",         4},\
+                                {"TO",         5},\
+                                {"SBNG",       7},\
+                                {"CI",         6}
+
+/**
+ ** \brief Task name and priority of tasks
+ **
+ ** \par Description:
+ ** This structure will be used to build an array of VxWorks tasks. The task
+ ** priority of each task name in the array will be modified according to the 
+ ** assigned priority.
+ */
+typedef struct
+{
+    /**
+     ** \brief Pointer to the task name
+     */
+    const char *    pCFSTaskName;
+    /**
+     ** \brief Processor Number from 0 to 255
+     */
+    uint8           uiProcessorNumber;
+
+} CFE_PSP_TaskAffinity_t;
+
 /**
  **  \brief EPOCH to Mission Time Difference
  ** 

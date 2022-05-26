@@ -10,10 +10,16 @@
 # the same source code is used with multiple targets.
 
 # To support the starting and killing of NTP daemon process
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/include)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
+STRING(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
+if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/include)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/config)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/port/vxworks/config)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/port/vxworks/include)
+else()
+    message("VxWorks Installed components are " $ENV{WIND_COMPONENTS_LIBNAMES})    
+    message(FATAL_ERROR "VxWorks IP NET2 6.9 component is required to build PSP")
+endif()
 
 # Build the sp0-vxworks implementation as a library
 add_library(psp-${CFE_PSP_TARGETNAME}-impl OBJECT

@@ -12,9 +12,7 @@
 
 set (UT_NAME "psp")
 
-# PROJECT_SOURCE_DIR is $HOME/cert_testbed/psp
-# CMAKE_CURRENT_SOURCE_DIR is $HOME/cert_testbed/psp/fsw/sp0-vxworks6.9/unit_test
-set(IMPL_DIR ${MISSION_SOURCE_DIR}/${UT_NAME}/fsw/${CFE_SYSTEM_PSPNAME})
+set(IMPL_DIR ${PROJECT_SOURCE_DIR}/fsw/${CFE_SYSTEM_PSPNAME})
 
 enable_testing()
 
@@ -83,10 +81,17 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
 )
 
 # To support the starting and killing of NTP daemon process (NTP Sync Module)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/include)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/config)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/config)
-include_directories(${WIND_HOME}/components/ip_net2-6.9/ipcom/port/vxworks/include)
+STRING(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
+if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/include)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/config)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/port/vxworks/config)
+    include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/port/vxworks/include)
+else()
+    message("VxWorks Installed components are " $ENV{WIND_COMPONENTS_LIBNAMES})    
+    message(FATAL_ERROR "VxWorks IP NET2 6.9 component is required to build PSP")
+endif()
+
 
 include_directories(${IMPL_DIR}/unit_test/ut_stubs)
 include_directories(${IMPL_DIR}/unit_test)

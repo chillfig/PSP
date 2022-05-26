@@ -37,6 +37,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
@@ -144,6 +145,53 @@ static const struct option longOpts[] = {{"reset", required_argument, NULL, 'R'}
                                          {"help", no_argument, NULL, 'h'},
                                          {NULL, no_argument, NULL, 0}};
 
+/** \brief Total number of available processors
+ **
+ */
+uint32                g_uiNumberOfProcessors = 0;
+
+/** \brief The list of CFS tasks with associated processor number
+ ** \par Note:
+ ** Values are defined in cfe_psp_config.h header.\n
+ */
+static CFE_PSP_TaskAffinity_t g_CFSTaskAffinityList[] =
+{
+    CFS_TASK_AFFINITY
+};
+
+/**
+ ** \brief Find the Task Name and return the related processor number
+ **
+ ** \par Description:
+ ** 
+ **
+ ** \param pTaskName - Pointer to the name of the task
+ **
+ ** \return -1 - if Task Name was not found in the list
+ ** \return The processor number to assign
+ **
+ */
+int32 CFE_PSP_FindProcessor(char *pTaskName)
+{
+    int32 iRetProcessorNumber = -1;
+    uint32 uiIndex = 0;
+    uint32 uiKeywordLength = 0;
+    uint32 uiNumberOfTask = sizeof(g_CFSTaskAffinityList) / sizeof(CFE_PSP_TaskAffinity_t);
+
+    for (uiIndex = 0; uiIndex < uiNumberOfTask; uiIndex++)
+    {
+        uiKeywordLength = strlen(g_CFSTaskAffinityList[uiIndex].pCFSTaskName);
+        /* Check if the Task Name partially match the current indexed task name */
+        if (strncmp(pTaskName, g_CFSTaskAffinityList[uiIndex].pCFSTaskName, uiKeywordLength) == 0)
+        {
+            iRetProcessorNumber = g_CFSTaskAffinityList[uiIndex].uiProcessorNumber;
+            break;
+        }
+    }
+
+    return iRetProcessorNumber;
+}
+
 /******************************************************************************
 **  Function:  CFE_PSP_OS_EventHandler()
 **
@@ -154,7 +202,9 @@ static const struct option longOpts[] = {{"reset", required_argument, NULL, 'R'}
 */
 int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *data)
 {
-    char taskname[OS_MAX_API_NAME];
+    char      cTaskName[OS_MAX_API_NAME];
+    int32     iProcessorNumber = -1;
+    cpu_set_t cpuset;
 
     switch (event)
     {
@@ -171,19 +221,29 @@ int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *data)
         {
             /* New task is starting. Invoked from within the task context. */
             /* Get the name from OSAL and propagate to the pthread/system layer */
-            if (OS_GetResourceName(object_id, taskname, sizeof(taskname)) == OS_SUCCESS)
+            if (OS_GetResourceName(object_id, cTaskName, sizeof(cTaskName)) == OS_SUCCESS)
             {
+                /* Find if task name is listed in the affinity list */
+                iProcessorNumber = CFE_PSP_FindProcessor(cTaskName);
+                if ((iProcessorNumber > -1) && (iProcessorNumber < g_uiNumberOfProcessors))
+                {
+                    /* Assign the processor number identified in the affinity lisy */
+                    CPU_ZERO(&cpuset);
+                    CPU_SET(iProcessorNumber, &cpuset);
+                    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+                }
+
                 /*
                  * glibc/kernel has an internal limit for this name.
                  * If the OSAL name is longer, just truncate it.
                  * Otherwise the name isn't set at all - this assumes the first
                  * chars of the name is better for debug than none of it.
                  */
-                if (strlen(taskname) >= CFE_PSP_KERNEL_NAME_LENGTH_MAX)
+                if (strlen(cTaskName) >= CFE_PSP_KERNEL_NAME_LENGTH_MAX)
                 {
-                    taskname[CFE_PSP_KERNEL_NAME_LENGTH_MAX - 1] = 0;
+                    cTaskName[CFE_PSP_KERNEL_NAME_LENGTH_MAX - 1] = 0;
                 }
-                pthread_setname_np(pthread_self(), taskname);
+                pthread_setname_np(pthread_self(), cTaskName);
             }
             break;
         }
@@ -313,6 +373,9 @@ void OS_Application_Startup(void)
     ** Set the reset subtype
     */
     reset_subtype = CommandData.SubType;
+
+    /* Get number of available processors (Sockets*CoresPerSocket*ThreadsPerCore) */
+    g_uiNumberOfProcessors = get_nprocs();
 
     /*
     ** Initialize the OS API data structures
