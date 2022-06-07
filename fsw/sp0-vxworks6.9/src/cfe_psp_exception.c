@@ -360,7 +360,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
     BOOL returnStatus = false;
-    EDR_TASK_INFO *pInfo = NULL;    //UndCC_Line(SSET_059_060_077_078)
+    EDR_TASK_INFO *pInfo = NULL;
     
     /*
     Assuming the VxWorks OS will call this function with the right parameters.
