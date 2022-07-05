@@ -16,18 +16,31 @@
  * limitations under the License.
  ************************************************************************/
 
-/* PSP coverage stub replacement for stdarg.h */
-#ifndef OVERRIDE_STDARG_H
-#define OVERRIDE_STDARG_H
+/**
+ * \file
+ *
+ * Implements error APIs
+ */
+#include <stdio.h>
 
-#include "PCS_stdarg.h"
+#include "cfe_psp_error.h"
 
-/* ----------------------------------------- */
-/* mappings for declarations in stdarg.h */
-/* ----------------------------------------- */
+/*----------------------------------------------------------------
+ *
+ * Function: CFE_PSP_StatusToString
+ *
+ *  Purpose: Implemented per public PSP API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
+char *CFE_PSP_StatusToString(CFE_PSP_Status_t status, CFE_PSP_StatusString_t *status_string)
+{
+    char *string = NULL;
 
-#define va_list            PCS_va_list
-#define va_start(ap, last) PCS_va_start(ap, last)
-#define va_end(ap)         PCS_va_end(ap)
-
-#endif
+    if (status_string != NULL)
+    {
+        snprintf(*status_string, sizeof(*status_string), "%ld", (long)status);
+        string = *status_string;
+    }
+    return string;
+}

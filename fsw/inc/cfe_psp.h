@@ -1,22 +1,20 @@
-/*
-**  GSC-18128-1, "Core Flight Executive Version 6.7"
-**
-**  Copyright (c) 2006-2019 United States Government as represented by
-**  the Administrator of the National Aeronautics and Space Administration.
-**  All Rights Reserved.
-**
-**  Licensed under the Apache License, Version 2.0 (the "License");
-**  you may not use this file except in compliance with the License.
-**  You may obtain a copy of the License at
-**
-**    http://www.apache.org/licenses/LICENSE-2.0
-**
-**  Unless required by applicable law or agreed to in writing, software
-**  distributed under the License is distributed on an "AS IS" BASIS,
-**  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**  See the License for the specific language governing permissions and
-**  limitations under the License.
-*/
+/************************************************************************
+ * NASA Docket No. GSC-18,719-1, and identified as “core Flight System: Bootes”
+ *
+ * Copyright (c) 2020 United States Government as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ************************************************************************/
 
 /*
 **  Author:  A. Cudmore
@@ -65,6 +63,7 @@
 
 #include "common_types.h"
 #include "osapi.h"
+#include "cfe_psp_error.h"
 
 /**
 ** \addtogroup psp_public_api PSP Public APIs - Common
@@ -74,28 +73,6 @@
 /*
 ** Macro Definitions
 */
-
-/* Error and return codes */
-/** \name Error and return codes */
-/** \{ */
-#define CFE_PSP_SUCCESS                     (0)    /**< \brief  Success */
-#define CFE_PSP_ERROR                       (-1)   /**< \brief  Generic Error */
-#define CFE_PSP_INVALID_POINTER             (-2)   /**< \brief  Invalid Pointer */
-#define CFE_PSP_ERROR_ADDRESS_MISALIGNED    (-3)   /**< \brief  Misaligned Address */
-#define CFE_PSP_ERROR_TIMEOUT               (-4)   /**< \brief  Timeout Error */
-#define CFE_PSP_INVALID_INT_NUM             (-5)   /**< \brief  Invalid Integer Number */
-#define CFE_PSP_INVALID_MEM_ADDR            (-21)  /**< \brief  Invalid Memory Address */
-#define CFE_PSP_INVALID_MEM_TYPE            (-22)  /**< \brief  Invalid Memory Type */
-#define CFE_PSP_INVALID_MEM_RANGE           (-23)  /**< \brief  Invalid Memory Range */
-#define CFE_PSP_INVALID_MEM_WORDSIZE        (-24)  /**< \brief  Invalid Memory Word Size */
-#define CFE_PSP_INVALID_MEM_SIZE            (-25)  /**< \brief  Invalid Memory Size */
-#define CFE_PSP_INVALID_MEM_ATTR            (-26)  /**< \brief  Invalid Memory Attribute */
-#define CFE_PSP_ERROR_NOT_IMPLEMENTED       (-27)  /**< \brief  Not Implemented */
-#define CFE_PSP_INVALID_MODULE_NAME         (-28)  /**< \brief  Invalid Module Name */
-#define CFE_PSP_INVALID_MODULE_ID           (-29)  /**< \brief  Invalid Module ID */
-#define CFE_PSP_NO_EXCEPTION_DATA           (-30)  /**< \brief  No Exception Data */
-#define CFE_PSP_ERROR_LEVEL_0               (-31)  /**< \brief  Generic Error, but returned data is valid */
-/** \} */
 
 /* Definitions for PSP PANIC types */
 /** \name Definitions for PSP PANIC types */

@@ -15,19 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ************************************************************************/
+#define CFE_PSP_ERROR_H
 
-/* PSP coverage stub replacement for stdarg.h */
-#ifndef OVERRIDE_STDARG_H
-#define OVERRIDE_STDARG_H
+/**
+ * @file
+ *
+ * Auto-Generated stub implementations for functions defined in cfe_psp_error header
+ */
 
-#include "PCS_stdarg.h"
+#include "cfe_psp_error.h"
+#include "utgenstub.h"
 
-/* ----------------------------------------- */
-/* mappings for declarations in stdarg.h */
-/* ----------------------------------------- */
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_StatusToString()
+ * ----------------------------------------------------
+ */
+char *CFE_PSP_StatusToString(CFE_PSP_Status_t status, CFE_PSP_StatusString_t *status_string)
+{
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_StatusToString, char *);
 
-#define va_list            PCS_va_list
-#define va_start(ap, last) PCS_va_start(ap, last)
-#define va_end(ap)         PCS_va_end(ap)
+    UT_GenStub_AddParam(CFE_PSP_StatusToString, CFE_PSP_Status_t, status);
+    UT_GenStub_AddParam(CFE_PSP_StatusToString, CFE_PSP_StatusString_t *, status_string);
 
-#endif
+    UT_GenStub_Execute(CFE_PSP_StatusToString, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_StatusToString, char *);
+}

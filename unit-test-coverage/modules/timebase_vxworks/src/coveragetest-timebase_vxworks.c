@@ -1,3 +1,21 @@
+/************************************************************************
+ * NASA Docket No. GSC-18,719-1, and identified as “core Flight System: Bootes”
+ *
+ * Copyright (c) 2020 United States Government as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ************************************************************************/
+
 /*
  *
  *    Copyright (c) 2020, United States government as represented by the
@@ -64,6 +82,8 @@ void Test_Nominal(void)
     OS_time_t                 OsTime;
     PSP_VxWorks_TimeBaseVal_t VxTime;
 
+    memset(&OsTime, 0, sizeof(OsTime));
+
     /* Nominal test with a simple 1:1 ratio */
     UT_PSP_TIMEBASE_VXWORKS_TESTCONFIG.PeriodNumerator   = 1;
     UT_PSP_TIMEBASE_VXWORKS_TESTCONFIG.PeriodDenominator = 1;
@@ -84,6 +104,8 @@ void Test_Non_Reducible(void)
     OS_time_t                 OsTime;
     PSP_VxWorks_TimeBaseVal_t VxTime;
     int64                     TestTime;
+
+    memset(&OsTime, 0, sizeof(OsTime));
 
     /* Use an oddball ratio of of some primes, will not be reducible */
     /* Ratio is 43*3 / 53*2  => 129/106 */
@@ -118,6 +140,8 @@ void Test_Reducible_1(void)
     PSP_VxWorks_TimeBaseVal_t VxTime;
     int64                     TestTime;
 
+    memset(&OsTime, 0, sizeof(OsTime));
+
     /* Test with a ratio that is also 1:1, but can be reduced */
     UT_PSP_TIMEBASE_VXWORKS_TESTCONFIG.PeriodNumerator   = 1000;
     UT_PSP_TIMEBASE_VXWORKS_TESTCONFIG.PeriodDenominator = 1000;
@@ -145,6 +169,8 @@ void Test_Reducible_2(void)
     OS_time_t                 OsTime;
     PSP_VxWorks_TimeBaseVal_t VxTime;
     int64                     TestTime;
+
+    memset(&OsTime, 0, sizeof(OsTime));
 
     /* Test with a ratio that can be reduced */
     /* Final reduced ratio should be 12:5 with 100ns OS ticks */

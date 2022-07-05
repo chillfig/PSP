@@ -15,7 +15,7 @@
  **
  ** \par Description:
  ** Provide version identifiers for the cFE Platform Support Packages (PSP).
- ** See cfsversions for version and build number and description**  GSC-18128-1, "Core Flight Executive Version 6.7"
+ ** See #cfsversions for version and build number and description**  GSC-18128-1, "Core Flight Executive Version 6.7"
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
  ** None
@@ -40,17 +40,22 @@ extern "C" {
 /** \brief Development Build Macro Definitions - Build Number */
 #define CFE_PSP_IMPL_BUILD_NUMBER   124
 /** \brief Development Build Macro Definitions - Baseline */
-#define CFE_PSP_IMPL_BUILD_BASELINE "v1.6.0-rc1"
+#define CFE_PSP_IMPL_BUILD_BASELINE "v1.6.0-rc4"
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
 #define CFE_PSP_IMPL_MINOR_VERSION 6 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
 #define CFE_PSP_IMPL_REVISION      0 
-/** \brief ONLY APPLY for OFFICIAL releases.
- ** Revision version number. A value of "99" indicates an unreleased development version.
+
+/**
+ ** \brief Mission revision.
+ **
+ ** Reserved for mission use to denote patches/customizations as needed.
+ ** Values 1-254 are reserved for mission use to denote patches/customizations as needed. NOTE: Reserving 0 and 0xFF for
+ ** cFS open-source development use (pending resolution of nasa/cFS#440)
  */
-#define CFE_PSP_IMPL_MISSION_REV   0
+#define CFE_PSP_IMPL_MISSION_REV   0x01
 /** \brief ONLY APPLY for OFFICIAL releases. Codename */
 #define CFE_PSP_IMPL_CODENAME "Draco"
 /** \} */

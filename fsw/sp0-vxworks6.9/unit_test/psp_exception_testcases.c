@@ -188,7 +188,7 @@ void Ut_CFE_PSP_SetDefaultExceptionEnvironment(void)
 void Ut_CFE_PSP_ExceptionGetSummary_Impl(void)
 {
     int32   iRetCode = 0;
-    CFE_PSP_Exception_LogData_t buffer;
+    CFE_PSP_Exception_LogData_t buffer = {};
     char    cReasonBuf[100] = {'\0'};
     char    tName[] = "NULL";
     char    tName_too_long[] = "NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL_NULL";
