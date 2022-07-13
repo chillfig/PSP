@@ -110,8 +110,8 @@ typedef struct
  */
 #define CFE_PSP_RESTART_DELAY 10000
 
-/* use the "USR1" signal to wake the idle thread when an exception occurs */
-#define CFE_PSP_EXCEPTION_EVENT_SIGNAL SIGUSR1
+/* use the "USR2" signal to wake the idle thread when an exception occurs */
+#define CFE_PSP_EXCEPTION_EVENT_SIGNAL SIGUSR2
 
 /*
  * The tick period that will be configured in the RTOS for the simulated

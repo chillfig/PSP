@@ -11,9 +11,9 @@ set (FT_NAME "psp")
 
 # Source for this app's UT executable
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ FT_SRCS)
-list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/vx_es2/cfe_psp_module_list.c)
-list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/vx_es2/cfe_static_module_list.c)
-list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/vx_es2/cfe_static_symbol_list.c)
+list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_psp_module_list.c)
+list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_module_list.c)
+list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_symbol_list.c)
 
 add_executable(${FT_NAME}_ft ${FT_SRCS})
 
