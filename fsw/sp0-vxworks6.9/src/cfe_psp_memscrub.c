@@ -128,7 +128,8 @@ static CFE_PSP_MemScrubStatus_t g_MemScrub_Status =
  */
 static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
 {
-    int32 iRetCode = CFE_PSP_SUCCESS;
+    int32  iRetCode = CFE_PSP_SUCCESS;
+    uint32 uiMaxBlocksize = 0;
 
     /* check address range */
     if (pNewValues->uiMemScrubEndAddr < pNewValues->uiMemScrubStartAddr)
@@ -157,8 +158,9 @@ static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
         iRetCode = CFE_PSP_ERROR;
     }
 
-    /* check that block size is within range */
-    if ((pNewValues->uiBlockSize_Pages > 259765) | (pNewValues->uiBlockSize_Pages < 1))
+    /* check that block size is within range (1, RAM_SIZE/PAGE_SIZE ) */
+    uiMaxBlocksize = g_uiEndOfRam / MEMSCRUB_PAGE_SIZE;
+    if ((pNewValues->uiBlockSize_Pages > uiMaxBlocksize) | (pNewValues->uiBlockSize_Pages < 1))
     {
         OS_printf(MEMSCRUB_PRINT_SCOPE "Incorrect block size\n");
         iRetCode = CFE_PSP_ERROR;
