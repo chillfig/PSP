@@ -34,13 +34,11 @@
  ** the 3 characters CFE will be assigned core zero.
  **
  ** \par Note:
- ** Processor number is up to number of available processors - 1.
+ ** Processor number is up to number of available processors - 1. If set above 
+ ** maximum number of processors, CFS will not assign a CPU affinity, thus 
+ ** letting the kernel decide.
  */
-#define CFS_TASK_AFFINITY       {"CFE",        0},\
-                                {"HS",         4},\
-                                {"TO",         5},\
-                                {"SBNG",       7},\
-                                {"CI",         6}
+#define CFS_TASK_AFFINITY       {"CFE",        99}
 
 /**
  ** \brief Task name and priority of tasks
