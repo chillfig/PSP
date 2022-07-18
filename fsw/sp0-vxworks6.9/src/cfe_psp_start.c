@@ -242,10 +242,12 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
     if (CFE_PSP_CheckURMFilesExists() == CFE_PSP_SUCCESS)
     {
         g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+        OS_printf("PSP: URM found --> PROCESSOR RESET\n");
     }
     else
     {
         g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
+        OS_printf("PSP: URM not found --> POWERON\n");
     }
 
     /* Gather information */
@@ -808,10 +810,14 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
         OS_printf("PSP: Error while collecting SP0 information\n");
     }
 
-    /* PSP Determine the reset type */
-    resetSrc = CFE_PSP_ProcessResetType();
-
     CFE_PSP_SetupReservedMemoryMap();
+
+    /*
+    Determine the reset type based on the presence of URM files.
+    URM paths are built by CFE_PSP_SetupReservedMemoryMap function.
+    Reset Subtype is what Aitech SP0 provides via ReadResetSourceReg function.
+    */
+    resetSrc = CFE_PSP_ProcessResetType();
 
     /* Initialize the reserved memory */
     if (CFE_PSP_InitProcessorReservedMemory(g_StartupInfo.ResetType) != OS_SUCCESS)

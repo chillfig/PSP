@@ -311,3 +311,40 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
   - g_RESETFilepath
   - g_VOLATILEDISKFilepath
   - g_USERRESERVEDFilepath
+
+## Functional and Unit Tests
+
+### Prerequisite
+1. Computer with WindRiver environment (For building tests)
+2. Network connection to Target in the same subnet (For running tests)
+3. Kernel file `vxWorks.bin` loaded on the target (For establishing communication with target)
+4. Serial Port connection to target (To capture test results)
+
+### Procedure (Valid for both Unit and Functional Tests)
+1. Change directory to Test folder
+```shell
+cd cert_testbed/psp/fsw/sp0-vxworks6.9/unit_test
+```
+or
+```shell
+cd cert_testbed/psp/fsw/sp0-vxworks6.9/functional_test
+```
+2. Enable WindRiver environment
+```shell
+wrenv
+```
+3. Build PSP Test
+```shell
+sh build_psp.sh
+```
+4. Start tests
+run_psp.sh requires TargetIP and Kernel vxWorks.bin file location
+```shell
+sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]
+```
+> Example: ```sh run_psp.sh 192.168.22.129 ~/GATEWAY/kernels/prebuilt-kernels/vx6.9_sp0-s_tt-cpci-3-103-2_cfs/vxWorks```
+
+### Results
+Both Functional and Unit Tests do only print out on console the results of the individual tests. The script will save the output of the console to a file.
+
+Unit Test also runs WindRiver Code Coverage and the results are downloaded to the unit_test folder and compressed to a Zip file automatically.
