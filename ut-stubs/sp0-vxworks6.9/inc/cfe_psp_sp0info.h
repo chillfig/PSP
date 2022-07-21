@@ -32,13 +32,8 @@ extern "C" {
 #endif
 
 /* For supporting REALTIME clock */
-// #include <timers.h>
+#include <time.h>
 #include "osapi.h"
-struct timespec
-{
-    time_t  tv_sec;
-    long    tv_nsec;
-};
 
 /**
  ** brief SP0_TEXT_BUFFER_MAX_SIZE
