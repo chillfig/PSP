@@ -71,34 +71,32 @@ if (ENABLE_UNIT_TESTS)
     set(PSP_UT_PRE "PSP UT: ")
 
     # Figure out if the compiler is for a real target
-    set(RUN_ON_TARGET 0)
-    string(FIND ${CMAKE_C_COMPILER} "ccppc" RUN_ON_TARGET)
+    string(TOLOWER "${CFE_SYSTEM_PSPNAME}" SYSTEM_NAME)
 
-    if(RUN_ON_TARGET GREATER 0)
+    if("${SYSTEM_NAME}" STREQUAL "pc-linux")
+        # ---- Run Unit Tests on Linux -----
+
+        # Prepare for Unit Test on Linux (This is maintained by Github upstream PSP)
+        message(${PSP_UT_PRE} "Preparing for Unit Test on Linux")
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+
+    else()
         # ---- Run Unit Tests on Target -----
 
         # Check that the UT implementation for the specific Platform exists
         if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fsw/${CFE_PSP_TARGETNAME}/unit_test/CMakeLists.txt)
             # Prepare for Unit Test on Target
-            message(${PSP_UT_PRE} "Preparing for Unit Test on SP0 with Code Coverage")
+            message(${PSP_UT_PRE} "Preparing for Unit Test on ${CFE_SYSTEM_PSPNAME} with Code Coverage")
             set(CODE_COVERAGE TRUE)
             add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/unit_test)
         else()
-            message("NOT FOUND")
-        endif()        
-    
-    else()
-        # ---- Run Unit Tests on Linux -----
-
-        # Prepare for Unit Test on Linux (This is maintained by Github upstream PSP)
-        if ("${CFE_SYSTEM_PSPNAME}" STREQUAL "pc-linux")
-            # Prepare for Unit Test on Linux
-            message(${PSP_UT_PRE} "Preparing for Unit Test on Linux")
-            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
-            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit-test-coverage)
+            message(FATAL_ERROR ${PSP_UT_PRE} "Enable Unit Test for a PSP system name that is not found")
         endif()
 
-    endif(RUN_ON_TARGET GREATER 0)
+    endif()
+
+    # Add stubs
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ut-stubs)
 
 endif (ENABLE_UNIT_TESTS)
 
@@ -106,15 +104,28 @@ endif (ENABLE_UNIT_TESTS)
 set(ENABLE_FUNCTIONAL_TESTS $ENV{ENABLE_FUNCTIONAL_TESTS} CACHE BOOL "Enable build of functional tests")
 
 if (ENABLE_FUNCTIONAL_TESTS)
-    set(PSP_UT_PRE "PSP FT: ")
+    set(PSP_FT_PRE "PSP FT: ")
 
-    # If we are running Unit Test for SP0, assume it is on target.
-    if ("${CFE_SYSTEM_PSPNAME}" STREQUAL "sp0-vxworks6.9")
-        # Prepare for Functional Test on Target
-        message("Preparing for PSP Functional Test")
-        add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/functional_test)
-    else()
+    # Figure out if the compiler is for a real target
+    string(TOLOWER "${CFE_SYSTEM_PSPNAME}" SYSTEM_NAME)
+
+    if("${SYSTEM_NAME}" STREQUAL "pc-linux")
+        # ---- Run Functional Tests on Linux -----
+
         # Prepare for Functional Test on Linux
-        message(${PSP_UT_PRE} "Functional Test on Linux is not implemented!")
+        message(${PSP_FT_PRE} "Functional Test on Linux is not implemented!")
+
+    else()
+        # ---- Run Functional Tests on Target -----
+
+        # Prepare for Functional Test on Target
+        # Check that the UT implementation for the specific Platform exists
+        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fsw/${CFE_PSP_TARGETNAME}/functional_test/CMakeLists.txt)
+            message(${PSP_FT_PRE} "Preparing for PSP Functional Test")
+            add_subdirectory(fsw/${CFE_PSP_TARGETNAME}/functional_test)
+        else()
+            message(FATAL_ERROR ${PSP_FT_PRE} "Enable Unit Test for a PSP system name that is not found")
+        endif()
+
     endif()
 endif (ENABLE_FUNCTIONAL_TESTS)
