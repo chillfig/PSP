@@ -20,11 +20,9 @@
  ** kernel.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
- **
- ** GSFC developers do not recommend to use this method of updating CFE time, 
- ** but rather to use the function CFE_TIME_ExternalTime(). The only way to use
- ** this function is by building an app that will periodically (1Hz) get NTP
- ** time and publish it via Software Bus.
+ ** In function #CFE_PSP_GetOSTime the OS time is compared with the mission epoch
+ ** time #CFE_MISSION_TIME_EPOCH_UNIX_DIFF for validity. This might not be the 
+ ** most appropriate way.
  */
 
 
@@ -53,11 +51,6 @@
 
 #include "cfe_psp_timesync.h"
 
-/** \name NTP Sync Configuration - VxWorks */
-/** \{ */
-
-/** \} */
-
 /**
  ** \brief Default NTP Sync pre-print string 
  ** \par Description:
@@ -80,7 +73,6 @@ extern IP_PUBLIC Ip_err ipcom_ipd_start (const char *name );
  */
 extern uint32 CFE_TIME_Micro2SubSecs(uint32);
 
-/**** Global variables ****/
 
 /**********************************************************
  * 
@@ -105,7 +97,7 @@ int32 CFE_PSP_NTPDaemonIsRunning(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_TIME_Set_OS_Tme
+ * Function: CFE_PSP_SetOSTime
  * 
  * Description: See function declaration for info
  *

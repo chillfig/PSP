@@ -664,7 +664,7 @@ void  CFE_PSP_Panic(int32 errorCode);
 ** a particular platform.
 **
 ** \par Assumptions, External Events, and Notes:
-** This function is not implemented for the SP0-vxworks6.9 PSP since SSR is not used.
+** - For the SP0-vxworks6.9, this is not implemented
 **
 ** \param[in] bus - ATA controller number
 ** \param[in] device - ATA drive number
@@ -685,7 +685,7 @@ int32  CFE_PSP_InitSSR(uint32 bus, uint32 device, char *DeviceName );
 ** For VxWorks, this function initializes the EDR policy handling. The handler is 
 ** called for every exception that other handlers do not handle.
 ** \n
-** Note that the floating point exceptions are handled by the default floating 
+** - For SP0-vxworks6.9, note that the floating point exceptions are handled by the default floating 
 ** point exception handler, which does a graceful recovery from floating point 
 ** exceptions in the file speExcLib.c.
 **

@@ -16,6 +16,7 @@ Kernel must provide the following functions:
 
 - GetWrsKernelTextStart()
 - GetWrsKernelTextEnd()
+- address_of_active_flash_partition_name (Optional)
 
 ### Components
 
@@ -24,7 +25,7 @@ Kernel must include the following services:
 - FTP
   - Port 21
 - Telnet
-- User Reserved Memory (Currently not supported by Aitech SP0 bootloader)
+- User Reserved Memory
 - Watchdog
 - NTP
 - Datalight FlashFX (Aitech FLASH Memory)

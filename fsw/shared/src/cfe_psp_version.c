@@ -42,7 +42,7 @@
  */
 
 #include "cfe_psp.h"
-#include "cfe_psp_version.h"
+#include "psp_version.h"
 
 /**********************************************************
  * 

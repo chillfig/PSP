@@ -2,16 +2,16 @@
 docs/*.pdf
 
 ### Unit Test temporary files
-fsw/sp0-vxworks6.9/unit_test/tmp_code_coverage
-fsw/sp0-vxworks6.9/unit_test/*.zip
-fsw/sp0-vxworks6.9/unit_test/*.log
-fsw/sp0-vxworks6.9/unit_test/db
-fsw/sp0-vxworks6.9/unit_test/runs
-fsw/sp0-vxworks6.9/unit_test/html
-fsw/sp0-vxworks6.9/unit_test/tcl_scripts/~
-fsw/sp0-vxworks6.9/unit_test/payload
+fsw/**/unit_test/tmp_code_coverage
+fsw/**/unit_test/*.zip
+fsw/**/unit_test/*.log
+fsw/**/unit_test/db
+fsw/**/unit_test/runs
+fsw/**/unit_test/html
+fsw/**/unit_test/tcl_scripts/~
+fsw/**/unit_test/payload
 
 ### Functional Test temporary files
-fsw/sp0-vxworks6.9/functional_test/payload
-fsw/sp0-vxworks6.9/functional_test/tcl_scripts/~
-fsw/sp0-vxworks6.9/functional_test/*.log
+fsw/**/functional_test/payload
+fsw/**/functional_test/tcl_scripts/~
+fsw/**/functional_test/*.log

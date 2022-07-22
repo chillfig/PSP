@@ -88,7 +88,7 @@ extern "C" {
  */
 #define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"}
 
-
+/******************************************************************************/
 /**
  ** \name VxWorks timebase configuration parameters
  **
@@ -113,7 +113,6 @@ extern "C" {
 #define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   (uint32)(8000.0f / (float)getCoreClockSpeed())
 /** \brief Denominator */
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
-/** \} */
 
 /**
  ** \brief Soft Timebase Period
@@ -131,6 +130,8 @@ extern "C" {
  **
  */
 #define CFE_PSP_SOFT_TIMEBASE_PERIOD                    10000
+
+/** \} */
 
 /**
  ** \brief Maximum length of active CFS flash partition name
@@ -385,6 +386,7 @@ typedef struct
  */
 #define CFE_PSP_MAXIMUM_TASK_LENGTH         30
 
+/******************************************************************************/
 /** \name Watchdog Configuration Parameters */
 /** \{ */
 /** \brief Watchdog minimum ( in milliseconds ) */
@@ -502,9 +504,10 @@ typedef struct
 #define MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
 
 /**
- ** \brief Defines the block size in pages (4096 bytes each) to scrub
+ ** \brief Defines the block size to scrub in number of pages
  ** \par Description:
- ** This applies only for Timed and Manual Mode
+ ** This applies only for Timed and Manual Mode. 
+ ** See #MEMSCRUB_PAGE_SIZE for block size in bytes
  */
 #define MEMSCRUB_BLOCKSIZE_PAGES           10
 
@@ -580,7 +583,7 @@ typedef struct
 
 /** \} */
 
-
+/******************************************************************************/
 /** \name SP0 Info Configuration Parameters */
 /** \{ */
 
@@ -628,6 +631,11 @@ typedef struct
  ** 
  */
 #define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
+/** \} */
+
+/******************************************************************************/
+/** \name User Reserved Memory Sync Configuration Parameters */
+/** \{ */
 
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000

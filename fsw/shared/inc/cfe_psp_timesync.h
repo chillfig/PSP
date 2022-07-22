@@ -41,7 +41,7 @@ extern "C" {
 #include "cfe_time_extern_typedefs.h"
 
 /**
-** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
+** \addtogroup psp_public_api PSP Public APIs - Common
 ** \{
 */
 
@@ -133,7 +133,7 @@ int32  CFE_PSP_StartNTPDaemon(void);
 int32  CFE_PSP_StopNTPDaemon(void);
 
 /**
-** \} <!-- End of group "psp_public_api_sp0vx69" -->
+** \} <!-- End of group "psp_public_api" -->
 */
 
 #ifdef __cplusplus

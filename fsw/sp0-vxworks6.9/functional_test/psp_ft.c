@@ -47,7 +47,7 @@
 #include "cfe_psp_sp0info.h"
 #include "cfe_psp_timesync.h"
 #include "cfe_psp_verify.h"
-#include "cfe_psp_version.h"
+#include "psp_version.h"
 
 #include "psp_ft.h"
 

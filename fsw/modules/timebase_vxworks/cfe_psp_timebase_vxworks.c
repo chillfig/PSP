@@ -45,7 +45,6 @@
 #include <vxWorks.h>
 #include <sysLib.h>
 #include <vxLib.h>
-#include <arch/ppc/vxPpcLib.h>
 
 #include "osapi-clock.h"
 
@@ -194,7 +193,7 @@ uint32 CFE_PSP_GetTimerTicksPerSecond(void)
 */
 uint32 CFE_PSP_GetTimerLow32Rollover(void)
 {
-    return 0;
+    return CFE_PSP_TIMER_LOW32_ROLLOVER;
 }
 
 /******************************************************************************

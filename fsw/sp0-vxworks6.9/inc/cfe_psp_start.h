@@ -204,7 +204,7 @@ void OS_Application_Run(void);
  ** This function suspends/resumes the Console Shell task.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** Implementation is BSP independent
  **
  ** \param[in] suspend - True to suspend task, False to resume task
  **
@@ -258,7 +258,7 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
  ** This function simply calls the OS_FileSysAddFixedMap multiple times
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** Implementation is BSP independent
  **
  ** \param[out] fs_id - Buffer to store the ID of the file system mapping
  **
