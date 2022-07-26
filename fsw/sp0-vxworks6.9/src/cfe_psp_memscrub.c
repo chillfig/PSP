@@ -299,7 +299,7 @@ int32 CFE_PSP_MemScrubDelete(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk)
+int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk)
 {
     memcpy(pStatus, &g_MemScrub_Status, sizeof(g_MemScrub_Status));
 
@@ -322,6 +322,8 @@ void CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk)
                 pStatus->opMemScrubTaskPriority
                 );
     }
+
+    return (CFE_PSP_SUCCESS);
 }
 
 /**
@@ -711,7 +713,7 @@ int32 CFE_PSP_MemScrubDisable(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative)
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative)
 {
     if (talkative == true)
     {
@@ -726,4 +728,6 @@ void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkati
     errStats->uil2errCfg = l2errCfg;
     errStats->uimchCause = mchCause;
     errStats->uimchkHook = mchkHook;
+
+    return (CFE_PSP_SUCCESS);
 }

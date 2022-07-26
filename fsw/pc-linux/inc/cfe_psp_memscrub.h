@@ -15,12 +15,12 @@
  **
  ** \par Description:
  ** This file contains the function prototypes relating to memory scrubbing.
- ** This is specific to the SP0-S processor running VxWorks 6.9 OS.
+ ** This is specific to the Linux OS.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
- ** None
+ ** These functions have not been implemented yet
  **
-*/
+ */
 
 #ifndef PSP_MEM_SCRUB_H
 #define PSP_MEM_SCRUB_H
@@ -28,29 +28,22 @@
 #include "common_types.h"
 #include "osapi.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
-** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
-** \{
-*/
 
 /**
  ** \brief Default Memory Scrubbing pre-print string 
+ **
  ** \par Description:
  ** This string is printed before every print related to Memory Scrubbing API.
-*/
-#define MEMSCRUB_PRINT_SCOPE       "PSP MEM SCRUB: "
+ */
+#define MEM_SCRUB_PRINT_SCOPE           "PSP MEM SCRUB: "
 
-
-/** \brief Size of a Page in function scrubMemory */
-#define MEMSCRUB_PAGE_SIZE         4096
 
 /**
-** \brief MEMSCRUB Run Modes
-*/
+ ** \brief MEMSCRUB Run Modes
+ **
+ ** \par Note:
+ ** This enum has not been fully implemented with the functions yet
+ */
 typedef enum
 {
     /**
@@ -78,10 +71,11 @@ typedef enum
     MEMSCRUB_MANUAL_MODE = 3
 } MEMSCRUB_RunMode_t;
 
-
 /**
  ** \brief Memory Scrubbing configuration and information
  **
+ ** \par Note:
+ ** This struct has not been fully implemented with the functions yet
  */
 typedef struct
 {
@@ -187,6 +181,7 @@ typedef struct
  **
  ** \par Assumptions, External Events, and Notes:
  ** From sysLib.c: "The machine check ISR will update these counters"
+ ** This struct has not been fully implemented with the functions yet
  */
 typedef struct
 {
@@ -200,176 +195,138 @@ typedef struct
     uint32              uimchkHook;
 } CFE_PSP_MemScrubErrStats_t;
 
+
 /**
-** \func Set the Memory Scrubbing parameters
-** 
-** \par Description:
-** This functions set the memory scrubbing parameters.
-**
-** \par Assumptions, External Events, and Notes:
-** After calling this function, the new settings will be applied in the 
-** next call to the Activate Memory Scrubbing funtion.
-** If newEndAddr is set to a value larger than the actual physical memory limit,
-** the function will use the physical memory limit.
-** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
-** #MEMSCRUB_PRIORITY_DOWN_RANGE defined in cfe_psp_config.h. 
-** If the scrubMemory function is called in a task that has a timing restriction, 
-** use Timed or Manual Mode.
-** 
-** \param[in] pNewConfiguration - pointer to a Mem Scrub Configuration structure with new values
-**
-** \return #CFE_PSP_SUCCESS
-** \return #CFE_PSP_ERROR
-*/
+ ** \func Set the Memory Scrubbing parameters
+ ** 
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ ** 
+ ** \param[in] pNewConfiguration - pointer to a Mem Scrub Configuration structure with new values
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
 int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration);
 
 /**
-** \func Check if the Memory Scrubbing task is running
-** 
-** \par Description:
-** This function provides the status whether the Memory Scrubbing task is running.
-**
-** \par Assumptions, External Events, and Notes:
-** This applies only for Idle and Timed Mode.
-** See #uiRunMode for more details
-**
-** \param None
-**
-** \return true - If task is running
-** \return false - If task is not running
-*/
-bool  CFE_PSP_MemScrubIsRunning(void);
+ ** \func Check if the Memory Scrubbing task is running
+ ** 
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return false because this function has not been implemented yet
+ */
+bool CFE_PSP_MemScrubIsRunning(void);
 
 /**
-** \func Stop the memory scrubbing task
-**
-** \par Description:
-** This function deletes the memory scrubbing task and the sempahore.
-** Then, it resets all memory scrub related variables to default.
-** 
-** \par Assumptions, External Events, and Notes:
-** Since the semaphore is deleted. The only way to restart Mem Scrub task is to 
-** reinitialize via #CFE_PSP_MemScrubInit.
-**
-** \param - None
-**
-** \return #CFE_PSP_SUCCESS - If successfully deleted
-** \return #CFE_PSP_ERROR - If unsuccessfully deleted
-*/
-int32  CFE_PSP_MemScrubDelete(void);
+ ** \func Stop the memory scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param - None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
+int32 CFE_PSP_MemScrubDelete(void);
 
 /**
-** \func Print the Memory Scrubbing statistics
-** 
-** \par Description:
-** This function outputs to the console the following Memory Scrubbing statistics:
-** Start memory address, End memory address, current memory page and total memory pages
-**
-** \par Assumptions, External Events, and Notes:
-** Start memory address is usually 0. End memory address is usually set to the 
-** last value of RAM address. Note that a page is 4096 bytes.
-** 
-** \param[out] pStatus - pointer to a Mem Scrub Configuration structure
-** \param[in] talk - Print out the status values
-**
-** \return None
-*/
-int32  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk);
+ ** \func Initialize the Memory Scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
+int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk);
 
 /**
-** \func Initialize the Memory Scrubbing task
-**
-** \par Description:
-** This function gets a semaphore and initialize variables. If set to start
-** on startup and running in Idle or Timed Mode, function will starts the Mem Scrub task.
-**
-** \par Assumptions, External Events, and Notes:
-** The scrubMemory function implemented by AiTech may never return an error.
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS - If successful initialization
-** \return #CFE_PSP_ERROR - If unsuccessful initialization
-*/
-int32  CFE_PSP_MemScrubInit(void);
+ ** \func Initialize the Memory Scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
+int32 CFE_PSP_MemScrubInit(void);
 
 /**
-** \func Trigger the Memory Scrubbing task
-**
-** \par Description:
-** This function runs Memory Scrubbing for Manual Mode. Task will
-** exit immediately and autoadvance to next memory block controlled by 
-** #MEMSCRUB_BLOCKSIZE_PAGES
-**
-** \par Assumptions, External Events, and Notes:
-** If the task is already running, do nothing.
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
-** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
-*/
+ ** \func Trigger the Memory Scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
 int32 CFE_PSP_MemScrubTrigger(void);
 
 /**
-** \func Enable the Memory Scrubbing task
-**
-** \par Description:
-** This function enables (starts) the Memory Scrubbing task.
-**
-** \par Assumptions, External Events, and Notes:
-** If the task is already running, do nothing. If the task is not running,
-** then start it.
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
-** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
-*/
+ ** \func Enable the Memory Scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
 int32  CFE_PSP_MemScrubEnable(void);
 
 /**
-** \func Disable the Memory Scrubbing task
-**
-** \par Description:
-** This function disables the Memory Scrubbing task.
-**
-** \par Assumptions, External Events, and Notes:
-** If the task is already running, delete it. If the task is not running,
-** then do nothing.
-** Function will reset Timed and Statistics related variables no matter the 
-** run mode.
-**
-** \param None
-**
-** \return #CFE_PSP_SUCCESS - If successfully disabled memory scrub task
-** \return #CFE_PSP_ERROR - If unsuccessfully disabled memory scrub task
-*/
+ ** \func Disable the Memory Scrubbing task
+ **
+ ** \par Description:
+ ** This function has not been implemented yet
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function has not been implemented yet
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ */
 int32  CFE_PSP_MemScrubDisable(void);
 
 /**
  ** \func Get the memory error statistics
  **
  ** \par Description:
- ** This function will fill the provided CFE_PSP_MemScrubErrStats_t pointer with
- ** memory error statistics
+ ** This function has not been implemented yet
  **
  ** \par Assumptions, External Events, and Notes:
- ** TBD what these individual values truely represent
+ ** This function has not been implemented yet
  **
  ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
  ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
  **
- ** \return None
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
  */
 int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative);
-
-/**
-** \} <!-- End of group "psp_public_api_sp0vx69" -->
-*/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* _PSP_MEM_SCRUB_H_ */
