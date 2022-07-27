@@ -49,10 +49,10 @@ extern "C" {
 ** \{
 */
 
-/* MACRO to perform a bitwise AND operation on a specific bit position */
+/** \brief MACRO to perform a bitwise AND operation on a specific bit position */
 #define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
 
-/* MACRO to perform a bitwise AND operation */
+/** \brief MACRO to perform a bitwise AND operation */
 #define BITWISE_AND(x, y)       ((x) & (y))
 
 /**
@@ -126,11 +126,11 @@ int32 CFE_PSP_StartupClear(void);
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** To figure out which one is loaded in RAM, this function will check if the
- ** kernel is exposing a specific CFS support variable that containes the 
+ ** kernel is exposing a specific CFS support variable that contains the 
  ** currently active CFS partition.
  ** If variable is not available, function will assume a single Flash partition 
  ** and fallback to "/ffx0".
- ** Return code only refers to the availabilty of the kernel variable.
+ ** Return code only refers to the availability of the kernel variable.
  ** 
  ** \param[out] pBuffer - Pointer to the buffer that will receive the string
  ** \param[in] uBuffer_size - Maximum size of the buffer

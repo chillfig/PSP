@@ -534,7 +534,7 @@ int32  CFE_PSP_GetCFETextSegmentInfo(cpuaddr *PtrToCFESegment, uint32 *SizeOfCFE
 ** \func Initialize the watchdog timer
 **
 ** \par Description:
-** This function configures and intializes the watchdog timer.
+** This function configures and initializes the watchdog timer.
 **
 ** \par Assumptions, External Events, and Notes:
 ** None
@@ -818,7 +818,7 @@ int32  CFE_PSP_PortWrite8(cpuaddr PortAddress, uint8 ByteValue);
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR_ADD_MISALIGNED
+** \return #CFE_PSP_ERROR_ADDRESS_MISALIGNED
 ** \return #CFE_PSP_INVALID_MEM_ADDR
 */
 int32  CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value);
@@ -837,7 +837,7 @@ int32  CFE_PSP_PortRead16(cpuaddr PortAddress, uint16 *uint16Value);
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_INVALID_MEM_ADDR
-** \return #CFE_PSP_ERROR_ADD_MISALIGNED
+** \return #CFE_PSP_ERROR_ADDRESS_MISALIGNED
 */
 int32  CFE_PSP_PortWrite16(cpuaddr PortAddress, uint16 uint16Value);
 
@@ -855,7 +855,7 @@ int32  CFE_PSP_PortWrite16(cpuaddr PortAddress, uint16 uint16Value);
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_INVALID_POINTER
-** \return #CFE_PSP_ERROR_ADD_MISALIGNED
+** \return #CFE_PSP_ERROR_ADDRESS_MISALIGNED
 */
 int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value);
 
@@ -873,7 +873,7 @@ int32 CFE_PSP_PortRead32(cpuaddr PortAddress, uint32 *uint32Value);
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_INVALID_MEM_ADDR
-** \return #CFE_PSP_ERROR_ADD_MISALIGNED
+** \return #CFE_PSP_ERROR_ADDRESS_MISALIGNED
 */
 int32  CFE_PSP_PortWrite32(cpuaddr PortAddress, uint32 uint32Value);
 
@@ -1078,7 +1078,7 @@ uint32  CFE_PSP_MemRanges(void);
 **                         (CFE_PSP_MEM_ATTR_WRITE, CFE_PSP_MEM_ATTR_READ, 
 **                          CFE_PSP_MEM_ATTR_READWRITE)
 **
-** \return #CFE_PSP_SUCCESS - Memory range set successfuly
+** \return #CFE_PSP_SUCCESS - Memory range set successfully
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
 ** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match
 **                                     the passed in type.
@@ -1113,7 +1113,7 @@ int32  CFE_PSP_MemRangeSet(uint32 RangeNum, uint32 MemoryType, cpuaddr StartAddr
 **                          memory range: (CFE_PSP_MEM_ATTR_WRITE, CFE_PSP_MEM_ATTR_READ,
 **                          CFE_PSP_MEM_ATTR_READWRITE) are stored.
 **
-** \return #CFE_PSP_SUCCESS - Memory range returned successfuly
+** \return #CFE_PSP_SUCCESS - Memory range returned successfully
 ** \return #CFE_PSP_INVALID_POINTER - Parameter error
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
 */

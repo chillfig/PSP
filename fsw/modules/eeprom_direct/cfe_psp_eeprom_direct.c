@@ -67,7 +67,7 @@ void eeprom_direct_Init(uint32 PspModuleId)
  **
  ** Return Values:
  **	 CFE_PSP_SUCCESS
- **	 CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit addressing
+ **	 CFE_PSP_ERROR_ADDRESS_MISALIGNED The Address is not aligned to 16 bit addressing
  **   scheme.
  */
 int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
@@ -102,7 +102,7 @@ int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
  **
  ** Return Values:
  **   CFE_PSP_SUCCESS
- **   CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit addressing
+ **   CFE_PSP_ERROR_ADDRESS_MISALIGNED The Address is not aligned to 16 bit addressing
  **   scheme.
  */
 int32 CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value)

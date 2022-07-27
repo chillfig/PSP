@@ -75,15 +75,15 @@ typedef struct
 {
     /** \brief UTC date time when the data was collected */
     struct timespec lastUpdatedUTC;
-    /** \brief Pointer to the string identifing the System Model */
+    /** \brief Pointer to the string identifying the System Model */
     char * systemModel;
-    /** \brief Pointer to the string identifing the system BSP Revision */
+    /** \brief Pointer to the string identifying the system BSP Revision */
     char * systemBspRev;
     /** \brief Top of the System Physical Memory */
     uint32 systemPhysMemTop;
     /** \brief Number of Processors */
     int32 systemProcNum;
-    /** \brief Slod ID in the chassis */
+    /** \brief Slot ID in the chassis */
     int32 systemSlotId;
     /** \brief Identifies if the SP0 is the cPCI main system controller */
     bool systemCpciSysCtrl;

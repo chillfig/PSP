@@ -870,7 +870,7 @@ void ft_watchdog(void)
     /* Disable WD */
     CFE_PSP_WatchdogDisable();
     FT_Assert_True(CFE_PSP_WatchdogStatus() == false, "Watchdog currently disabled")
-    FT_Assert_True(i == iter_max, "Watchdog survided %u pulses of %u msec", iter_max, wd_time_ms)
+    FT_Assert_True(i == iter_max, "Watchdog survived %u pulses of %u msec", iter_max, wd_time_ms)
 
     OS_printf("[WATCHDOG END]\n\n");
 }

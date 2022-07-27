@@ -29,19 +29,18 @@
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(ram_direct);
 
-/*
- ** Name: ram_direct_Init
+/**
+ ** \func Initialize RAM direct module
  **
- ** Purpose:
- **         Inform the user that this module is in use
+ ** \par Description:
+ ** Prepare RAM direct data for use in other functions
  **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
  **
- ** Parameters: None
+ ** \param[in] PspModuleId - Not used
  **
- ** Global Inputs: None
- **
- ** Global Outputs: None
- **
+ ** \return None
  */
 void ram_direct_Init(uint32 PspModuleId)
 {
@@ -126,7 +125,7 @@ int32 CFE_PSP_MemWrite8(cpuaddr MemoryAddress, uint8 ByteValue)
  **
  ** Return Values:
  **		CFE_PSP_SUCCESS
- **		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+ **		CFE_PSP_ERROR_ADDRESS_MISALIGNED The Address is not aligned to 16 bit
  **      addressing scheme.
  */
 int32 CFE_PSP_MemRead16(cpuaddr MemoryAddress, uint16 *uint16Value)
@@ -159,7 +158,7 @@ int32 CFE_PSP_MemRead16(cpuaddr MemoryAddress, uint16 *uint16Value)
  **
  ** Return Values:
  **      CFE_PSP_SUCCESS
- **		CFE_PSP_ERROR_ADD_MISALIGNED The MemoryAddress is not aligned to 16 bit
+ **		CFE_PSP_ERROR_ADDRESS_MISALIGNED The MemoryAddress is not aligned to 16 bit
  **      addressing scheme.
  */
 int32 CFE_PSP_MemWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
@@ -192,7 +191,7 @@ int32 CFE_PSP_MemWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
  **
  ** Return Values:
  **		CFE_PSP_SUCCESS
- **		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+ **		CFE_PSP_ERROR_ADDRESS_MISALIGNED The Address is not aligned to 16 bit
  **      addressing scheme.
  */
 int32 CFE_PSP_MemRead32(cpuaddr MemoryAddress, uint32 *uint32Value)
@@ -227,7 +226,7 @@ int32 CFE_PSP_MemRead32(cpuaddr MemoryAddress, uint32 *uint32Value)
  **
  ** Return Values:
  **		CFE_PSP_SUCCESS
- **		CFE_PSP_ERROR_ADD_MISALIGNED The Address is not aligned to 16 bit
+ **		CFE_PSP_ERROR_ADDRESS_MISALIGNED The Address is not aligned to 16 bit
  **      addressing scheme.
  */
 int32 CFE_PSP_MemWrite32(cpuaddr MemoryAddress, uint32 uint32Value)

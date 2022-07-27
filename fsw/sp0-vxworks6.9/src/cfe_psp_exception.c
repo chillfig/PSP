@@ -484,9 +484,9 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
     /*
     References:
-    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/archPpc.h
-    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/ppc85xx.h
-    /users/acssl/vxworks/pne_vxworks_69/vxworks-6.9/target/h/arch/ppc/vxPpcLib.h
+    vxworks-6.9/target/h/arch/ppc/archPpc.h
+    vxworks-6.9/target/h/arch/ppc/ppc85xx.h
+    vxworks-6.9/target/h/arch/ppc/vxPpcLib.h
     PDF: PowerPC™ e500 Core Family Reference Manual, E500CORERM.pdf, page 122, Table 2-35
     */
     

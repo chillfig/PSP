@@ -19,13 +19,7 @@
  ** kernel.
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
- ** The way this module updates the local time is by calling the CFE Time Service
- ** function CFE_TIME_SetTime(). The function changes the STCF value.\n
- **
- ** GSFC developers do not recommend to use this method of updating CFE time, 
- ** but rather to use the function CFE_TIME_ExternalTime(). The only way to use
- ** this function is by building an app that will periodically (1Hz) get NTP
- ** time and publish it via Software Bus.
+ ** None
  */
 
 #ifndef PSP_TIME_SYNC_H
@@ -52,7 +46,7 @@ extern "C" {
 ** This function checks if the vxworks NTP client task is running
 **
 ** \par Assumptions, External Events, and Notes:
-** This function will not check if the task has successfully syncronized with
+** This function will not check if the task has successfully synchronized with
 ** an NTP server
 **
 ** \param None

@@ -195,16 +195,16 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
     #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
 #endif
 #ifndef MEMORY_RESET_BIN_SEM_NAME
-    #error "MEMORY_RESET_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_RESET_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_CDS_BIN_SEM_NAME
-    #error "MEMORY_CDS_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_CDS_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_VOLATILEDISK_BIN_SEM_NAME
-    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_USERRESERVED_BIN_SEM_NAME
-    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be defined"
 #endif
 CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 /* \brief Check that CFE_PSP_STARTUP_AVAILABLE_PARTITIONS is defined */
@@ -254,8 +254,12 @@ CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, 
 #ifndef CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME
     #define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME "fail.txt"
 #endif
+
+/** \brief Verify that the startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FILENAME_TOO_LONG);
+/** \brief Verify that the failed startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_LONG);
+/** \brief Verify that the failed startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_SHORT);
 
 /**

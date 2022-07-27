@@ -63,7 +63,7 @@ extern uint32 CFE_TIME_Micro2SubSecs(uint32);
 **  Return:
 **    int32 - CFE_PSP_SUCCESS if NTP Daemon is running, 
               CFE_PSP_ERROR if it is not running,
-              CFE_PSP_ERROR_NOT_IMPLEMENTED beacuse this function has not
+              CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not
               been implemented yet
 ******************************************************************************/
 int32 CFE_PSP_NTPDaemonIsRunning(void)
@@ -115,7 +115,7 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
         
         if (ret == CFE_PSP_SUCCESS)
         {
-            /* If the unix time has synchronzed with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
+            /* If the unix time has synchronized with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
             if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
             {
                 myT->Seconds = (uint32) unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;

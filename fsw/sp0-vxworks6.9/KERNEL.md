@@ -1,10 +1,9 @@
-# VxWorks 6.9 Kernel - Configuration
+VxWorks 6.9 Kernel Configuration for SP0
+========================================
 
-The following code provides support to CFE and PSP.
+GATEWAY PSP for SP0 target requires specific kernel modules and settings. Some features are optional.
 
-## Special Features for CFE and PSP
-
-### 
+## Kernel Features for CFE and PSP
 
 ### Auto loading Gateway CFS
 
@@ -46,7 +45,7 @@ STATUS runScript ( char * scriptPath, int fdRedirect ) {
 
 ## Optional Features
 
-Those in this catagory are not necessary, but they do enhance CFS.
+Those in this category are not necessary, but they do enhance CFS.
 
 ### Handling Multiple CFS Partitions
 

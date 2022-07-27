@@ -61,29 +61,41 @@
  */
 #define CFE_PSP_TIMER_LOW32_ROLLOVER 0
 
+/**
+ ** \brief Timebase structure for VxWorks
+ ** 
+ ** \par Description:
+ ** This is the structure holding the global values configuring the VxWorks 
+ ** timebase
+ */
 typedef struct
 {
+    /** \brief Ticks per second */
     uint32 TicksPerSecond;
+    /** \brief Time conversion numerator */
     uint32 OSTimeConvNumerator;
+    /** \brief Time conversion denominator */
     uint32 OSTimeConvDenominator;
 } PSP_VxWorks_Timebase_Global_t;
 
+/** \brief Timebase global structure */
 PSP_VxWorks_Timebase_Global_t PSP_VxWorks_Timebase_Global;
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(timebase_vxworks);
 
-/******************************************************************************
-**  Function:  timebase_vxworks_Init()
-**
-**  Purpose:
-**    Prepare time-related data for use in other functions
-**
-**  Arguments:
-**    PsPModuleId - Not used
-**
-**  Return:
-**    None
-*/
+/**
+ ** \func Initialize VxWorks timebase module
+ **
+ ** \par Description:
+ ** Prepare time-related data for use in other functions
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] PspModuleId - Not used
+ **
+ ** \return None
+ */
 void timebase_vxworks_Init(uint32 PspModuleId)
 {
     uint64 TicksPerSec;

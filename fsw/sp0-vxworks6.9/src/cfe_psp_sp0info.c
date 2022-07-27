@@ -50,11 +50,20 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_sp0info.h"
 
-/** \name Max number of Voltage and Temperature sensors per target generation */
+/**
+ ** \name Max number of Voltage and Temperature sensors per target generation
+ **
+ ** \par Description:
+ ** Aitech consider SP0 and SP0s as Original and Upgrade respectively.
+ **/
 /** \{ */
+/** \brief SP0s Maximum Number of Voltage Sensors */
 #define SP0_UPGRADE_MAX_VOLT_SENSORS    6
+/** \brief SP0 Maximum Number of Voltage Sensors */
 #define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
+/** \brief SP0s Maximum Number of Temperature Sensors */
 #define SP0_UPGRADE_MAX_TEMP_SENSORS    4
+/** \brief SP0 Maximum Number of Temperature Sensors */
 #define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
 /** \} */
 
@@ -541,7 +550,7 @@ int32 CFE_PSP_SP0DumpData(void)
     }
     else
     {
-        OS_printf(SP0_PRINT_SCOPE "Data Dump has not been initialized or error occured\n");
+        OS_printf(SP0_PRINT_SCOPE "Data Dump has not been initialized or error occurred\n");
         iRet_code = CFE_PSP_ERROR;
     }
 

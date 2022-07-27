@@ -141,8 +141,10 @@ void  CFE_PSP_Exception_Reset(void);
  ** \param[in] ReasonSize - Size of string buffer
  **
  ** \return #CFE_PSP_SUCCESS on success
+ ** \return #CFE_PSP_ERROR - When buffer is null, or when could not write the
+ **                          whole message to reason buffer.
  */
-extern int32 CFE_PSP_ExceptionGetSummary_Impl(const struct CFE_PSP_Exception_LogData *Buffer, char *ReasonBuf,
+int32 CFE_PSP_ExceptionGetSummary_Impl(const struct CFE_PSP_Exception_LogData *Buffer, char *ReasonBuf,
                                               uint32 ReasonSize);
 /**
 ** \} <!-- End of group "psp_public_api" -->

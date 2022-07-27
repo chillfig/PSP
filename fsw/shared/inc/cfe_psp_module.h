@@ -51,7 +51,7 @@
 
 /**
  ** \brief Maximum Module Name Length
- ** \par Note: Currently not enfornced other than
+ ** \par Note: Currently not enforced other than
  ** in cfe_psp_module.c -> CFE_PSP_Module_FindByName
  */
 #define CFE_PSP_MODULE_NAME_MAX_LENGTH          30
@@ -71,7 +71,7 @@ typedef enum
 } CFE_PSP_ModuleType_t;
 
 /**
- ** \brief Protoype for a PSP module initialization function
+ ** \brief Prototype for a PSP module initialization function
  */
 typedef void (*CFE_PSP_ModuleInitFunc_t)(uint32 PspModuleId);
 

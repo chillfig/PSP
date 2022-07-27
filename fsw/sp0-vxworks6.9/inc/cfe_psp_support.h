@@ -90,10 +90,10 @@ int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, u
 int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
 
 /**
- ** \func Prints the boot paramters to console
+ ** \func Prints the boot parameters to console
  **
  ** \par Description:
- ** Prints the boot paramters to console
+ ** Prints the boot parameters to console
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -112,7 +112,7 @@ void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** a BOOT_PARAM structure.
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function is used only before calling the #CFE_PSP_Reset function.
+ ** None
  ** 
  ** \param[out] target_boot_parameters
  ** \param[in]  talkative - If true, print out debug messages

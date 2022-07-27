@@ -138,7 +138,7 @@ extern "C" {
  **
  ** \par Limits:
  ** This value should be kept small since it will take away from the failed
- ** startup filename max lenght.<br>
+ ** startup filename max length.<br>
  ** Minimum is 1 character<br>
  ** Maximum is #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
  **
@@ -149,7 +149,7 @@ extern "C" {
  ** \brief Maximum length of full filepath
  **
  ** \par Limits:
- ** this value should be kept high enough to accomodate active partition
+ ** this value should be kept high enough to accommodate active partition
  ** name, reserved memory direction, and file name
  */
 #define CFE_PSP_FILEPATH_MAX_LENGTH                     CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 26
@@ -158,7 +158,7 @@ extern "C" {
  ** \brief Maximum length of failed startup file name
  **
  ** \par Limits:
- ** This value should be kept high enough to accomodate the active partition
+ ** This value should be kept high enough to accommodate the active partition
  ** name and the startup file name.
  ** Minimum of #CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1
  */
@@ -203,7 +203,8 @@ extern "C" {
  ** start using the Watchdog.
  ** 
  */
-typedef struct  {
+typedef struct
+{
     /** \brief  Timer ID */
     osal_id_t           timerID;
 
@@ -298,7 +299,7 @@ typedef struct  {
 
 /** \brief Memory Table Size.
  ** 
- ** \par Descripion:
+ ** \par Description:
  ** This sets the number of memory ranges that are defined in the memory 
  ** range definition table.
  **
@@ -495,7 +496,7 @@ typedef struct
  **     end address are scrubbed through in blocks.
  **
  ** \par Assumptions, External Events, and Notes:
- ** Value mustbe one of three options:
+ ** Value must be one of three options:
  ** - MEMSCRUB_IDLE_MODE
  ** - MEMSCRUB_TIMED_MODE
  ** - MEMSCRUB_MANUAL_MODE
@@ -579,8 +580,7 @@ typedef struct
 #define MEMSCRUB_TASK_NAME                  "PSPMemScrub"
 
 /** \brief MEM SCRUB Binary semaphore name */
-#define MEMSCRUB_BSEM_NAME             "PSP_BSEM_NAME"
-
+#define MEMSCRUB_BSEM_NAME                  "PSP_BSEM_NAME"
 /** \} */
 
 /******************************************************************************/
@@ -643,7 +643,7 @@ typedef struct
 #define MEMORY_SYNC_TASK_NAME               "MEMSYNCTASK"
 /** \brief MEMORY SYNC Binary Semaphore Name */
 #define MEMORY_SYNC_BSEM_NAME               "MEMSYNCBSEM"
-/** \brief MEMORY SYNC Priority Defualt */
+/** \brief MEMORY SYNC Priority Default */
 #define MEMORY_SYNC_PRIORITY_DEFAULT        190
 /** \brief MEMORY SYNC Priority Upper Limit */
 #define MEMORY_SYNC_PRIORITY_UP_RANGE       230

@@ -81,7 +81,7 @@ extern uint32 g_uiEndOfRam;
 static osal_id_t g_semUpdateMemAddr_id;
 
 /**
- ** \brief Boolean flag to indicate scrub addresses have been udpated
+ ** \brief Boolean flag to indicate scrub addresses have been updated
  ** \par Description:
  ** See above g_semUpdateMemAddr_id for more information.
  ** We use this flag for optimization sake; use this flag to check

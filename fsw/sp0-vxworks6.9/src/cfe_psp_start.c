@@ -225,11 +225,11 @@ void CFE_PSP_ProcessPOSTResults(void)
  **
  ** \param None
  **
- ** \return #RESET_SRC_POR
- ** \return #RESET_SRC_WDT
- ** \return #RESET_SRC_FWDT
- ** \return #RESET_SRC_CPCI
- ** \return #RESET_SRC_SWR
+ ** \return RESET_SRC_POR
+ ** \return RESET_SRC_WDT
+ ** \return RESET_SRC_FWDT
+ ** \return RESET_SRC_CPCI
+ ** \return RESET_SRC_SWR
  */
 static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
@@ -532,7 +532,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
             lOffset = lseek(iFD, 0, SEEK_SET);
             if (lOffset != 0)
             {
-                /* If we cannot operate on the file, delte it */
+                /* If we cannot operate on the file, delete it */
                 OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
                           "Error, could not set the write pointer for `%s`\n",
                           g_StartupInfo.fullpath_failed_startup_filename
@@ -955,7 +955,7 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_SestTaskPrio
+ * Function: CFE_PSP_SetTaskPrio
  * 
  * Description: See function declaration for info
  *

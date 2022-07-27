@@ -146,7 +146,7 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
         
         if (iResult == OK)
         {
-            /* If the unix time has synchronzed with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
+            /* If the unix time has synchronized with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
             if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
             {
                 myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
@@ -225,7 +225,10 @@ int32 CFE_PSP_StopNTPDaemon(void)
     }
     else
     {
-        /* Although the name, OS user guide describes IPCOM_ERR_NOT_STARTED as "Dameon is not running" */
+        /*
+        Although the name implied an IPCOM error, 
+        VxWorks OS user guide describes IPCOM_ERR_NOT_STARTED as "Daemon is not running"
+        */
         if (iIPCOMStatus == IPCOM_ERR_NOT_STARTED)
         {
             OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon already stopped\n");

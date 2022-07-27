@@ -749,11 +749,10 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT     = ../fsw/inc
-INPUT    += ../fsw/modules/ntp_clock_vxworks
+INPUT    += ../fsw/shared
 INPUT    += ../fsw/modules/port_direct
 INPUT    += ../fsw/modules/ram_direct
 INPUT    += ../fsw/modules/timebase_vxworks
-INPUT    += ../fsw/shared
 INPUT    += ../fsw/sp0-vxworks6.9
 INPUT    += ./dox_src
 
@@ -900,7 +899,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = readme.md
+USE_MDFILE_AS_MAINPAGE = README.md
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing

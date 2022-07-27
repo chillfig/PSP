@@ -31,6 +31,7 @@
 
 /**
  ** \brief CFE PSP Module Base and Index
+ **
  ** \par Description:
  ** When using an OSAL that also supports "opaque object ids", choose values here
  ** that will fit in with the OSAL object ID values and not overlap anything.
@@ -41,11 +42,19 @@
  /** \brief CFE_PSP_MODULE_INDEX_MASK */
  #define CFE_PSP_MODULE_INDEX_MASK OS_OBJECT_INDEX_MASK
 #else
+ /** \brief CFE_PSP_MODULE_BASE */
  #define CFE_PSP_MODULE_BASE       0x01100000
+ /** \brief CFE_PSP_MODULE_INDEX_MASK */
  #define CFE_PSP_MODULE_INDEX_MASK 0xFFFF
 #endif
 
-
+/**
+ ** \brief Total number of fixed and user selected PSP modules.
+ **
+ ** \par Warning:
+ ** This is actually incremented twice, once per module list (Fixed and User selected lists).
+ ** There is an issue identified with this variable: https://github.com/nasa/PSP/issues/319
+ */
 static uint32 CFE_PSP_ModuleCount = 0;
 
 /**
@@ -101,7 +110,7 @@ void CFE_PSP_ModuleInit(void)
     /*
     ** Then initialize any user-selected extension modules
     ** 
-    ** Set CFE_PSP_ModuleCount to 0 beacuse each function
+    ** Set CFE_PSP_ModuleCount to 0 because each function
     ** that uses CFE_PSP_ModuleCount only iterates
     ** through GLOBAL_CONFIGDATA.PspModuleList with no consideration
     ** for other module lists (i.e., no consideration for

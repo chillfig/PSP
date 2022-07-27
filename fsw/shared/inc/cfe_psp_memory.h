@@ -106,11 +106,11 @@ typedef struct
     CFE_PSP_ExceptionStorage_t *        ExceptionStoragePtr;
     /** \brief  Reset Memory  */
     CFE_PSP_MemoryBlock_t ResetMemory;
-    /** \brief  Voltatile Disk Memory  */
+    /** \brief  Volatile Disk Memory  */
     CFE_PSP_MemoryBlock_t VolatileDiskMemory;
     /** \brief  CDS Memory  */
     CFE_PSP_MemoryBlock_t CDSMemory;
-    /** \brief  User Reservded Memory  */
+    /** \brief  User Reserved Memory  */
     CFE_PSP_MemoryBlock_t UserReservedMemory;
 
     /**
@@ -363,6 +363,7 @@ int32 CFE_PSP_ReadFromUSERRESERVED(const void *p_data, uint32 offset, uint32 siz
  ** None
  **
  ** \param[out] p_area - Pointer to the variable that stores returned memory address
+ ** \param[out] p_size - Size of data
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_INVALID_POINTER

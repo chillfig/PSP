@@ -60,19 +60,26 @@
 
 /** \name Define PRINT SCOPES */
 /** \{ */
+/** \brief Generic memory pre-print string  */
 #define MEMORY_PRINT_SCOPE "PSP MEMORY: "
+/** \brief Memory Sync pre-print string  */
 #define MEMORY_SYNC_PRINT_SCOPE "MEMORY SYNC: "
 /** \} */
 
-/*
-** ENUM Definitions
-*/
-typedef enum MEMORY_SECTION_tAG
+/**
+ ** \brief Memory sections
+ **/
+typedef enum
 {
+    /** \brief Critical Device Storage section*/
     OP_CDS          = 0,
+    /** \brief RESET section*/
     OP_RESET        = 1,
+    /** \brief Volatile Disk section*/
     OP_VOLATILEDISK = 2,
+    /** \brief User Reserver section*/
     OP_USERRESERVED = 3,
+    /** \brief Not Applicable section. Used as a No-Op */
     OP_NA           = 4
 } MEMORY_SECTION_t;
 
@@ -1792,7 +1799,7 @@ int32 CFE_PSP_MemSyncDestroy(void)
     {
         if (!OS_ObjectIdEqual(g_MemorySyncTaskBinSem, OS_OBJECT_ID_UNDEFINED))
         {
-            /* Attempt to take sempahore */
+            /* Attempt to take semaphore */
             iStatus = OS_BinSemTake(g_MemorySyncTaskBinSem);
             if (iStatus == OS_SUCCESS)
             {
@@ -2105,13 +2112,9 @@ static int32 CFE_PSP_UserReservedFilepath(void)
  ** Generate reserved memory section filepaths
  **
  ** \par Assumptions, Notes, and External Events:
- ** This function will destroy any data contained
- ** within the provided p_path array.
- ** This function should only be called during
- ** startup.
+ ** This function should only be called during startup.
  **
- ** \param p_fpath[out] - Character array filepath
- ** \param op - Memory section indicator
+ ** \param op[in] - Memory section indicator of type #MEMORY_SECTION_t
  **
  ** \return #CFE_PSP_SUCCESS - Successfully created full filepaths
  ** \return #CFE_PSP_ERROR - Unsuccessfully created full filepaths
@@ -2154,7 +2157,7 @@ static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op)
                     iResult = snprintf(g_CDSFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s", 
                                                     caActivePath, CFE_PSP_CDS_FLASH_FILEPATH);
                     break;
-                
+
                 case OP_RESET:
                     iResult = snprintf(g_RESETFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
                                                     caActivePath, CFE_PSP_RESET_FLASH_FILEPATH);
@@ -2169,7 +2172,7 @@ static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op)
                     iResult = snprintf(g_USERRESERVEDFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
                                                     caActivePath, CFE_PSP_USERRESERVED_FLASH_FILEPATH);
                     break;
-                
+
                 default:
                     iResult = -1;
                     OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");

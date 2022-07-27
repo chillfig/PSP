@@ -208,7 +208,7 @@ typedef struct
 **
 ** \par Assumptions, External Events, and Notes:
 ** After calling this function, the new settings will be applied in the 
-** next call to the Activate Memory Scrubbing funtion.
+** next call to the Activate Memory Scrubbing function.
 ** If newEndAddr is set to a value larger than the actual physical memory limit,
 ** the function will use the physical memory limit.
 ** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
@@ -231,7 +231,7 @@ int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration);
 **
 ** \par Assumptions, External Events, and Notes:
 ** This applies only for Idle and Timed Mode.
-** See #uiRunMode for more details
+** See #MEMSCRUB_RUN_MODE for more details
 **
 ** \param None
 **
@@ -244,7 +244,7 @@ bool  CFE_PSP_MemScrubIsRunning(void);
 ** \func Stop the memory scrubbing task
 **
 ** \par Description:
-** This function deletes the memory scrubbing task and the sempahore.
+** This function deletes the memory scrubbing task and the semaphore.
 ** Then, it resets all memory scrub related variables to default.
 ** 
 ** \par Assumptions, External Events, and Notes:
@@ -269,7 +269,7 @@ int32  CFE_PSP_MemScrubDelete(void);
 ** Start memory address is usually 0. End memory address is usually set to the 
 ** last value of RAM address. Note that a page is 4096 bytes.
 ** 
-** \param[out] pStatus - pointer to a Mem Scrub Configuration structure
+** \param[out] pStatus - Pointer to a Mem Scrub Configuration structure
 ** \param[in] talk - Print out the status values
 **
 ** \return None
@@ -298,7 +298,7 @@ int32  CFE_PSP_MemScrubInit(void);
 **
 ** \par Description:
 ** This function runs Memory Scrubbing for Manual Mode. Task will
-** exit immediately and autoadvance to next memory block controlled by 
+** exit immediately and auto advance to next memory block controlled by 
 ** #MEMSCRUB_BLOCKSIZE_PAGES
 **
 ** \par Assumptions, External Events, and Notes:
@@ -306,8 +306,8 @@ int32  CFE_PSP_MemScrubInit(void);
 **
 ** \param None
 **
-** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
-** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
+** \return #CFE_PSP_SUCCESS - Successfully started memory scrubbing task
+** \return #CFE_PSP_ERROR - Could not start memory scrubbing task
 */
 int32 CFE_PSP_MemScrubTrigger(void);
 
@@ -324,7 +324,7 @@ int32 CFE_PSP_MemScrubTrigger(void);
 ** \param None
 **
 ** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
-** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
+** \return #CFE_PSP_ERROR - Could not start memory scrubbing task
 */
 int32  CFE_PSP_MemScrubEnable(void);
 
@@ -355,7 +355,7 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** memory error statistics
  **
  ** \par Assumptions, External Events, and Notes:
- ** TBD what these individual values truely represent
+ ** TBD what these individual values truly represent
  **
  ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
  ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
