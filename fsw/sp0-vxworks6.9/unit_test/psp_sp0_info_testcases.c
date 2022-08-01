@@ -551,7 +551,7 @@ void Ut_CFE_PSP_SP0DumpData(void)
     sprintf(cMsg_creat, SP0_PRINT_SCOPE "Could not create the SP0 info file dump. errno=`%d`\n", errno);
     sprintf(cMsg_write, SP0_PRINT_SCOPE "Error while writing SP0 info data dump to file. errno=`%d`\n", errno);
     sprintf(cMsg_close, SP0_PRINT_SCOPE "Could not close file SP0 info data dump. errno=`%d`\n", errno);
-    sprintf(cMsg_nodump, SP0_PRINT_SCOPE "Data Dump has not been initialized or error occured\n");
+    sprintf(cMsg_nodump, SP0_PRINT_SCOPE "Data Dump has not been initialized or error occurred\n");
     g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, SP0_TEXT_BUFFER_MAX_SIZE, "0123456789");
 
     /* ----- Test case #1 - Nominal ----- */
