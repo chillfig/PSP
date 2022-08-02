@@ -46,7 +46,7 @@ extern "C" {
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
 #define CFE_PSP_IMPL_MINOR_VERSION 6 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
-#define CFE_PSP_IMPL_REVISION      0 
+#define CFE_PSP_IMPL_REVISION      1 
 
 /**
  ** \brief Mission revision.
