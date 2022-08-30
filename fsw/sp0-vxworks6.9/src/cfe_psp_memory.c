@@ -333,9 +333,9 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 
             /* RESET MEMORY - Not sure if still valid */
             iStatus = CFE_PSP_RestoreReset();
-
             if (iStatus != CFE_PSP_SUCCESS)
             {
+                OS_printf(MEMORY_PRINT_SCOPE "%s: Failed to restore Reset data\n", __func__);
                 memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
                         0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
                 CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 
@@ -348,7 +348,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 
             if (iStatus != CFE_PSP_SUCCESS)
             {
-                OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore CDS data\n");
+                OS_printf(MEMORY_PRINT_SCOPE "%s: Failed to restore CDS data\n", __func__);
                 memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
                         0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
                 CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
@@ -361,7 +361,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 
             if (iStatus != CFE_PSP_SUCCESS)
             {
-                OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore Volatile Disk data\n");
+                OS_printf(MEMORY_PRINT_SCOPE "%s: Failed to restore Volatile Disk data\n", __func__);
                 memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                         0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
                 CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
@@ -374,7 +374,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 
             if (iStatus != CFE_PSP_SUCCESS)
             {
-                OS_printf(MEMORY_PRINT_SCOPE "InitProcessorReservedMemory: Failed to restore User Reserved data\n");
+                OS_printf(MEMORY_PRINT_SCOPE "%s: Failed to restore User Reserved data\n", __func__);
                 memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                         0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
                 CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,

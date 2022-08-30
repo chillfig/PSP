@@ -157,9 +157,6 @@ void PSP_FT_Setup(void)
     remove("/ffx0/URM/RESET.bkp");
     remove("/ffx0/URM/CDS.bkp");
 
-    /* Start CPU Activity Function */
-    spyClkStart(0);
-
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     CFE_PSP_Main();
 }
@@ -216,9 +213,6 @@ void PSP_FT_Start(void)
     spyClkStop();
 
     OS_printf("[END PSP Functional Test]\n\n");
-
-    /* Print CPU activity report */
-    spyReport();
 
     OS_printf("[RESULTS]\n"
               "Passed: %u - "
@@ -373,40 +367,41 @@ void ft_memory(void)
 
 /*
 ** Testing:
-** Does the system NOT crash
-** while multiple tasks are utilizing
-** the same sections of RAM
-**
-** ALSO, this test is running under the assumption that
-** no other tasks/routines are writing/utilizing
-** user reservered memory section of reserved memory (which
-** is currently the case as of Feb 16, 2022, 3:10 PM)
+  - CFE_PSP_MemSyncStart()
+  - CFE_PSP_MemSyncStop()
+  - CFE_PSP_MemSyncIsRunning()
+  - CFE_PSP_MemSyncSetPriority()
+  - CFE_PSP_MemSyncGetPriority()
+  - CFE_PSP_MemSyncSetFrequency()
+  - CFE_PSP_MemSyncGetFrequency()
+  - CFE_PSP_FlushToFLASH()
+  - CFE_PSP_CheckURMFilesExists()
 */
 void ft_memory_sync(void)
 {
-    OS_printf("[START FT MEMORY SYNC]\n");
-
-    /*
-    ** To run this test, add define the
-    ** preprocessor directive 
-    ** RUN_MEM_SYNC_TEST
-    ** and remove static function specifier
-    ** in cfe_psp_memory.c source
-    */
-
-#ifdef RUN_MEM_SYNC_TEST
-
+    int32_t ret_code = 0;
     uint8 uiBuf_original[256];
     uint8 uiBuf_backup[256];
     uint8 fillValue = 0;
     uint32_t i = 0;
     int32_t memcmpResult = 0;
-    extern int32_t CFE_PSP_RestoreUserReserved(void);
+    osal_priority_t uiMemSyncPriority = 0;
+    uint32  uiMemSyncFrequency = 0;
 
-    cnt_tests = 1;
-    cnt_pass = 0;
-    cnt_fail = 0;
+    OS_printf("[START MEMORY SYNC]\n");
 
+    /* If Memory Sync task is running, stop it */
+    if (CFE_PSP_MemSyncIsRunning() == true)
+    {
+        ret_code = CFE_PSP_MemSyncStop();
+        FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Successfully stopped task");
+    }
+
+    /* If the URM files exists, delete them */
+    ret_code = CFE_PSP_CheckURMFilesExists();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS,"URM files do exists")
+
+    /* Prepare data */
     for (i = 0; i < 256; i++)
     {
         fillValue = (uint8) rand();
@@ -420,20 +415,36 @@ void ft_memory_sync(void)
     /* Clear test data */
     memset((void *)uiBuf_original, 0, 256);
 
-    /* Allow for some time to pass to ensure sync has occured */
+    /* Allow for some time to pass to ensure sync has occurred */
     OS_TaskDelay(MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
 
-    /* Simulate a reset, kind of */
-    CFE_PSP_RestoreUserReserved();
+    /* Read what was written */
     CFE_PSP_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
 
     /* Validate Data */
     memcmpResult = memcmp((void *)uiBuf_original, (void *)uiBuf_backup, 256);
     FT_Assert_True(memcmpResult == 0, "MemorySync Data Check");
-    
-#endif /* RUN_MEM_SYNC_TEST */
 
-    OS_printf("[END FT MEMORY SYNC]\n");
+    /* If Memory Sync task is running, stop it */
+    if (CFE_PSP_MemSyncIsRunning() == false)
+    {
+        ret_code = CFE_PSP_MemSyncStart();
+        FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Successfully started task");
+    }
+
+    /* Test priority changing */
+    uiMemSyncPriority = CFE_PSP_MemSyncGetPriority();
+    ret_code = CFE_PSP_MemSyncSetPriority(uiMemSyncPriority + 1);
+    FT_Assert_True(uiMemSyncPriority != CFE_PSP_MemSyncGetPriority(), "Successfully changed task priority")
+    ret_code = CFE_PSP_MemSyncSetPriority(uiMemSyncPriority);
+
+    /* Test frequency changing */
+    uiMemSyncFrequency = CFE_PSP_MemSyncGetFrequency();
+    ret_code = CFE_PSP_MemSyncSetFrequency(uiMemSyncFrequency + 1);
+    FT_Assert_True(uiMemSyncFrequency != CFE_PSP_MemSyncGetFrequency(), "Successfully changed task frequency")
+    ret_code = CFE_PSP_MemSyncSetFrequency(uiMemSyncFrequency);
+
+    OS_printf("[END MEMORY SYNC]\n\n");
 }
 
 /*

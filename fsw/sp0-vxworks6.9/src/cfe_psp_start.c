@@ -263,7 +263,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
                 break;
             /* Software Reset - detects user (including machine check) requested reset */
             case RESET_SRC_SWR:
-                OS_printf("PSP: POWERON Reset: Software Hard Reset.\n");
+                OS_printf("PSP: PROCESSOR Reset: Software Hard Reset.\n");
                 g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
 
                 /*
@@ -285,7 +285,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
             /* cPCI Reset - detects cPCI reset initiated by FPGA from remote SBC */        
             case RESET_SRC_CPCI:
                 OS_printf("PSP: PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.\n");
-                g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_RESET_COMMAND;
+                g_StartupInfo.ResetSubtype = CFE_PSP_RST_SUBTYPE_HW_SPECIAL_COMMAND;
                 break;
 
             /* Internal FPGA Watchdog timer - detects application SW failure */        
@@ -353,7 +353,7 @@ static void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     }
     if (g_StartupInfo.safeModeUserData.sbc == SM_LOCAL_SBC)
     {
-        OS_printf("PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+        OS_printf("PSP: Reset Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
                 resetSrc,
                 pResetSrcString,
                 g_StartupInfo.safeModeUserData.safeMode,
@@ -363,7 +363,7 @@ static void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
     }
     else
     {
-        OS_printf("PSP: PROCESSOR rst Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+        OS_printf("PSP: Reset Source = 0x%x = (%s) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
                 resetSrc,
                 pResetSrcString,
                 g_StartupInfo.safeModeUserData.safeMode,

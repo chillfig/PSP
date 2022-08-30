@@ -129,14 +129,14 @@ void CFE_PSP_Restart(uint32 resetType)
             CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = resetType;
         }
 
-        /* Increase the frequency of memory synchronization */
+        /* Stop Mem Sync and Synch URM to Flash */
         CFE_PSP_FlushToFLASH();
 
         CFE_PSP_SaveToNVRAM();
     }
 
     /* Delay to let console catch up on printing logs. */
-    OS_TaskDelay(4000);
+    OS_TaskDelay(1000);
 
     reboot(BOOT_CLEAR);
 }

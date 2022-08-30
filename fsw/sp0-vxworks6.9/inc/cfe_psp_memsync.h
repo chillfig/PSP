@@ -201,6 +201,40 @@ uint32 CFE_PSP_MemSyncGetFrequency(void);
 uint32 CFE_PSP_MemSyncGetStatistics(void);
 
 /**
+ ** \brief Flush the User Reserved Memory to its filepath
+ **
+ ** \par Description:
+ ** This function will perform a flush of all the data from User Reserved Memory
+ ** to their respective filenames in Flash memory
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Function is supposed to be called right before target restart
+ **
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_FlushToFLASH(void);
+
+/**
+ ** \brief Check that if the User Reserved Memory file exists
+ **
+ ** \par Description:
+ ** This function will check if the user reserved memory file exits in the path
+ ** constructed.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Checking only for a single file, not all 4. Deleting the Reset file will
+ ** produce a POWERON restart type.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS - When the file does exist
+ ** \return #CFE_PSP_ERROR - When the file does not exist
+ */
+int32 CFE_PSP_CheckURMFilesExists(void);
+
+/**
  ** \} <!-- End of group "psp_public_api_sp0vx69" -->
  */
 

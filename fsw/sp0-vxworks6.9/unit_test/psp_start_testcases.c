@@ -146,10 +146,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg,  "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(retCode == RESET_SRC_POR, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
+    UtAssert_OS_print(cMsg,  "_CFE_PSP_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(retCode == RESET_SRC_POR, "_CFE_PSP_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_CFE_PSP_ProcessResetType() - 1/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
 
     /* ----- Test case #2 - Nominal Power Switch ON ----- */
     /* Setup additional inputs */
@@ -162,10 +162,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg,  "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(retCode == RESET_SRC_POR, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_PROCESSOR, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
+    UtAssert_OS_print(cMsg,  "_CFE_PSP_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(retCode == RESET_SRC_POR, "_CFE_PSP_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_POWER_CYCLE, "_CFE_PSP_ProcessResetType() - 2/9: Nominal - POWERON Reset: Power Switch ON, correct reset subtype");
 
     /* ----- Test case #3 - Nominal External FPGA Watchdog timer primary EEPROM boot failure. ----- */
     /* Setup additional inputs */
@@ -179,10 +179,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
-    UtAssert_True(retCode == RESET_SRC_WDT, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct Reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
+    UtAssert_True(retCode == RESET_SRC_WDT, "_CFE_PSP_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct Reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_CFE_PSP_ProcessResetType() - 3/9: Nominal - PROCESSOR Reset: External FPGA Watchdog timer primary EEPROM boot failure. Correct reset subtype");
 
     /* ----- Test case #4 - Nominal Internal FPGA Watchdog timer application SW failure. ----- */
     /* Setup additional inputs */
@@ -196,10 +196,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
-    UtAssert_True(retCode == RESET_SRC_FWDT, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
+    UtAssert_True(retCode == RESET_SRC_FWDT, "_CFE_PSP_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_WATCHDOG, "_CFE_PSP_ProcessResetType() - 4/9: Nominal - PROCESSOR Reset: Internal FPGA Watchdog timer application SW failure. Correct reset subtype");
 
     /* ----- Test case #5 - Nominal cPCI Reset initiated by FPGA from remote SBC. ----- */
     /* Setup additional inputs */
@@ -213,10 +213,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
-    UtAssert_True(retCode == RESET_SRC_CPCI, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
+    UtAssert_True(retCode == RESET_SRC_CPCI, "_CFE_PSP_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_HW_SPECIAL_COMMAND, "_CFE_PSP_ProcessResetType() - 5/9: Nominal - PROCESSOR Reset: cPCI Reset initiated by FPGA from remote SBC. Correct reset subtype");
 
     /* ----- Test case #6 - Nominal Software Hard Reset ----- */
     /* Setup additional inputs */
@@ -226,14 +226,14 @@ void Ut_CFE_PSP_ProcessResetType(void)
     UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(ReadResetSourceReg), 1, OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
-    sprintf(cMsg, "PSP: POWERON Reset: Software Hard Reset.\n");
+    sprintf(cMsg, "PSP: PROCESSOR Reset: Software Hard Reset.\n");
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset");
-    UtAssert_True(retCode == RESET_SRC_SWR, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 6/9: Nominal - POWERON Reset: Software Hard Reset. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 6/9: Nominal - PROCESSOR Reset: Software Hard Reset");
+    UtAssert_True(retCode == RESET_SRC_SWR, "_CFE_PSP_ProcessResetType() - 6/9: Nominal - PROCESSOR Reset: Software Hard Reset");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 6/9: Nominal - PROCESSOR Reset: Software Hard Reset. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_CFE_PSP_ProcessResetType() - 6/9: Nominal - PROCESSOR Reset: Software Hard Reset. Correct reset subtype");
 
     /* ----- Test case #7 - Failed to read safemode data ----- */
     /* Setup additional inputs */
@@ -248,10 +248,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 7/9: Failed to read safemode data");
-    UtAssert_True(retCode == RESET_SRC_SWR, "_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 7/9: POWERON 8Reset: Software Hard Reset. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 7/9: Failed to read safemode data");
+    UtAssert_True(retCode == RESET_SRC_SWR, "_CFE_PSP_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 7/9: POWERON 8Reset: Software Hard Reset. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_RESET_COMMAND, "_CFE_PSP_ProcessResetType() - 7/9: POWERON Reset: Software Hard Reset. Correct reset subtype");
 
     /* ----- Test case #8 - POWERON Resest: UNKNOWN Reset ----- */
     /* Set additional inputs */
@@ -266,10 +266,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 8/9: Unknown reset type");
-    UtAssert_True(retCode == 0x0, "_ProcessResetType() - 8/9: Unknown reset type");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 8/9: Unknown reset type. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 8/9: Unknown reset type. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 8/9: Unknown reset type");
+    UtAssert_True(retCode == 0x0, "_CFE_PSP_ProcessResetType() - 8/9: Unknown reset type");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 8/9: Unknown reset type. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_CFE_PSP_ProcessResetType() - 8/9: Unknown reset type. Correct reset subtype");
 
     /* ----- Test case #9 - UNKNOWN Reset. Reset source read failed. ----- */
     /* Setup additional inputs */
@@ -283,10 +283,10 @@ void Ut_CFE_PSP_ProcessResetType(void)
     /* Execute test */
     retCode = CFE_PSP_ProcessResetType();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
-    UtAssert_True(retCode == 0, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
-    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset type");
-    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset subtype");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
+    UtAssert_True(retCode == 0, "_CFE_PSP_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed.");
+    UtAssert_True(g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON, "_CFE_PSP_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset type");
+    UtAssert_True(g_StartupInfo.ResetSubtype == CFE_PSP_RST_SUBTYPE_UNDEFINED_RESET, "_CFE_PSP_ProcessResetType() - 9/9: UNKNOWN Reset. Reset source read failed. Correct reset subtype");
 }
 
 /*=======================================================================================
@@ -308,7 +308,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     g_StartupInfo.safeModeUserData.mckCause = 1;
     g_StartupInfo.safeModeUserData.reason = 0;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "LOCAL",
@@ -328,7 +328,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     resetSrc = RESET_SRC_WDT;
     g_StartupInfo.safeModeUserData.sbc = SM_REMOTE_SBC;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (WDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (WDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -347,7 +347,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     Ut_OS_printf_Setup();
     resetSrc = RESET_SRC_FWDT;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (FWDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (FWDT) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -365,7 +365,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     Ut_OS_printf_Setup();
     resetSrc = RESET_SRC_CPCI;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (CPCI) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (CPCI) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -384,7 +384,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     resetSrc = RESET_SRC_SWR;
     g_StartupInfo.safeModeUserData.mckCause = 1U;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (SWR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -403,7 +403,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     resetSrc = RESET_SRC_POR;
     g_StartupInfo.safeModeUserData.mckCause = 0U;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (POR) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
@@ -423,7 +423,7 @@ void Ut_CFE_PSP_LogSoftwareResetType(void)
     g_StartupInfo.safeModeUserData.mckCause = 1U;
     g_StartupInfo.safeModeUserData.sbc = SM_REMOTE_SBC;
     sprintf(cMsg, 
-            "PSP: PROCESSOR rst Source = 0x%x = (Unknown) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
+            "PSP: Reset Source = 0x%x = (Unknown) Safe mode = %d, sbc = %s, reason = %d, cause = 0x%08x\n",
             resetSrc,
             g_StartupInfo.safeModeUserData.safeMode,
             "REMOTE",
