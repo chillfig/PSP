@@ -466,7 +466,7 @@ typedef struct
 /** \brief User Reserved File name on FLASH */
 #define CFE_PSP_USERRESERVED_FLASH_FILEPATH         "USRR.bkp"
 
-
+/******************************************************************************/
 /** \name Memory Scrubbing Configuration Parameters */
 /** \{ */
 
@@ -595,7 +595,7 @@ typedef struct
 
 /** \} */
 
-
+/******************************************************************************/
 /** \name NTP Sync Configuration Parameters */
 /** \{ */
 
@@ -637,6 +637,12 @@ typedef struct
 /** \name User Reserved Memory Sync Configuration Parameters */
 /** \{ */
 
+/** \} */
+
+/******************************************************************************/
+/** \name User Reserved Memory Sync Configuration Parameters */
+/** \{ */
+
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000
 /** \brief MEMORY SYNC Task Name */
@@ -660,7 +666,6 @@ typedef struct
 /** \brief USER RESERVED Binary Semaphore Name */
 #define MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
 
-/** \} */
 
 /**
 ** \} <!-- End of group "psp_sp0vx69_platcfg" -->

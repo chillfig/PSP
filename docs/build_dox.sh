@@ -4,8 +4,43 @@
 # NOTE: This shell script must run from the app's "docs" directory.
 # -------------------------------------------------------------------------------
 
-ucAPP=PSP_SP0-VXWORKS6.9
-lcAPP=psp_sp0-vxworks6.9
+#lcAPP=psp_sp0-vxworks6.9
+RED="\e[31m"
+GREEN="\e[32m"
+LBLUE="\e[94m"
+ENDCOLOR="\e[0m"
+
+# Show help if no arguments
+if [ -z $1 ] || [ -z $2 ]; then
+echo -e ${LBLUE}" "
+cat << EOF
+
+usage: build_dox.sh [ACTION] [PLATFORM]
+
+required arguments:
+  ACTION            One of [clean|html|pdf|all]
+  PLATFORM          Name of the platform [sp0-vxworks6.9|gr740-vxworks6.9]
+
+In case you are on ACSSL or SIMHOST(s) and don't have all .STY files, temporarely
+include a path where the system search for the .STY files:
+$ export TEXINPUTS=".:/users/acssl/texlive/2017/texmf-dist/tex/latex/xtab/:"
+
+EOF
+    echo -e ${ENDCOLOR}" "
+    exit 1
+fi
+
+EXAMPLE_RUN="Usage: ./build_dox.sh all sp0-vxworks6.9\n"
+
+# Convert platform name to upper and lower case
+ucAPP=psp_$(echo $2 | tr [:lower:] [:upper:])
+lcAPP=psp_$(echo $2 | tr [:upper:] [:lower:])
+
+# Prepares folder paths
+SCRIPT_ROOT=$(readlink -f $(dirname $0))
+PLATFORM_PATH=$(readlink --canonicalize $SCRIPT_ROOT/../fsw/$2)
+DOCX_SRC_PATH=$SCRIPT_ROOT/dox_src_$lcAPP
+DOXYFILE_PATH=$DOCX_SRC_PATH/$lcAPP\_Doxyfile
 
 # -------------------------------------------------------------------------------
 
@@ -20,8 +55,8 @@ function do_html()
 {
     do_clean && \
     mkdir -p latex && \
-    cp dox_src/customs/*.tex latex && \
-    doxygen dox_src/$lcAPP\_Doxyfile && \
+    cp $DOCX_SRC_PATH/customs/*.tex latex && \
+    doxygen $DOXYFILE_PATH && \
     if [ -e *.pdf ]; then
         cp *.pdf html
     fi
@@ -59,6 +94,20 @@ function do_pdf()
 # Main
 # -------------------------------------------------------------------------------
 
+# Verify that the platform folder exists
+if [ ! -d $PLATFORM_PATH ]; then
+   echo -e "\n${RED}I need the name of the platform: $PLATFORM_PATH not found${ENDCOLOR}"
+   echo -e $EXAMPLE_RUN
+   exit 0
+fi
+
+# Verify that the Doxyfile for the platform exists
+if [ ! -f $DOXYFILE_PATH ]; then
+   echo -e "\n${RED}Doxyfile for specific platform does not exists: $DOXYFILE_PATH not found${ENDCOLOR}"
+   echo -e $EXAMPLE_RUN
+   exit 0
+fi
+
 if [ "$1" == "clean" ]; then
     do_clean
 elif [ "$1" == "html" ]; then
@@ -68,7 +117,7 @@ elif [ "$1" == "pdf" ]; then
 elif [ "$1" == "all" ]; then
     do_pdf
 else
-    echo -e "\nUsage: ./build_dox.sh [clean|html|pdf|all]\n"
+    echo -e EXAMPLE_RUN
 fi
 
 # -------------------------------------------------------------------------------

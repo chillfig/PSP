@@ -376,7 +376,7 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     char boot_string_too_long[] = "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11";
-    /* Error if CFE_PSP_SetBootStructure returnes error */
+    /* Error if CFE_PSP_SetBootStructure returns error */
     char cMsg_error[] = "PSP: Could not save new boot structure\n";
     /* Error if inputs are NULL or too short */
     char cMsg_error1[] = "PSP: Provided startup script path is NULL or cannot be longer than 160 bytes\n";
@@ -479,7 +479,7 @@ void Ut_CFE_PSP_GetBootStructure(void)
     UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetBootStructure() - 2/3: Nominal return code - talkative");
     UtAssert_OS_print(cMsg_talkative, "_CFE_PSP_GetBootStructure() - 2/3: Nominal message - talkative");
 
-    /* ----- Test case #3 - Error retriving boot string ----- */
+    /* ----- Test case #3 - Error retrieving boot string ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), ERROR);
@@ -689,7 +689,7 @@ void Ut_CFE_PSP_KernelLoadNew(void)
     /* Execute test */
     iRetCode = CFE_PSP_KernelLoadNew(cKernelPath, cKernelName);
     /* Verify outputs */
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_KernelLoadNew() - 3/3: Could not allocate - Retun Error");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_KernelLoadNew() - 3/3: Could not allocate - Return Error");
     UtAssert_STUB_COUNT(flashProgFile, 0);
     UtAssert_OS_print(cMsgError2, "_CFE_PSP_KernelLoadNew() - 3/3: Could not allocate - Message");
 }

@@ -112,13 +112,13 @@ void Ut_CFE_PSP_WriteToCDS(void)
     memset(localCDSBuffer, '1', 200);
     memset(uiBuffer, '1',uiNumBytes);
 
-    /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToCDS(pucData, uiCDSOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToCDS() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToCDS() - 1/4: Nominal - new data same as original one");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -588,14 +588,14 @@ void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
 
     UT_ResetState(0);
 
-    /* ----- Test case #2 - Kernel segement size pointer is NULL ----- */
+    /* ----- Test case #2 - Kernel segment size pointer is NULL ----- */
     /* Setup additional inputs */
     puiKernelSegment = &uiKernelSegment;
     puiKernelSegmentSize = NULL;
     /* Execute test */
     uiRetCode = CFE_PSP_GetKernelTextSegmentInfo(puiKernelSegment, puiKernelSegmentSize);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 2/2: Failed Kernel segement size pointer is NULL");
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 2/2: Failed Kernel segment size pointer is NULL");
 }
 
 /*=======================================================================================
@@ -945,13 +945,13 @@ void Ut_CFE_PSP_WriteToRESET(void)
     memset(localRESETBuffer, '1', 200);
     memset(uiBuffer, '1',uiNumBytes);
 
-    /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 1/4: Nominal - new data same as original one");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -1053,13 +1053,13 @@ void Ut_CFE_PSP_WriteToVOLATILEDISK(void)
     memset(localVOLATILEDISKBuffer, '1', 200);
     memset(uiBuffer, '1',uiNumBytes);
 
-    /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 1/4: Nominal - new data same as original one");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -1162,13 +1162,13 @@ void Ut_CFE_PSP_WriteToUSERRESERVED(void)
     memset(localUSERRESERVEDBuffer, '1', 200);
     memset(uiBuffer, '1',uiNumBytes);
 
-    /* ----- Test case #1 - Nominal unchange while new data as the same as original one ----- */
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
     /* Setup additional inputs */
     pucData = uiBuffer;
     /* Execute test */
     iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 1/4: Nominal No changed since the data buffer unchanged");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 1/4: Nominal - new data same as original one");
 
     /* ----- Test case #2 - Need to update memory ----- */
     /* Setup additional inputs */
@@ -1833,7 +1833,7 @@ void Ut_CFE_PSP_RestoreData(void)
     /* Execute test */
     iReturnCode = CFE_PSP_RestoreData(99999);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, UT_MEMORY_PRINT_SCOPE "RestoreData - 1/7: Inavlid memory option - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, UT_MEMORY_PRINT_SCOPE "RestoreData - 1/7: Invalid memory option - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_PRINT_SCOPE "RestoreData - 1/7: Invalid memory option - message");
 
     /* ----- Test case #2 - File not on system, create fail ----- */
@@ -1954,7 +1954,7 @@ void Ut_CFE_PSP_MemSyncInit(void)
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
     UtAssert_True(iReturnCode ==CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start tasl - message");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - message");
 
     /* ----- Test case #4: Start on startup true, start task----- */
     /* Set additional inputs */
@@ -2269,7 +2269,7 @@ void Ut_CFE_PSP_MemSyncSetPriority(void)
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set priority - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "setPriority - 4/5: Failed to set new priority - message");
     
-    /* ----- Test case #5: Succesfully set priority ----- */
+    /* ----- Test case #5: Successfully set priority ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
@@ -2555,7 +2555,7 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 1/5: Fail to construct directory path - message");
 
-    /* ----- Test case #2 - Fail to create direcotry ----- */
+    /* ----- Test case #2 - Fail to create directory ----- */
     /* Additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -2583,7 +2583,7 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 3/5: Fail to create FULL path - message");
 
-    /* ----- Test case #4 - Reach defualt case ----- */
+    /* ----- Test case #4 - Reach default case ----- */
     /* Additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();

@@ -7,7 +7,7 @@
 # CMake snippet for PSP functional tests
 #
 
-set (FT_NAME "psp")
+set(FT_NAME "psp")
 
 # Source for this app's UT executable
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ FT_SRCS)

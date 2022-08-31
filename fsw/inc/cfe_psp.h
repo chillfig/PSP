@@ -665,6 +665,7 @@ void  CFE_PSP_Panic(int32 errorCode);
 **
 ** \par Assumptions, External Events, and Notes:
 ** - For the SP0-vxworks6.9, this is not implemented
+** - For the GR740-vxworks6.9, this simply creates a ram drive
 **
 ** \param[in] bus - ATA controller number
 ** \param[in] device - ATA drive number
@@ -672,6 +673,7 @@ void  CFE_PSP_Panic(int32 errorCode);
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
+** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED
 */
 int32  CFE_PSP_InitSSR(uint32 bus, uint32 device, char *DeviceName );
 

@@ -3,6 +3,7 @@ aux_source_directory(shared/src SHARED_SRC)
 
 # Sets the target name (not available in toolchain file when working with stubs)
 set(STUB_TARGET_NAME "sp0-vxworks6.9")
+#set(STUB_TARGET_NAME "gr740-vxworks6.9")
 
 aux_source_directory(${STUB_TARGET_NAME}/src STUB_TARGET_NAME_SRC)
 

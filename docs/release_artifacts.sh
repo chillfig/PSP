@@ -19,7 +19,7 @@ echo -e "\n2. Make a \"release-artifacts\" directory\n"
 mkdir -p psp-release-artifacts
 
 echo -e "\n3. Build Section 5 of the SDD\n"
-./build_dox.sh pdf
+./build_dox.sh pdf sp0-vxworks6.9
 
 echo -e "\n4. Generate tables from Doxygen comments\n"
 ./gen_tables.sh

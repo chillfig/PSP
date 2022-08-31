@@ -584,7 +584,7 @@ void Ut_CFE_PSP_MemScrubEnable(void)
     iReturnCode = CFE_PSP_MemScrubEnable();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubEnable - 1/4: Correct return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubEnable - 1/4: Memory scrub task alrready running - message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubEnable - 1/4: Memory scrub task already running - message");
 
     /* ----- Test case #2 - Task not running, binary semaphore not created ----- */
     /* Set additional inputs */
@@ -613,7 +613,7 @@ void Ut_CFE_PSP_MemScrubEnable(void)
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubEnable - 3/4: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubEnable - 3/4: Error creating memory scrub task - message");
 
-    /* ----- Test case #4 - Succesfully create mem scrub task ----- */
+    /* ----- Test case #4 - Successfully create mem scrub task ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     g_semUpdateMemAddr_id = OS_ObjectIdFromInteger(99);
@@ -776,7 +776,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubDelete();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubDelete - 2/4: Correect return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubDelete - 2/4: Correct return code");
     UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubDelete - 2/4: Unable to take semaphore - message");
     UtAssert_True(!OS_ObjectIdDefined(g_MemScrub_Status.uiMemScrubTaskId), "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub task id reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubCurrentPage == 0, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub current page reset");

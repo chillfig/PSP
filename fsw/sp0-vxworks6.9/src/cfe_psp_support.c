@@ -81,7 +81,6 @@ void CFE_PSP_Restart(uint32 resetType)
 {
     char    cStartupString[BOOT_FILE_LEN] = {'\0'};
 
-    /* Delay to make sure that all prints have been printed to console */
     OS_printf("WARNING: PSP Restart called with %d\n", resetType);
 
     /* This cases are PSP specific */

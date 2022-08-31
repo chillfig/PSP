@@ -83,6 +83,10 @@ PSP_VxWorks_Timebase_Global_t PSP_VxWorks_Timebase_Global;
 
 CFE_PSP_MODULE_DECLARE_SIMPLE(timebase_vxworks);
 
+#if defined(LEONCOMPAT_VERSION)
+extern void vxTimeBaseGet(uint32 *Tbu, uint32 *Tbl);
+#endif
+
 /**
  ** \func Initialize VxWorks timebase module
  **

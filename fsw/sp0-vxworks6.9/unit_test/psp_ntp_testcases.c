@@ -212,7 +212,7 @@ void Ut_CFE_PSP_StartNTPDaemon(void)
     return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 2/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 2/5: NTP Daemon started succesfully, taskNameToId failure, correct return code");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 2/5: NTP Daemon started successfully, taskNameToId failure, correct return code");
 
     /* ----- Test case #3: ipcom already started, taskNameToId success ----- */
     UT_ResetState(0);
@@ -240,7 +240,7 @@ void Ut_CFE_PSP_StartNTPDaemon(void)
     return_code = CFE_PSP_StartNTPDaemon();
     /* Verify results */
     UtAssert_OS_print(cMsg, "_CFE_PSP_StartNTPDaemon - 4/5: " NTPSYNC_PRINT_SCOPE "NTP Daemon already started");
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 4/5: NTP Daemon started succesffully, taskNameToId failure, correct return code");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_StartNTPDaemon - 4/5: NTP Daemon started successfully, taskNameToId failure, correct return code");
 
     /* ----- Test case #5: some other ipcom error ----- */
     UT_ResetState(0);

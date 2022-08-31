@@ -201,7 +201,7 @@ void Ut_CFE_PSP_DeleteFile(void)
     /* Execute test */
     iReturnCode = CFE_PSP_DeleteFile(cFakeFileName);
     /* Verify results */
-    UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_FLASH_PRINT_SCOPE "DeleteFile - 2/4: File not present on sysem - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_FLASH_PRINT_SCOPE "DeleteFile - 2/4: File not present on system - return code");
 
     /* ----- Test case #3 - Remove fails ----- */
     /* Set additional inputs */
@@ -214,7 +214,7 @@ void Ut_CFE_PSP_DeleteFile(void)
     iReturnCode = CFE_PSP_DeleteFile(cFakeFileName);
     /* Verify results */
     UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_FLASH_PRINT_SCOPE "DeleteFile - 3/4: Failed to remove file - return code");
-    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "DeleteFile - 3/4: Failed to remove file - messsage");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "DeleteFile - 3/4: Failed to remove file - message");
 
     /* ----- Test case #4 - Successful remove ----- */
     /* Set additional inputs */
@@ -244,7 +244,7 @@ void Ut_CFE_PSP_CreateFile(void)
     iReturnCode = CFE_PSP_CreateFile(NULL);
     /* Verify results */
     UtAssert_True((iReturnCode == CFE_PSP_INVALID_POINTER), UT_FLASH_PRINT_SCOPE "CreateFile - 1/5: NULL filename - return code");
-    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 1/5: NULL filename - messsage");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 1/5: NULL filename - message");
 
     /* ----- Test case #2 - File does exist ----- */
     /* Set additional inputs */
@@ -266,7 +266,7 @@ void Ut_CFE_PSP_CreateFile(void)
     iReturnCode = CFE_PSP_CreateFile(cFakeFileName);
     /* Verify results */
     UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_FLASH_PRINT_SCOPE "CreateFile - 3/5: Failed to create file - return code");
-    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 3/5: Failed to create file - messsage");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 3/5: Failed to create file - message");
 
     /* ----- Test case #4 - Fail to close file ----- */
     /* Set additional inputs */
@@ -280,9 +280,9 @@ void Ut_CFE_PSP_CreateFile(void)
     iReturnCode = CFE_PSP_CreateFile(cFakeFileName);
     /* Verify results */
     UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_FLASH_PRINT_SCOPE "CreateFile - 4/5: Failed to close file - return code");
-    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 4/5: Failed to close file - messsage");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CreateFile - 4/5: Failed to close file - message");
 
-    /* ----- Test case #5 - Successfuly created file ----- */
+    /* ----- Test case #5 - Successfully created file ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(stat), 1, 1);
@@ -311,7 +311,7 @@ void Ut_CFE_PSP_CheckFile(void)
     iReturnValue = CFE_PSP_CheckFile(NULL);
     /* Verify results */
     UtAssert_True((iReturnValue == false), UT_FLASH_PRINT_SCOPE "CheckFile - 1/3: NULL filename - return code");
-    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CheckFile - 1/3: NULL filename - messsage");
+    UtAssert_OS_print(cMsg, UT_FLASH_PRINT_SCOPE "CheckFile - 1/3: NULL filename - message");
 
     /* ----- Test case #2 - File does exist ----- */
     /* Set additional inputs */
@@ -333,7 +333,7 @@ void Ut_CFE_PSP_CheckFile(void)
 }
 
 /*=======================================================================================
-** Ut_CFE_PSP_FLASH_CreateDirecotry(void) test cases
+** Ut_CFE_PSP_FLASH_CreateDirectory(void) test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_CreateDirectory(void)
 {

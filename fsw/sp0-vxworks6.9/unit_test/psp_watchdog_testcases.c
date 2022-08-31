@@ -46,7 +46,7 @@ void Ut_CFE_PSP_WatchdogInit(void)
     CFE_PSP_WatchdogInit();
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(g_uiCFE_PSP_WatchdogValue_ms, BASE_g_uiCFE_PSP_WatchdogValue_ms, 0, "_CFE_PSP_WatchdogInit() - 1/1: Nominal");
-    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms == BASE_g_uiCFE_PSP_WatchdogValue_ms, "_CFE_PSP_WatchdogInit() - 1/1: Nominal - Reduntant test");
+    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms == BASE_g_uiCFE_PSP_WatchdogValue_ms, "_CFE_PSP_WatchdogInit() - 1/1: Nominal - watchdog value set");
 }
 
 /*=======================================================================================
@@ -104,8 +104,8 @@ void Ut_CFE_PSP_WatchdogDisable(void)
     /* Execute test */
     CFE_PSP_WatchdogDisable();
     /* Verify results */
-    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
+    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 2/2: Unsuccessfully disable watchdog");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 2/2: Unsuccessfully disable watchdog");
 }
 
 /*=======================================================================================

@@ -20,9 +20,9 @@ All commands can be run from anywhere. Following commands assume that they are r
 
 2. Run PSP Unit Test application on Target
 
-   > ```$ sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]```
+   > ```$ sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]```
 
-   Above command will connect to *TARGET_IP*, load the PSP Unit Test application, run it, collect the data, convert the collected data to HTML, and finally compress the HTML report folder to a single ZIP file.
+   Above command will connect to _TARGET_IP_, load the PSP Unit Test application,connect via serial port to capture the output, run the unit test, collect the data, convert the collected data to HTML, and finally compress the HTML report folder to a single ZIP file.
 
    HTML folder: ```cert_testbed/psp/fsw/sp0-vxworks6.9/unit_test/html/```
 
@@ -54,7 +54,7 @@ Shell script to build the PSP unit test. Final application is save in _payload_ 
 
 Shell script to run unit test on target. It requires target name as argument
 
-```$ sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH]```
+```$ sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]```
 
 ### vx_code_coverage.prj
 
@@ -72,12 +72,9 @@ TCL script for killing communication with the target. It is run after the unit t
 
 TCL script for starting the communication with the target and running the unit test
 
-> <span style="color:teal">**NOTE 1**</span>: The msleep command really depends on how long the test it. I have not yet found a way to detect when the unit test is complete. Also I do not know how to perform while loop in TCL.
-
-
 ## Results
 
-### Percentages
+### Sample Percentages
 
 - Function 99.5% (199/200)
 - Block 98.2% (544/554)

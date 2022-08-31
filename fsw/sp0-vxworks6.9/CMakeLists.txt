@@ -10,7 +10,7 @@
 # the same source code is used with multiple targets.
 
 # To support the starting and killing of NTP daemon process
-STRING(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
+string(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
 if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
     include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/include)
     include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/config)

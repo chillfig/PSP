@@ -4,13 +4,13 @@
 #
 ######################################################################
 
-# CMake snippet for PSP unit tests
 #
-# Unit Test here is using a mini unit test header for running on VxWorks SP0 target
-#
+# Unit Test for running on VxWorks SP0 target
+# To test static functions, the testcases are combined with the original source 
+# code under a new subfolder called tmp_code_coverage.
 #
 
-set (UT_NAME "psp")
+set(UT_NAME "psp")
 
 set(IMPL_DIR ${PROJECT_SOURCE_DIR}/fsw/${CFE_SYSTEM_PSPNAME})
 
@@ -35,24 +35,15 @@ if (CODE_COVERAGE)
 
     # Create subfolder and all concatenated files
     file(MAKE_DIRECTORY ${TMP_FOLDER_CODE_COVERAGE})
-    mergeFilesTo(
-        psp_exception_testcases.c ${IMPL_DIR}/src/cfe_psp_exception.c "#include \"../src/cfe_psp_exception.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_expection_testcases.c)
-    mergeFilesTo(
-        psp_memory_testcases.c ${IMPL_DIR}/src/cfe_psp_memory.c "#include \"../src/cfe_psp_memory.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_memory_testcases.c)
-    mergeFilesTo(
-        psp_flash_testcases.c ${IMPL_DIR}/src/cfe_psp_flash.c "#include \"../src/cfe_psp_flash.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_flash_testcases.c)
-    mergeFilesTo(
-        psp_mem_scrub_testcases.c ${IMPL_DIR}/src/cfe_psp_memscrub.c "#include \"../src/cfe_psp_memscrub.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_mem_scrub_testcases.c)
-    mergeFilesTo(
-        psp_start_testcases.c ${IMPL_DIR}/src/cfe_psp_start.c "#include \"../src/cfe_psp_start.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_start_testcases.c)
-    mergeFilesTo(
-        psp_support_testcases.c ${IMPL_DIR}/src/cfe_psp_support.c "#include \"../src/cfe_psp_support.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_support_testcases.c)
-    mergeFilesTo(
-        psp_watchdog_testcases.c ${IMPL_DIR}/src/cfe_psp_watchdog.c "#include \"../src/cfe_psp_watchdog.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_watchdog_testcases.c)
-    mergeFilesTo(
-        psp_sp0_info_testcases.c ${IMPL_DIR}/src/cfe_psp_sp0info.c "#include \"../src/cfe_psp_sp0info.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_sp0_info_testcases.c)
-    mergeFilesTo(
-        psp_ntp_testcases.c ${IMPL_DIR}/src/cfe_psp_ntp.c "#include \"../src/cfe_psp_ntp.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ntp_testcases.c)
+    mergeFilesTo( psp_exception_testcases.c ${IMPL_DIR}/src/cfe_psp_exception.c "#include \"../src/cfe_psp_exception.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_expection_testcases.c)
+    mergeFilesTo( psp_memory_testcases.c ${IMPL_DIR}/src/cfe_psp_memory.c "#include \"../src/cfe_psp_memory.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_memory_testcases.c)
+    mergeFilesTo( psp_flash_testcases.c ${IMPL_DIR}/src/cfe_psp_flash.c "#include \"../src/cfe_psp_flash.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_flash_testcases.c)
+    mergeFilesTo( psp_mem_scrub_testcases.c ${IMPL_DIR}/src/cfe_psp_memscrub.c "#include \"../src/cfe_psp_memscrub.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_mem_scrub_testcases.c)
+    mergeFilesTo( psp_start_testcases.c ${IMPL_DIR}/src/cfe_psp_start.c "#include \"../src/cfe_psp_start.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_start_testcases.c)
+    mergeFilesTo( psp_support_testcases.c ${IMPL_DIR}/src/cfe_psp_support.c "#include \"../src/cfe_psp_support.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_support_testcases.c)
+    mergeFilesTo( psp_watchdog_testcases.c ${IMPL_DIR}/src/cfe_psp_watchdog.c "#include \"../src/cfe_psp_watchdog.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_watchdog_testcases.c)
+    mergeFilesTo( psp_sp0_info_testcases.c ${IMPL_DIR}/src/cfe_psp_sp0info.c "#include \"../src/cfe_psp_sp0info.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_sp0_info_testcases.c)
+    mergeFilesTo( psp_ntp_testcases.c ${IMPL_DIR}/src/cfe_psp_ntp.c "#include \"../src/cfe_psp_ntp.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ntp_testcases.c)
     file(COPY psp_testcases.c DESTINATION ${IMPL_DIR}/unit_test/${TMP_FOLDER_CODE_COVERAGE})
 
     aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FOLDER_CODE_COVERAGE} UT_SRCS)
@@ -81,7 +72,7 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
 )
 
 # To support the starting and killing of NTP daemon process (NTP Sync Module)
-STRING(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
+string(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
 if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
     include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/include)
     include_directories($ENV{WIND_COMPONENTS}/ip_net2-6.9/ipcom/config)
