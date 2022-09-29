@@ -40,13 +40,11 @@ void Ut_CFE_PSP_WatchdogInit(void)
 {
     /* ----- Test case #1 - Failed input pointer is NULL ----- */
     /* Setup additional inputs */
-    g_uiCFE_PSP_WatchdogValue_ms = 20000;
-    uint32 BASE_g_uiCFE_PSP_WatchdogValue_ms = g_uiCFE_PSP_WatchdogValue_ms;
+
     /* Execute test */
     CFE_PSP_WatchdogInit();
     /* Verify outputs */
-    UtAssert_IntegerCmpAbs(g_uiCFE_PSP_WatchdogValue_ms, BASE_g_uiCFE_PSP_WatchdogValue_ms, 0, "_CFE_PSP_WatchdogInit() - 1/1: Nominal");
-    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms == BASE_g_uiCFE_PSP_WatchdogValue_ms, "_CFE_PSP_WatchdogInit() - 1/1: Nominal - Reduntant test");
+    UtAssert_NA("_CFE_PSP_WatchdogInit() - 1/1: NA");
 }
 
 /*=======================================================================================
@@ -54,25 +52,13 @@ void Ut_CFE_PSP_WatchdogInit(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_WatchdogEnable(void)
 {
-    char cMsg[256] = {};
-    sprintf(cMsg, "PSP Watchdog: Could not enable FPGA Watchdog\n");
-
     /* ----- Test case #1 - Successfully enable watchdog ----- */
     /* Set additional inputs */
-    Ut_OS_printf_Setup();
-    sprintf(cMsg, "PSP Watchdog: Watchdog successfully enabled\n");
+    g_bWatchdogStatus = false;
     /* Execute test */
     CFE_PSP_WatchdogEnable();
     /* Verify results */
-    UtAssert_True(g_bWatchdogStatus == true, "_CFE_PSP_WatchdogEnable - 1/2: Nominal");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogEnable - 1/2: Nominal - message");
-
-    /* ----- Test case #2 - Unsuccessfully enable watchdog ----- */
-    /* Set additional inputs */
-    /* Execute test */
-    CFE_PSP_WatchdogEnable();
-    /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogEnable - 2/2: Could not enable Watchdog");   
+    UtAssert_True(g_bWatchdogStatus == true, "_CFE_PSP_WatchdogEnable - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -80,28 +66,13 @@ void Ut_CFE_PSP_WatchdogEnable(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_WatchdogDisable(void)
 {
-    char cMsg[256] = {};
-
     /* ----- Test case #1 - Successfully disable watchdog ----- */
     /* Set additional inputs */
-    Ut_OS_printf_Setup();
-    sprintf(cMsg, "PSP Watchdog: Successfully disabled watchdog\n");
+    g_bWatchdogStatus = true;
     /* Execute test */
     CFE_PSP_WatchdogDisable();
     /* Verify results */
-    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 1/2: Successfully disable watchdog");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 1/2: Successfully disable watchdog");
-
-    /* ----- Test case #2 - Unsuccessfully disable watchdog */
-    /* Set additional inputs */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    sprintf(cMsg, "PSP Watchdog: Could not disable FPGA Watchdog\n");
-    /* Execute test */
-    CFE_PSP_WatchdogDisable();
-    /* Verify results */
-    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogDisable - 2/2: Unuccessfully disable watchdog");
+    UtAssert_True(g_bWatchdogStatus == false, "_CFE_PSP_WatchdogDisable - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -121,9 +92,8 @@ void Ut_CFE_PSP_WatchdogGet(void)
 {
     uint32  uiRetVal = 0;
     
-    g_uiCFE_PSP_WatchdogValue_ms = 20000;
+    g_uiCFE_PSP_WatchdogValue_ms = 10000;
     uint32 BASE_g_uiCFE_PSP_WatchdogValue_ms = g_uiCFE_PSP_WatchdogValue_ms;
-    
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
@@ -138,31 +108,33 @@ void Ut_CFE_PSP_WatchdogGet(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_WatchdogSet(void)
 {
-    char cMsg[256] = {};
-    sprintf(cMsg, "PSP Watchdog: Could not set FPGA Watchdog rate\n");
-
-    Ut_OS_printf_Setup();
-
     g_uiCFE_PSP_WatchdogValue_ms = 10000;
-    uint32 BASE_g_uiCFE_PSP_WatchdogValue_ms = g_uiCFE_PSP_WatchdogValue_ms;
+    uint32 BASE_g_uiCFE_PSP_WatchdogValue_ms = 20000;
 
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     /* Execute test */
     CFE_PSP_WatchdogSet(BASE_g_uiCFE_PSP_WatchdogValue_ms);
     /* Verify outputs */
-    UtAssert_IntegerCmpAbs(g_uiCFE_PSP_WatchdogValue_ms, BASE_g_uiCFE_PSP_WatchdogValue_ms, 0, "_CFE_PSP_WatchdogSet() - 1/2: Nominal");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_WatchdogSet() - 1/2: Nominal No Print");
+    UtAssert_IntegerCmpAbs(g_uiCFE_PSP_WatchdogValue_ms, BASE_g_uiCFE_PSP_WatchdogValue_ms, 0, "_CFE_PSP_WatchdogSet() - 1/3: Nominal");
 
-    /* ----- Test case #1 - Nominal ----- */
+    /* ----- Test case #2 - Nominal - Capped to Max ----- */
     /* Setup additional inputs */
     g_uiCFE_PSP_WatchdogValue_ms = 99;
-    BASE_g_uiCFE_PSP_WatchdogValue_ms = 3;
+    BASE_g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_MAX_MS + 1;
     /* Execute test */
     CFE_PSP_WatchdogSet(BASE_g_uiCFE_PSP_WatchdogValue_ms);
     /* Verify outputs */
-    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms != BASE_g_uiCFE_PSP_WatchdogValue_ms, "_CFE_PSP_WatchdogSet() - 2/2: Nominal");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogSet() - 2/2: Nominal Error Print");
+    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms == CFE_PSP_WATCHDOG_MAX_MS, "_CFE_PSP_WatchdogSet() - 2/3: Nominal - Capped to Max");
+
+    /* ----- Test case #1 - Nominal - Capped to Min ----- */
+    /* Setup additional inputs */
+    g_uiCFE_PSP_WatchdogValue_ms = 99;
+    BASE_g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_MIN_MS - 1;
+    /* Execute test */
+    CFE_PSP_WatchdogSet(BASE_g_uiCFE_PSP_WatchdogValue_ms);
+    /* Verify outputs */
+    UtAssert_True(g_uiCFE_PSP_WatchdogValue_ms == CFE_PSP_WATCHDOG_MIN_MS, "_CFE_PSP_WatchdogSet() - 3/3: Nominal - Capped to Min");
 }
 
 /*=======================================================================================
@@ -172,21 +144,19 @@ void Ut_CFE_PSP_WatchdogStatus(void)
 {
     bool bReturnValue;
 
+    char cMsg[256] = {};
+    sprintf(cMsg, "WD calculated value = %d ms\n", g_uiCFE_PSP_WatchdogValue_ms);
+
+    Ut_OS_printf_Setup();   
+
     /* ----- Test case #1 - Watchdog is currently disabled ----- */
     /* Set additional inputs */
     g_bWatchdogStatus = false;
     /* Execute test */
     bReturnValue = CFE_PSP_WatchdogStatus();
     /* Verify results */
-    UtAssert_True(bReturnValue == false, "_CFE_PSP_WatchdogStatus - 1/2: Watchdog currently disabled - return code");
-
-    /* ----- Test case #2 - Watchdog is currently enabled ----- */
-    /* Set additional inputs */
-    g_bWatchdogStatus = true;
-    /* Execute test */
-    bReturnValue = CFE_PSP_WatchdogStatus();
-    /* Verify results */
-    UtAssert_True(bReturnValue == true, "_CFE_PSP_WatchdogStatus - 2/2: Watchdog currently enabled - return code");
+    UtAssert_True(bReturnValue == false, "_CFE_PSP_WatchdogStatus - 1/1: Watchdog return code");
+    /* UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogStatus - 1/1: Watchdog message"); */
 }
 
 /*=======================================================================================

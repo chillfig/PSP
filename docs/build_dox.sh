@@ -23,7 +23,7 @@ required arguments:
 
 In case you are on ACSSL or SIMHOST(s) and don't have all .STY files, temporarely
 include a path where the system search for the .STY files:
-$ export TEXINPUTS=".:/users/acssl/texlive/2017/texmf-dist/tex/latex/xtab/:"
+$ export TEXINPUTS=".:/users/acssl/texlive/2017/texmf-dist/tex/latex//:"
 
 EOF
     echo -e ${ENDCOLOR}" "

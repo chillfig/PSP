@@ -118,16 +118,14 @@ int edrPolicyHandlerHookAdd(void * pPtrFunc)
 
 MODULE_ID moduleFindByName(const char *moduleName)
 {
-    MODULE_ID retval;
+    MODULE_ID retval = NULL;
     int32 iStatus;
 
-    retval = NULL;
     iStatus = UT_DEFAULT_IMPL(moduleFindByName);
     if (iStatus == 0)
     {
-        UT_Stub_CopyToLocal(UT_KEY(moduleFindByName), &retval, sizeof(retval));
+        retval = 0x12345678;
     }
-
     return retval;
 }
 
@@ -149,4 +147,28 @@ int moduleInfoGet(MODULE_ID moduleId, MODULE_INFO *pModuleInfo)
 void CFE_PSP_ModuleInit(void)
 {
 
+}
+
+uint32_t CFE_SUPPORT_GetProcessorIdx(void)
+{
+    int32 iStatus;
+    uint32 uiRet_Value = 4;
+
+    iStatus = UT_DEFAULT_IMPL(CFE_SUPPORT_GetProcessorIdx);
+
+    if (iStatus == 0)
+    {
+        uiRet_Value = 0;
+    }
+
+    return uiRet_Value;
+}
+
+int PCS_OS_BSPMain(void)
+{
+    int32 iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(PCS_OS_BSPMain);
+
+    return iStatus;
 }

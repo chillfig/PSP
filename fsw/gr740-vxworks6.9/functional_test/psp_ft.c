@@ -155,9 +155,6 @@ void PSP_FT_Setup(void)
     that could affect the test.
     */
 
-    /* Start CPU activity monitoring function to collect data at 100 interrupts per second */
-    spyClkStart(100);
-
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     OS_BSPMain();
 }
@@ -210,13 +207,7 @@ void PSP_FT_Start(void)
 
     ft_watchdog();
 
-    /* End CPU Activity Function */
-    spyClkStop();
-
     OS_printf("[END PSP Functional Test]\n\n");
-
-    /* Print CPU activity report */
-    spyReport();
 
     OS_printf("[RESULTS]\n"
               "Passed: %u - "
@@ -641,9 +632,8 @@ void ft_timer(void)
     OS_time_t   uiFirstValue;
     OS_time_t   uiSecondValue;
     OS_time_t   uiDiff;
-    int32       iDiffTicks = 0;
+    int64       iDiffTicks = 0;
     int32       iTicksPerSeconds = 0;
-    float       fDiffSeconds = 0.0;
 
     OS_printf("[TIMER START]\n\n");
     
@@ -660,17 +650,15 @@ void ft_timer(void)
     OS_TaskDelay(1000);
     CFE_PSP_GetTime(&uiSecondValue);
     uiDiff = OS_TimeSubtract(uiSecondValue, uiFirstValue);
-    iDiffTicks = (int32)uiDiff.ticks;
-    fDiffSeconds = iDiffTicks/iTicksPerSeconds;
-    OS_printf("vxTimeBaseGet: dT = %d Ticks = %.3f Seconds\n", iDiffTicks, fDiffSeconds);
+    iDiffTicks = OS_TimeGetTotalMilliseconds(uiDiff);
+    OS_printf("vxTimeBaseGet: TD = 1 sec -> dT = %d Ticks\n", (int32)iDiffTicks);
 
     CFE_PSP_GetTime(&uiFirstValue);
     OS_TaskDelay(2000);
     CFE_PSP_GetTime(&uiSecondValue);
     uiDiff = OS_TimeSubtract(uiSecondValue, uiFirstValue);
-    iDiffTicks = (int32)uiDiff.ticks;
-    fDiffSeconds = iDiffTicks/iTicksPerSeconds;
-    OS_printf("vxTimeBaseGet: dT = %d Ticks = %.3f Seconds\n", iDiffTicks, fDiffSeconds);
+    iDiffTicks = OS_TimeGetTotalMilliseconds(uiDiff);
+    OS_printf("vxTimeBaseGet: TD = 2 sec -> dT = %d Ticks\n", (int32)iDiffTicks);
 
     OS_printf("[TIMER END]\n\n");
 }

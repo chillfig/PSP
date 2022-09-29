@@ -92,6 +92,7 @@ int returnSelectedBootFlash(void);
 
 int PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 int PCS_OS_BSPMain(void);
+uint32_t CFE_SUPPORT_GetProcessorIdx(void);
 STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
 STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
 void userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize );

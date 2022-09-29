@@ -275,11 +275,7 @@ int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *pData
                     CPUSET_ZERO(cpuset);
                     CPUSET_SET(cpuset, iProcessorNumber);
 
-                    if (taskCpuAffinitySet(tid, cpuset) == OK)
-                    {
-                        OS_printf("Setting task affinity: [\"%s\" - TID: %08X -> %04X]\n", cTaskName, tid, (unsigned int)cpuset);
-                    }
-                    else
+                    if (taskCpuAffinitySet(tid, cpuset) != OK)
                     {
                         OS_printf("Could not set task affinity\n");
                         taskCpuAffinityGet(tid, &cpuset);
@@ -352,9 +348,6 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
         goto OS_Application_Startup_Exit_Tag;
     }
 
-    /* Give enough time to all the printf to complete */
-    OS_TaskDelay(500);
-
     /* Register event handler to assign tasks to processor cores */
     OS_RegisterEventHandler(CFE_PSP_OS_EventHandler);
 
@@ -389,11 +382,17 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     ** Initialize the watchdog, it's left disabled
     */
     CFE_PSP_WatchdogInit();
-
     /*
      ** Initialize the reserved memory 
      */
-    CFE_PSP_InitProcessorReservedMemory(reset_type);
+    if (CFE_PSP_InitProcessorReservedMemory(reset_type) != OS_SUCCESS)
+    {
+        OS_printf("PSP: CFS is rebooting due to not having enough User Reserved Memory\n");
+        /* Is OSAL fails, log the startup failure and restart target */
+        /* CFE_PSP_StartupFailedRestartSP0_hook(g_StartupInfo.timerID); */
+        /* This call should never happen, but it aids the unit test */
+        goto OS_Application_Startup_Exit_Tag;
+    }
 
     /*
     ** Adjust system task priorities so that tasks such as the shell are
@@ -411,7 +410,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
      ** Call cFE entry point. This will return when cFE startup
      ** is complete.
      */
-    CFE_PSP_MAIN_FUNCTION(reset_type,reset_subtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
+    CFE_PSP_MAIN_FUNCTION(reset_type, reset_subtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
 
 OS_Application_Startup_Exit_Tag:
     return;

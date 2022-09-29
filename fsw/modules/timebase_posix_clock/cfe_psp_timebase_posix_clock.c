@@ -64,7 +64,7 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(timebase_posix_clock);
 void timebase_posix_clock_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: Using POSIX monotonic clock as CFE timebase\n");
+    OS_printf("CFE_PSP: Using POSIX monotonic clock as CFE timebase\n");
 }
 
 /*

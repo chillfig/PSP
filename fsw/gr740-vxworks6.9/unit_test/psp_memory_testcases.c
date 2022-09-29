@@ -465,7 +465,6 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     puiSizeOfCFESegment = &uiSizeOfCFESegment;
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(moduleFindByName), &moduleInfo, sizeof(&moduleInfo), false);
     UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OK);
     UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(&moduleInfo), false);
     /* Execute test */
@@ -485,7 +484,6 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     puiSizeOfCFESegment = &uiSizeOfCFESegment;
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(moduleFindByName), &moduleInfo, sizeof(&moduleInfo), false);
     UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OS_ERROR);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
@@ -534,7 +532,7 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Setup additional inputs */
     pCFESegment = &CFESegment;
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), 0);
+    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), OS_ERROR);
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */

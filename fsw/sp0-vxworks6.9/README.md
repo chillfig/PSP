@@ -95,6 +95,8 @@ Kernel services:
   - CFE_PSP_GetBootStructure()
   - CFE_PSP_SetBootStructure()
   - CFE_PSP_PrintBootParameters()
+  - CFE_PSP_KernelGetCRC()
+  - CFE_PSP_KernelLoadNew()
 
 - Static Variables
   - #g_VxWorksTaskList

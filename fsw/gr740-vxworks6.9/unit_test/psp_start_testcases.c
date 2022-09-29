@@ -415,12 +415,21 @@ void Ut_CFE_PSP_FindProcessor(void)
 
     /* ----- Test #1 - Nominal - Not found ----- */
     /* Set additional inputs */
-
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), -1);
     /* Execute test */
     iRetNumber = CFE_PSP_FindProcessor(&cTaskName);
     /* Verify results */
     UtAssert_True(iRetNumber == -1, 
-        "_CFE_PSP_SetFileSysAddFixedMap - 1/1: Nominal - Not found");
+        "_CFE_PSP_SetFileSysAddFixedMap - 1/2: Nominal - Not Found");
+
+    /* ----- Test #2 - Nominal - Found ----- */
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(strncmp), 0);
+    /* Execute test */
+    iRetNumber = CFE_PSP_FindProcessor(&cTaskName);
+    /* Verify results */
+    UtAssert_True(iRetNumber != -1,
+        "_CFE_PSP_SetFileSysAddFixedMap - 2/2: Nominal - Entry Found");
 }
 
 /*=======================================================================================

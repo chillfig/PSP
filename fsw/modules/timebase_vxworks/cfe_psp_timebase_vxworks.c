@@ -162,7 +162,7 @@ void timebase_vxworks_Init(uint32 PspModuleId)
     }
 
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: Set up VxWorks timebase, %lu ticks/sec, OS_time_t ratio=%lu/%lu\n", (unsigned long)TicksPerSec,
+    OS_printf("CFE_PSP: Set up VxWorks timebase, %lu ticks/sec, OS_time_t ratio=%lu/%lu\n", (unsigned long)TicksPerSec,
            (unsigned long)RatioN, (unsigned long)RatioD);
 
     /* Save the final reduced fraction for use in CFE_PSP_GetTime() */

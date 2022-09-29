@@ -47,17 +47,6 @@
 
 /******************* Macro Definitions ***********************/
 
-
-#define CFE_PSP_TIMER_PRINT_DBG             true
-#define CFE_PSP_TIMER_AUX_TICK_PER_SEC      1 /* The number of tics or interrupts per second */
-
-/** \brief Timer Scaler to set timer to 1MHz */
-#define CFE_PSP_TIMER_1MHZ_SCALER           (uint32_t) GR740_SYSTEM_CLOCK/1000000
-/** \brief Timer Scaler to set timer to 20MHz */
-#define CFE_PSP_TIMER_20MHZ_SCALER          (uint32_t) GR740_SYSTEM_CLOCK/20000000
-/** \brief Default Timer Scaler */
-#define CFE_PSP_TIMER_SCALER_DEFAULT        CFE_PSP_TIMER_20MHZ_SCALER
-
 #define TS_TIMER_LOW_ID     (0)
 #define TS_TIMER_HIGH_ID    (1)
 
@@ -70,45 +59,24 @@ static bool g_bTimerInitialized = false;
 
 void CFE_PSP_InitLocalTime(void)
 {
-    /* Set the sys clock rate */
-    /* This is set by the VxWorks OS to 1000 */
-    //sysClkRateSet(200);
-
-    /*
-     ** Disable the Aux timer interrupt, and disable the Timestamp timer
-     */
-    sysAuxClkDisable();
-
-    /*
-     ** Set the Aux timer
-     */
-    if(sysAuxClkRateGet() != CFE_PSP_TIMER_AUX_TICK_PER_SEC)
+    if (g_bTimerInitialized == false)
     {
-        if(sysAuxClkRateSet(CFE_PSP_TIMER_AUX_TICK_PER_SEC) == ERROR)
-        {
-            printf(TIMER_PRINT_SCOPE "Unable to set Aux Clock Rate!\n");
-        }
+        TIMER1_REG->scaler                          = CFE_PSP_TIMER_25MHZ_SCALER;
+        TIMER1_REG->scalerReload                    = CFE_PSP_TIMER_25MHZ_SCALER;
+        TIMER1_REG->timer[TS_TIMER_LOW_ID].control  = 0x0;
+        TIMER1_REG->timer[TS_TIMER_HIGH_ID].control = 0x0;
+        TIMER1_REG->timer[TS_TIMER_LOW_ID].reload   = 0xFFFFFFFF;
+        TIMER1_REG->timer[TS_TIMER_HIGH_ID].reload  = 0xFFFFFFFF;
+        TIMER1_REG->timer[TS_TIMER_LOW_ID].control  = TIMER_CONTROL_LD | TIMER_CONTROL_RS | TIMER_CONTROL_EN;
+        TIMER1_REG->timer[TS_TIMER_HIGH_ID].control =
+            TIMER_CONTROL_CH | TIMER_CONTROL_LD | TIMER_CONTROL_RS | TIMER_CONTROL_EN;
 
-
-        if(CFE_PSP_TIMER_PRINT_DBG == TRUE)
-        {      
-            printf(TIMER_PRINT_SCOPE "Aux Clock Rate %d.\n", sysAuxClkRateGet());
-
-        }     
+        g_bTimerInitialized = true;
     }
-
-    TIMER1_REG->scaler                          = CFE_PSP_TIMER_SCALER_DEFAULT;
-    TIMER1_REG->scalerReload                    = CFE_PSP_TIMER_SCALER_DEFAULT;
-    TIMER1_REG->timer[TS_TIMER_LOW_ID].control  = 0x0;
-    TIMER1_REG->timer[TS_TIMER_HIGH_ID].control = 0x0;
-    TIMER1_REG->timer[TS_TIMER_LOW_ID].reload   = 0xFFFFFFFF;
-    TIMER1_REG->timer[TS_TIMER_HIGH_ID].reload  = 0xFFFFFFFF;
-    TIMER1_REG->timer[TS_TIMER_LOW_ID].control  = TIMER_CONTROL_LD | TIMER_CONTROL_RS | TIMER_CONTROL_EN;
-    TIMER1_REG->timer[TS_TIMER_HIGH_ID].control =
-        TIMER_CONTROL_CH | TIMER_CONTROL_LD | TIMER_CONTROL_RS | TIMER_CONTROL_EN;
-
-
-    g_bTimerInitialized = TRUE;
+    else
+    {
+        OS_printf(TIMER_PRINT_SCOPE "Decrementer timer already initialized\n");
+    }
 
 }/* end CFE_PSP_InitLocalTime */
 
@@ -130,7 +98,7 @@ void vxTimeBaseGet(uint32 *Tbu, uint32 *Tbl) //UndCC_Line(SSET106) Func. name pa
     }
 
     /* Check that the timer is initialized */
-    if (g_bTimerInitialized == true)
+    if (g_bTimerInitialized != true)
     {
         uiRet_Code = CFE_PSP_ERROR;
         OS_printf(TIMER_PRINT_SCOPE "Timer is not initialized\n");
@@ -142,7 +110,7 @@ void vxTimeBaseGet(uint32 *Tbu, uint32 *Tbl) //UndCC_Line(SSET106) Func. name pa
      ** sysTimestampLock() automatically blocks interrupts during execution.
      **
      */
-    if (uiRet_Code = CFE_PSP_SUCCESS)
+    if (uiRet_Code == CFE_PSP_SUCCESS)
     {
         /*
          ** The resolution of our timer is given by:

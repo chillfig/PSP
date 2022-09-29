@@ -381,7 +381,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     */
     if(GR740_ReservedMemBlock.BlockSize > reserve_memory_size)
     {
-        OS_printf("CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
+        OS_printf(MEMORY_PRINT_SCOPE "VxWorks Reserved Memory Block Size not large enough, "
                   "Total Size = 0x%lx, "
                   "VxWorks Reserved Size=0x%lx\n",
                   (unsigned long)GR740_ReservedMemBlock.BlockSize,
@@ -402,15 +402,19 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
             POWERON:
             In this case, the User Reserved Memory is cleared
             */
-            OS_printf("CFE_PSP: Clearing Processor Reserved Memory.\n");
+            OS_printf(MEMORY_PRINT_SCOPE "Clearing Processor Reserved Memory.\n");
 
             /* Initialize memory sections */
+            memset(CFE_PSP_ReservedMemoryMap.BootPtr,
+                    0, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));            
+            memset(CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                    0, sizeof(CFE_PSP_ExceptionStorage_t));
             memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
-            memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
-                    0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
             memset(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+            memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr,
+                    0, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize);
             memset(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr,
                     0, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize);
         }
@@ -504,7 +508,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     GR740_ReservedMemBlock.BlockPtr = (void*)start_addr;
     GR740_ReservedMemBlock.BlockSize =  end_addr - start_addr;
 
-    OS_printf("CFE_PSP: GR740 Reserved Memory Block at 0x%08lx, Total Size = 0x%lx\n",
+    OS_printf(MEMORY_PRINT_SCOPE "GR740 Reserved Memory Block at 0x%08lx, Total Size = 0x%lx\n",
             (unsigned long)GR740_ReservedMemBlock.BlockPtr,
             (unsigned long)GR740_ReservedMemBlock.BlockSize);
 

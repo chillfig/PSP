@@ -51,8 +51,11 @@ void Ut_CFE_PSP_InitSSR(void)
     /* Execute test */
     iRetCode = CFE_PSP_InitSSR(uiBus, uiDevice, &cDeviceName);
     /* Verify outputs */
-    UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_InitSSR - 1/1: Nominal NO ATA DRIVER return Error");
-    UtAssert_STUB_COUNT(reboot,1);
+#ifdef USE_VXWORKS_ATA_DRIVER
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitSSR - 1/1: Nominal ATA DRIVER return success");
+#else
+    UtAssert_True(iRetCode == CFE_PSP_ERROR_NOT_IMPLEMENTED, "_CFE_PSP_InitSSR - 1/1: Nominal NO ATA DRIVER return not implemented");
+#endif
 }
 
 

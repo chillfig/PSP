@@ -33,7 +33,7 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(eeprom_notimpl);
 void eeprom_notimpl_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: EEPROM access not implemented\n");
+    OS_printf("CFE_PSP: EEPROM access not implemented\n");
 }
 
 int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)

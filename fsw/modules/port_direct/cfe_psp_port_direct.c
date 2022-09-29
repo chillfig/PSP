@@ -45,7 +45,7 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(port_direct);
 void port_direct_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: Using DIRECT memory mapped PORT implementation\n");
+    OS_printf("CFE_PSP: Using DIRECT memory mapped PORT implementation\n");
 }
 
 /*

@@ -173,7 +173,7 @@ void eeprom_mmap_file_Init(uint32 PspModuleId)
     uint32  eeprom_size;
 
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: Using MMAP simulated EEPROM implementation\n");
+    OS_printf("CFE_PSP: Using MMAP simulated EEPROM implementation\n");
 
     /*
     ** Create the simulated EEPROM segment by mapping a memory segment to a file.

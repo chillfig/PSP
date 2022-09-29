@@ -199,10 +199,15 @@ typedef struct temperature_reg_tag
 #define GET_TEMPERATURE_STATUS(reg)          (((TEMPERATURE_REG->status_reg) &= reg##_MASK) >>  (reg##_POS))
 
 /*************** TIMERS ***************/
-
-// We're directly poking timer registers rather than going through the vxWorks
-// gptimer drivers, since the drivers don't support features like chaining or
-// the watchdog. Care must be taken so that the timer allocation by the drivers don't conflict w/ the PSP
+/*
+vxWorks kernel includes gptimer driver to automatically set the following:
+- System Clock to Timer 2 Number 0
+- Auxilary Clock to Timer 2 Number 1
+- TimeStamp  to Timer 2 Number 2
+with a scalar reload of 1000 --> 1MHz.
+vxWorks kernel is configured to not use Timer 0 and 1. So below we only have control
+on Timer 0 and 1.
+*/
 
 #define TIMER_SCALER_MASK       (0x0000FFFF)
 #define TIMER_SCALER_POS        0U
@@ -235,9 +240,16 @@ typedef struct sparc_leon4_timer_reg_tag
 
 #define TIMER0_REG                   ((SPARC_LEON4_TIMER_REG_T *)GPTIMER0_REG_ADDR)
 #define TIMER1_REG                   ((SPARC_LEON4_TIMER_REG_T *)GPTIMER1_REG_ADDR)
+/*
 #define TIMER2_REG                   ((SPARC_LEON4_TIMER_REG_T *)GPTIMER2_REG_ADDR)
 #define TIMER3_REG                   ((SPARC_LEON4_TIMER_REG_T *)GPTIMER3_REG_ADDR)
 #define TIMER4_REG                   ((SPARC_LEON4_TIMER_REG_T *)GPTIMER4_REG_ADDR)
+*/
+
+/** \brief Timer Scaler to set timer to 1 Million ticks per second */
+#define CFE_PSP_TIMER_1MHZ_SCALER           (uint32_t) GR740_SYSTEM_CLOCK/1000000
+/** \brief Timer Scaler to set timer to 25 Million ticks per second  */
+#define CFE_PSP_TIMER_25MHZ_SCALER          (uint32_t) GR740_SYSTEM_CLOCK/25000000
 
 /*************** MEMORY SCRUBBER ***************/
 

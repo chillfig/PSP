@@ -33,8 +33,6 @@
 #define CFE_PSP_CONFIG_H
 
 
-#include "common_types.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <vxWorks.h>
@@ -44,6 +42,9 @@
 #include "taskLib.h"
 #include "arch/sparc/esfSparc.h"
 #include "arch/sparc/fppSparcLib.h"
+
+#include "common_types.h"
+#include "cfe_psp_gr740.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,7 +96,8 @@ extern "C" {
  ** This is the list of task names with associated processor number. The function
  ** matching the task name will only match up to the string length identified in
  ** this list. Thus, if there is an entry as {"CFE", 0}, anything starting with 
- ** the 3 characters CFE will be assigned core zero.
+ ** the 3 characters CFE will be assigned core zero. The entries order does
+ ** matter. First matching task name will assign the core number.
  **
  ** \par Note:
  ** Processor number is up to number of available processors - 1.
@@ -132,12 +134,11 @@ typedef struct
  **
  ** \par Description:
  ** The GR740 does not have an integrated decrementer register.
- ** A timer is used instead, and it is configured to run at 1 million ticks per 
- ** seconds. That is 1 micro second per tick, which is 1000 nano seconds per 
- ** tick.
+ ** A timer (Timer 1) is used instead, and it is configured to run at 1 MHz.
+ ** That is 1 micro second per tick, which is 1000 nano seconds per tick.
  **
- ** A timer is used instead, and it is configured to run at 20 million ticks per
- ** seconds. That is 50 nano second per tick.
+ ** A timer (Timer 1) is used instead, and it is configured to run at 25 MHz. 
+ ** That is 40 nano second per tick.
  **
  ** \par Note:
  ** This is expressed as a ratio in case it is not a whole number. The numerator
@@ -148,7 +149,7 @@ typedef struct
  */
 /** \{ */
 /** \brief Numerator */
-#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   50
+#define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   40
 /** \brief Denominator */
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
 
@@ -260,16 +261,10 @@ typedef struct
 #define CFE_PSP_MAXIMUM_TASK_LENGTH         30
 
 /******************************************************************************/
+
 /** \name Watchdog Configuration Parameters */
 /** \{ */
-/** \brief Watchdog minimum ( in milliseconds ) */
-#define CFE_PSP_WATCHDOG_MIN (0x00000004U)
-/** \brief Watchdog maximum ( in milliseconds )
- ** \par Notes:
- ** -1 is special and fires the watchdog
- ** ~4295 seconds ~71.5 minutes
-*/
-#define CFE_PSP_WATCHDOG_MAX (0xFFFFFFFEU)
+
 /**
  ** \brief Ticks per milliseconds conversion factor
  ** \par Notes:
@@ -277,6 +272,21 @@ typedef struct
  ** 1,000,000 ticks per second (1,000 ticks/ms)
  */
 #define CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC  1000U
+
+/** \brief Watchdog minimum
+ ** \par Notes:
+ ** Minimum is set to 1 millisecond.
+ */
+#define CFE_PSP_WATCHDOG_MIN CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC
+
+/** \brief Watchdog maximum
+ ** \par Notes:
+ ** 0xFFFF_FFFF is special and fires the watchdog
+ ** Based on a 1 MHz timer (see #CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC), 
+ ** the maximum time is: 
+ ** #CFE_PSP_WATCHDOG_MAX/1000000 = ~4295 seconds or ~71.5 minutes
+ */
+#define CFE_PSP_WATCHDOG_MAX (0xFFFFFFFEU)
 
 /** \brief Default Watchdog Value in milliseconds */
 #define CFE_PSP_WATCHDOG_DEFAULT_MSEC       20000

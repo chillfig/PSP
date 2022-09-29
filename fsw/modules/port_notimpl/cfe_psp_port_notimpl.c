@@ -33,7 +33,7 @@ CFE_PSP_MODULE_DECLARE_SIMPLE(port_notimpl);
 void port_notimpl_Init(uint32 PspModuleId)
 {
     /* Inform the user that this module is in use */
-    printf("CFE_PSP: I/O Port access not implemented\n");
+    OS_printf("CFE_PSP: I/O Port access not implemented\n");
 }
 
 int32 CFE_PSP_PortRead8(cpuaddr PortAddress, uint8 *ByteValue)

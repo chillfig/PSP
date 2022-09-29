@@ -66,6 +66,8 @@
 
 
 #define WD_TIMER_ID         (4)
+#define CFE_PSP_WATCHDOG_MIN_MS (CFE_PSP_WATCHDOG_MIN / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC)
+#define CFE_PSP_WATCHDOG_MAX_MS (CFE_PSP_WATCHDOG_MAX / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC)
 
 /*
 ** Types and prototypes for this module
@@ -91,6 +93,8 @@ static bool g_bWatchdogStatus = false;
  *********************************************************/
 void CFE_PSP_WatchdogInit(void)
 {
+    TIMER0_REG->scaler                    = CFE_PSP_TIMER_1MHZ_SCALER;
+    TIMER0_REG->scalerReload              = CFE_PSP_TIMER_1MHZ_SCALER;
     TIMER0_REG->timer[WD_TIMER_ID].reload = CFE_PSP_WATCHDOG_MAX;
 
     /* clear timer control register */
@@ -160,7 +164,6 @@ void CFE_PSP_WatchdogService(void)
  *********************************************************/
 uint32 CFE_PSP_WatchdogGet(void)
 {
-    OS_printf("WD calculated value = %d ms\n",(TIMER0_REG->timer[WD_TIMER_ID].counter / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC));
     return g_uiCFE_PSP_WatchdogValue_ms;
 }
 
@@ -176,22 +179,23 @@ void CFE_PSP_WatchdogSet(uint32 watchDogValue_ms)
     uint32 uiNewValue = 0;
 
     /* convert WD time in millisec to timer ticks */
-    if (watchDogValue_ms <= (CFE_PSP_WATCHDOG_MIN / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC))
+    if (watchDogValue_ms <= CFE_PSP_WATCHDOG_MIN_MS)
     {
         uiNewValue = CFE_PSP_WATCHDOG_MIN;
+        g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_MIN_MS;
     }
-    else if (watchDogValue_ms >= (CFE_PSP_WATCHDOG_MAX / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC))
+    else if (watchDogValue_ms >= CFE_PSP_WATCHDOG_MAX_MS)
     {
         uiNewValue = CFE_PSP_WATCHDOG_MAX;
+        g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_MAX_MS;
     }
     else {
         uiNewValue = watchDogValue_ms * CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC;
+        g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;
     }
 
     TIMER0_REG->timer[WD_TIMER_ID].reload = uiNewValue;
     TIMER0_REG->timer[WD_TIMER_ID].control |= TIMER_CONTROL_LD;
-
-    g_uiCFE_PSP_WatchdogValue_ms = watchDogValue_ms;
 }
 
 /**********************************************************

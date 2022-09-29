@@ -58,6 +58,7 @@ void Ut_vxTimeBaseGet(void)
 {
     uint32 uiU = 0;
     uint32 uiL = 0;
+    uint64 uiTicks = 0;
 
     char cMsg_input_null[] = TIMER_PRINT_SCOPE "Input variables are NULL\n";
     char cMsg_timer_not_init[] = TIMER_PRINT_SCOPE "Timer is not initialized\n";
@@ -67,10 +68,14 @@ void Ut_vxTimeBaseGet(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     g_bTimerInitialized = true;
+    OS_TaskDelay(400);
     /* Execute test */
     vxTimeBaseGet(&uiU, &uiL);
     /* Verify outputs */
-    UtAssert_True(((uiU > 0) && (uiL > 0)), "Ut_vxTimeBaseGet() - 1/3: Nominal");
+    uiTicks = uiU;
+    uiTicks <<= 32;
+    uiTicks |= uiL;
+    UtAssert_True((uiTicks > 0), "Ut_vxTimeBaseGet() - 1/3: Nominal");
 
     Ut_OS_printf_Setup();
 

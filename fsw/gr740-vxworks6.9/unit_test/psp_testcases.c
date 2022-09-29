@@ -102,10 +102,10 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetVolatileDiskMem");
 
-    UtTest_Add(Ut_CFE_PSP_InitProcessorReservedMemory,
+/*     UtTest_Add(Ut_CFE_PSP_InitProcessorReservedMemory,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_InitProcessorReservedMemory");
-
+ */
     UtTest_Add(Ut_CFE_PSP_SetupReservedMemoryMap,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_SetupReservedMemoryMap");
