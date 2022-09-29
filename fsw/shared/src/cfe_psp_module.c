@@ -49,13 +49,22 @@
 #endif
 
 /**
- ** \brief Total number of fixed and user selected PSP modules.
+ ** \brief Based ID for Modules
  **
- ** \par Warning:
- ** This is actually incremented twice, once per module list (Fixed and User selected lists).
- ** There is an issue identified with this variable: https://github.com/nasa/PSP/issues/319
+ ** \par Description:
+ ** Internal/base modules typically should not be the subject
+ ** of a call to CFE_PSP_Module_FindByName or GetAPI,
+ ** so they are assigned IDs at the END of the space,
+ ** this makes them unique but they are otherwise not used
+ **
+ ** Reserve the last 256 entries for base modules
  */
-static uint32 CFE_PSP_ModuleCount = 0;
+#define CFE_PSP_INTERNAL_MODULE_BASE ((CFE_PSP_MODULE_BASE | CFE_PSP_MODULE_INDEX_MASK) & ~0xFF)
+
+/**
+ ** \brief Number of Modules
+ */
+static uint32 CFE_PSP_ConfigPspModuleListLength = 0;
 
 /**
  ** \func Initialize a list of Modules
@@ -68,31 +77,39 @@ static uint32 CFE_PSP_ModuleCount = 0;
  ** with an added NULL at the end to guarantee that the while loop ends.
  **
  ** \param[out] ListPtr - Pointer to the list of modules
+ ** \param[in] BaseId - Base ID number to start for generating Modules ID
  ** 
- ** \return None
+ ** \return Number of modules initialized
  */
-void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
+uint32_t CFE_PSP_ModuleInitList(uint32 BaseId, CFE_StaticModuleLoadEntry_t *ListPtr)
 {
     CFE_StaticModuleLoadEntry_t *Entry;
     CFE_PSP_ModuleApi_t *        ApiPtr;
+    uint32                       ModuleCount;
+    uint32                       ModuleId;
 
     /*
      * Call the init function for all statically linked modules
      */
-    Entry = ListPtr;
+    Entry       = ListPtr;
+    ModuleCount = 0;
     if (Entry != NULL)
     {
         while (Entry->Name != NULL)
         {
-            ApiPtr = (CFE_PSP_ModuleApi_t *)Entry->Api;
+            ApiPtr   = (CFE_PSP_ModuleApi_t *)Entry->Api;
+            ModuleId = BaseId + ModuleCount;
             if ((uint32)ApiPtr->ModuleType != CFE_PSP_MODULE_TYPE_INVALID && ApiPtr->Init != NULL)
             {
-                (*ApiPtr->Init)(CFE_PSP_MODULE_BASE | CFE_PSP_ModuleCount);
+                OS_printf("CFE_PSP: initializing module \'%s\' with ID %08lx\n", Entry->Name, (unsigned long)ModuleId);
+                (*ApiPtr->Init)(ModuleId);
             }
             ++Entry;
-            ++CFE_PSP_ModuleCount;
+            ++ModuleCount;
         }
     }
+
+    return ModuleCount;
 }
 
 /**********************************************************
@@ -105,23 +122,11 @@ void CFE_PSP_ModuleInitList(CFE_StaticModuleLoadEntry_t *ListPtr)
 void CFE_PSP_ModuleInit(void)
 {
     /* First initialize the fixed set of modules for this PSP */
-    CFE_PSP_ModuleInitList(CFE_PSP_BASE_MODULE_LIST);
+    CFE_PSP_ModuleInitList(CFE_PSP_INTERNAL_MODULE_BASE, CFE_PSP_BASE_MODULE_LIST);
 
-    /*
-    ** Then initialize any user-selected extension modules
-    ** 
-    ** Set CFE_PSP_ModuleCount to 0 because each function
-    ** that uses CFE_PSP_ModuleCount only iterates
-    ** through GLOBAL_CONFIGDATA.PspModuleList with no consideration
-    ** for other module lists (i.e., no consideration for
-    ** CFE_PSP_BASE_MODULE_LIST)
-    **
-    ** See https://github.com/nasa/PSP/issues/319
-    ** "A complete module list should be used for APIs that include both
-    ** the built in and added"
-    */
-    CFE_PSP_ModuleCount = 0;
-    CFE_PSP_ModuleInitList(GLOBAL_CONFIGDATA.PspModuleList);
+    /* Then initialize any user-selected extension modules */
+    /* Only these modules can be used with CFE_PSP_Module_GetAPIEntry or CFE_PSP_Module_FindByName */
+    CFE_PSP_ConfigPspModuleListLength = CFE_PSP_ModuleInitList(CFE_PSP_MODULE_BASE, GLOBAL_CONFIGDATA.PspModuleList);
 }
 
 /**********************************************************
@@ -140,7 +145,7 @@ int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
     if ((PspModuleId & ~CFE_PSP_MODULE_INDEX_MASK) == CFE_PSP_MODULE_BASE)
     {
         LocalId = PspModuleId & CFE_PSP_MODULE_INDEX_MASK;
-        if (LocalId < CFE_PSP_ModuleCount)
+        if (LocalId < CFE_PSP_ConfigPspModuleListLength)
         {
             *API   = (CFE_PSP_ModuleApi_t *)GLOBAL_CONFIGDATA.PspModuleList[LocalId].Api;
             Result = CFE_PSP_SUCCESS;
@@ -163,16 +168,16 @@ int32 CFE_PSP_Module_FindByName(const char *ModuleName, uint32 *PspModuleId)
     int32                        Result;
     CFE_StaticModuleLoadEntry_t *Entry;
 
+    Entry  = GLOBAL_CONFIGDATA.PspModuleList;
     Result = CFE_PSP_INVALID_MODULE_NAME;
+    i      = 0;
 
     if ((ModuleName != NULL) && (PspModuleId != NULL))
-    {
-        Entry  = GLOBAL_CONFIGDATA.PspModuleList;
-        
+    {   
         if (Entry != NULL)
         {
             i = 0;
-            while (i < CFE_PSP_ModuleCount)
+            while (i < CFE_PSP_ConfigPspModuleListLength)
             {
                 if (strncmp(Entry->Name, ModuleName, CFE_PSP_MODULE_NAME_MAX_LENGTH) == 0)
                 {
