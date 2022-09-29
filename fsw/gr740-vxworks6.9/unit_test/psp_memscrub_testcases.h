@@ -24,20 +24,16 @@
 ** Function Declarations
 **=======================================================================================*/
 
+void Ut_CFE_PSP_MemScrubInit(void);
+void Ut_CFE_PSP_MemScrubIsRunning(void);
+void Ut_CFE_PSP_MemScrubDisable(void);
+void Ut_CFE_PSP_MemScrubEnable(void);
 void Ut_CFE_PSP_MemScrubValidate(void);
 void Ut_CFE_PSP_MemScrubSet(void);
 void Ut_CFE_PSP_MemScrubGet(void);
-void Ut_CFE_PSP_MemScrubInit(void);
-void Ut_CFE_PSP_MemScrubDelete(void);
 void Ut_CFE_PSP_MemScrubErrStats(void);
+void Ut_CFE_PSP_MemScrubDelete(void);
 
-/*
-void Ut_CFE_PSP_MemScrubTask(void);
-void Ut_CFE_PSP_MemScrubIsRunning(void);
-void Ut_CFE_PSP_MemScrubEnable(void);
-void Ut_CFE_PSP_MemScrubDisable(void);
-void Ut_CFE_PSP_MemScrubTrigger(void);
-*/
 #endif  /* UT_PSP_MEMSCRUB_TESTCASES_H */
 /*=======================================================================================
 ** End of file psp_memscrub_testcases.h

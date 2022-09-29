@@ -187,13 +187,24 @@ typedef struct
  **
  ** \par Assumptions, External Events, and Notes:
  ** From sysLib.c: "The machine check ISR will update these counters"
+ ** \par Reference:
+ ** AN3532 - page 10 - Chapter 3.3
  */
 typedef struct
 {
     uint32              uil2errTotal;
     uint32              uil2errMult;
+    /**
+     ** \brief L2 Tag Parity Error
+     */
     uint32              uil2errTagPar;
+    /**
+     ** \brief L2 Error Multi-Bit ECC 
+     */
     uint32              uil2errMBECC;
+    /**
+     ** \brief L2 Error Single-Bit ECC 
+     */
     uint32              uil2errSBECC;
     uint32              uil2errCfg;
     uint32              uimchCause;
@@ -259,9 +270,10 @@ bool  CFE_PSP_MemScrubIsRunning(void);
 int32  CFE_PSP_MemScrubDelete(void);
 
 /**
-** \func Print the Memory Scrubbing statistics
+** \func Get the Memory Scrubbing parameters
 ** 
 ** \par Description:
+** Copies the content of the configuration structure to pConfig.
 ** This function outputs to the console the following Memory Scrubbing statistics:
 ** Start memory address, End memory address, current memory page and total memory pages
 **
@@ -269,12 +281,14 @@ int32  CFE_PSP_MemScrubDelete(void);
 ** Start memory address is usually 0. End memory address is usually set to the 
 ** last value of RAM address. Note that a page is 4096 bytes.
 ** 
-** \param[out] pStatus - Pointer to a Mem Scrub Configuration structure
+** \param[out] pConfig - Pointer to a Mem Scrub Configuration structure
+** \param[in] iConfigSize - Size of the memory array pointed by pConfig
 ** \param[in] talk - Print out the status values
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - No errors
+** \return #CFE_PSP_ERROR - Size of iStatusSize too small
 */
-int32  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk);
+int32  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize, bool talk);
 
 /**
 ** \func Initialize the Memory Scrubbing task
@@ -357,12 +371,14 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** \par Assumptions, External Events, and Notes:
  ** TBD what these individual values truly represent
  **
- ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
- ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
+ ** \param[out] pErrStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
+ ** \param[in] iErrSize - Size of the memory array pointed by pStatus
+ ** \param[in] talkative - Print out the statistics values
  **
- ** \return None
+ ** \return #CFE_PSP_SUCCESS - No errors
+ ** \return #CFE_PSP_ERROR - Size of iStatusSize too small
  */
-int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative);
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *pErrStats, size_t iErrSize, bool talkative);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

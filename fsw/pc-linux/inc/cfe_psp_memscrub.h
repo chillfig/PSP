@@ -207,7 +207,7 @@ typedef struct
  ** 
  ** \param[in] pNewConfiguration - pointer to a Mem Scrub Configuration structure with new values
  **
- ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
+ ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented for Linux
  */
 int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration);
 
@@ -251,7 +251,7 @@ int32 CFE_PSP_MemScrubDelete(void);
  **
  ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
  */
-int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk);
+int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize, bool talk);
 
 /**
  ** \func Initialize the Memory Scrubbing task
@@ -322,11 +322,12 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** \par Assumptions, External Events, and Notes:
  ** This function has not been implemented yet
  **
- ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
- ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
+ ** \param pErrStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
+ ** \param[in] iErrSize - Size of the memory array pointed by pStatus
+ ** \param talkative - Print out the statistics values
  **
  ** \return #CFE_PSP_ERROR_NOT_IMPLEMENTED because this function has not been implemented yet
  */
-int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative);
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *pErrStats, size_t iErrSize, bool talkative);
 
 #endif /* _PSP_MEM_SCRUB_H_ */

@@ -33,7 +33,7 @@ fi
 EXAMPLE_RUN="Usage: ./build_dox.sh all sp0-vxworks6.9\n"
 
 # Convert platform name to upper and lower case
-ucAPP=psp_$(echo $2 | tr [:lower:] [:upper:])
+ucAPP=PSP_$(echo $2 | tr [:lower:] [:upper:])
 lcAPP=psp_$(echo $2 | tr [:upper:] [:lower:])
 
 # Prepares folder paths
@@ -41,6 +41,13 @@ SCRIPT_ROOT=$(readlink -f $(dirname $0))
 PLATFORM_PATH=$(readlink --canonicalize $SCRIPT_ROOT/../fsw/$2)
 DOCX_SRC_PATH=$SCRIPT_ROOT/dox_src_$lcAPP
 DOXYFILE_PATH=$DOCX_SRC_PATH/$lcAPP\_Doxyfile
+
+# If we are on simhost, add relevant ACSSL folder where the STY files are located
+hn=$(hostname)
+if [[ $hn == "simhost"* ]]; then
+    echo "Adding TexLive Latex ACSSL folder"
+    export TEXINPUTS=".:/users/acssl/texlive/2017/texmf-dist/tex/latex//:"
+fi
 
 # -------------------------------------------------------------------------------
 

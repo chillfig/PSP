@@ -73,15 +73,6 @@ void Ut_CFE_PSP_GetTemperatureAwait(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetTemperatureAwait() - 1/2: Nominal - Successful return code");
     UtAssert_True(&uiTemp > 0, "_CFE_PSP_GetTemperatureAwait() - 1/2: Nominal - Temperature %u", uiTemp);
-
-    /* ----- Test case #2 - Could not get temperature - Error ----- */
-    /* Setup additional inputs */
-
-    /* Execute test */
-    /* iRetCode = CFE_PSP_GetTemperatureAwait(&uiTemp); */
-    /* Verify outputs */
-    /* UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetTemperatureAwait() - 2/2: Could not get temperature - error return code"); */
-
 }
 
 /*=======================================================================================

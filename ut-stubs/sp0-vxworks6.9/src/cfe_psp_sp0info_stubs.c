@@ -38,7 +38,6 @@
 ** USER ADDED CODE END
 */
 #include "cfe_psp_sp0info.h"
-// #include "cfe_psp_sp0info_stub.h"
 #include "utgenstub.h"
 
 /*

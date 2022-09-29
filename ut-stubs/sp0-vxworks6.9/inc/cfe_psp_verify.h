@@ -44,6 +44,33 @@ extern "C" {
 ** Macro Definitions
 */
 
+/** \brief MEMSCRUB_RUN_MODE Verification */
+#ifndef MEMSCRUB_RUN_MODE
+    #error "MEMSCRUB_RUN_MODE must be defined"
+#else
+    #if (!((MEMSCRUB_RUN_MODE == MEMSCRUB_IDLE_MODE) || (MEMSCRUB_RUN_MODE == MEMSCRUB_TIMED_MODE) || (MEMSCRUB_RUN_MODE == MEMSCRUB_MANUAL_MODE)))
+        #error "MEMSCRUB_RUN_MODE must be a valid value"
+    #endif
+#endif
+
+/** \brief MEMSCRUB_RUN_MODE Verification */
+#ifndef MEMSCRUB_BLOCKSIZE_PAGES
+    #error "MEMSCRUB_BLOCKSIZE_PAGES must be defined"
+#else
+    #if (MEMSCRUB_BLOCKSIZE_PAGES < 1) || (MEMSCRUB_BLOCKSIZE_PAGES > 259765)
+        #error "MEMSCRUB_BLOCKSIZE_PAGES must be bigger than 0 and less than 259765 (0xFFFF_FFFF / 4096)"
+    #endif
+#endif
+
+/** \brief MEMSCRUB_TASK_DELAY_MSEC Verification */
+#ifndef MEMSCRUB_TASK_DELAY_MSEC
+    #error "MEMSCRUB_TASK_DELAY_MSEC must be defined"
+#else
+    #if (MEMSCRUB_TASK_DELAY_MSEC < 1)
+        #error "MEMSCRUB_TASK_DELAY_MSEC must be bigger than 0"
+    #endif
+#endif
+
 /** \brief MEM SCRUB Task Name Verification */
 #ifndef MEMSCRUB_TASK_NAME
     #error "MEMSCRUB_TASK_NAME must be defined"
@@ -62,26 +89,26 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 #endif
 
 /** \brief Verify that memory scrub start address defined, acceptable values */
-#ifndef MEM_SCRUB_DEFAULT_START_ADDR
-    #error "MEM_SCRUB_DEFAULT_START_ADDR must be defined"
+#ifndef MEMSCRUB_DEFAULT_START_ADDR
+    #error "MEMSCRUB_DEFAULT_START_ADDR must be defined"
 #endif
 
-#ifdef MEM_SCRUB_DEFAULT_START_ADDR
-    #if (MEM_SCRUB_DEFAULT_START_ADDR < -1)
-        #error "MEM_SCRUB_DEFAULT_START_ADDR must be larger than -1"
+#ifdef MEMSCRUB_DEFAULT_START_ADDR
+    #if (MEMSCRUB_DEFAULT_START_ADDR < -1)
+        #error "MEMSCRUB_DEFAULT_START_ADDR must be larger than -1"
     #endif
 #endif
 
-#ifdef MEM_SCRUB_DEFAULT_END_ADDR
-    #if (MEM_SCRUB_DEFAULT_END_ADDR < -1)
-        #error "MEM_SCRUB_DEFAULT_END_ADDR must be larger than -1"
+#ifdef MEMSCRUB_DEFAULT_END_ADDR
+    #if (MEMSCRUB_DEFAULT_END_ADDR < -1)
+        #error "MEMSCRUB_DEFAULT_END_ADDR must be larger than -1"
     #endif
 #endif
 
 
 /** \brief Verify that memory scrub end address defined */
-#ifndef MEM_SCRUB_DEFAULT_END_ADDR
-    #error "MEM_SCRUB_DEFAULT_END_ADDR must be defined"
+#ifndef MEMSCRUB_DEFAULT_END_ADDR
+    #error "MEMSCRUB_DEFAULT_END_ADDR must be defined"
 #endif
 
 
@@ -168,16 +195,16 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
     #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
 #endif
 #ifndef MEMORY_RESET_BIN_SEM_NAME
-    #error "MEMORY_RESET_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_RESET_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_CDS_BIN_SEM_NAME
-    #error "MEMORY_CDS_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_CDS_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_VOLATILEDISK_BIN_SEM_NAME
-    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be defined"
 #endif
 #ifndef MEMORY_USERRESERVED_BIN_SEM_NAME
-    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be dfeined"
+    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be defined"
 #endif
 CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 /* \brief Check that CFE_PSP_STARTUP_AVAILABLE_PARTITIONS is defined */
@@ -227,8 +254,12 @@ CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, 
 #ifndef CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME
     #define CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME "fail.txt"
 #endif
+
+/** \brief Verify that the startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FILENAME_TOO_LONG);
+/** \brief Verify that the failed startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_LONG);
+/** \brief Verify that the failed startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_SHORT);
 
 /**

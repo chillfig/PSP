@@ -8,12 +8,7 @@
 ** Modification History:
 **    Date       | Author           | Description
 **    ---------- | ---------------- | ----------------------------------------------------
-**    2020-12-16 | Minh Luong       | Initial revision
-**    2021-01-05 | Minh Luong       | Added test cases for psp_exception_testcase.c, 
-**               |                  | psp_support_testcases.c, psp_timer_testcase.c, 
-**               |                  | psp_watchdog_testcases.c, and psp_memory_testcases.c
-**    2021-09-08 | Claudio Olmi     | Added psp_ntp_testcases.c
-**    2022-02-01 | Matthew Rumbel   | Memory sync support
+**    2022-09-27 | Claudio Olmi       | Initial revision
 **=======================================================================================*/
 
 #include <unistd.h>

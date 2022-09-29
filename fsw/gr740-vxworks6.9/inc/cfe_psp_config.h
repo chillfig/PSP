@@ -443,22 +443,7 @@ typedef struct
  ** - MEMSCRUB_MANUAL_MODE
  **
  */
-#define MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
-
-/**
- ** \brief Defines the block size to scrub in number of pages
- ** \par Description:
- ** This applies only for Timed and Manual Mode. 
- ** See #MEMSCRUB_PAGE_SIZE for block size in bytes
- */
-#define MEMSCRUB_BLOCKSIZE_PAGES           10
-
-/**
- ** \brief Defines the number of milliseconds to wait before scrubbing another block
- ** \par Description:
- ** This applies only for Timed Mode
- */
-#define MEMSCRUB_TASK_DELAY_MSEC           500
+#define MEMSCRUB_RUN_MODE                  MEMSCRUB_AUTOMATIC_MODE
 
 /**
  ** \brief Memory Scrub Default Start Address
@@ -485,8 +470,6 @@ typedef struct
  */
 #define MEMSCRUB_DEFAULT_END_ADDR          0
 
-/** \brief MEM SCRUB Binary semaphore name */
-#define MEMSCRUB_BSEM_NAME             "PSP_BSEM_NAME"
 
 /** \} */
 

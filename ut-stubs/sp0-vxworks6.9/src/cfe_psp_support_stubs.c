@@ -122,3 +122,38 @@ void CFE_PSP_ToggleCFSBootPartition(void)
 
     UT_GenStub_Execute(CFE_PSP_ToggleCFSBootPartition, Basic, NULL);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_KernelGetCRC()
+ * ----------------------------------------------------
+ */
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog)
+{
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_KernelGetCRC, int32);
+
+    UT_GenStub_AddParam(CFE_PSP_KernelGetCRC, char *, pCatalogEntryName);
+    UT_GenStub_AddParam(CFE_PSP_KernelGetCRC, bool, bFirstCatalog);
+
+    UT_GenStub_Execute(CFE_PSP_KernelGetCRC, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_KernelGetCRC, int32);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_KernelLoadNew()
+ * ----------------------------------------------------
+ */
+
+int32 CFE_PSP_KernelLoadNew(char *pKernelPath, char *pKernelCatalogName)
+{
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_KernelLoadNew, int32);
+
+    UT_GenStub_AddParam(CFE_PSP_KernelLoadNew, char *, pKernelPath);
+    UT_GenStub_AddParam(CFE_PSP_KernelLoadNew, char *, pKernelCatalogName);
+
+    UT_GenStub_Execute(CFE_PSP_KernelLoadNew, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_KernelLoadNew, int32);
+}

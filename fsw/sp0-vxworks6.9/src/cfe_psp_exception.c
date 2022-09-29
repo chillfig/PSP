@@ -104,7 +104,7 @@ extern STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
  ** \brief g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = true;
+static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
  ** \brief g_pDefaultedrPolicyHandlerHook

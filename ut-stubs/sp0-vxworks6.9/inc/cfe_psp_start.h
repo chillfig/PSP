@@ -31,13 +31,7 @@
 */
 #include <stdio.h>
 #include <string.h>
-// #include <vxWorks.h>
-// #include <taskLib.h>
-
-/* Aitech BSP Specific */
-// #include <scratchRegMap.h>
-// #include <aimonUtil.h>
-
+#include "common_types.h"
 #include "cfe_psp_config.h"
 
 #ifdef __cplusplus
@@ -49,10 +43,10 @@ extern "C" {
 ** \{
 */
 
-/* MACRO to perform a bitwise AND operation on a specific bit position */
+/** \brief MACRO to perform a bitwise AND operation on a specific bit position */
 #define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
 
-/* MACRO to perform a bitwise AND operation */
+/** \brief MACRO to perform a bitwise AND operation */
 #define BITWISE_AND(x, y)       ((x) & (y))
 
 /**
@@ -89,6 +83,9 @@ void CFE_PSP_ProcessPOSTResults(void);
  ** If for some reason the file containing the restart attempts located in the 
  ** currently active CFS flash partition is corrupted, the file will be deleted
  ** and new data will be added with counters starting from zero.
+ ** This function requires the execution of #CFE_PSP_GetActiveCFSPartition and
+ ** #CFE_PSP_GetBootStartupString to gather the active CFS flash partition and
+ ** the boot string respectively.
  **
  ** \param[in] timer_id - is the ID of the timer that triggered the call
  **
@@ -123,15 +120,19 @@ int32 CFE_PSP_StartupClear(void);
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** To figure out which one is loaded in RAM, this function will check if the
- ** kernel is exposing a specific CFS support funtion GetActiveCFSPartition().
- ** If not available, function will assume a single Flash partition "/ffx0".
+ ** kernel is exposing a specific CFS support variable that contains the 
+ ** currently active CFS partition.
+ ** If variable is not available, function will assume a single Flash partition 
+ ** and fallback to "/ffx0".
+ ** Return code only refers to the availability of the kernel variable.
  ** 
  ** \param[out] pBuffer - Pointer to the buffer that will receive the string
  ** \param[in] uBuffer_size - Maximum size of the buffer
  ** 
- ** \return None
+ ** \return #CFE_PSP_SUCCESS - when Kernel has symbol
+ ** \return #CFE_PSP_ERROR - when Kernel does not have support
  */
-void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
+int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
 
 /**
  **
@@ -197,7 +198,7 @@ void OS_Application_Run(void);
  ** This function suspends/resumes the Console Shell task.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** Implementation is BSP independent
  **
  ** \param[in] suspend - True to suspend task, False to resume task
  **
@@ -251,7 +252,7 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
  ** This function simply calls the OS_FileSysAddFixedMap multiple times
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** Implementation is BSP independent
  **
  ** \param[out] fs_id - Buffer to store the ID of the file system mapping
  **

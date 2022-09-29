@@ -16,7 +16,7 @@
 **=======================================================================================*/
 #include <unistd.h>
 #include <string.h>
-/* #include <target_config.h> */
+
 #include "uttest.h"
 #include "utstubs.h"
 #include "ut_psp_utils.h"

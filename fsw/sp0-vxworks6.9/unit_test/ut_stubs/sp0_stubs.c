@@ -183,7 +183,7 @@ int returnSelectedBootFlash(void)
 }
 
 /*  Watchdog Stubs */
-int sysEnableFpgaWdt ( BOOL globalReset )
+int sysEnableFpgaWdt ( bool globalReset )
 {
     int iStatus;
 
@@ -191,7 +191,7 @@ int sysEnableFpgaWdt ( BOOL globalReset )
 
     return iStatus;
 }
-int sysDisableFpgaWdt ( BOOL globalReset )
+int sysDisableFpgaWdt ( bool globalReset )
 {
     int iStatus;
 
@@ -434,8 +434,8 @@ STATUS  CreateProgrammingBuffer(uint32_t size)
 int flashProgFile (
     char *pathName,         /* host pathname of binary image */
     char *fileName,         /* file name for catalog */
-    uint32_t    ramAddr,    /* Load address when loaded later */
-    BOOL    force           /* Do without prompts */
+    uint32_t ramAddr,       /* Load address when loaded later */
+    BOOL force              /* Do without prompts */
     )
 {
     int iStatus;

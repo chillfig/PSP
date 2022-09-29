@@ -25,6 +25,8 @@
 #ifndef PSP_SUPPORT_H
 #define PSP_SUPPORT_H
 
+#include "common_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,49 +34,43 @@ extern "C" {
 /*
 **  Include Files
 */
-// #include <bootLib.h>
-#include "common_types.h"
+/* #include <bootLib.h> */
+#define BOOT_DEV_LEN		40	/* max chars in device name */
+#define BOOT_HOST_LEN		20	/* max chars in host name */
+#define BOOT_ADDR_LEN		30	/* max chars in net addr */
+#define BOOT_TARGET_ADDR_LEN    50      /* IP address + mask + lease times */
+#define BOOT_FILE_LEN		160	/* max chars in file name */
+#define BOOT_USR_LEN		20	/* max chars in user name */
+#define BOOT_PASSWORD_LEN	20	/* max chars in password */
+#define BOOT_OTHER_LEN		80	/* max chars in "other" field */
+
+#define BOOT_FIELD_LEN		160 /* max chars in any boot field */
+
+#define BOOT_OTHER_FIELD_DELIMITER ';'  /* delimits different parameters
+                                           specified in the other field */
+typedef struct				/* BOOT_PARAMS */
+    {
+    char bootDev [BOOT_DEV_LEN];	/* boot device code */
+    char hostName [BOOT_HOST_LEN];	/* name of host */
+    char targetName [BOOT_HOST_LEN];	/* name of target */
+    char ead [BOOT_TARGET_ADDR_LEN];	/* ethernet internet addr */
+    char bad [BOOT_TARGET_ADDR_LEN];	/* backplane internet addr */
+    char had [BOOT_ADDR_LEN];		/* host internet addr */
+    char gad [BOOT_ADDR_LEN];		/* gateway internet addr */
+    char bootFile [BOOT_FILE_LEN];	/* name of boot file */
+    char startupScript [BOOT_FILE_LEN];	/* name of startup script file */
+    char usr [BOOT_USR_LEN];		/* user name */
+    char passwd [BOOT_PASSWORD_LEN];	/* password */
+    char other [BOOT_OTHER_LEN];	/* available for applications */
+    int  procNum;			/* processor number */
+    int  flags;				/* configuration flags */
+    int  unitNum;                       /* network device unit number */
+    } BOOT_PARAMS;
 
 /**
 ** \addtogroup psp_public_api PSP Public APIs - Common
 ** \{
 */
-
-#define BOOT_DEV_LEN        40  /* max chars in device name */
-#define BOOT_HOST_LEN       20  /* max chars in host name */
-#define BOOT_ADDR_LEN       30  /* max chars in net addr */
-#define BOOT_TARGET_ADDR_LEN    50      /* IP address + mask + lease times */
-#define BOOT_FILE_LEN       160 /* max chars in file name */
-#define BOOT_USR_LEN        20  /* max chars in user name */
-#define BOOT_PASSWORD_LEN   20  /* max chars in password */
-#define BOOT_OTHER_LEN      80  /* max chars in "other" field */
-
-#define BOOT_FIELD_LEN      160 /* max chars in any boot field */
-
-#define BOOT_OTHER_FIELD_DELIMITER ';'  /* delimits different parameters specified in the other field */
-
-typedef struct              /* BOOT_PARAMS */
-    {
-    char bootDev [BOOT_DEV_LEN];    /* boot device code */
-    char hostName [BOOT_HOST_LEN];  /* name of host */
-    char targetName [BOOT_HOST_LEN];    /* name of target */
-    char ead [BOOT_TARGET_ADDR_LEN];    /* ethernet internet addr */
-    char bad [BOOT_TARGET_ADDR_LEN];    /* backplane internet addr */
-    char had [BOOT_ADDR_LEN];       /* host internet addr */
-    char gad [BOOT_ADDR_LEN];       /* gateway internet addr */
-    char bootFile [BOOT_FILE_LEN];  /* name of boot file */
-    char startupScript [BOOT_FILE_LEN]; /* name of startup script file */
-    char usr [BOOT_USR_LEN];        /* user name */
-    char passwd [BOOT_PASSWORD_LEN];    /* password */
-    char other [BOOT_OTHER_LEN];    /* available for applications */
-    int  procNum;           /* processor number */
-    int  flags;             /* configuration flags */
-    int  unitNum;                       /* network device unit number */
-    } BOOT_PARAMS;
-
-/* Note, MAX_BOOT_LINE_SIZE is intended to include the terminating NUL */
-
-#define MAX_BOOT_LINE_SIZE      255     /* Max length of boot line string */
 
 /**
  ** \func Toggle among CFS partitions
@@ -107,7 +103,7 @@ void CFE_PSP_ToggleCFSBootPartition(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative);
+int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative);
 
 /**
  ** \func Sets new boot startup string
@@ -124,13 +120,13 @@ int32   CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize,
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
+int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
 
 /**
- ** \func Prints the boot paramters to console
+ ** \func Prints the boot parameters to console
  **
  ** \par Description:
- ** Prints the boot paramters to console
+ ** Prints the boot parameters to console
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -139,7 +135,7 @@ int32   CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
  **
  ** \return None
  */
-void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
+void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
 
 /**
  ** \func Gets current boot parameter structure
@@ -149,7 +145,7 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** a BOOT_PARAM structure.
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function is used only before calling the #CFE_PSP_Reset function.
+ ** None
  ** 
  ** \param[out] target_boot_parameters
  ** \param[in]  talkative - If true, print out debug messages
@@ -157,7 +153,7 @@ void    CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative);
+int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative);
 
 /**
  ** \func Sets new boot parameter structure
@@ -175,7 +171,48 @@ int32   CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 tal
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+
+/**
+ ** \func Get CRC of Kernel in Catalog
+ **
+ ** \par Description:
+ ** Function gets the CRC of the catalog entry name.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** On a SP0 there are 2 catalogs. If there are no errors, the first catalog is 
+ ** exactly the same as the second catalog.
+ ** 
+ ** \param[in] pCatalogEntryName - Name of the catalog entry
+ ** \param[in] bFirstCatalog - Catalog number (TRUE == 1,  FALSE == 2)
+ **
+ ** \return 0 - When the Kernel is not found or bad inputs
+ ** \return CRC
+ */
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog);
+
+/**
+ ** \func Load new kernel on SP0 target
+ **
+ ** \par Description:
+ ** This function programs a new kernel on the SP0 target.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The kernel file is saved in a special location on the SP0 Flash memory. This
+ ** function is a blocking function and thus, it will slow down cFS. It is also 
+ ** recommended to restart the target immediately.
+ ** The function will set the new kernel file as the default kernel.
+ ** Validity of the kernel path and file structure is left to the end user.
+ ** Name of the Kernel pKernelCatalogName must be no more than 8 characters.
+ ** 
+ ** \param[in] pKernelPath - Kernel file path
+ ** \param[in] pKernelCatalogName - Name of the kernel
+ **
+ ** \return #CFE_PSP_SUCCESS - When the kernel is successfully loaded
+ ** \return #CFE_PSP_ERROR - When the kernel could not be loaded
+ */
+
+int32 CFE_PSP_KernelLoadNew(char *pKernelPath, char *pKernelCatalogName);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

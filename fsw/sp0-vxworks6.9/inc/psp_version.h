@@ -38,7 +38,7 @@ extern "C" {
 /** \name Version Macro Definitions */
 /** \{ */
 /** \brief Development Build Macro Definitions - Build Number */
-#define CFE_PSP_IMPL_BUILD_NUMBER   124
+#define CFE_PSP_IMPL_BUILD_NUMBER  41
 /** \brief Development Build Macro Definitions - Baseline */
 #define CFE_PSP_IMPL_BUILD_BASELINE "v1.6.0-rc4"
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
@@ -46,7 +46,7 @@ extern "C" {
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
 #define CFE_PSP_IMPL_MINOR_VERSION 6 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
-#define CFE_PSP_IMPL_REVISION      1 
+#define CFE_PSP_IMPL_REVISION      2
 
 /**
  ** \brief Mission revision.

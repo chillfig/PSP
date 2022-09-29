@@ -15,7 +15,7 @@
  ** limitations under the License.
  **
  ** \par Description:
- ** This filel contains the function prototypes that synchronize data in 
+ ** This file contains the function prototypes that synchronize data in 
  ** RAM/memory to a specific file on filesystem. 
  **
  ** \par Limitations, Assumptions, External Events, and Notes:
@@ -27,13 +27,14 @@
 
 #include "common_types.h"
 #include "osapi.h"
+#include "cfe_psp_memory.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- ** \addtogroup psp_public_api PSP Public APIs
+ ** \addtogroup psp_public_api_sp0vx69 PSP Public APIs - SP0-VxWorks6.9 Platform
  ** \{
  */
 
@@ -130,8 +131,8 @@ bool CFE_PSP_MemSyncIsRunning(void);
  **
  ** \param[in] priority - New sync task priority
  **
- ** \return #CFE_PSP_SUCCESS - If successfuly set new priority
- ** \return #CFE_PSP_ERROR - If unsuccessfully set new priority
+ ** \return #CFE_PSP_SUCCESS - If successfully set new priority
+ ** \return #CFE_PSP_ERROR - Could not set new priority
  */
 int32 CFE_PSP_MemSyncSetPriority(osal_priority_t priority);
 
@@ -200,7 +201,41 @@ uint32 CFE_PSP_MemSyncGetFrequency(void);
 uint32 CFE_PSP_MemSyncGetStatistics(void);
 
 /**
- ** \} <!-- End of group "psp_public_api" -->
+ ** \brief Flush the User Reserved Memory to its filepath
+ **
+ ** \par Description:
+ ** This function will perform a flush of all the data from User Reserved Memory
+ ** to their respective filenames in Flash memory
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Function is supposed to be called right before target restart
+ **
+ ** \param None
+ **
+ ** \return None
+ */
+void CFE_PSP_FlushToFLASH(void);
+
+/**
+ ** \brief Check that if the User Reserved Memory file exists
+ **
+ ** \par Description:
+ ** This function will check if the user reserved memory file exits in the path
+ ** constructed.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Checking only for a single file, not all 4. Deleting the Reset file will
+ ** produce a POWERON restart type.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS - When the file does exist
+ ** \return #CFE_PSP_ERROR - When the file does not exist
+ */
+int32 CFE_PSP_CheckURMFilesExists(void);
+
+/**
+ ** \} <!-- End of group "psp_public_api_sp0vx69" -->
  */
 
 #ifdef __cplusplus

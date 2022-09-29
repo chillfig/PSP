@@ -317,21 +317,23 @@ void Ut_CFE_PSP_GetVolatileDiskMem(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_InitProcessorReservedMemory(void)
 {
-    int32 iReturnCode;
+    int32 iReturnCode = CFE_PSP_ERROR;
     char cMsg[256] = {};
+
+    CFE_PSP_SetupReservedMemoryMap();
 
     Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal POWERON ----- */
     /* Set additional inputs */
-    sprintf(cMsg, "CFE_PSP: Clearing Processor Reserved Memory.\n");
+    sprintf(cMsg, MEMORY_PRINT_SCOPE "Clearing Processor Reserved Memory.\n");
     GR740_ReservedMemBlock.BlockSize = URM_SIZE-10;
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_POWERON);
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 1/2: Nominal POWERON - clearing message");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 1/2: Nominal POWERON - success return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 1/3: Nominal POWERON - clearing message");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 1/3: Nominal POWERON - success return code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -343,25 +345,24 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/2: Nominal PROCESSOR - success return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/3: Nominal PROCESSOR - success return code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-
-    /* ----- Test case #2 - Error not enough User Reserved Memory ----- */
+    /* ----- Test case #3 - Error not enough User Reserved Memory ----- */
     /* Set additional inputs */
-    sprintf(cMsg, "CFE_PSP: VxWorks Reserved Memory Block Size not large enough, "
+    GR740_ReservedMemBlock.BlockSize = URM_SIZE+1;
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
+    sprintf(cMsg, MEMORY_PRINT_SCOPE "VxWorks Reserved Memory Block Size not large enough, "
                   "Total Size = 0x%lx, "
                   "VxWorks Reserved Size=0x%lx\n",
                   (unsigned long)GR740_ReservedMemBlock.BlockSize,
                   (unsigned long)URM_SIZE);
-    GR740_ReservedMemBlock.BlockSize = URM_SIZE;
-    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 2/2: Nominal PROCESSOR - success return code");
-
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 3/3: Not enough memory - error message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 3/3: Not enough memory - error return code");
 }
 
 /*=======================================================================================

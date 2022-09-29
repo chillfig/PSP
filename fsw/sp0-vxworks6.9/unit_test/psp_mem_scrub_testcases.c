@@ -516,6 +516,7 @@ void Ut_CFE_PSP_MemScrubValidate(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MemScrubGet(void)
 {
+    int32 iRetCode = CFE_PSP_ERROR;
     char cMsg[256] = {};
     CFE_PSP_MemScrubStatus_t mss_Status = {};
     g_MemScrub_Status.uiMemScrubStartAddr = 99;
@@ -524,9 +525,10 @@ void Ut_CFE_PSP_MemScrubGet(void)
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     g_MemScrub_Status.opMemScrubTaskPriority = 99;
 
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal, talk ----- */
     /* Setup additional inputs */
-    Ut_OS_printf_Setup();
     snprintf(cMsg, 256, MEMSCRUB_PRINT_SCOPE "Mode %u\n" \
                                             "Address Range [0x%08X-0x%08X]\n" \
                                             "Timed [0x%08X-0x%08X] - Delay %u msec - Blocks %u bytes\n" \
@@ -544,28 +546,43 @@ void Ut_CFE_PSP_MemScrubGet(void)
                                             g_MemScrub_Status.opMemScrubTaskPriority
                 );
     /* Execute test */
-    CFE_PSP_MemScrubGet(&mss_Status, true);
+    iRetCode = CFE_PSP_MemScrubGet(&mss_Status, sizeof(mss_Status), true);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubStatus - 1/1: Status print - message");
-    UtAssert_True(mss_Status.uiMemScrubStartAddr == g_MemScrub_Status.uiMemScrubStartAddr, "_CFE_PSP_MemScrubStatus - 1/1: Start address value test");
-    UtAssert_True(mss_Status.uiMemScrubEndAddr == g_MemScrub_Status.uiMemScrubEndAddr, "_CFE_PSP_MemScrubStatus - 1/1: End address value test");
-    UtAssert_True(mss_Status.uiMemScrubCurrentPage == g_MemScrub_Status.uiMemScrubCurrentPage, "_CFE_PSP_MemScrubStatus - 1/1: Current page value test");
-    UtAssert_True(mss_Status.uiMemScrubTotalPages == g_MemScrub_Status.uiMemScrubTotalPages, "_CFE_PSP_MemScrubStatus - 1/1: Total pages value test");
-    UtAssert_True(mss_Status.opMemScrubTaskPriority == g_MemScrub_Status.opMemScrubTaskPriority, "_CFE_PSP_MemScrubStatus - 1/1: Task priority value test");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_MemScrubStatus - 1/3: Get config - Return Code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubStatus - 1/3: Status print - message");
+    UtAssert_True(mss_Status.uiMemScrubStartAddr == g_MemScrub_Status.uiMemScrubStartAddr, "_CFE_PSP_MemScrubStatus - 1/3: Start address value test");
+    UtAssert_True(mss_Status.uiMemScrubEndAddr == g_MemScrub_Status.uiMemScrubEndAddr, "_CFE_PSP_MemScrubStatus - 1/3: End address value test");
+    UtAssert_True(mss_Status.uiMemScrubCurrentPage == g_MemScrub_Status.uiMemScrubCurrentPage, "_CFE_PSP_MemScrubStatus - 1/3: Current page value test");
+    UtAssert_True(mss_Status.uiMemScrubTotalPages == g_MemScrub_Status.uiMemScrubTotalPages, "_CFE_PSP_MemScrubStatus - 1/3: Total pages value test");
+    UtAssert_True(mss_Status.opMemScrubTaskPriority == g_MemScrub_Status.opMemScrubTaskPriority, "_CFE_PSP_MemScrubStatus - 1/3: Task priority value test");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #2 - Nominal, no talk ----- */
     /* Setup additional inputs */
+
+    /* Execute test */
+    iRetCode = CFE_PSP_MemScrubGet(&mss_Status, sizeof(mss_Status), false);
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_MemScrubStatus - 2/3: Get config - Return Code");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MemScrubStatus - 2/3: Status print - message");
+    UtAssert_True(mss_Status.uiMemScrubStartAddr == g_MemScrub_Status.uiMemScrubStartAddr, "_CFE_PSP_MemScrubStatus - 2/3: Start address value test");
+    UtAssert_True(mss_Status.uiMemScrubEndAddr == g_MemScrub_Status.uiMemScrubEndAddr, "_CFE_PSP_MemScrubStatus - 2/3: End address value test");
+    UtAssert_True(mss_Status.uiMemScrubCurrentPage == g_MemScrub_Status.uiMemScrubCurrentPage, "_CFE_PSP_MemScrubStatus - 2/3: Current page value test");
+    UtAssert_True(mss_Status.uiMemScrubTotalPages == g_MemScrub_Status.uiMemScrubTotalPages, "_CFE_PSP_MemScrubStatus - 2/3: Total pages value test");
+    UtAssert_True(mss_Status.opMemScrubTaskPriority == g_MemScrub_Status.opMemScrubTaskPriority, "_CFE_PSP_MemScrubStatus - 2/3: Task priority value test");
+
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Nominal, no talk ----- */
+    /* Setup additional inputs */
+    
     /* Execute test */
-    CFE_PSP_MemScrubGet(&mss_Status, false);
+    iRetCode = CFE_PSP_MemScrubGet(&mss_Status, sizeof(iRetCode), false);
     /* Verify outputs */
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_MemScrubStatus - 1/1: Status print - message");
-    UtAssert_True(mss_Status.uiMemScrubStartAddr == g_MemScrub_Status.uiMemScrubStartAddr, "_CFE_PSP_MemScrubStatus - 2/2: Start address value test");
-    UtAssert_True(mss_Status.uiMemScrubEndAddr == g_MemScrub_Status.uiMemScrubEndAddr, "_CFE_PSP_MemScrubStatus - 2/2: End address value test");
-    UtAssert_True(mss_Status.uiMemScrubCurrentPage == g_MemScrub_Status.uiMemScrubCurrentPage, "_CFE_PSP_MemScrubStatus - 2/2: Current page value test");
-    UtAssert_True(mss_Status.uiMemScrubTotalPages == g_MemScrub_Status.uiMemScrubTotalPages, "_CFE_PSP_MemScrubStatus - 2/2: Total pages value test");
-    UtAssert_True(mss_Status.opMemScrubTaskPriority == g_MemScrub_Status.opMemScrubTaskPriority, "_CFE_PSP_MemScrubStatus - 2/2: Task priority value test");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_MemScrubStatus - 3/3: Get config with wrong size - Return Code");
 }
 /*=======================================================================================
 ** Ut_CFE_PSP_MemScrubEnable(void) test cases
@@ -931,32 +948,43 @@ void Ut_CFE_PSP_MemScrubTrigger(void)
 **=======================================================================================*/
 void Ut_CFE_PSP_MemScrubErrStats(void)
 {
+    int32 iRetCode = CFE_PSP_ERROR;
     /*
     ** We are going to make the assumption that we won't
     ** reach 99 or greater total errors during the course
     ** of this unit test
     */
     CFE_PSP_MemScrubErrStats_t errStats = {0, 0, 0, 0, 0, 0, 0, 0};
-    bool talkative;
-   
+
     /* ----- Test case #1 - Nominal no print ----- */
     /* Set additional inputs */
-    talkative = false;
     errStats.uil2errTotal = 99;
     /* Execute test */
-    CFE_PSP_MemScrubErrStats(&errStats, talkative);
+    iRetCode = CFE_PSP_MemScrubErrStats(&errStats, sizeof(errStats), false);
     /* Verify results */
-    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MemScrubErrStats - 1/2: Single value check");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS),"_CFE_PSP_MemScrubErrStats - 1/3: Return Code");
+    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MemScrubErrStats - 1/3: Single value check");
+
+    UT_ResetState(0);
 
     /* ----- Test case #2 - Nominal print ----- */
     /* Set additional inputs */
-    UT_ResetState(0);
-    talkative = true;
     errStats.uil2errTotal = 99;
     /* Execute test */
-    CFE_PSP_MemScrubErrStats(&errStats, talkative);
+    iRetCode = CFE_PSP_MemScrubErrStats(&errStats, sizeof(errStats), true);
     /* Verify results */
-    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MemScrubErrStats - 1/2: Single value check");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS),"_CFE_PSP_MemScrubErrStats - 2/3: Return Code");
+    UtAssert_True(errStats.uil2errTotal < 99, "_CFE_PSP_MemScrubErrStats - 2/3: Single value check");
+
+    UT_ResetState(0);
+
+    /* ----- Test case #3 - Wrong Size ----- */
+    /* Set additional inputs */
+    errStats.uil2errTotal = 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_MemScrubErrStats(&errStats, sizeof(iRetCode), false);
+    /* Verify results */
+    UtAssert_True((iRetCode == CFE_PSP_ERROR),"_CFE_PSP_MemScrubErrStats - 3/3: Wrong Size - Return Code");
 }
 
 /*=======================================================================================

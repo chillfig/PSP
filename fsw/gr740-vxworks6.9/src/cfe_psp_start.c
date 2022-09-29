@@ -89,6 +89,7 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_start.h"
 #include "cfe_psp_memory.h"
+#include "cfe_psp_memscrub.h"
 #include "cfe_psp_module.h"
 #include "cfe_psp_timer.h"
 
@@ -382,6 +383,11 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     ** Initialize the watchdog, it's left disabled
     */
     CFE_PSP_WatchdogInit();
+    /*
+    ** Initialize the watchdog, it's left disabled
+    */
+    CFE_PSP_MemScrubInit();
+
     /*
      ** Initialize the reserved memory 
      */

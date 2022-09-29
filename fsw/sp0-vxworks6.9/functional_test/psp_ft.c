@@ -562,7 +562,7 @@ void ft_mem_scrub(void)
     OS_printf("[MEM_SCRUB]\n");
 
     /* Status should return all zeros */
-    CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
+    CFE_PSP_MemScrubGet(&mem_scrub_stats1, sizeof(mem_scrub_stats1), false);
     FT_Assert_True((mem_scrub_stats1.uiMemScrubEndAddr != 0), "Retrieved MEM Scrub configuration and status")
 
     if (mem_scrub_stats1.RunMode != MEMSCRUB_MANUAL_MODE)
@@ -581,7 +581,7 @@ void ft_mem_scrub(void)
     FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
 
     /* Get error statistics */
-    CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats, false);
+    CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats, sizeof(mem_scrub_ddr_stats), false);
     FT_Assert_True(true, "Mem Scrub DDR statistics")
 
     /* Set different values */
@@ -589,7 +589,7 @@ void ft_mem_scrub(void)
     mem_scrub_stats1.uiMemScrubEndAddr = 120 * MEMSCRUB_PAGE_SIZE;
     mem_scrub_stats1.opMemScrubTaskPriority = 240;
     ret_code = CFE_PSP_MemScrubSet(&mem_scrub_stats1);
-    CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
+    CFE_PSP_MemScrubGet(&mem_scrub_stats2, sizeof(mem_scrub_stats2), false);
     FT_Assert_True((mem_scrub_stats2.uiMemScrubStartAddr == mem_scrub_stats1.uiMemScrubStartAddr), "Mem Scrub Start Address successfully changed")
     FT_Assert_True((mem_scrub_stats2.uiMemScrubEndAddr == mem_scrub_stats1.uiMemScrubEndAddr), "Mem Scrub End Address successfully changed")
     FT_Assert_True((mem_scrub_stats2.opMemScrubTaskPriority == mem_scrub_stats1.opMemScrubTaskPriority), "Mem Scrub priority successfully changed")
@@ -605,10 +605,10 @@ void ft_mem_scrub(void)
     FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
 
     /* Check if value of memory pages scrubbed changes after 10 seconds */
-    CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
+    CFE_PSP_MemScrubGet(&mem_scrub_stats1, sizeof(mem_scrub_stats1), false);
     for (index_counter = 0; index_counter < 10; index_counter++)
     {
-        CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
+        CFE_PSP_MemScrubGet(&mem_scrub_stats2, sizeof(mem_scrub_stats2), false);
         if (mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages)
         {
             break;

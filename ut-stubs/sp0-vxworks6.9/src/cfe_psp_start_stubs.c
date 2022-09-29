@@ -37,12 +37,14 @@
  * Generated stub function for CFE_PSP_GetActiveCFSPartition()
  * ----------------------------------------------------
  */
-void CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
+int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
 {
     UT_GenStub_AddParam(CFE_PSP_GetActiveCFSPartition, char *, pBuffer);
     UT_GenStub_AddParam(CFE_PSP_GetActiveCFSPartition, uint32, uBuffer_size);
 
     UT_GenStub_Execute(CFE_PSP_GetActiveCFSPartition, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_GetActiveCFSPartition, int32);
 }
 
 /*

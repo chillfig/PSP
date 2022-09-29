@@ -253,9 +253,24 @@ typedef struct sparc_leon4_timer_reg_tag
 
 /*************** MEMORY SCRUBBER ***************/
 
+/* AHB Status Register */
+/*  */
+#define MEMSCRUB_AHB_STATUS_CECNT_MASK   (0xFFC00000U) /* Delay in cycles (rw) */
+#define MEMSCRUB_AHB_STATUS_CECNT_POS    22U
+/*  */
+#define MEMSCRUB_AHB_STATUS_UECNT_MASK   (0x002FC000U) /* Delay in cycles (rw) */
+#define MEMSCRUB_AHB_STATUS_UECNT_POS    14U
+
+
 /* Configuration */
 #define MEMSCRUB_CONFIG_DELAY_BETWEEN_BLOCKS_MASK   (0x0000FF00U) /* Delay in cycles (rw) */
 #define MEMSCRUB_CONFIG_DELAY_BETWEEN_BLOCKS_POS    8U
+/* Interrupt when DONE */
+#define MEMSCRUB_CONFIG_INTERRUPT_DONE_MASK         (0x00000080U) /* Interrupt when done (IRQD) (rw) */
+#define MEMSCRUB_CONFIG_INTERRUPT_DONE_POS          7U
+/* Secondary Memory Range */
+#define MEMSCRUB_CONFIG_SECONDARY_RANGE_MASK        (0x00000020U) /* Secondary Memory Range (rw) */
+#define MEMSCRUB_CONFIG_SECONDARY_RANGE_POS         5U
 /* Restart scrubber when run finishes */
 #define MEMSCRUB_CONFIG_LOOP_MODE_MASK              (0x00000010U) /* Loop Mode       (rw) */
 #define MEMSCRUB_CONFIG_LOOP_MODE_POS               4U
@@ -265,6 +280,7 @@ typedef struct sparc_leon4_timer_reg_tag
 #define MEMSCRUB_CONFIG_SCRUBBER_ENABLE_MASK        (0x00000001U) /* Enable Scrubber (rw) */
 #define MEMSCRUB_CONFIG_SCRUBBER_ENABLE_POS         0U
 
+/* Status */
 #define MEMSCRUB_STATUS_CURRENT_STATE_MASK          (0x00000001U) /* Current State 0-idle (r) */
 #define MEMSCRUB_STATUS_CURRENT_STATE_POS           0U
 #define MEMSCRUB_STATUS_TASK_COMPLETE_MASK          (0x00002000U) /* Task Complete 0 to clear (wr) */
@@ -301,6 +317,9 @@ typedef struct sparc_leon4_memory_scrubber_reg_tag
 
 /* MACRO */
 #define SET_MEMSCRUB_CONFIG(reg,value)       ((MEMSCRUB_REG->configuration) |= (reg##_MASK & (value << (reg##_POS))))
+#define GET_MEMSCRUB_CONFIG(reg)             (((MEMSCRUB_REG->configuration) &= reg##_MASK) >>  (reg##_POS))
+#define GET_MEMSCRUB_STATUS(reg)             (((MEMSCRUB_REG->status) &= reg##_MASK) >>  (reg##_POS))
+#define GET_MEMSCRUB_AHB_STATUS(reg)          (((MEMSCRUB_REG->ahb_status) &= reg##_MASK) >>  (reg##_POS))
 
 /***************  ***************/
 

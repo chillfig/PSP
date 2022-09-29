@@ -78,12 +78,15 @@ int32 CFE_PSP_MemScrubEnable(void)
  * Generated stub function for CFE_PSP_MemScrubErrStats()
  * ----------------------------------------------------
  */
-void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative)
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, size_t iErrSize, bool talkative)
 {
     UT_GenStub_AddParam(CFE_PSP_MemScrubErrStats, CFE_PSP_MemScrubErrStats_t *, errStats);
+    UT_GenStub_AddParam(CFE_PSP_MemScrubErrStats, size_t, iErrSize);
     UT_GenStub_AddParam(CFE_PSP_MemScrubErrStats, bool, talkative);
 
     UT_GenStub_Execute(CFE_PSP_MemScrubErrStats, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_MemScrubErrStats, int32);
 }
 
 /*
@@ -133,13 +136,28 @@ int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for CFE_PSP_MemScrubStatus()
+ * Generated stub function for CFE_PSP_MemScrubGet()
  * ----------------------------------------------------
  */
-void CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk)
+int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *mss_Status, size_t iConfigSize, bool talk)
 {
     UT_GenStub_AddParam(CFE_PSP_MemScrubGet, CFE_PSP_MemScrubStatus_t *, mss_Status);
+    UT_GenStub_AddParam(CFE_PSP_MemScrubGet, size_t, iConfigSize);
     UT_GenStub_AddParam(CFE_PSP_MemScrubGet, bool, talk);
 
     UT_GenStub_Execute(CFE_PSP_MemScrubGet, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_MemScrubGet, int32);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_MemScrubTrigger()
+ * ----------------------------------------------------
+ */
+int32 CFE_PSP_MemScrubTrigger(void)
+{
+    UT_GenStub_Execute(CFE_PSP_MemScrubTrigger, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_MemScrubTrigger, int32);
 }

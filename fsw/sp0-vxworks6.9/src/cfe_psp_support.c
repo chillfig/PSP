@@ -533,7 +533,7 @@ int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative
  * Description: See function declaration for info
  *
  *********************************************************/
-uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, BOOL bFirstCatalog)
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog)
 {
     int32_t iNumCatEntries = 0;
     uint8_t uiIndex = 0;

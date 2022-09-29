@@ -176,3 +176,25 @@ int32 CFE_PSP_MemSyncStop(void)
 
     return UT_GenStub_GetReturnValue(CFE_PSP_MemSyncStop, int32);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_FlushToFLASH()
+ * ----------------------------------------------------
+ */
+void CFE_PSP_FlushToFLASH(void)
+{
+    UT_GenStub_Execute(CFE_PSP_FlushToFLASH, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_CheckURMFilesExists()
+ * ----------------------------------------------------
+ */
+int32 CFE_PSP_CheckURMFilesExists(void)
+{
+    UT_GenStub_Execute(CFE_PSP_CheckURMFilesExists, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_CheckURMFilesExists, int32);
+}

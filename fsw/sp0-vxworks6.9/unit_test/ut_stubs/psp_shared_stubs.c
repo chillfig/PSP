@@ -73,7 +73,7 @@ int32 CFE_PSP_MemRangeSet(uint32 RangeNum,
     return iStatus;
 }
 
-int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug)
+int currentedrPolicyHandlerHook1(int type, void *pInfo_param, bool debug)
 {
     int32 iStatus;
 

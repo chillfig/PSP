@@ -42,37 +42,132 @@ extern "C" {
  ** \par Description:
  ** This string is printed before every print related to Memory Scrubbing API.
 */
-#define MEM_SCRUB_PRINT_SCOPE           "PSP MEM SCRUB: "
+#define MEMSCRUB_PRINT_SCOPE       "PSP MEM SCRUB: "
+
+
+/** \brief Size of a Page in function scrubMemory */
+#define MEMSCRUB_PAGE_SIZE         4096
 
 /**
- ** \brief Start mem scrub on startup option 
- ** \par Description:
- ** This option can be set to indicate if PSP should start 
- ** mem scrub task on startup.
- ** 0 = Do not start task during startup
- ** 1 = Start task during startup
+** \brief MEMSCRUB Run Modes
 */
-#define MEM_SCRUB_TASK_START_ON_STARTUP      true
+typedef enum
+{
+    /**
+     ** \brief Idle Mode
+     **
+     ** \par Description
+     ** A task is created that runs continuously in a while loop with low priority
+     */
+    MEMSCRUB_IDLE_MODE = 1,
+    /**
+     ** \brief Timed Mode
+     **
+     ** \par Description
+     ** A task is created that runs every X number of seconds. The start and
+     ** end address are scrubbed through in blocks.
+     */
+    MEMSCRUB_TIMED_MODE = 2,
+    /**
+     ** \brief Manual Mode
+     **
+     ** \par Description
+     ** End user calls the mem scrub function when appropriate. The start and
+     ** end address are scrubbed through in blocks.
+     */
+    MEMSCRUB_MANUAL_MODE = 3
+} MEMSCRUB_RunMode_t;
+
 
 /**
- ** \brief Memory Scrubbing information struct
- ** 
- ** \par Description:
- ** Memory scrubbing struct containing useful information:
- **     - uiMemScrubStartAddr
- **     - uiMemScrubEndAddr
- **     - uiMemScrubCurrentPage
- **     - uiMemScrubTotalPages
- **     - opMemScrubTaskPriority
- **     - bIsRunning
-*/
+ ** \brief Memory Scrubbing configuration and information
+ **
+ */
 typedef struct
 {
+    /**
+     ** \brief Defines the Memory Scrub Run Method
+     ** \par Description:
+     ** Mem Scrub can be run in multiple modes depending on the PSP config.
+     ** - Idle Mode
+     **   - A task is created that runs continuously in a while loop with
+     **     low priority
+     ** - Timed Mode
+     **   - A task is created that runs every X number of seconds. The start and
+     **     end address are scrubbed through in blocks.
+     ** - Manual Mode
+     **   - End user calls the mem scrub function when appropriate. The start and
+     **     end address are scrubbed through in blocks.
+     */
+    MEMSCRUB_RunMode_t  RunMode;
+    /**
+     ** \brief Defines the block size in pages (4096 bytes each) to scrub
+     ** \par Description:
+     ** This applies only for Timed and Manual Mode
+     */
+    uint32              uiBlockSize_Pages;
+    /**
+     ** \brief Defines the Start Address to scrub in Timed Mode
+     ** \par Description:
+     ** The start address is managed within the task
+     */
+    uint32              uiTimedStartAddr;
+    /**
+     ** \brief Defines the end Address to scrub in Timed Mode
+     ** \par Description:
+     ** The end address is managed within the task
+     */
+    uint32              uiTimedEndAddr;    
+    /**
+     ** \brief Defines the number of milliseconds to wait before scrubbing another block
+     ** \par Description:
+     ** This applies only for Timed Mode
+     */
+    uint32              uiTaskDelay_msec;
+    /**
+     ** \brief Defines the Start Address to scrub
+     ** \par Description:
+     ** The start address can be any value in the address space starting from 0
+     */
     uint32              uiMemScrubStartAddr;
+    /**
+     ** \brief Defines the end Address to scrub
+     ** \par Description:
+     ** End Address cannot be larger than the maximum RAM
+     */
     uint32              uiMemScrubEndAddr;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Current Page
+     ** \par Description:
+     ** Current page that the task is working on. This value gets
+     ** reset whenever task restart.
+     */
     uint32              uiMemScrubCurrentPage;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Total Pages
+     ** \par Description:
+     ** Total number of pages processed since the start of the task. This value gets
+     ** reset whenever task restart.
+     */
     uint32              uiMemScrubTotalPages;
+    /** \brief Contains the Memory Scrubbing task priority
+     **
+     */
     osal_priority_t     opMemScrubTaskPriority;
+    /**
+     ** \brief Contains the Active Memory Scrubbing Task ID
+     ** \par Description:
+     ** If 0, task is not running
+     */
+    osal_id_t           uiMemScrubTaskId;
+    /** \brief Contains the maximum allowed task priority
+     **
+     */
+    osal_priority_t     uiMemScrub_MaxPriority;
+    /** \brief Contains the minimum allowed task priority
+     **
+     */
+    osal_priority_t     uiMemScrub_MinPriority;
 } CFE_PSP_MemScrubStatus_t;
 
 /**
@@ -113,19 +208,15 @@ typedef struct
 **
 ** \par Assumptions, External Events, and Notes:
 ** After calling this function, the new settings will be applied in the 
-** next call to the Activate Memory Scrubbing funtion.
+** next call to the Activate Memory Scrubbing function.
 ** If newEndAddr is set to a value larger than the actual physical memory limit,
-** the function will use the phyisical memory limit.
+** the function will use the physical memory limit.
 ** Task priority can only be set between #MEMSCRUB_PRIORITY_UP_RANGE and 
 ** #MEMSCRUB_PRIORITY_DOWN_RANGE defined in cfe_psp_config.h. 
-** Default is set to #MEMSCRUB_DEFAULT_PRIORITY.\n
 ** If the scrubMemory function is called in a task that has a timing restriction, 
-** the scrub range (i.e. endAddr - startAddr) should be adjusted to a small 
-** value but should be a multiple of the page size (4096 bytes).
+** use Timed or Manual Mode.
 ** 
-** \param[in] newStartAddr - Memory address to start from, usually zero
-** \param[in] newEndAddr - Memory address to end at, usually end of the physical RAM
-** \param[in] task_priority - The task priority
+** \param[in] pNewConfiguration - pointer to a Mem Scrub Configuration structure with new values
 **
 ** \return #CFE_PSP_SUCCESS
 ** \return #CFE_PSP_ERROR
@@ -139,7 +230,8 @@ int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration);
 ** This function provides the status whether the Memory Scrubbing task is running.
 **
 ** \par Assumptions, External Events, and Notes:
-** None
+** This applies only for Idle and Timed Mode.
+** See #MEMSCRUB_RUN_MODE for more details
 **
 ** \param None
 **
@@ -152,13 +244,12 @@ bool  CFE_PSP_MemScrubIsRunning(void);
 ** \func Stop the memory scrubbing task
 **
 ** \par Description:
-** This function resets all memory scrub related variables,
-** then call CFE_PSP_MemScrubDisable to delete the memory scrubbing
-** task.
+** This function deletes the memory scrubbing task and the semaphore.
+** Then, it resets all memory scrub related variables to default.
 ** 
 ** \par Assumptions, External Events, and Notes:
-** This function should only be used for shutdown/reset. To stop/delete
-** memory scrub task for other situations, use SCRUB_Disable
+** Since the semaphore is deleted. The only way to restart Mem Scrub task is to 
+** reinitialize via #CFE_PSP_MemScrubInit.
 **
 ** \param - None
 **
@@ -168,28 +259,32 @@ bool  CFE_PSP_MemScrubIsRunning(void);
 int32  CFE_PSP_MemScrubDelete(void);
 
 /**
-** \func Print the Memory Scrubbing statistics
+** \func Get the Memory Scrubbing parameters
 ** 
 ** \par Description:
+** Copies the content of the configuration structure to pConfig.
 ** This function outputs to the console the following Memory Scrubbing statistics:
 ** Start memory address, End memory address, current memory page and total memory pages
 **
 ** \par Assumptions, External Events, and Notes:
 ** Start memory address is usually 0. End memory address is usually set to the 
-** last value of RAM address. Note that a page is 4098 bytes.
+** last value of RAM address. Note that a page is 4096 bytes.
 ** 
-** \param[out] mss_Status - Pointer to struct containing mem scrub info
+** \param[out] pConfig - Pointer to a Mem Scrub Configuration structure
+** \param[in] iConfigSize - Size of the memory array pointed by pConfig
 ** \param[in] talk - Print out the status values
 **
-** \return None
+** \return #CFE_PSP_SUCCESS - No errors
+** \return #CFE_PSP_ERROR - Size of iStatusSize too small
 */
-void  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk);
+int32  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize, bool talk);
 
 /**
 ** \func Initialize the Memory Scrubbing task
 **
 ** \par Description:
-** This function starts the Memory Scrubbing task as a child thread.
+** This function gets a semaphore and initialize variables. If set to start
+** on startup and running in Idle or Timed Mode, function will starts the Mem Scrub task.
 **
 ** \par Assumptions, External Events, and Notes:
 ** The scrubMemory function implemented by AiTech may never return an error.
@@ -200,6 +295,24 @@ void  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *mss_Status, bool talk);
 ** \return #CFE_PSP_ERROR - If unsuccessful initialization
 */
 int32  CFE_PSP_MemScrubInit(void);
+
+/**
+** \func Trigger the Memory Scrubbing task
+**
+** \par Description:
+** This function runs Memory Scrubbing for Manual Mode. Task will
+** exit immediately and auto advance to next memory block controlled by 
+** #MEMSCRUB_BLOCKSIZE_PAGES
+**
+** \par Assumptions, External Events, and Notes:
+** If the task is already running, do nothing.
+**
+** \param None
+**
+** \return #CFE_PSP_SUCCESS - Successfully started memory scrubbing task
+** \return #CFE_PSP_ERROR - Could not start memory scrubbing task
+*/
+int32 CFE_PSP_MemScrubTrigger(void);
 
 /**
 ** \func Enable the Memory Scrubbing task
@@ -214,7 +327,7 @@ int32  CFE_PSP_MemScrubInit(void);
 ** \param None
 **
 ** \return #CFE_PSP_SUCCESS - If successfully started memory scrubbing task
-** \return #CFE_PSP_ERROR - If unsuccesffuly started memory scrubbing task
+** \return #CFE_PSP_ERROR - Could not start memory scrubbing task
 */
 int32  CFE_PSP_MemScrubEnable(void);
 
@@ -227,6 +340,8 @@ int32  CFE_PSP_MemScrubEnable(void);
 ** \par Assumptions, External Events, and Notes:
 ** If the task is already running, delete it. If the task is not running,
 ** then do nothing.
+** Function will reset Timed and Statistics related variables no matter the 
+** run mode.
 **
 ** \param None
 **
@@ -243,14 +358,16 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** memory error statistics
  **
  ** \par Assumptions, External Events, and Notes:
- ** TBD what these individual values truely represent
+ ** TBD what these individual values truly represent
  **
- ** \param errStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
- ** \param talkative - Boolean to indicate if the ckCtrs should be called to print out statistics
+ ** \param[out] pErrStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
+ ** \param[in] iErrSize - Size of the memory array pointed by pStatus
+ ** \param[in] talkative - Print out the statistics values
  **
- ** \return None
+ ** \return #CFE_PSP_SUCCESS - No errors
+ ** \return #CFE_PSP_ERROR - Size of iStatusSize too small
  */
-void CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative);
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *pErrStats, size_t iErrSize, bool talkative);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

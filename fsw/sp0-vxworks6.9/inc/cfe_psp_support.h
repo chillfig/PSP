@@ -156,7 +156,7 @@ int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative
  ** \return 0 - When the Kernel is not found or bad inputs
  ** \return CRC
  */
-uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, BOOL bFirstCatalog);
+uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog);
 
 /**
  ** \func Load new kernel on SP0 target

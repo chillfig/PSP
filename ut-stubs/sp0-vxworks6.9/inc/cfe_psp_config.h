@@ -144,7 +144,7 @@ typedef struct
  */
 #define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"}
 
-
+/******************************************************************************/
 /**
  ** \name VxWorks timebase configuration parameters
  **
@@ -169,7 +169,6 @@ typedef struct
 #define CFE_PSP_VX_TIMEBASE_PERIOD_NUMERATOR   (uint32)(8000.0f / (float)getCoreClockSpeed())
 /** \brief Denominator */
 #define CFE_PSP_VX_TIMEBASE_PERIOD_DENOMINATOR 1
-/** \} */
 
 /**
  ** \brief Soft Timebase Period
@@ -188,12 +187,14 @@ typedef struct
  */
 #define CFE_PSP_SOFT_TIMEBASE_PERIOD                    10000
 
+/** \} */
+
 /**
  ** \brief Maximum length of active CFS flash partition name
  **
  ** \par Limits:
  ** This value should be kept small since it will take away from the failed
- ** startup filename max lenght.<br>
+ ** startup filename max length.<br>
  ** Minimum is 1 character<br>
  ** Maximum is #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH - 1
  **
@@ -204,7 +205,7 @@ typedef struct
  ** \brief Maximum length of full filepath
  **
  ** \par Limits:
- ** this value should be kept high enough to accomodate active partition
+ ** this value should be kept high enough to accommodate active partition
  ** name, reserved memory direction, and file name
  */
 #define CFE_PSP_FILEPATH_MAX_LENGTH                     CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 26
@@ -213,14 +214,14 @@ typedef struct
  ** \brief Maximum length of failed startup file name
  **
  ** \par Limits:
- ** This value should be kept high enough to accomodate the active partition
+ ** This value should be kept high enough to accommodate the active partition
  ** name and the startup file name.
  ** Minimum of #CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1
  */
 #define CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH      32
 
 /**
- ** \brief Maximum length of failed stratup filename with path
+ ** \brief Maximum length of failed startup filename with path
  **
  ** \par Limits:
  ** This value is the total length of the active partition max length plus
@@ -231,8 +232,12 @@ typedef struct
                         CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
 
 /**
- ** \brief Define the file name of the boot startup
+ ** \brief Define the file name of the boot startup script
  **
+ ** \par Description:
+ ** This filename is used by PSP to build the boot startup path. The kernel will
+ ** automatically run the script pointed by the boot startup path on boot.
+ ** 
  ** \par Limits:
  ** Minimum 1 character, and maximum of #CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH
  */
@@ -254,7 +259,8 @@ typedef struct
  ** start using the Watchdog.
  ** 
  */
-typedef struct  {
+typedef struct
+{
     /** \brief  Timer ID */
     osal_id_t           timerID;
 
@@ -349,7 +355,7 @@ typedef struct  {
 
 /** \brief Memory Table Size.
  ** 
- ** \par Descripion:
+ ** \par Description:
  ** This sets the number of memory ranges that are defined in the memory 
  ** range definition table.
  **
@@ -412,7 +418,7 @@ typedef struct
     /**
      ** \brief vector number
      */
-    int             vector;
+    int32           vector;
     /**
      ** \brief Exception stack frame
      */
@@ -437,6 +443,7 @@ typedef struct
  */
 #define CFE_PSP_MAXIMUM_TASK_LENGTH         30
 
+/******************************************************************************/
 /** \name Watchdog Configuration Parameters */
 /** \{ */
 /** \brief Watchdog minimum ( in milliseconds ) */
@@ -513,11 +520,60 @@ typedef struct
 #define CFE_PSP_VOLATILEDISK_FLASH_FILEPATH         "VODI.bkp"
 
 /** \brief User Reserved File name on FLASH */
-#define CFE_PSP_USERRESERVED_FLASH_FILEPATH        "USRR.bkp"
+#define CFE_PSP_USERRESERVED_FLASH_FILEPATH         "USRR.bkp"
 
-
+/******************************************************************************/
 /** \name Memory Scrubbing Configuration Parameters */
 /** \{ */
+
+/**
+ ** \brief Start mem scrub on startup option 
+ ** \par Description:
+ ** This option can be set to indicate if PSP should start 
+ ** mem scrub task on startup.
+ ** 0 = Do not start task during startup
+ ** 1 = Start task during startup
+*/
+#define MEMSCRUB_TASK_START_ON_STARTUP      1
+
+/**
+ ** \brief Memory Scrub Run Mode
+ **
+ ** \par Description:
+ ** Mem Scrub can be run in multiple modes depending on the PSP config.
+ ** - Idle Mode
+ **   - A task is created that runs continuously in a while loop with
+ **     low priority
+ ** - Timed Mode
+ **   - A task is created that runs every X number of seconds. The start and
+ **     end address are scrubbed through in blocks.
+ ** - Manual Mode
+ **   - End user calls the mem scrub function when appropriate. The start and
+ **     end address are scrubbed through in blocks.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** Value must be one of three options:
+ ** - MEMSCRUB_IDLE_MODE
+ ** - MEMSCRUB_TIMED_MODE
+ ** - MEMSCRUB_MANUAL_MODE
+ **
+ */
+#define MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
+
+/**
+ ** \brief Defines the block size to scrub in number of pages
+ ** \par Description:
+ ** This applies only for Timed and Manual Mode. 
+ ** See #MEMSCRUB_PAGE_SIZE for block size in bytes
+ */
+#define MEMSCRUB_BLOCKSIZE_PAGES           10
+
+/**
+ ** \brief Defines the number of milliseconds to wait before scrubbing another block
+ ** \par Description:
+ ** This applies only for Timed Mode
+ */
+#define MEMSCRUB_TASK_DELAY_MSEC           500
 
 /**
  ** \brief Memory Scrub Default Start Address
@@ -526,11 +582,9 @@ typedef struct
  ** Default, configurable memory scrub start address
  **
  ** \par Assumptions, External Events, and Notes:
- ** Value must be set to a valid address. This will not be checked when
- ** starting memory scrub task. Set to (-1) to allow program to 
- ** use general start address.
+ ** Value must be set to a valid address.
  */
-#define MEM_SCRUB_DEFAULT_START_ADDR        (-1)
+#define MEMSCRUB_DEFAULT_START_ADDR        0
 
 /**
  ** \brief Memory Scrub Default End Address
@@ -541,10 +595,10 @@ typedef struct
  ** \par Assumptions, External Events, and Notes:
  ** Value must be set to a valid address, in relation to physical
  ** end of RAM and configured start address. This will not be checked when
- ** starting memory scrub task. Set to (-1) to allow program to 
+ ** starting memory scrub task. Set to (0) to allow program to 
  ** use general start address (physical end of RAM).
  */
-#define MEM_SCRUB_DEFAULT_END_ADDR          (-1)
+#define MEMSCRUB_DEFAULT_END_ADDR          0
 
 /**
  ** \brief Memory Scrub Default Priority
@@ -581,9 +635,11 @@ typedef struct
  */
 #define MEMSCRUB_TASK_NAME                  "PSPMemScrub"
 
+/** \brief MEM SCRUB Binary semaphore name */
+#define MEMSCRUB_BSEM_NAME                  "PSP_BSEM_NAME"
 /** \} */
 
-
+/******************************************************************************/
 /** \name SP0 Info Configuration Parameters */
 /** \{ */
 
@@ -595,7 +651,7 @@ typedef struct
 
 /** \} */
 
-
+/******************************************************************************/
 /** \name NTP Sync Configuration Parameters */
 /** \{ */
 
@@ -631,10 +687,17 @@ typedef struct
  ** 
  */
 #define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
+/** \} */
 
-/** \brief MEM SCRUB Binary semaphore name */
-#define PSP_MEM_SCRUB_BSEM_NAME             "PSP_BSEM_NAME"
+/******************************************************************************/
+/** \name User Reserved Memory Sync Configuration Parameters */
+/** \{ */
 
+/** \} */
+
+/******************************************************************************/
+/** \name User Reserved Memory Sync Configuration Parameters */
+/** \{ */
 
 /** \brief MEMORY SYNC Default time between sync attempts */
 #define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000
@@ -642,14 +705,14 @@ typedef struct
 #define MEMORY_SYNC_TASK_NAME               "MEMSYNCTASK"
 /** \brief MEMORY SYNC Binary Semaphore Name */
 #define MEMORY_SYNC_BSEM_NAME               "MEMSYNCBSEM"
-/** \brief MEMORY SYNC Priority Defualt */
+/** \brief MEMORY SYNC Priority Default */
 #define MEMORY_SYNC_PRIORITY_DEFAULT        190
 /** \brief MEMORY SYNC Priority Upper Limit */
 #define MEMORY_SYNC_PRIORITY_UP_RANGE       230
 /** \brief MEMORY SYNC Priority Lower Limit */
 #define MEMORY_SYNC_PRIORITY_LOW_RANGE      60
 /** \brief MEMORY SYNC Start on Startup */
-#define MEMORY_SYNC_START_ON_STARTUP        false
+#define MEMORY_SYNC_START_ON_STARTUP        true
 /** \brief RESET Binary Semaphore Name */
 #define MEMORY_RESET_BIN_SEM_NAME           "RSTBSEM"
 /** \brief CDS Binary Semaphore Name */
@@ -659,7 +722,6 @@ typedef struct
 /** \brief USER RESERVED Binary Semaphore Name */
 #define MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
 
-/** \} */
 
 /**
 ** \} <!-- End of group "psp_sp0vx69_platcfg" -->

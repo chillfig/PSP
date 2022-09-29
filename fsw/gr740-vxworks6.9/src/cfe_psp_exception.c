@@ -93,7 +93,7 @@ extern STATUS edrErrorPolicyHookRemove(void);
  ** \brief g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static BOOL g_ucOverRideDefaultedrPolicyHandlerHook = true;
+static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
  ** \brief g_pDefaultedrPolicyHandlerHook

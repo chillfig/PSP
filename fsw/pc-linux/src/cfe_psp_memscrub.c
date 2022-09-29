@@ -72,7 +72,7 @@ int32 CFE_PSP_MemScrubDelete(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pStatus, bool talk)
+int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize, bool talk)
 {
     OS_printf(MEM_SCRUB_PRINT_SCOPE "CFE_PSP_MemScrubGet not implemented in Linux OS");
     return (CFE_PSP_ERROR_NOT_IMPLEMENTED);
@@ -137,7 +137,7 @@ int32 CFE_PSP_MemScrubDisable(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *errStats, bool talkative)
+int32 CFE_PSP_MemScrubErrStats(CFE_PSP_MemScrubErrStats_t *pErrStats, size_t iErrSize, bool talkative)
 {
     OS_printf(MEM_SCRUB_PRINT_SCOPE "CFE_PSP_MemScrubErrStats not implemented in Linux OS");
     return (CFE_PSP_ERROR_NOT_IMPLEMENTED);

@@ -156,7 +156,6 @@ void Ut_CFE_PSP_WatchdogStatus(void)
     bReturnValue = CFE_PSP_WatchdogStatus();
     /* Verify results */
     UtAssert_True(bReturnValue == false, "_CFE_PSP_WatchdogStatus - 1/1: Watchdog return code");
-    /* UtAssert_OS_print(cMsg, "_CFE_PSP_WatchdogStatus - 1/1: Watchdog message"); */
 }
 
 /*=======================================================================================

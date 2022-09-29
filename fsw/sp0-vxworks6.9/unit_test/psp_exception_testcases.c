@@ -25,7 +25,7 @@
 #include "psp_exception_testcases.h"
 #include "../src/cfe_psp_exception.c"
 
-extern int currentedrPolicyHandlerHook1(int type, void *pInfo_param, BOOL debug);
+extern int currentedrPolicyHandlerHook1(int type, void *pInfo_param, bool debug);
 
 /*=======================================================================================
 ** External Global Variable Declarations
