@@ -15,7 +15,7 @@ set(INSTALL_SUBDIR "cf")
 add_definitions("-D_VXWORKS_OS_")   # This is for io_lib/fsw/public_inc/network_includes.h
 
 # Additional definitions and options
-add_compile_options(-fno-builtin -Wcast-align -m32 -mcpu=v8 -mhard-float -gdwarf-2 ) # note gdwarf-2 due to vxworks toolchain not supporting newer
+add_compile_options(-fno-builtin -Wcast-align -m32 -mcpu=leon3 -mhard-float -gdwarf-2 ) # note gdwarf-2 due to vxworks toolchain not supporting newer
 add_definitions(
     -DCPU=_VX_SPARCV8
     -DTOOL_FAMILY=gnu
@@ -47,7 +47,6 @@ include_directories(${WIND_BASE}/target/h/nfs)
 
 # BSP
 include_directories(${WIND_BASE}/target/config/gr_cpci_gr740)
-include_directories(/users/acssl/GR740-BSP/sparc-wrs-vxworks-4.9/lib/gcc/sparc-wrs-vxworks/4.9.4/plugin/include)
 
 # NOTE: the __SPARC__  macro is referenced in some system headers.
 # therefore all code compiled for this platform should always define these symbols.

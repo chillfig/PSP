@@ -15,6 +15,9 @@ list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_psp_module_list.c)
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_module_list.c)
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_symbol_list.c)
 
+list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/../../src/cfe_build_env_table.c)
+list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/../../src/cfe_module_version_table.c)
+
 add_executable(${FT_NAME}_ft ${FT_SRCS})
 
 target_include_directories(${FT_NAME}_ft PRIVATE

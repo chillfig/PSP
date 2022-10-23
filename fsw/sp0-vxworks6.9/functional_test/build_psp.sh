@@ -39,8 +39,14 @@ done
 cd $CERT_TESTBED_ROOT
 if [ $SKIP_PREP == 0 ]; then
     make distclean
+    # Create empty files so they get picked up by CMAKE
+    install -D /dev/null build/src/cfe_build_env_table.c
+    install -D /dev/null build/src/cfe_module_version_table.c
     make prep TARGET=$TARGET_NAME ENABLE_FUNCTIONAL_TESTS=1
 fi
+
+cd $CERT_TESTBED_ROOT/build
+make mission-version
 
 # Build unit test
 cd $PSP_FT_IMPL_FOLDER
