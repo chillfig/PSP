@@ -29,8 +29,10 @@
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
-void Ut_CFE_PSP_SP0GetInfo(void);
-void Ut_CFE_PSP_SP0GetInfoTable(void);
+void Ut_CFE_PSP_SP0CollectStaticInfo(void);
+void Ut_CFE_PSP_SP0GetStaticInfoTable(void);
+void Ut_CFE_PSP_SP0CollectDynamicInfo(void);
+void Ut_CFE_PSP_SP0GetDynamicInfoTable(void);
 void Ut_CFE_PSP_SP0PrintToBuffer(void);
 void Ut_CFE_PSP_SP0DumpData(void);
 void Ut_CFE_PSP_SP0GetDiskFreeSize(void);

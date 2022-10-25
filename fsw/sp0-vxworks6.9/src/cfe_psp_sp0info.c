@@ -50,42 +50,6 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_sp0info.h"
 
-/**
- ** \name Max number of Voltage and Temperature sensors per target generation
- **
- ** \par Description:
- ** Aitech consider SP0 and SP0s as Original and Upgrade respectively.
- **/
-/** \{ */
-/** \brief SP0s Maximum Number of Voltage Sensors */
-#define SP0_UPGRADE_MAX_VOLT_SENSORS    6
-/** \brief SP0 Maximum Number of Voltage Sensors */
-#define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
-/** \brief SP0s Maximum Number of Temperature Sensors */
-#define SP0_UPGRADE_MAX_TEMP_SENSORS    4
-/** \brief SP0 Maximum Number of Temperature Sensors */
-#define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
-/** \} */
-
-/** \brief ROM1 LOCK Code */
-#define SP0_ROM1_CODE_LOCK                  0x000000A1
-/** \brief ROM1 UNLOCK Code */
-#define SP0_ROM1_CODE_UNLOCK                0x000000A3
-/** \brief ROM2 LOCK Code */
-#define SP0_ROM2_CODE_LOCK                  0x000000B1
-/** \brief ROM2 UNLOCK Code */
-#define SP0_ROM2_CODE_UNLOCK                0x000000B3
-/** \brief SP0 Boot ROM Status Address */
-#define SP0_BOOT_ROM_STATUS_ADDR            0xE8000040
-/** \brief SP0 ROM1 Bit Mask */
-#define SP0_ROM1_MASK                       0x00000100
-/** \brief SP0 ROM2 Bit Mask */
-#define SP0_ROM2_MASK                       0x00000200
-/** \brief SP0 ROM1 Status Shift */
-#define SP0_ROM1_STATUS_SHIFT               8
-/** \brief SP0 ROM2 Status Shift */
-#define SP0_ROM2_STATUS_SHIFT               9
-
 /*
 ** Static Function Declarations
 */
@@ -104,27 +68,27 @@ static int32 g_iSP0DataDumpLength;
 /** \} */
 
 /**
- ** \brief SP0 Data Table
+ ** \brief SP0 Static Info Table
  */
-static CFE_PSP_SP0InfoTable_t g_sp0_info_table;
+static CFE_PSP_SP0StaticInfoTable_t g_SP0StaticInfoTable;
+
+/**
+ ** \brief SP0 Dynamic Data Table
+ */
+static CFE_PSP_SP0DynamicInfoTable_t g_SP0DynamicInfoTable;
 
 /**********************************************************
  * 
- * Function: CFE_PSP_SP0GetInfo
+ * Function: CFE_PSP_SP0GetStaticInfo
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_SP0GetInfo(void)
+int32 CFE_PSP_SP0CollectStaticInfo(void)
 {
     RESET_SRC_REG_ENUM          resetSrc = 0;
     USER_SAFE_MODE_DATA_STRUCT  safeModeUserData = {};
     int32                       iStatus = 0;
-    float                       fTemperature = 0.0f;
-    float                       fVoltage = 0.0f;
-    uint32                      uiIndex = 0;
-    uint8                       ucMaxTempSensors = SP0_UPGRADE_MAX_TEMP_SENSORS;
-    uint8                       ucMaxVoltageSensors = SP0_UPGRADE_MAX_VOLT_SENSORS;
     uint64                      ulBitExecuted = 0ULL;
     uint64                      ulBitResult   = 0ULL;
     int32                       iRetChar = 0;
@@ -133,50 +97,45 @@ int32 CFE_PSP_SP0GetInfo(void)
     OS_printf(SP0_PRINT_SCOPE "Collecting Data\n");
 
     /* Reset the structure to remove stale data */
-    memset(&g_sp0_info_table, 0x00, sizeof(g_sp0_info_table));
+    memset(&g_SP0StaticInfoTable, 0x00, sizeof(g_SP0StaticInfoTable));
     g_iSP0DataDumpLength = 0;
 
     /*
     This routine returns the model name of the CPU board. The returned string 
     depends on the board model and CPU version being used, for example, "PPC Board".
     */
-    g_sp0_info_table.systemModel = sysModel();
+    g_SP0StaticInfoTable.systemModel = sysModel();
 
     /*
     This routine returns a pointer to a BSP version and revision number, for
     example, 1.1/0. BSP_REV is concatenated to BSP_VERSION and returned.
     */
-    g_sp0_info_table.systemBspRev = sysBspRev();
+    g_SP0StaticInfoTable.systemBspRev = sysBspRev();
 
     /*
     This function returns the address of the first missing byte of memory, which
     indicates the top of memory. Normally, the user specifies the amount of 
     physical memory with the macro LOCAL_MEM_SIZE in config.h.
     */
-    g_sp0_info_table.systemPhysMemTop = (uint32) sysPhysMemTop();
+    g_SP0StaticInfoTable.systemPhysMemTop = (uint32) sysPhysMemTop();
     
     /*
     This routine returns the processor number for the CPU board, which is set 
     with sysProcNumSet( ).
     */
-    g_sp0_info_table.systemProcNum = sysProcNumGet();
+    g_SP0StaticInfoTable.systemProcNum = sysProcNumGet();
 
     /*
     Returns slot number of this card in the cPCI backplane
     */
-    g_sp0_info_table.systemSlotId = sysGetSlotId();
-
-    /*
-    Returns the time in micro-seconds since system startup. Rolls over after 3 years
-    */
-    g_sp0_info_table.systemStartupUsecTime = (float) GetUsecTime();
+    g_SP0StaticInfoTable.systemSlotId = sysGetSlotId();
     
     /*
     Returns true if the SP0 is the CPCI system controller. The hardware register
     read is done only once. This is so that after operation, in case the hardware 
     fails, we do not suddenly change our configuration.
     */
-    g_sp0_info_table.systemCpciSysCtrl = isCpciSysController();
+    g_SP0StaticInfoTable.systemCpciSysCtrl = isCpciSysController();
     
     /*
     Gets core clock speed in MHz
@@ -184,7 +143,7 @@ int32 CFE_PSP_SP0GetInfo(void)
     work for SP0, so there is no way to change the core clock speed via software
     with the Aitech provided API.
     */
-    g_sp0_info_table.systemCoreClockSpeed = getCoreClockSpeed();
+    g_SP0StaticInfoTable.systemCoreClockSpeed = getCoreClockSpeed();
     
     /*
     Gets last reset reason
@@ -192,7 +151,7 @@ int32 CFE_PSP_SP0GetInfo(void)
     iStatus = ReadResetSourceReg(&resetSrc,0);
     if (iStatus == OS_SUCCESS)
     {
-        g_sp0_info_table.systemLastResetReason = (uint8) resetSrc;
+        g_SP0StaticInfoTable.systemLastResetReason = (uint8) resetSrc;
     }
     else
     {
@@ -200,13 +159,13 @@ int32 CFE_PSP_SP0GetInfo(void)
         iRet_code = CFE_PSP_ERROR;
     }
     
-    /* Do I need this: ReadSafeModeUserData() */
+    /* This function reads and returns the user decodable safe mode reset data. */
     iStatus = ReadSafeModeUserData(&safeModeUserData,0);
     if (iStatus == OS_SUCCESS)
     {
         if (safeModeUserData.sbc == SM_LOCAL_SBC)
         {
-            iRetChar = snprintf(g_sp0_info_table.safeModeUserData, 
+            iRetChar = snprintf(g_SP0StaticInfoTable.safeModeUserData, 
                                 SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                                 "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
                                 safeModeUserData.safeMode,
@@ -216,7 +175,7 @@ int32 CFE_PSP_SP0GetInfo(void)
         }
         else
         {
-            iRetChar = snprintf(g_sp0_info_table.safeModeUserData, 
+            iRetChar = snprintf(g_SP0StaticInfoTable.safeModeUserData, 
                                 SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                                 "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}",
                                 safeModeUserData.safeMode,
@@ -232,7 +191,7 @@ int32 CFE_PSP_SP0GetInfo(void)
     }
     else
     {
-        iRetChar = snprintf(g_sp0_info_table.safeModeUserData, 
+        iRetChar = snprintf(g_SP0StaticInfoTable.safeModeUserData, 
                             SP0_SAFEMODEUSERDATA_BUFFER_SIZE, 
                             "OS_Error Retrieving SafeModeUserData");
         OS_printf(SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n");
@@ -245,19 +204,83 @@ int32 CFE_PSP_SP0GetInfo(void)
     and the (external) watchdog timer reboots the board successfully using the 
     alternative boot device.
     */
-    g_sp0_info_table.active_boot = (uint8) returnSelectedBootFlash();
+    g_SP0StaticInfoTable.active_boot = (uint8) returnSelectedBootFlash();
 
     /*
     This routine returns the system clock rate. The number of ticks per second 
     of the system tick timer.
     */
-    g_sp0_info_table.systemClkRateGet = sysClkRateGet();
+    g_SP0StaticInfoTable.systemClkRateGet = sysClkRateGet();
 
     /*
     This routine returns the interrupt rate of the auxiliary clock.
     The number of ticks per second of the auxiliary clock.
     */
-    g_sp0_info_table.systemAuxClkRateGet = sysAuxClkRateGet();
+    g_SP0StaticInfoTable.systemAuxClkRateGet = sysAuxClkRateGet();
+
+    /* This function returns the list of the test executed by AIMON in a 64 bit packed word. */
+    iStatus = aimonGetBITExecuted(&ulBitExecuted, 0);
+    if (iStatus == OS_SUCCESS)
+    {
+        memcpy(&g_SP0StaticInfoTable.bitExecuted, &ulBitExecuted, sizeof(g_SP0StaticInfoTable.bitExecuted));
+    }
+    else
+    {
+        OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n");
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    /* This function returns the summary of the test results in a 64 bit packed word */
+    iStatus = aimonGetBITResults(&ulBitResult, 0);
+    if (iStatus == OS_SUCCESS)
+    {
+        memcpy(&g_SP0StaticInfoTable.bitResult, &ulBitResult, sizeof(g_SP0StaticInfoTable.bitResult));
+    }
+    else
+    {
+        OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n");
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    /* Get real time clock from OS */
+    iStatus = clock_gettime(CLOCK_REALTIME, &g_SP0StaticInfoTable.lastUpdatedUTC);
+    if (iStatus != OK)
+    {
+        OS_printf(SP0_PRINT_SCOPE "Error getting local time\n");
+        iRet_code = CFE_PSP_ERROR;
+    }
+
+    /* Print data to string */
+    if(CFE_PSP_SP0PrintToBuffer())
+    {
+        OS_printf(SP0_PRINT_SCOPE "Could not print to buffer. Data is left in the structure.");
+        iRet_code = CFE_PSP_ERROR_LEVEL_0;
+    }
+
+    return iRet_code;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SP0GetDynamicInfo
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+int32 CFE_PSP_SP0CollectDynamicInfo(void)
+{
+    int32   iStatus = 0;
+    float   fTemperature = 0.0f;
+    float   fVoltage = 0.0f;
+    uint32  uiIndex = 0;
+    uint8   ucMaxTempSensors = SP0_UPGRADE_MAX_TEMP_SENSORS;
+    uint8   ucMaxVoltageSensors = SP0_UPGRADE_MAX_VOLT_SENSORS;
+    int32   iRet_code = CFE_PSP_SUCCESS;
+
+    /*
+    Returns the time in micro-seconds since system startup. Rolls over after 3 years
+    */
+    g_SP0DynamicInfoTable.systemStartupUsecTime = (float) GetUsecTime();
 
     /*
     uiMaxTempSensors is set by default to the SP0_UPGRADE target 
@@ -275,13 +298,13 @@ int32 CFE_PSP_SP0GetInfo(void)
         /* If temperature is read successfully, save on table */
         if (iStatus == OS_SUCCESS)
         {
-            g_sp0_info_table.temperatures[uiIndex] = fTemperature;
+            g_SP0DynamicInfoTable.temperatures[uiIndex] = fTemperature;
         }
         /* If temperature reading is unsuccessful, save lowest possible number to show error */
         else
         {
             OS_printf(SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n");
-            g_sp0_info_table.temperatures[uiIndex] = (float)FLT_MIN;
+            g_SP0DynamicInfoTable.temperatures[uiIndex] = (float)FLT_MIN;
             iRet_code = CFE_PSP_ERROR;
         }
     }
@@ -301,55 +324,24 @@ int32 CFE_PSP_SP0GetInfo(void)
             /* If voltage is read successfully, save on table */
             if (iStatus == OS_SUCCESS)
             {
-                g_sp0_info_table.voltages[uiIndex] = fVoltage;
+                g_SP0DynamicInfoTable.voltages[uiIndex] = fVoltage;
             }
             /* If voltage reading is unsuccessful, save lowest possible number to show error */
             else
             {
                 OS_printf(SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n");
-                g_sp0_info_table.voltages[uiIndex] = (float)FLT_MIN;
+                g_SP0DynamicInfoTable.voltages[uiIndex] = (float)FLT_MIN;
                 iRet_code = CFE_PSP_ERROR;
             }
         }
     }
 
-    /* This function returns the list of the test executed by AIMON in a 64 bit packed word. */
-    iStatus = aimonGetBITExecuted(&ulBitExecuted, 0);
-    if (iStatus == OS_SUCCESS)
-    {
-        memcpy(&g_sp0_info_table.bitExecuted, &ulBitExecuted, sizeof(g_sp0_info_table.bitExecuted));
-    }
-    else
-    {
-        OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n");
-        iRet_code = CFE_PSP_ERROR;
-    }
-
-    /* This function returns the summary of the test results in a 64 bit packed word */
-    iStatus = aimonGetBITResults(&ulBitResult, 0);
-    if (iStatus == OS_SUCCESS)
-    {
-        memcpy(&g_sp0_info_table.bitResult, &ulBitResult, sizeof(g_sp0_info_table.bitResult));
-    }
-    else
-    {
-        OS_printf(SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n");
-        iRet_code = CFE_PSP_ERROR;
-    }
-
     /* Get real time clock from OS */
-    iStatus = clock_gettime(CLOCK_REALTIME, &g_sp0_info_table.lastUpdatedUTC);
+    iStatus = clock_gettime(CLOCK_REALTIME, &g_SP0DynamicInfoTable.lastUpdatedUTC);
     if (iStatus != OK)
     {
         OS_printf(SP0_PRINT_SCOPE "Error getting local time\n");
         iRet_code = CFE_PSP_ERROR;
-    }
-    
-    /* Print data to string */
-    if(CFE_PSP_SP0PrintToBuffer())
-    {
-        OS_printf(SP0_PRINT_SCOPE "Could not print to buffer. Data is left in the structure.");
-        iRet_code = CFE_PSP_ERROR_LEVEL_0;
     }
 
     return iRet_code;
@@ -378,9 +370,9 @@ static int32 CFE_PSP_SP0PrintToBuffer(void)
     int32      iRet_code = CFE_PSP_SUCCESS;
     
     /* Coverts bytes to Mibytes */
-    uiTotalMemory_MiB = (g_sp0_info_table.systemPhysMemTop >> 20);
+    uiTotalMemory_MiB = (g_SP0StaticInfoTable.systemPhysMemTop >> 20);
 
-    if (g_sp0_info_table.active_boot == 1)
+    if (g_SP0StaticInfoTable.active_boot == 1)
     {
         pActiveBootString = cActive_boot_primary;
     }
@@ -417,33 +409,33 @@ static int32 CFE_PSP_SP0PrintToBuffer(void)
         "V1P8: %.3f [Volts]\n"
         "V2P5: %.3f [Volts]\n"
         "V3P3: %.3f [Volts]\n",
-        g_sp0_info_table.lastUpdatedUTC.tv_sec,
-        g_sp0_info_table.systemModel,
-        g_sp0_info_table.systemBspRev,
-        g_sp0_info_table.systemPhysMemTop,
+        g_SP0DynamicInfoTable.lastUpdatedUTC.tv_sec,
+        g_SP0StaticInfoTable.systemModel,
+        g_SP0StaticInfoTable.systemBspRev,
+        g_SP0StaticInfoTable.systemPhysMemTop,
         uiTotalMemory_MiB,
-        g_sp0_info_table.systemProcNum,
-        g_sp0_info_table.systemSlotId,
-        g_sp0_info_table.systemStartupUsecTime,
-        g_sp0_info_table.systemCpciSysCtrl,
-        g_sp0_info_table.systemCoreClockSpeed,
-        g_sp0_info_table.systemLastResetReason,
-        g_sp0_info_table.active_boot,
+        g_SP0StaticInfoTable.systemProcNum,
+        g_SP0StaticInfoTable.systemSlotId,
+        g_SP0DynamicInfoTable.systemStartupUsecTime,
+        g_SP0StaticInfoTable.systemCpciSysCtrl,
+        g_SP0StaticInfoTable.systemCoreClockSpeed,
+        g_SP0StaticInfoTable.systemLastResetReason,
+        g_SP0StaticInfoTable.active_boot,
         pActiveBootString,
-        g_sp0_info_table.systemClkRateGet,
-        g_sp0_info_table.systemAuxClkRateGet,
-        g_sp0_info_table.bitExecuted,
-        g_sp0_info_table.bitResult,
-        g_sp0_info_table.temperatures[0],
-        g_sp0_info_table.temperatures[1],
-        g_sp0_info_table.temperatures[2],
-        g_sp0_info_table.temperatures[3],
-        g_sp0_info_table.voltages[0],
-        g_sp0_info_table.voltages[1],
-        g_sp0_info_table.voltages[2],
-        g_sp0_info_table.voltages[3],
-        g_sp0_info_table.voltages[4],
-        g_sp0_info_table.voltages[5]
+        g_SP0StaticInfoTable.systemClkRateGet,
+        g_SP0StaticInfoTable.systemAuxClkRateGet,
+        g_SP0StaticInfoTable.bitExecuted,
+        g_SP0StaticInfoTable.bitResult,
+        g_SP0DynamicInfoTable.temperatures[0],
+        g_SP0DynamicInfoTable.temperatures[1],
+        g_SP0DynamicInfoTable.temperatures[2],
+        g_SP0DynamicInfoTable.temperatures[3],
+        g_SP0DynamicInfoTable.voltages[0],
+        g_SP0DynamicInfoTable.voltages[1],
+        g_SP0DynamicInfoTable.voltages[2],
+        g_SP0DynamicInfoTable.voltages[3],
+        g_SP0DynamicInfoTable.voltages[4],
+        g_SP0DynamicInfoTable.voltages[5]
     );
 
     /*
@@ -468,19 +460,35 @@ static int32 CFE_PSP_SP0PrintToBuffer(void)
 
 /**********************************************************
  * 
- * Function: CFE_PSP_SP0GetInfoTable
+ * Function: CFE_PSP_SP0GetDynamicInfoTable
  * 
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to_console)
+int32 CFE_PSP_SP0GetDynamicInfoTable(
+                                    CFE_PSP_SP0DynamicInfoTable_t *pDynamic,
+                                    size_t iDynamicSize,
+                                    uint8_t print_to_console
+                                    )
 {
-    int32   iRetCode = CFE_PSP_ERROR;
+    int32   iRetCode = CFE_PSP_SUCCESS;
 
-    if (sp0_info != NULL)
+    /* Return error if the pointer is NULL */
+    if (pDynamic == NULL)
+    {
+        iRetCode = CFE_PSP_ERROR;
+    }
+
+    /* Return error if the size of the memory pointed by pDynamic is not large enough */
+    if (sizeof(g_SP0DynamicInfoTable) > iDynamicSize)
+    {
+        iRetCode = CFE_PSP_ERROR;
+    }
+
+    if (iRetCode == CFE_PSP_SUCCESS)
     {
         /* Copy internal structure */
-        memcpy(sp0_info, &g_sp0_info_table, sizeof(g_sp0_info_table));
+        memcpy(pDynamic, &g_SP0DynamicInfoTable, sizeof(g_SP0DynamicInfoTable));
 
         /*
         OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
@@ -493,7 +501,51 @@ int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to
                 // UndCC_NextLine(SSET134)
                 printf("\n\n%s\n\n", &g_cSP0DataDump);
             }
-            iRetCode = CFE_PSP_SUCCESS;
+        }
+    }
+
+    return iRetCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SP0GetStaticInfoTable
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+int32 CFE_PSP_SP0GetStaticInfoTable(CFE_PSP_SP0StaticInfoTable_t *pStatic, size_t iStaticSize, uint8_t print_to_console)
+{
+    int32   iRetCode = CFE_PSP_SUCCESS;
+
+    /* Return error if the pointer is NULL */
+    if (pStatic == NULL)
+    {
+        iRetCode = CFE_PSP_ERROR;
+    }
+
+    /* Return error if the size of the memory pointed by pStatic is not large enough */
+    if (sizeof(CFE_PSP_SP0StaticInfoTable_t) > iStaticSize)
+    {
+        iRetCode = CFE_PSP_ERROR;
+    }
+
+    if (iRetCode == CFE_PSP_SUCCESS)
+    {
+        /* Copy internal structure */
+        memcpy(pStatic, &g_SP0StaticInfoTable, sizeof(g_SP0StaticInfoTable));
+    
+        /*
+        OS_printf function cannot print more than OS_BUFFER_SIZE and g_cSP0DataDump
+        is usually much longer.
+        */
+        if (g_iSP0DataDumpLength > 0)
+        {
+            if (print_to_console > 0)
+            {
+                // UndCC_NextLine(SSET134)
+                printf("\n\n%s\n\n", &g_cSP0DataDump);
+            }
         }
     }
     return iRetCode;

@@ -61,15 +61,45 @@ extern "C" {
 #define SP0_PRINT_SCOPE                     "PSP SP0: "
 
 /**
-** \brief SP0 info structure
+ ** \name Max number of Voltage and Temperature sensors per target generation
+ **
+ ** \par Description:
+ ** Aitech consider SP0 and SP0s as Original and Upgrade respectively.
+ **/
+/** \{ */
+/** \brief SP0s Maximum Number of Voltage Sensors */
+#define SP0_UPGRADE_MAX_VOLT_SENSORS    6
+/** \brief SP0 Maximum Number of Voltage Sensors */
+#define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
+/** \brief SP0s Maximum Number of Temperature Sensors */
+#define SP0_UPGRADE_MAX_TEMP_SENSORS    4
+/** \brief SP0 Maximum Number of Temperature Sensors */
+#define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
+/** \} */
+
+/** \brief ROM1 LOCK Code */
+#define SP0_ROM1_CODE_LOCK                  0x000000A1
+/** \brief ROM1 UNLOCK Code */
+#define SP0_ROM1_CODE_UNLOCK                0x000000A3
+/** \brief ROM2 LOCK Code */
+#define SP0_ROM2_CODE_LOCK                  0x000000B1
+/** \brief ROM2 UNLOCK Code */
+#define SP0_ROM2_CODE_UNLOCK                0x000000B3
+/** \brief SP0 Boot ROM Status Address */
+#define SP0_BOOT_ROM_STATUS_ADDR            0xE8000040
+/** \brief SP0 ROM1 Bit Mask */
+#define SP0_ROM1_MASK                       0x00000100
+/** \brief SP0 ROM2 Bit Mask */
+#define SP0_ROM2_MASK                       0x00000200
+/** \brief SP0 ROM1 Status Shift */
+#define SP0_ROM1_STATUS_SHIFT               8
+/** \brief SP0 ROM2 Status Shift */
+#define SP0_ROM2_STATUS_SHIFT               9
+
+/**
+** \brief SP0 static info structure
 ** \par Description:
-** The table includes values that changes only once during boot and others
-** that changes at a regular interval.
-** 
-** Variables that changes at regular intervals are:
-** - systemStartupUsecTime
-** - temperatures
-** - voltages
+** The table includes values that changes only once during boot.
 */
 typedef struct
 {
@@ -103,22 +133,31 @@ typedef struct
     uint64 bitResult;
     /** \brief Safe Mode User Data */
     char safeModeUserData[SP0_SAFEMODEUSERDATA_BUFFER_SIZE];
-    
+} CFE_PSP_SP0StaticInfoTable_t;
+
+/**
+** \brief SP0 dynamic info structure
+** \par Description:
+** The table includes values that may change continuously.
+*/
+typedef struct
+{
+    /** \brief UTC date time when the data was collected */
+    struct timespec lastUpdatedUTC;
     /** \brief Number of usec since startup */
     float systemStartupUsecTime;
     /** \brief Array of 4 temperatures on the SP0 computer */
     float temperatures[4];
     /** \brief Array of 6 voltages powering the SP0 */
-    float voltages[6];
-} CFE_PSP_SP0InfoTable_t;
-
+    float voltages[6];  
+} CFE_PSP_SP0DynamicInfoTable_t;
 
 /**
- ** \func Collect SP0 Hardware and Firmware data
+ ** \func Collect SP0 Hardware and Firmware information
  **
  ** \par Description:
- ** This function collects the SP0 hardware and firmware data and saves it
- ** in the sp0_info_table object, as well as a string in the sp0_data_dump object.
+ ** This function collects the SP0 hardware and firmware information and saves it
+ ** in the #CFE_PSP_SP0StaticInfoTable_t structure.
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -128,25 +167,62 @@ typedef struct
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32  CFE_PSP_SP0GetInfo(void);
+int32  CFE_PSP_SP0CollectStaticInfo(void);
 
 /**
- ** \func Get the structure containing the SP0 Hardware and Firmware data
+ ** \func Collect SP0 Hardware and Firmware data
  **
  ** \par Description:
- ** This function returns and print the structure containing the SP0 Hardware and Firmware
- ** data.
+ ** This function collects the SP0 temperatures, voltages, and uptime values and
+ ** saves them in the #CFE_PSP_SP0DynamicInfoTable_t structure.
  ** 
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param print_to_console Print string buffer to console if larger than 0
- ** \param sp0_info Pointer to an CFE_PSP_SP0InfoTable_t structure
+ ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to_console);
+int32  CFE_PSP_SP0CollectDynamicInfo(void);
+
+/**
+ ** \func Get the structure containing the SP0 static info data table
+ **
+ ** \par Description:
+ ** This function returns and/or print the structure containing the SP0 Hardware and Firmware
+ ** data.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** Printing to console will print the both static and dynamic data tables
+ **
+ ** \param pStatic Pointer to a #CFE_PSP_SP0StaticInfoTable_t structure
+ ** \param iStaticSize - Size of the memory array pointed by pStatic
+ ** \param print_to_console Print string buffer to console if larger than 0
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_SP0GetStaticInfoTable(CFE_PSP_SP0StaticInfoTable_t *pStatic, size_t iStaticSize, uint8_t print_to_console);
+
+/**
+ ** \func Get the structure containing the SP0 dynamic data table
+ **
+ ** \par Description:
+ ** This function returns and/or print the structure containing the temperatures,
+ ** voltages and uptime values obtained from the SP0 hardware.
+ ** 
+ ** \par Assumptions, External Events, and Notes:
+ ** Printing to console will print the both static and dynamic data tables
+ **
+ ** \param pDynamic Pointer to a #CFE_PSP_SP0DynamicInfoTable_t structure
+ ** \param iDynamicSize - Size of the memory array pointed by pDynamic
+ ** \param print_to_console Print string buffer to console if larger than 0
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_SP0GetDynamicInfoTable(CFE_PSP_SP0DynamicInfoTable_t *pDynamic, size_t iDynamicSize, uint8_t print_to_console);
 
 /**
  ** \func Function dumps the collected data to file

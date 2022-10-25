@@ -50,7 +50,7 @@ void Ut_CFE_PSP_edrPolicyHandlerHook(void)
     /* Setup additional inputs */
     g_ucOverRideDefaultedrPolicyHandlerHook = false;
     UT_SetDeferredRetcode(UT_KEY(currentedrPolicyHandlerHook1), 1, true);
-    g_pDefaultedrPolicyHandlerHook = &currentedrPolicyHandlerHook1;
+    g_pDefaultedrPolicyHandlerHook = (void *)&currentedrPolicyHandlerHook1;
     /* 0 will return a valid address, 1 will return NULL */
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_Exception_GetNextContextBuffer), 1, 0);
     /* Execute test */

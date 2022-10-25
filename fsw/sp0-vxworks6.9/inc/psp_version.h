@@ -44,9 +44,9 @@ extern "C" {
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
-#define CFE_PSP_IMPL_MINOR_VERSION 6 
+#define CFE_PSP_IMPL_MINOR_VERSION 7
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
-#define CFE_PSP_IMPL_REVISION      2
+#define CFE_PSP_IMPL_REVISION      0
 
 /**
  ** \brief Mission revision.
@@ -63,9 +63,9 @@ extern "C" {
 /** \name Tools to construct version string */
 /** \{ */
 /** \brief Helper function to concatenate strings from integer */
-#define CFE_PSP_IMPL_STR_HELPER(x) #x 
+#define CFE_PSP_IMPL_STR_HELPER(x) #x
 /** \brief Helper function to concatenate strings from integer */
-#define CFE_PSP_IMPL_STR(x) CFE_PSP_IMPL_STR_HELPER(x) 
+#define CFE_PSP_IMPL_STR(x) CFE_PSP_IMPL_STR_HELPER(x)
 
 /** \brief DEVELOPMENT Build Version Number.
  ** \details Baseline git tag + Number of commits since baseline. @n

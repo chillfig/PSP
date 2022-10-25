@@ -637,78 +637,94 @@ void ft_sp0_info(void)
     char                sp0_filename[] = SP0_DATA_DUMP_FILEPATH;
     char                local_ram_disk[] = "/ram0";
     char                local_flash_disk[] = "/ffx0";
+    char                local_flash_disk_error[] = "/ffx9";
     int64_t             fs_size_ram = 0;
     int64_t             fs_size_flash = 0;
+    int64_t             fs_size_flash_error = 0;
     char                local_SP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
-    CFE_PSP_SP0InfoTable_t    sp0_table;
+    CFE_PSP_SP0StaticInfoTable_t     sp0_static_table;
+    CFE_PSP_SP0DynamicInfoTable_t    sp0_dynamic_table;
     int32_t             ret_code = CFE_PSP_ERROR;
 
     OS_printf("[SP0_INFO]\n");
 
-    /*** Collect SP0 Info ***/
+    /*** Collect Static SP0 Info ***/
     /* Get the hardware/software information from target */
-    ret_code = CFE_PSP_SP0GetInfo();
+    ret_code = CFE_PSP_SP0CollectStaticInfo();
     /* Check result */
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get SP0 info - returned success")
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Static SP0 info - returned success")
+
+    /*** Collect Dynamic SP0 Info ***/
+    /* Get the hardware/software information from target */
+    ret_code = CFE_PSP_SP0CollectDynamicInfo();
+    /* Check result */
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Dynamic SP0 info - returned success")
 
     /*** Get SP0 Info Table and check their values ***/
     /* Get the table that was filled up by the GetInfo function */
-    ret_code = CFE_PSP_SP0GetInfoTable(&sp0_table, 0);
-    OS_printf("Data gathered at %s UTC\n",ctime(&sp0_table.lastUpdatedUTC.tv_sec));
+    ret_code = CFE_PSP_SP0GetStaticInfoTable(&sp0_static_table, sizeof(sp0_static_table), 0);
+    OS_printf("Data gathered at %s UTC\n", ctime(&sp0_static_table.lastUpdatedUTC.tv_sec));
     FT_Assert_True(
         ret_code == CFE_PSP_SUCCESS,
-        "CFE_PSP_SP0GetInfoTable returns SUCCESS"
+        "CFE_PSP_SP0GetStaticInfoTable returns SUCCESS"
+    )
+    /* Get the table that was filled up by the GetInfo function */
+    ret_code = CFE_PSP_SP0GetDynamicInfoTable(&sp0_dynamic_table, sizeof(sp0_dynamic_table), 0);
+    OS_printf("Data gathered at %s UTC\n", ctime(&sp0_dynamic_table.lastUpdatedUTC.tv_sec));
+    FT_Assert_True(
+        ret_code == CFE_PSP_SUCCESS,
+        "CFE_PSP_SP0GetDynamicInfoTable returns SUCCESS"
     )
     /* Check that it is a predicted SP0 or SP0s target */
     FT_Assert_True(
-        (sp0_table.systemCoreClockSpeed == 399) || (sp0_table.systemCoreClockSpeed == 333),
-        "Target returned a valid Core Clock Speed (%d MHz)", sp0_table.systemCoreClockSpeed
+        (sp0_static_table.systemCoreClockSpeed == 399) || (sp0_static_table.systemCoreClockSpeed == 333),
+        "Target returned a valid Core Clock Speed (%d MHz)", sp0_static_table.systemCoreClockSpeed
         )
     /* Check Temperature values */
     FT_Assert_True(
-        check_range_value(sp0_table.temperatures[0], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
-        "SP0 Temperature 'TempLeft' is %.3f [C]", sp0_table.temperatures[0]
+        check_range_value(sp0_dynamic_table.temperatures[0], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
+        "SP0 Temperature 'TempLeft' is %.3f [C]", sp0_dynamic_table.temperatures[0]
         )
     FT_Assert_True(
-        check_range_value(sp0_table.temperatures[1], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
-        "SP0 Temperature 'TempRight' is %.3f [C]", sp0_table.temperatures[1]
+        check_range_value(sp0_dynamic_table.temperatures[1], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
+        "SP0 Temperature 'TempRight' is %.3f [C]", sp0_dynamic_table.temperatures[1]
         )
     FT_Assert_True(
-        check_range_value(sp0_table.temperatures[2], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
-        "SP0 Temperature 'TempCPU' is %.3f [C]", sp0_table.temperatures[2]
+        check_range_value(sp0_dynamic_table.temperatures[2], 30, PSP_FT_VALUE_RAW, 50.0, 10.0), 
+        "SP0 Temperature 'TempCPU' is %.3f [C]", sp0_dynamic_table.temperatures[2]
         )
     /* Check 4th temperature sensor only if our target is an SP0s */
     if (sysGetBoardGeneration(false) == SP0_UPGRADE)
     {
         FT_Assert_True(
-            check_range_value(sp0_table.temperatures[3], 30, PSP_FT_VALUE_RAW, 60.0, 10.0), 
-            "SP0 Temperature 'TempCore' is %.3f [C]", sp0_table.temperatures[3]
+            check_range_value(sp0_dynamic_table.temperatures[3], 30, PSP_FT_VALUE_RAW, 60.0, 10.0), 
+            "SP0 Temperature 'TempCore' is %.3f [C]", sp0_dynamic_table.temperatures[3]
             )
 
         /* Check Voltage values */
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[0], 0.9, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V0P9' is %.3f Volts", sp0_table.voltages[0]
+            check_range_value(sp0_dynamic_table.voltages[0], 0.9, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V0P9' is %.3f Volts", sp0_dynamic_table.voltages[0]
             )
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[1], 1.1, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V1P1' is %.3f Volts", sp0_table.voltages[1]
+            check_range_value(sp0_dynamic_table.voltages[1], 1.1, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V1P1' is %.3f Volts", sp0_dynamic_table.voltages[1]
             )
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[2], 1.5, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V1P5' is %.3f Volts", sp0_table.voltages[2]
+            check_range_value(sp0_dynamic_table.voltages[2], 1.5, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V1P5' is %.3f Volts", sp0_dynamic_table.voltages[2]
             )
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[3], 1.8, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V1P8' is %.3f Volts", sp0_table.voltages[3]
+            check_range_value(sp0_dynamic_table.voltages[3], 1.8, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V1P8' is %.3f Volts", sp0_dynamic_table.voltages[3]
             )
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[4], 2.5, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V2P5' is %.3f Volts", sp0_table.voltages[4]
+            check_range_value(sp0_dynamic_table.voltages[4], 2.5, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V2P5' is %.3f Volts", sp0_dynamic_table.voltages[4]
             )
         FT_Assert_True(
-            check_range_value(sp0_table.voltages[5], 3.3, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
-            "SP0 Voltage 'V3P3' is %.3f Volts", sp0_table.voltages[5]
+            check_range_value(sp0_dynamic_table.voltages[5], 3.3, PSP_FT_VALUE_PERCENT, 10.0, 10.0), 
+            "SP0 Voltage 'V3P3' is %.3f Volts", sp0_dynamic_table.voltages[5]
             )
     }
 
@@ -731,9 +747,11 @@ void ft_sp0_info(void)
     /* Execute function */
     fs_size_ram = CFE_PSP_SP0GetDiskFreeSize(local_ram_disk);
     fs_size_flash = CFE_PSP_SP0GetDiskFreeSize(local_flash_disk);
+    fs_size_flash_error = CFE_PSP_SP0GetDiskFreeSize(local_flash_disk_error);
     /* Check result */
-    FT_Assert_True(fs_size_ram > 0, "Check file system sizes - /ram0 file system size = %lld bytes", fs_size_ram)
-    FT_Assert_True(fs_size_flash > 0, "Check file system sizes - /ffx0 file system size = %lld bytes", fs_size_flash)
+    FT_Assert_True(fs_size_ram > 0, "Check file system size - /ram0 file system size = %lld bytes", fs_size_ram)
+    FT_Assert_True(fs_size_flash > 0, "Check file system size - /ffx0 file system size = %lld bytes", fs_size_flash)
+    FT_Assert_True(fs_size_flash_error < 0, "Check non-existent file system size - /ffx9 file system size = %lld bytes", fs_size_flash_error)
 
     /*
     ** NOTE: ROM1/2 are locked by default

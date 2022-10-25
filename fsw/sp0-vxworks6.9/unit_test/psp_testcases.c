@@ -76,17 +76,25 @@ void UtTest_Setup(void)
     #if TEST_SP0_INFO == 1
     /* cfe_psp_sp0info.c test cases area */
 
-    UtTest_Add(Ut_CFE_PSP_SP0GetInfo,
+    UtTest_Add(Ut_CFE_PSP_SP0CollectStaticInfo,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_SP0GetInfo");
+              "Ut_CFE_PSP_SP0CollectStaticInfo");
+
+    UtTest_Add(Ut_CFE_PSP_SP0CollectDynamicInfo,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_SP0CollectDynamicInfo");
+
+    UtTest_Add(Ut_CFE_PSP_SP0GetStaticInfoTable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_SP0GetStaticInfoTable");
+
+    UtTest_Add(Ut_CFE_PSP_SP0GetDynamicInfoTable,
+              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+              "Ut_CFE_PSP_SP0GetDynamicInfoTable");
 
     UtTest_Add(Ut_CFE_PSP_SP0PrintToBuffer,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
               "Ut_CFE_PSP_SP0PrintToBuffer");
-
-    UtTest_Add(Ut_CFE_PSP_SP0GetInfoTable,
-              Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
-              "Ut_CFE_PSP_SP0GetInfoTable");
 
     UtTest_Add(Ut_CFE_PSP_SP0DumpData,
               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

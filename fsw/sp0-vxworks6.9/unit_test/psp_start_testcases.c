@@ -832,8 +832,10 @@ void Ut_OS_Application_Startup(void)
     /* For CFE_PSP_WatchdogInit */
     UT_SetDefaultReturnValue(UT_KEY(sysSetFpgaWdt), OK);
 
-    /* CFE_PSP_SP0GetInfo SPE Functions - We are setting them once for all cases */
-    /* Setup additional inputs */
+    /*
+    CFE_PSP_SP0CollectStaticInfo and CFE_PSP_SP0CollectDynamicInfo
+    We are setting them once for all cases
+    */
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
     UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
     UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_ERROR);
@@ -842,9 +844,12 @@ void Ut_OS_Application_Startup(void)
     UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
     UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+    
 
     /* For CFE_PSP_ProcessResetType */
     uiResetSrc = RESET_SRC_POR;
@@ -984,9 +989,11 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     char cMsg[256] = {};
     int32 iNewPrio = 0;
     int32 iCurPrio = 10;
-    char *tName = "tLogTask";
+    char taskName[] = "tLogTask";
+    char taskName_too_long[] = "123456789012345678901234567890";
+    char *tName = &taskName[0];
     char *tName_null = NULL;
-    char *tName_too_long = "123456789012345678901234567890";
+    char *tName_too_long = &taskName_too_long[0];
 
     /* ----- Test case #1 - Nominal Priority set to 0 for task name "tLogTask" ----- */
     /* Setup additional inputs */

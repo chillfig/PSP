@@ -801,13 +801,18 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
 
     /* 
     Collect SP0 information for Telemetry
-    This function should run as early as possible to collect information from
+    This functions should run as early as possible to collect information from
     hardware and POST, and setup the task to dump the collected information 
     when abort is called.
     */
-    if (CFE_PSP_SP0GetInfo() != CFE_PSP_SUCCESS)
+    if (CFE_PSP_SP0CollectStaticInfo() != CFE_PSP_SUCCESS)
     {
-        OS_printf("PSP: Error while collecting SP0 information\n");
+        OS_printf("PSP: Error while collecting static SP0 information\n");
+    }
+
+    if (CFE_PSP_SP0CollectDynamicInfo() != CFE_PSP_SUCCESS)
+    {
+        OS_printf("PSP: Error while collecting dynamic SP0 information\n");
     }
 
     CFE_PSP_SetupReservedMemoryMap();

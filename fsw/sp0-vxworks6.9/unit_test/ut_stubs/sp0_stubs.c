@@ -397,7 +397,7 @@ int offset /* byte offset in EEPROM */
 cat_struct_type *getCatalogPointer (BOOL first_catalog)
 {
     STATUS iStatus;
-    static cat_struct_type catStruct = {.catalog_crc = 0x12345678, {0}};
+    static cat_struct_type catStruct = {.catalog_crc = 0x12345678, {{"", 0}}};
     sprintf(catStruct.fcatalog_s[2].id, "VXWORKS");
     catStruct.fcatalog_s[2].crc = 0x12345678;
 

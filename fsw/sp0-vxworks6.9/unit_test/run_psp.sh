@@ -27,7 +27,8 @@ SUCCESS=`tput setaf 2`
 INFO=`tput setaf 4`
 RESET=`tput sgr0`
 
-RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]\n"
+RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$ bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]\n"
+RUN_PSP_EXAMPLE="\$ bash run_psp.sh 192.168.22.129 ~/kernel/vxWorks /dev/ttyFC1\n"
 
 SCRIPT_ROOT=$(readlink -f $(dirname $0))
 CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))
@@ -64,6 +65,7 @@ fi
 if [ -z $1 ]; then
     echo -e "Which flight computer to connect to? [TARGET_IP]\n"
     echo -e $RUN_PSP_HELP
+    echo -e $RUN_PSP_EXAMPLE
     exit 1
 fi
 TARGET_IP=$1
@@ -72,10 +74,12 @@ TARGET_IP=$1
 if [ -z $2 ]; then
     echo -e "Where is the Kernel file that is loaded on the target? [KERNEL_FILE_PATH]\n"
     echo -e $RUN_PSP_HELP
+    echo -e $RUN_PSP_EXAMPLE
     exit 1
 fi
 if [ ! -f $2 ]; then
     echo -e "${ERROR}Provided Kernel file does not exists\n${RESET}"
+    echo -e $RUN_PSP_EXAMPLE
     exit 1
 fi
 TARGET_KERNEL=$2

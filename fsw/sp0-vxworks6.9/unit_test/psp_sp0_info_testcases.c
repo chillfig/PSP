@@ -41,9 +41,9 @@ extern int       PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
 **=======================================================================================*/
 
 /*=======================================================================================
-** Ut_CFE_PSP_SP0GetInfo(void) test cases
+** Ut_CFE_PSP_SP0CollectStaticInfo(void) test cases
 **=======================================================================================*/
-void Ut_CFE_PSP_SP0GetInfo(void)
+void Ut_CFE_PSP_SP0CollectStaticInfo(void)
 {
     int32 ret;
     /* Set "Marching Address Test" tests for long and word to run. The rest tests are not run */
@@ -54,8 +54,6 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     char cMsg_readreset[] = {SP0_PRINT_SCOPE "Error collecting data from ReadResetSourceReg()\n"};
     char cMsg_safemode_nowrite[] = {SP0_PRINT_SCOPE "Could not save data in sp0 info table safeModeUserData\n"};
     char cMsg_safemode_retrieve[] = {SP0_PRINT_SCOPE "Error collecting data from ReadSafeModeUserData()\n"};
-    char cMsg_temp[] = {SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n"};
-    char cMsg_volt[] = {SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n"};
     char cMsg_aimongetbitexec[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITExecuted()\n"};
     char cMsg_aimongetbitres[] = {SP0_PRINT_SCOPE "Error collecting data from aimonGetBITResults()\n"};
     char cMsg_localtime[] = {SP0_PRINT_SCOPE "Error getting local time\n"};
@@ -86,17 +84,13 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
 
-    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 1/13: Nominal SP0s");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 1/10: Nominal SP0s");
 
     Ut_OS_printf_Setup();
 
@@ -117,18 +111,14 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), true);
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
 
-    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 1);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_readreset,"_CFE_PSP_SP0GetInfo - 2/13: ReadResetSourceReg failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 2/13: Failed return code");
+    UtAssert_OS_print(cMsg_readreset,"_CFE_PSP_SP0CollectStaticInfo - 2/10: ReadResetSourceReg failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 2/10: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -148,16 +138,13 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_ERROR);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_retrieve,"_CFE_PSP_SP0GetInfo - 3/13: ReadSafeModeUserData failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 3/13: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_retrieve,"_CFE_PSP_SP0CollectStaticInfo - 3/10: ReadSafeModeUserData failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 3/10: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -180,15 +167,12 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), 1);
 
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 4/13: Nominal with REMOTE SBC");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 4/10: Nominal with REMOTE SBC");
     
     Ut_OS_printf_Setup();
 
@@ -208,18 +192,15 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
 
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0GetInfo - 5/13: ReadSafeModeUserData snprintf failed");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 5/13: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0CollectStaticInfo - 5/10: ReadSafeModeUserData snprintf failed");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 5/10: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -239,105 +220,14 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 2);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 6/13: Nominal 2nd boot device");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 6/10: Nominal 2nd boot device");
 
     Ut_OS_printf_Setup();
-
-
-    /* ----- Test case #6 - Temperature Fail ----- */
-    /* Setup additional inputs */
-    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
-    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
-    /* getCoreClockSpeed for SP0s = 0 */
-    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
-    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
-    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
-    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
-
-    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
-    /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_temp,"_CFE_PSP_SP0GetInfo - 7/13: Temperature failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 7/13: Failed return code");
-
-    Ut_OS_printf_Setup();
-
-
-    /* ----- Test case #6.5 - Temperature Fail ----- */
-    /* Setup additional inputs */
-    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
-    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
-    /* getCoreClockSpeed for SP0s = 0 */
-    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 1);
-    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
-    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
-    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
-
-    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
-    /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
-    /* Verify outputs */
-    UtAssert_True(ret == CFE_PSP_SUCCESS, "_CFE_PSP_SP0GetInfo - 8/13: Nominal SP0");
-
-    Ut_OS_printf_Setup();
-
-
-    /* ----- Test case #7 - Voltage Fail ----- */
-    /* Setup additional inputs */
-    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
-    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
-    /* getCoreClockSpeed for SP0s = 0 */
-    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
-    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
-    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
-    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
-    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
-
-    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
-    /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_volt,"_CFE_PSP_SP0GetInfo - 9/13: Voltage failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 9/13: Failed return code");
-
-    Ut_OS_printf_Setup();
-
 
     /* ----- Test case #8 - aimonGetBITExecute Fail ----- */
     /* Setup additional inputs */
@@ -354,16 +244,13 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitexec,"_CFE_PSP_SP0GetInfo - 10/13: aimonGetBITExecute failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 10/13: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitexec,"_CFE_PSP_SP0CollectStaticInfo - 7/10: aimonGetBITExecute failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 7/10: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -383,16 +270,13 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
 
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitres,"_CFE_PSP_SP0GetInfo - 11/13: aimonGetBITResults failed message");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 11/13: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitres,"_CFE_PSP_SP0CollectStaticInfo - 8/10: aimonGetBITResults failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 8/10: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -412,16 +296,14 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), OS_SUCCESS);
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0GetInfo - 12/13: clock_gettime error");
-    UtAssert_True(ret == CFE_PSP_ERROR, "_CFE_PSP_SP0GetInfo - 12/13: Even though g_cSP0DataDump too small return code success");
+    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0CollectStaticInfo - 9/10: clock_gettime error");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 9/10: Even though g_cSP0DataDump too small return code success");
 
     /* ----- Test case #13 - last snprintf error ----- */
     /* Setup additional inputs */
@@ -438,19 +320,230 @@ void Ut_CFE_PSP_SP0GetInfo(void)
     UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
     UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
-    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
-    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
-
 
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_ERROR);
 
     /* Execute test */
-    ret = CFE_PSP_SP0GetInfo();
+    ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True(g_iSP0DataDumpLength == -1, "_CFE_PSP_SP0GetInfo - 13/13: snprintf error, g_cSP0DataDump is -1");
-    UtAssert_True(ret == CFE_PSP_ERROR_LEVEL_0, "_CFE_PSP_SP0GetInfo - 13/13: although snprintf return code success");
+    UtAssert_True(g_iSP0DataDumpLength == -1, "_CFE_PSP_SP0CollectStaticInfo - 10/10: snprintf error, g_cSP0DataDump is -1");
+    UtAssert_True((ret == CFE_PSP_ERROR_LEVEL_0), "_CFE_PSP_SP0CollectStaticInfo - 10/10: although snprintf return code success");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_SP0CollectDynamicInfo(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SP0CollectDynamicInfo(void)
+{
+    int32 ret = CFE_PSP_ERROR;
+    char cMsg_temp[] = {SP0_PRINT_SCOPE "Error collecting data from tempSensorRead()\n"};
+    char cMsg_volt[] = {SP0_PRINT_SCOPE "Error collecting data from volSensorRead()\n"};
+    char cMsg_localtime[] = {SP0_PRINT_SCOPE "Error getting local time\n"};
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+    /* Execute test */
+    ret = CFE_PSP_SP0CollectDynamicInfo();
+    /* Verify outputs */
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectDynamicInfo - 1/4: Nominal - Return Success");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Fail Temperature ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+    /* Execute test */
+    ret = CFE_PSP_SP0CollectDynamicInfo();
+    /* Verify outputs */
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectDynamicInfo - 2/4: Fail to collect Temperature - Return Error");
+    UtAssert_OS_print(cMsg_temp, "_CFE_PSP_SP0CollectDynamicInfo - 2/4: Fail to collect Temperature - Message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Fail Voltage ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 2);
+    UT_SetDefaultReturnValue(UT_KEY(GetUsecTime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_ERROR);
+    /* Execute test */
+    ret = CFE_PSP_SP0CollectDynamicInfo();
+    /* Verify outputs */
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectDynamicInfo - 3/4: Fail to collect Voltage - Return Error");
+    UtAssert_OS_print(cMsg_volt, "_CFE_PSP_SP0CollectDynamicInfo - 3/4: Fail to collect Voltage - Message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #4 - Fail clock ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(sysGetBoardGeneration), 1);
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+    /* Execute test */
+    ret = CFE_PSP_SP0CollectDynamicInfo();
+    /* Verify outputs */
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectDynamicInfo - 4/4: Fail to get time - Return Error");
+    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0CollectDynamicInfo - 4/4: Fail to get time - Message");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_SP0GetStaticInfoTable(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SP0GetStaticInfoTable(void)
+{
+    CFE_PSP_SP0StaticInfoTable_t sp0_data;
+    int32 iRetCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - Nominal with no console print ----- */
+    /* Setup additional inputs */
+    g_SP0StaticInfoTable.lastUpdatedUTC.tv_sec = 1000;
+    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetStaticInfoTable(&sp0_data, sizeof(sp0_data), 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetStaticInfoTable - 1/5: Nominal return success"
+        );
+    UtAssert_True(
+        sp0_data.lastUpdatedUTC.tv_sec == g_SP0StaticInfoTable.lastUpdatedUTC.tv_sec,
+        "_CFE_PSP_SP0GetStaticInfoTable - 1/5: Nominal without console print"
+        );
+
+    /* ----- Test case #2 - Nominal with console print ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetStaticInfoTable(&sp0_data, sizeof(sp0_data), 1);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetStaticInfoTable - 2/5: Nominal return success"
+        );
+    UtAssert_NA("_CFE_PSP_SP0GetStaticInfoTable - 2/5: Nominal with console print");
+
+    /* ----- Test case #3 - data dump string array length is zero ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    memset(g_cSP0DataDump,(int)NULL, SP0_TEXT_BUFFER_MAX_SIZE);
+    g_iSP0DataDumpLength = 0;
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetStaticInfoTable(&sp0_data, sizeof(sp0_data), 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetStaticInfoTable - 3/5: Data dump string length zero - return success"
+        );
+
+    /* ----- Test case #4 - Data structure size insufficient ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetStaticInfoTable(&sp0_data, 5, 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_CFE_PSP_SP0GetStaticInfoTable - 4/5: Data structure size insufficient - return error"
+        );
+
+    /* ----- Test case #5 - Null structure ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetStaticInfoTable(NULL, 1000, 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_CFE_PSP_SP0GetStaticInfoTable - 5/5: Nominal return success"
+        );
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_SP0GetDynamicInfoTable(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SP0GetDynamicInfoTable(void)
+{
+    CFE_PSP_SP0DynamicInfoTable_t sp0_data;
+    int32 iRetCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - Nominal with no console print ----- */
+    /* Setup additional inputs */
+    g_SP0DynamicInfoTable.lastUpdatedUTC.tv_sec = 1000;
+    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetDynamicInfoTable(&sp0_data, sizeof(sp0_data), 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 1/5: Nominal return success"
+        );
+    UtAssert_True(
+        sp0_data.lastUpdatedUTC.tv_sec == g_SP0DynamicInfoTable.lastUpdatedUTC.tv_sec,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 1/5: Nominal without console print"
+        );
+
+    /* ----- Test case #2 - Nominal with console print ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetDynamicInfoTable(&sp0_data, sizeof(sp0_data), 1);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 2/5: Nominal return success"
+        );
+    UtAssert_NA("_CFE_PSP_SP0GetDynamicInfoTable - 2/5: Nominal with console print");
+
+    /* ----- Test case #3 - data dump string array length is zero ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    memset(g_cSP0DataDump,(int)NULL, SP0_TEXT_BUFFER_MAX_SIZE);
+    g_iSP0DataDumpLength = 0;
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetDynamicInfoTable(&sp0_data, sizeof(sp0_data), 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_SUCCESS,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 3/5: Data dump string length zero - return success"
+        );
+
+    /* ----- Test case #4 - Data structure size insufficient ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetDynamicInfoTable(&sp0_data, 5, 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 4/5: Data structure size insufficient - return error"
+        );
+
+    /* ----- Test case #5 - Null structure ----- */
+    /* Setup additional inputs */
+    /* Set the content of the output data to a fixed value for testing */
+    /* Execute test */
+    iRetCode = CFE_PSP_SP0GetDynamicInfoTable(NULL, 1000, 0);
+    /* Verify outputs */
+    UtAssert_True(
+        iRetCode == CFE_PSP_ERROR,
+        "_CFE_PSP_SP0GetDynamicInfoTable - 5/5: Nominal return success"
+        );
 }
 
 /*=======================================================================================
@@ -470,67 +563,6 @@ void Ut_CFE_PSP_SP0PrintToBuffer(void)
     /* Verify outputs */
 
     UtAssert_NA("_CFE_PSP_SP0PrintToBuffer - 1/1: N/A");
-}
-
-/*=======================================================================================
-** Ut_CFE_PSP_SP0GetInfoTable(void) test cases
-**=======================================================================================*/
-void Ut_CFE_PSP_SP0GetInfoTable(void)
-{
-    CFE_PSP_SP0InfoTable_t sp0_data;
-    int32 iRetCode = CFE_PSP_SUCCESS;
-
-    /* ----- Test case #1 - Nominal with no console print ----- */
-    /* Setup additional inputs */
-    g_sp0_info_table.lastUpdatedUTC.tv_sec = 1000;
-    /* Execute test */
-    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 0);
-    /* Verify outputs */
-    UtAssert_True(
-        iRetCode == CFE_PSP_SUCCESS,
-        "_CFE_PSP_SP0GetInfoTable - 1/4: Nominal return success"
-        );
-    UtAssert_True(
-        sp0_data.lastUpdatedUTC.tv_sec == g_sp0_info_table.lastUpdatedUTC.tv_sec,
-        "_CFE_PSP_SP0GetInfoTable - 1/4: Nominal without console print"
-        );
-
-    /* ----- Test case #2 - Nominal with console print ----- */
-    /* Setup additional inputs */
-    /* Set the content of the output data to a fixed value for testing */
-    g_iSP0DataDumpLength = snprintf(g_cSP0DataDump, 20, "Test Print");
-    /* Execute test */
-    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 1);
-    /* Verify outputs */
-    UtAssert_True(
-        iRetCode == CFE_PSP_SUCCESS,
-        "_CFE_PSP_SP0GetInfoTable - 2/4: Nominal return success"
-        );
-    UtAssert_NA("_CFE_PSP_SP0GetInfoTable - 2/4: Nominal with console print");
-
-    /* ----- Test case #3 - data length is zero ----- */
-    /* Setup additional inputs */
-    /* Set the content of the output data to a fixed value for testing */
-    memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
-    g_iSP0DataDumpLength = 0;
-    /* Execute test */
-    iRetCode = CFE_PSP_SP0GetInfoTable(&sp0_data, 0);
-    /* Verify outputs */
-    UtAssert_True(
-        iRetCode == CFE_PSP_ERROR,
-        "_CFE_PSP_SP0GetInfoTable - 3/4: Data length zero return error"
-        );
-
-    /* ----- Test case #4 - Null structure ----- */
-    /* Setup additional inputs */
-    /* Set the content of the output data to a fixed value for testing */
-    /* Execute test */
-    iRetCode = CFE_PSP_SP0GetInfoTable(NULL, 0);
-    /* Verify outputs */
-    UtAssert_True(
-        iRetCode == CFE_PSP_ERROR,
-        "_CFE_PSP_SP0GetInfoTable - 4/4: Nominal return success"
-        );
 }
 
 /*=======================================================================================

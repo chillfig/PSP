@@ -190,14 +190,23 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
   - #SP0_ROM2_STATUS_SHIFT
 
 - Structures
-  - #CFE_PSP_SP0InfoTable_t
+  - #CFE_PSP_SP0StaticInfoTable_t
+  - #CFE_PSP_SP0DynamicInfoTable_t
 
 - Public Functions
-  - CFE_PSP_SP0GetInfo()
+  - CFE_PSP_SP0CollectStaticInfo()
+  - CFE_PSP_SP0CollectDynamicInfo()
   - CFE_PSP_SP0PrintToBuffer()
-  - CFE_PSP_SP0GetInfoTable()
+  - CFE_PSP_SP0GetStaticInfoTable()
+  - CFE_PSP_SP0GetDynamicInfoTable()
   - CFE_PSP_SP0DumpData()
   - CFE_PSP_SP0GetDiskFreeSize()
+  - CFE_PSP_SP0ROM1Lock()
+  - CFE_PSP_SP0ROM1Status()
+  - CFE_PSP_SP0ROM1Unlock()
+  - CFE_PSP_SP0ROM2Lock()
+  - CFE_PSP_SP0ROM2Status()
+  - CFE_PSP_SP0ROM2Unlock()
 
 - Static Functions
   - CFE_PSP_SP0PrintToBuffer()
@@ -206,7 +215,8 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
 - Static Variables
   - #g_cSP0DataDump
   - #g_iSP0DataDumpLength
-  - #g_sp0_info_table
+  - #g_SP0StaticInfoTable
+  - #g_SP0DynamicInfoTable
 
 ### NTP Time Sync
 

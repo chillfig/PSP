@@ -72,33 +72,66 @@ int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for CFE_PSP_SP0GetInfo()
+ * Generated stub function for CFE_PSP_SP0CollectStaticInfo()
  * ----------------------------------------------------
  */
-int32 CFE_PSP_SP0GetInfo(void)
+int32 CFE_PSP_SP0CollectStaticInfo(void)
 {
-    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0GetInfo, int32);
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0CollectStaticInfo, int32);
 
-    UT_GenStub_Execute(CFE_PSP_SP0GetInfo, Basic, NULL);
+    UT_GenStub_Execute(CFE_PSP_SP0CollectStaticInfo, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(CFE_PSP_SP0GetInfo, int32);
+    return UT_GenStub_GetReturnValue(CFE_PSP_SP0CollectStaticInfo, int32);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for CFE_PSP_SP0GetInfoTable()
+ * Generated stub function for CFE_PSP_SP0CollectDynamicInfo()
  * ----------------------------------------------------
  */
-int32 CFE_PSP_SP0GetInfoTable(CFE_PSP_SP0InfoTable_t *sp0_info, uint8_t print_to_console)
+int32 CFE_PSP_SP0CollectDynamicInfo(void)
 {
-    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0GetInfoTable, int32);
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0CollectDynamicInfo, int32);
 
-    UT_GenStub_AddParam(CFE_PSP_SP0GetInfoTable, CFE_PSP_SP0InfoTable_t *, sp0_info);
-    UT_GenStub_AddParam(CFE_PSP_SP0GetInfoTable, uint8_t, print_to_console);
+    UT_GenStub_Execute(CFE_PSP_SP0CollectDynamicInfo, Basic, NULL);
 
-    UT_GenStub_Execute(CFE_PSP_SP0GetInfoTable, Basic, NULL);
+    return UT_GenStub_GetReturnValue(CFE_PSP_SP0CollectDynamicInfo, int32);
+}
 
-    return UT_GenStub_GetReturnValue(CFE_PSP_SP0GetInfoTable, int32);
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_SP0GetStaticInfoTable()
+ * ----------------------------------------------------
+ */
+int32 CFE_PSP_SP0GetStaticInfoTable(CFE_PSP_SP0StaticInfoTable_t *pStatic, size_t iStaticSize, uint8_t print_to_console)
+{
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0GetStaticInfoTable, int32);
+
+    UT_GenStub_AddParam(CFE_PSP_SP0GetStaticInfoTable, CFE_PSP_SP0StaticInfoTable_t *, pStatic);
+    UT_GenStub_AddParam(CFE_PSP_SP0GetStaticInfoTable, size_t, iStaticSize);
+    UT_GenStub_AddParam(CFE_PSP_SP0GetStaticInfoTable, uint8_t, print_to_console);
+
+    UT_GenStub_Execute(CFE_PSP_SP0GetStaticInfoTable, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_SP0GetStaticInfoTable, int32);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for CFE_PSP_SP0GetDynamicInfoTable()
+ * ----------------------------------------------------
+ */
+int32 CFE_PSP_SP0GetDynamicInfoTable(CFE_PSP_SP0DynamicInfoTable_t *pDynamic, size_t iDynamicSize, uint8_t print_to_console)
+{
+    UT_GenStub_SetupReturnBuffer(CFE_PSP_SP0GetDynamicInfoTable, int32);
+
+    UT_GenStub_AddParam(CFE_PSP_SP0GetDynamicInfoTable, CFE_PSP_SP0DynamicInfoTable_t *, pDynamic);
+    UT_GenStub_AddParam(CFE_PSP_SP0GetDynamicInfoTable, size_t, iDynamicSize);
+    UT_GenStub_AddParam(CFE_PSP_SP0GetDynamicInfoTable, uint8_t, print_to_console);
+
+    UT_GenStub_Execute(CFE_PSP_SP0GetDynamicInfoTable, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(CFE_PSP_SP0GetDynamicInfoTable, int32);
 }
 
 /*
