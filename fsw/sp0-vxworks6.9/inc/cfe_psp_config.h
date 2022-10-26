@@ -86,7 +86,10 @@ extern "C" {
  ** function OS_FileSysAddFixedMap()
  ** 
  */
-#define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"}
+#define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"},\
+                                                    {"/ffx0", "/flash0"},\
+                                                    {"/ffx1", "/flash1"}
+                                                    
 
 /******************************************************************************/
 /**
