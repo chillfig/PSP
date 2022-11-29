@@ -560,7 +560,7 @@ int32 CFE_PSP_SP0GetStaticInfoTable(CFE_PSP_SP0StaticInfoTable_t *pStatic, size_
  *********************************************************/
 int32 CFE_PSP_SP0DumpData(void)
 {
-    char    cFilename[] = SP0_DATA_DUMP_FILEPATH;
+    char    cFilename[] = CFE_PSP_SP0_DATA_DUMP_FILEPATH;
     int32   iFD = -1;
     ssize_t iBytes = 0;
     int32   iStatus = OK;

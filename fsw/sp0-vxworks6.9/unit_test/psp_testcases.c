@@ -547,11 +547,11 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ProcessPOSTResults");
                
-    UtTest_Add(Ut_CFE_PSP_Main,
+   UtTest_Add(Ut_CFE_PSP_Main,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_Main");
 
-    UtTest_Add(Ut_OS_Application_Run,
+   UtTest_Add(Ut_OS_Application_Run,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_OS_Application_Run");
 
@@ -559,7 +559,7 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_SuspendConsoleShellTask");
 
-    UtTest_Add(Ut_CFE_PSP_ProcessResetType,
+   UtTest_Add(Ut_CFE_PSP_ProcessResetType,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ProcessResetType");
 

@@ -144,7 +144,7 @@ void Ut_CFE_PSP_MemScrubTask(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     g_bScrubAddrUpdates_flag = true;
@@ -161,7 +161,7 @@ void Ut_CFE_PSP_MemScrubTask(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     g_bScrubAddrUpdates_flag = true;
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to take semaphore\n");
@@ -174,7 +174,7 @@ void Ut_CFE_PSP_MemScrubTask(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     g_bScrubAddrUpdates_flag = true;
@@ -301,7 +301,7 @@ void Ut_CFE_PSP_MemScrubSet(void)
     newMemScrubConfig.uiMemScrubStartAddr = 0;
     newMemScrubConfig.uiMemScrubEndAddr = 1000;
     sprintf(cMsg, "PSP MEM SCRUB: Priority changed to `%u`\n", newMemScrubConfig.opMemScrubTaskPriority);
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     /* Execute test */
@@ -323,7 +323,7 @@ void Ut_CFE_PSP_MemScrubSet(void)
     sprintf(cMsg, "PSP MEM SCRUB: Priority changed to `%u`\n", newMemScrubConfig.opMemScrubTaskPriority);
     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, CFE_PSP_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, CFE_PSP_SUCCESS);
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     /* Execute test */
@@ -345,7 +345,7 @@ void Ut_CFE_PSP_MemScrubSet(void)
     g_MemScrub_Status.opMemScrubTaskPriority = 0;
     UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, CFE_PSP_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(taskPrioritySet), 1, CFE_PSP_SUCCESS);
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "New configuration did not pass validation\n");
@@ -373,7 +373,7 @@ void Ut_CFE_PSP_MemScrubSet(void)
     /* Set additional input */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to take binary semaphore\n");
     /* Execute test */
@@ -389,7 +389,7 @@ void Ut_CFE_PSP_MemScrubSet(void)
     newMemScrubConfig.opMemScrubTaskPriority = 245;
     g_MemScrub_Status.opMemScrubTaskPriority = 245;
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to give semaphore\n");
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_EMPTY, 0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SEM_FAILURE);
     /* Execute test */
@@ -710,7 +710,7 @@ void Ut_CFE_PSP_MemScrubDisable(void)
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to release semaphore\n");
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
-                    MEMSCRUB_TASK_NAME, 
+                    CFE_PSP_MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MemScrubTask,
                     OSAL_TASK_STACK_ALLOCATE, 
                     OSAL_SIZE_C(1024), 
@@ -734,7 +734,7 @@ void Ut_CFE_PSP_MemScrubDisable(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
-                    MEMSCRUB_TASK_NAME, 
+                    CFE_PSP_MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MemScrubTask,
                     OSAL_TASK_STACK_ALLOCATE, 
                     OSAL_SIZE_C(1024), 
@@ -778,7 +778,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to take semaphore\n");
     OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
-                    MEMSCRUB_TASK_NAME, 
+                    CFE_PSP_MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MemScrubTask,
                     OSAL_TASK_STACK_ALLOCATE, 
                     OSAL_SIZE_C(1024), 
@@ -789,7 +789,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     g_MemScrub_Status.uiMemScrubStartAddr = 99;
     g_MemScrub_Status.uiMemScrubEndAddr = g_uiEndOfRam - 1;
-    g_MemScrub_Status.opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY - 1;
+    g_MemScrub_Status.opMemScrubTaskPriority = CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY - 1;
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubDelete();
     /* Verify results */
@@ -798,9 +798,9 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UtAssert_True(!OS_ObjectIdDefined(g_MemScrub_Status.uiMemScrubTaskId), "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub task id reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubCurrentPage == 0, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub current page reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubTotalPages == 0, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub total pages reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub start address reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub end address reset");
-    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub task priority reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub start address reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub end address reset");
+    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 2/4: Mem scrub task priority reset");
 
     /* ----- Test case #3 - Unable to delete semaphore ----- */
     /* Set additional inputs */
@@ -813,7 +813,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SEM_FAILURE);
     sprintf(cMsg, MEMSCRUB_PRINT_SCOPE "Unable to delete semaphore\n");
     OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
-                    MEMSCRUB_TASK_NAME, 
+                    CFE_PSP_MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MemScrubTask,
                     OSAL_TASK_STACK_ALLOCATE, 
                     OSAL_SIZE_C(1024), 
@@ -824,7 +824,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     g_MemScrub_Status.uiMemScrubStartAddr = 99;
     g_MemScrub_Status.uiMemScrubEndAddr = g_uiEndOfRam - 1;
-    g_MemScrub_Status.opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY - 1;
+    g_MemScrub_Status.opMemScrubTaskPriority = CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY - 1;
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubDelete();
     /* Verify results */
@@ -833,9 +833,9 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UtAssert_True(!OS_ObjectIdDefined(g_MemScrub_Status.uiMemScrubTaskId), "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub task id reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubCurrentPage == 0, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub current page reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubTotalPages == 0, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub total pages reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub start address reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub end address reset");
-    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub task priority reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub start address reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub end address reset");
+    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 3/4: Mem scrub task priority reset");
 
     /* ----- Test case #4 - Successful scrub delete ----- */
     /* Set additional inputs */
@@ -846,9 +846,9 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskDelete), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
-    OS_BinSemCreate(&g_semUpdateMemAddr_id, MEMSCRUB_BSEM_NAME, OS_SEM_FULL, 0);
+    OS_BinSemCreate(&g_semUpdateMemAddr_id, CFE_PSP_MEMSCRUB_BSEM_NAME, OS_SEM_FULL, 0);
     OS_TaskCreate(&g_MemScrub_Status.uiMemScrubTaskId, 
-                    MEMSCRUB_TASK_NAME, 
+                    CFE_PSP_MEMSCRUB_TASK_NAME, 
                     CFE_PSP_MemScrubTask,
                     OSAL_TASK_STACK_ALLOCATE, 
                     OSAL_SIZE_C(1024), 
@@ -859,7 +859,7 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     g_MemScrub_Status.uiMemScrubTotalPages = 99;
     g_MemScrub_Status.uiMemScrubStartAddr = 99;
     g_MemScrub_Status.uiMemScrubEndAddr = g_uiEndOfRam - 1;
-    g_MemScrub_Status.opMemScrubTaskPriority = MEMSCRUB_DEFAULT_PRIORITY - 1;
+    g_MemScrub_Status.opMemScrubTaskPriority = CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY - 1;
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubDelete();
     /* Verify results */
@@ -867,9 +867,9 @@ void Ut_CFE_PSP_MemScrubDelete(void)
     UtAssert_True(!OS_ObjectIdDefined(g_MemScrub_Status.uiMemScrubTaskId), "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub task id reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubCurrentPage == 0, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub current page reset");
     UtAssert_True(g_MemScrub_Status.uiMemScrubTotalPages == 0, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub total pages reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub start address reset");
-    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub end address reset");
-    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub task priority reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubStartAddr == CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub start address reset");
+    UtAssert_True(g_MemScrub_Status.uiMemScrubEndAddr == CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub end address reset");
+    UtAssert_True(g_MemScrub_Status.opMemScrubTaskPriority == CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY, "_CFE_PSP_MemScrubDelete - 4/4: Mem scrub task priority reset");
 }
 
 /*=======================================================================================

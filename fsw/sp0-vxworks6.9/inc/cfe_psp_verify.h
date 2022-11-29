@@ -44,77 +44,77 @@ extern "C" {
 ** Macro Definitions
 */
 
-/** \brief MEMSCRUB_RUN_MODE Verification */
-#ifndef MEMSCRUB_RUN_MODE
-    #error "MEMSCRUB_RUN_MODE must be defined"
+/** \brief CFE_PSP_MEMSCRUB_RUN_MODE Verification */
+#ifndef CFE_PSP_MEMSCRUB_RUN_MODE
+    #error "CFE_PSP_MEMSCRUB_RUN_MODE must be defined"
 #else
-    #if (!((MEMSCRUB_RUN_MODE == MEMSCRUB_IDLE_MODE) || (MEMSCRUB_RUN_MODE == MEMSCRUB_TIMED_MODE) || (MEMSCRUB_RUN_MODE == MEMSCRUB_MANUAL_MODE)))
-        #error "MEMSCRUB_RUN_MODE must be a valid value"
+    #if (!((CFE_PSP_MEMSCRUB_RUN_MODE == CFE_PSP_MEMSCRUB_IDLE_MODE) || (CFE_PSP_MEMSCRUB_RUN_MODE == CFE_PSP_MEMSCRUB_TIMED_MODE) || (CFE_PSP_MEMSCRUB_RUN_MODE == CFE_PSP_MEMSCRUB_MANUAL_MODE)))
+        #error "CFE_PSP_MEMSCRUB_RUN_MODE must be a valid value"
     #endif
 #endif
 
-/** \brief MEMSCRUB_RUN_MODE Verification */
-#ifndef MEMSCRUB_BLOCKSIZE_PAGES
-    #error "MEMSCRUB_BLOCKSIZE_PAGES must be defined"
+/** \brief CFE_PSP_MEMSCRUB_RUN_MODE Verification */
+#ifndef CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES
+    #error "CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES must be defined"
 #else
-    #if (MEMSCRUB_BLOCKSIZE_PAGES < 1) || (MEMSCRUB_BLOCKSIZE_PAGES > 259765)
-        #error "MEMSCRUB_BLOCKSIZE_PAGES must be bigger than 0 and less than 259765 (0xFFFF_FFFF / 4096)"
+    #if (CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES < 1) || (CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES > 259765)
+        #error "CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES must be bigger than 0 and less than 259765 (0xFFFF_FFFF / 4096)"
     #endif
 #endif
 
-/** \brief MEMSCRUB_TASK_DELAY_MSEC Verification */
-#ifndef MEMSCRUB_TASK_DELAY_MSEC
-    #error "MEMSCRUB_TASK_DELAY_MSEC must be defined"
+/** \brief CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC Verification */
+#ifndef CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC
+    #error "CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC must be defined"
 #else
-    #if (MEMSCRUB_TASK_DELAY_MSEC < 1)
-        #error "MEMSCRUB_TASK_DELAY_MSEC must be bigger than 0"
+    #if (CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC < 1)
+        #error "CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC must be bigger than 0"
     #endif
 #endif
 
 /** \brief MEM SCRUB Task Name Verification */
-#ifndef MEMSCRUB_TASK_NAME
-    #error "MEMSCRUB_TASK_NAME must be defined"
+#ifndef CFE_PSP_MEMSCRUB_TASK_NAME
+    #error "CFE_PSP_MEMSCRUB_TASK_NAME must be defined"
 #endif
 
 /** \brief Check that the MEM SCRUB Task name is no longer than the maximum allowed name length */
-CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEMSCRUB_TASK_NAME_TOO_LONG);
+CompileTimeAssert(sizeof(CFE_PSP_MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, CFE_PSP_MEMSCRUB_TASK_NAME_TOO_LONG);
 
 /** \brief MEM SCRUB Priority Verification */
-#if (MEMSCRUB_DEFAULT_PRIORITY > MEMSCRUB_PRIORITY_UP_RANGE)
-    #error "MEMSCRUB_DEFAULT_PRIORITY must be less than or equal to MEMSCRUB_PRIORITY_UP_RANGE!"
+#if (CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY > CFE_PSP_MEMSCRUB_PRIORITY_UP_RANGE)
+    #error "CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY must be less than or equal to CFE_PSP_MEMSCRUB_PRIORITY_UP_RANGE!"
 #endif
 
-#if (MEMSCRUB_DEFAULT_PRIORITY < MEMSCRUB_PRIORITY_DOWN_RANGE)
-    #error "MEMSCRUB_DEFAULT_PRIORITY must be greater than or equal to MEMSCRUB_PRIORITY_DOWN_RANGE!"
+#if (CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY < CFE_PSP_MEMSCRUB_PRIORITY_DOWN_RANGE)
+    #error "CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY must be greater than or equal to CFE_PSP_MEMSCRUB_PRIORITY_DOWN_RANGE!"
 #endif
 
 /** \brief Verify that memory scrub start address defined, acceptable values */
-#ifndef MEMSCRUB_DEFAULT_START_ADDR
-    #error "MEMSCRUB_DEFAULT_START_ADDR must be defined"
+#ifndef CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR
+    #error "CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR must be defined"
 #endif
 
-#ifdef MEMSCRUB_DEFAULT_START_ADDR
-    #if (MEMSCRUB_DEFAULT_START_ADDR < -1)
-        #error "MEMSCRUB_DEFAULT_START_ADDR must be larger than -1"
+#ifdef CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR
+    #if (CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR < -1)
+        #error "CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR must be larger than -1"
     #endif
 #endif
 
-#ifdef MEMSCRUB_DEFAULT_END_ADDR
-    #if (MEMSCRUB_DEFAULT_END_ADDR < -1)
-        #error "MEMSCRUB_DEFAULT_END_ADDR must be larger than -1"
+#ifdef CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR
+    #if (CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR < -1)
+        #error "CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR must be larger than -1"
     #endif
 #endif
 
 
 /** \brief Verify that memory scrub end address defined */
-#ifndef MEMSCRUB_DEFAULT_END_ADDR
-    #error "MEMSCRUB_DEFAULT_END_ADDR must be defined"
+#ifndef CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR
+    #error "CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR must be defined"
 #endif
 
 
 /** \brief SP0 File Path Verification */
-#ifndef SP0_DATA_DUMP_FILEPATH
-    #error "SP0_DATA_DUMP_FILEPATH must be defined"
+#ifndef CFE_PSP_SP0_DATA_DUMP_FILEPATH
+    #error "CFE_PSP_SP0_DATA_DUMP_FILEPATH must be defined"
 #endif
 
 /** \brief WatchDog Default Time Verification */
@@ -139,12 +139,12 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 #endif
 
 /** \brief NTP Verification */
-#ifndef NTP_DAEMON_TASK_NAME
-    #error "NTP_DAEMON_TASK_NAME must be defined"
+#ifndef CFE_PSP_NTP_DAEMON_TASK_NAME
+    #error "CFE_PSP_NTP_DAEMON_TASK_NAME must be defined"
 #endif
 
-#ifndef NTP_SERVICE_NAME
-    #error "NTP_SERVICE_NAME must be defined"
+#ifndef CFE_PSP_NTP_SERVICE_NAME
+    #error "CFE_PSP_NTP_SERVICE_NAME must be defined"
 #endif
 
 /** \brief Check backup directory is defined */
@@ -167,46 +167,46 @@ CompileTimeAssert(sizeof(MEMSCRUB_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, MEM
 #endif
 
 /** \brief Check MEMORY SYNC preprocessor directives */
-#ifndef MEMORY_SYNC_DEFAULT_SYNC_TIME_MS
-    #error "MEMORY_SYNC_DEFAULT_SYNC_TIME_MS must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_DEFAULT_SYNC_TIME_MS
+    #error "CFE_PSP_MEMORY_SYNC_DEFAULT_SYNC_TIME_MS must be defined"
 #endif
-#ifndef MEMORY_SYNC_TASK_NAME
-    #error "MEMORY_SYNC_TASK_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_TASK_NAME
+    #error "CFE_PSP_MEMORY_SYNC_TASK_NAME must be defined"
 #endif
-#ifndef MEMORY_SYNC_BSEM_NAME
-    #error "MEMORY_SYNC_BSEM_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_BSEM_NAME
+    #error "CFE_PSP_MEMORY_SYNC_BSEM_NAME must be defined"
 #endif
-#ifndef MEMORY_SYNC_PRIORITY_DEFAULT
-    #error "MEMORY_SYNC_PRIORITY_DEFAULT must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT
+    #error "CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT must be defined"
 #endif
-#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
-    #error "MEMORY_SYNC_PRIORITY_UP_RANGE must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE must be defined"
 #endif
-#ifndef MEMORY_SYNC_PRIORITY_UP_RANGE
-    #error "MEMORY_SYNC_PRIORITY_DOWN_RANGE must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "CFE_PSP_MEMORY_SYNC_PRIORITY_DOWN_RANGE must be defined"
 #endif
-#ifndef MEMORY_SYNC_START_ON_STARTUP
-    #error "MEMORY_SYNC_START_ON_STARTUP must be defined"
+#ifndef CFE_PSP_MEMORY_SYNC_START_ON_STARTUP
+    #error "CFE_PSP_MEMORY_SYNC_START_ON_STARTUP must be defined"
 #endif
-#if MEMORY_SYNC_PRIORITY_DEFAULT < MEMORY_SYNC_PRIORITY_LOW_RANGE
-    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#if CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT < CFE_PSP_MEMORY_SYNC_PRIORITY_LOW_RANGE
+    #error "CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT too low"
 #endif
-#if MEMORY_SYNC_PRIORITY_DEFAULT > MEMORY_SYNC_PRIORITY_UP_RANGE
-    #error "MEMORY_SYNC_PRIORITY_DEFAULT too low"
+#if CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT > CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE
+    #error "CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT too low"
 #endif
-#ifndef MEMORY_RESET_BIN_SEM_NAME
-    #error "MEMORY_RESET_BIN_SEM_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_RESET_BIN_SEM_NAME
+    #error "CFE_PSP_MEMORY_RESET_BIN_SEM_NAME must be defined"
 #endif
-#ifndef MEMORY_CDS_BIN_SEM_NAME
-    #error "MEMORY_CDS_BIN_SEM_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_CDS_BIN_SEM_NAME
+    #error "CFE_PSP_MEMORY_CDS_BIN_SEM_NAME must be defined"
 #endif
-#ifndef MEMORY_VOLATILEDISK_BIN_SEM_NAME
-    #error "MEMORY_VOLATILEDISK_BIN_SEM_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_VOLATILEDISK_BIN_SEM_NAME
+    #error "CFE_PSP_MEMORY_VOLATILEDISK_BIN_SEM_NAME must be defined"
 #endif
-#ifndef MEMORY_USERRESERVED_BIN_SEM_NAME
-    #error "MEMORY_USERRESERVED_BIN_SEM_NAME must be defined"
+#ifndef CFE_PSP_MEMORY_USERRESERVED_BIN_SEM_NAME
+    #error "CFE_PSP_MEMORY_USERRESERVED_BIN_SEM_NAME must be defined"
 #endif
-CompileTimeAssert(sizeof(MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
+CompileTimeAssert(sizeof(CFE_PSP_MEMORY_SYNC_TASK_NAME) <= CFE_PSP_MAXIMUM_TASK_LENGTH, NTPSYNC_TASK_NAME_TOO_LONG);
 /* \brief Check that CFE_PSP_STARTUP_AVAILABLE_PARTITIONS is defined */
 #ifndef CFE_PSP_STARTUP_AVAILABLE_PARTITIONS
     #define CFE_PSP_STARTUP_AVAILABLE_PARTITIONS    {"/ffx0"}

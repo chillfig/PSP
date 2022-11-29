@@ -86,7 +86,7 @@ int32 CFE_PSP_NTPDaemonIsRunning(void)
     int32       iReturnCode = CFE_PSP_SUCCESS;
     TASK_ID     tidTaskId   = 0;
 
-    tidTaskId = taskNameToId((char *)NTP_DAEMON_TASK_NAME);
+    tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
     if (tidTaskId == CFE_PSP_ERROR)
     {
         iReturnCode = CFE_PSP_ERROR;
@@ -186,16 +186,16 @@ int32 CFE_PSP_StartNTPDaemon(void)
     int32       iStatus = CFE_PSP_ERROR;
     int32       tidTaskId = 0;
 
-    iStatus = ipcom_ipd_start(NTP_SERVICE_NAME);
+    iStatus = ipcom_ipd_start(CFE_PSP_NTP_SERVICE_NAME);
     if (iStatus == IPCOM_SUCCESS)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
-        tidTaskId = taskNameToId((char *)NTP_DAEMON_TASK_NAME);
+        tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
     }
     else if (iStatus == IPCOM_ERR_ALREADY_STARTED)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon already started\n");
-        tidTaskId = taskNameToId((char *)NTP_DAEMON_TASK_NAME);
+        tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
     }
     else
     {
@@ -218,7 +218,7 @@ int32 CFE_PSP_StopNTPDaemon(void)
     int32       iReturnCode = CFE_PSP_SUCCESS;
     int32       iIPCOMStatus = CFE_PSP_ERROR;
 
-    iIPCOMStatus = ipcom_ipd_kill(NTP_SERVICE_NAME);
+    iIPCOMStatus = ipcom_ipd_kill(CFE_PSP_NTP_SERVICE_NAME);
     if (iIPCOMStatus == IPCOM_SUCCESS)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon Stopped Successfully\n");

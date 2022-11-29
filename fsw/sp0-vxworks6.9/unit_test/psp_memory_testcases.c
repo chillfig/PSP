@@ -2030,7 +2030,7 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
-    OS_BinSemCreate(&g_MemorySyncTaskBinSem, MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
+    OS_BinSemCreate(&g_MemorySyncTaskBinSem, CFE_PSP_MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
@@ -2152,7 +2152,7 @@ void Ut_CFE_PSP_MemSyncStop(void)
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "Stop: Failed to give bsem, status: %d\n", OS_SEM_FAILURE);
     OS_TaskCreate(
                     &g_uiMemorySyncTaskId,
-                    MEMORY_SYNC_TASK_NAME,
+                    CFE_PSP_MEMORY_SYNC_TASK_NAME,
                     CFE_PSP_MemSyncTask,
                     OSAL_TASK_STACK_ALLOCATE,
                     OSAL_SIZE_C(4096),
@@ -2174,7 +2174,7 @@ void Ut_CFE_PSP_MemSyncStop(void)
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemGive), 1, OS_SUCCESS);
     OS_TaskCreate(
                     &g_uiMemorySyncTaskId,
-                    MEMORY_SYNC_TASK_NAME,
+                    CFE_PSP_MEMORY_SYNC_TASK_NAME,
                     CFE_PSP_MemSyncTask,
                     OSAL_TASK_STACK_ALLOCATE,
                     OSAL_SIZE_C(4096),
@@ -2247,7 +2247,7 @@ void Ut_CFE_PSP_MemSyncSetPriority(void)
     /* ----- Test case #3: Task not running ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    newPriority = CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncSetPriority(newPriority);
@@ -2259,7 +2259,7 @@ void Ut_CFE_PSP_MemSyncSetPriority(void)
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    newPriority = CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_ERROR);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "setPriority: Failed to set new priority\n");
@@ -2272,7 +2272,7 @@ void Ut_CFE_PSP_MemSyncSetPriority(void)
     /* ----- Test case #5: Successfully set priority ----- */
     /* Set additional inputs */
     UT_ResetState(0);
-    newPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+    newPriority = CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT;
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, 99);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskSetPriority), 1, OS_SUCCESS);
     /* Execute tests */

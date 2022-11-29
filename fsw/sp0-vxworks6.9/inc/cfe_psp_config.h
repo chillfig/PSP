@@ -57,7 +57,7 @@ extern "C" {
  ** If that behaviour is not wanted, set this define to TRUE. The PSP default
  ** function implementation is empty.
  */
-#define OVERRIDE_OSAL_OS_APPLICATION_RUN             true
+#define CFE_PSP_OVERRIDE_OSAL_OS_APPLICATION_RUN    true
 
 
 /** \brief The list of VxWorks tasks that PSP is tasked to adjust its priorites
@@ -67,7 +67,7 @@ extern "C" {
  ** Values are defined in cfe_psp_config.h header.\n
  ** The priority reassignment will be moved to kernel in a future release.
 */
-#define VXWORKS_TASK_PRIORITIES                     {"tLogTask", 0},\
+#define CFE_PSP_VXWORKS_TASK_PRIORITIES             {"tLogTask", 0},\
                                                     {"tShell0", 201},\
                                                     {"tWdbTask", 203},\
                                                     {"tVxdbgTask", 200},\
@@ -86,7 +86,7 @@ extern "C" {
  ** function OS_FileSysAddFixedMap()
  ** 
  */
-#define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"},\
+#define CFE_PSP_OSAL_FS_SYMBOLIC_LINKS_MAPPING      {"/ram0/cf", "/cf"},\
                                                     {"/ffx0", "/flash0"},\
                                                     {"/ffx1", "/flash1"}
                                                     
@@ -481,7 +481,7 @@ typedef struct
  ** 0 = Do not start task during startup
  ** 1 = Start task during startup
 */
-#define MEMSCRUB_TASK_START_ON_STARTUP      1
+#define CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP      1
 
 /**
  ** \brief Memory Scrub Run Mode
@@ -505,7 +505,7 @@ typedef struct
  ** - MEMSCRUB_MANUAL_MODE
  **
  */
-#define MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
+#define CFE_PSP_MEMSCRUB_RUN_MODE                  MEMSCRUB_TIMED_MODE
 
 /**
  ** \brief Defines the block size to scrub in number of pages
@@ -513,14 +513,14 @@ typedef struct
  ** This applies only for Timed and Manual Mode. 
  ** See #MEMSCRUB_PAGE_SIZE for block size in bytes
  */
-#define MEMSCRUB_BLOCKSIZE_PAGES           10
+#define CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES           10
 
 /**
  ** \brief Defines the number of milliseconds to wait before scrubbing another block
  ** \par Description:
  ** This applies only for Timed Mode
  */
-#define MEMSCRUB_TASK_DELAY_MSEC           500
+#define CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC           500
 
 /**
  ** \brief Memory Scrub Default Start Address
@@ -531,7 +531,7 @@ typedef struct
  ** \par Assumptions, External Events, and Notes:
  ** Value must be set to a valid address.
  */
-#define MEMSCRUB_DEFAULT_START_ADDR        0
+#define CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR        0
 
 /**
  ** \brief Memory Scrub Default End Address
@@ -545,7 +545,7 @@ typedef struct
  ** starting memory scrub task. Set to (0) to allow program to 
  ** use general start address (physical end of RAM).
  */
-#define MEMSCRUB_DEFAULT_END_ADDR          0
+#define CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR          0
 
 /**
  ** \brief Memory Scrub Default Priority
@@ -555,7 +555,7 @@ typedef struct
  ** \par Note: Must be set to lowest possible priority
  ** 
  */
-#define MEMSCRUB_DEFAULT_PRIORITY           254
+#define CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY           254
 
 /**
  ** \brief Memory Scrub Maximum Allowed Priority
@@ -564,7 +564,7 @@ typedef struct
  ** Task Priority can be changed using CFE_PSP_MemScrubSet.
  ** Up Range priority is capped by VxWorks OS.
  */
-#define MEMSCRUB_PRIORITY_UP_RANGE          255
+#define CFE_PSP_MEMSCRUB_PRIORITY_UP_RANGE          255
 
 /**
  ** \brief Memory Scrub Minimum Allowed Priority
@@ -573,17 +573,17 @@ typedef struct
  ** Task Priority can be changed using CFE_PSP_MemScrubSet.
  ** Down Range priority should not be lower than your apps.
  */
-#define MEMSCRUB_PRIORITY_DOWN_RANGE        120
+#define CFE_PSP_MEMSCRUB_PRIORITY_DOWN_RANGE        120
 
 /**
  ** \brief Memory Scrub Task Name
  ** \par Description:
  ** Set the Active Memory Scrub Task Name
  */
-#define MEMSCRUB_TASK_NAME                  "PSPMemScrub"
+#define CFE_PSP_MEMSCRUB_TASK_NAME                  "PSPMemScrub"
 
 /** \brief MEM SCRUB Binary semaphore name */
-#define MEMSCRUB_BSEM_NAME                  "PSP_BSEM_NAME"
+#define CFE_PSP_MEMSCRUB_BSEM_NAME                  "PSP_BSEM_NAME"
 /** \} */
 
 /******************************************************************************/
@@ -594,7 +594,7 @@ typedef struct
  ** \par Description
  ** This file is written only in the case when CFE_PSP_Panic is called.
  */
-#define SP0_DATA_DUMP_FILEPATH              "/ffx0/PSP_SP0_DUMP"
+#define CFE_PSP_SP0_DATA_DUMP_FILEPATH              "/ffx0/PSP_SP0_DUMP"
 
 /** \} */
 
@@ -609,7 +609,7 @@ typedef struct
  ** The default task name in VxWorks is "ipntpd", but it may need to be changed.
  ** This string is used to find the NTP task in the VxWorks task list.
  */
-#define NTP_DAEMON_TASK_NAME                "ipntpd"
+#define CFE_PSP_NTP_DAEMON_TASK_NAME                "ipntpd"
 
 /**
  ** \brief NTP Name
@@ -617,7 +617,7 @@ typedef struct
  ** \par Description:
  ** Name of NTP service. This is used to start or kill the OS NTP service.
  */
-#define NTP_SERVICE_NAME                    "ipntp"
+#define CFE_PSP_NTP_SERVICE_NAME                    "ipntp"
 
 /**
  **  \brief EPOCH to Mission Time Difference
@@ -647,27 +647,27 @@ typedef struct
 /** \{ */
 
 /** \brief MEMORY SYNC Default time between sync attempts */
-#define MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000
+#define CFE_PSP_MEMORY_SYNC_DEFAULT_SYNC_TIME_MS     3000
 /** \brief MEMORY SYNC Task Name */
-#define MEMORY_SYNC_TASK_NAME               "MEMSYNCTASK"
+#define CFE_PSP_MEMORY_SYNC_TASK_NAME               "MEMSYNCTASK"
 /** \brief MEMORY SYNC Binary Semaphore Name */
-#define MEMORY_SYNC_BSEM_NAME               "MEMSYNCBSEM"
+#define CFE_PSP_MEMORY_SYNC_BSEM_NAME               "MEMSYNCBSEM"
 /** \brief MEMORY SYNC Priority Default */
-#define MEMORY_SYNC_PRIORITY_DEFAULT        190
+#define CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT        190
 /** \brief MEMORY SYNC Priority Upper Limit */
-#define MEMORY_SYNC_PRIORITY_UP_RANGE       230
+#define CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE       230
 /** \brief MEMORY SYNC Priority Lower Limit */
-#define MEMORY_SYNC_PRIORITY_LOW_RANGE      60
+#define CFE_PSP_MEMORY_SYNC_PRIORITY_LOW_RANGE      60
 /** \brief MEMORY SYNC Start on Startup */
-#define MEMORY_SYNC_START_ON_STARTUP        true
+#define CFE_PSP_MEMORY_SYNC_START_ON_STARTUP        true
 /** \brief RESET Binary Semaphore Name */
-#define MEMORY_RESET_BIN_SEM_NAME           "RSTBSEM"
+#define CFE_PSP_MEMORY_RESET_BIN_SEM_NAME           "RSTBSEM"
 /** \brief CDS Binary Semaphore Name */
-#define MEMORY_CDS_BIN_SEM_NAME             "CDSBSEM"
+#define CFE_PSP_MEMORY_CDS_BIN_SEM_NAME             "CDSBSEM"
 /** \brief VOLATILE DISK Binary Semaphore Name */
-#define MEMORY_VOLATILEDISK_BIN_SEM_NAME    "VODBSEM"
+#define CFE_PSP_MEMORY_VOLATILEDISK_BIN_SEM_NAME    "VODBSEM"
 /** \brief USER RESERVED Binary Semaphore Name */
-#define MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
+#define CFE_PSP_MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
 
 
 /**

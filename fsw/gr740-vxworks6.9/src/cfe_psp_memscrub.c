@@ -35,7 +35,7 @@ extern uint32 g_uiEndOfRam;
 /** \brief Contains the boolean value if Mem Scrub should start at startup
  **
  */
-static bool g_bMemScrubStartOnStartup = MEMSCRUB_TASK_START_ON_STARTUP;
+static bool g_bMemScrubStartOnStartup = CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP;
 
 /**
  ** \brief Mem Scrub Error Statistics
@@ -59,9 +59,9 @@ What are the MODEs for?
 Operation Mode (MODE) - 00=Scrub, 01=Regenerate, 10=Initialize, 11=Undefined
 This below is not the same!
 */
-    .RunMode = MEMSCRUB_RUN_MODE,
-    .uiMemScrubStartAddr = MEMSCRUB_DEFAULT_START_ADDR,
-    .uiMemScrubEndAddr = MEMSCRUB_DEFAULT_END_ADDR
+    .RunMode = CFE_PSP_MEMSCRUB_RUN_MODE,
+    .uiMemScrubStartAddr = CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR,
+    .uiMemScrubEndAddr = CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR
 };
 
 /**
@@ -344,9 +344,9 @@ int32 CFE_PSP_MemScrubDelete(void)
 	}
 
     /* Reset all memory scrub related values to default */
-    g_MemScrub_Status.RunMode = MEMSCRUB_RUN_MODE,
-    g_MemScrub_Status.uiMemScrubStartAddr = MEMSCRUB_DEFAULT_START_ADDR;
-    g_MemScrub_Status.uiMemScrubEndAddr = MEMSCRUB_DEFAULT_END_ADDR;
+    g_MemScrub_Status.RunMode = CFE_PSP_MEMSCRUB_RUN_MODE,
+    g_MemScrub_Status.uiMemScrubStartAddr = CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR;
+    g_MemScrub_Status.uiMemScrubEndAddr = CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR;
 
     return iReturnCode;
 }

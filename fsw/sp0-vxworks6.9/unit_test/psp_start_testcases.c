@@ -1221,8 +1221,12 @@ void Ut_CFE_PSP_SetFileSysAddFixedMap(void)
     osal_id_t   fid;
     int32       ret = CFE_PSP_SUCCESS;
     char        cMsg[256] = {};
+    int8        cNumberOfLinks = 0;
+    
+    /* Calculate the number of entries in the structure */
+    cNumberOfLinks = sizeof(g_SymbolicFolderLinks) / sizeof(CFE_PSP_SymbolicLinks_t);
 
-    sprintf(cMsg, "PSP: Set 1 Virtual Path(s)\n");
+    sprintf(cMsg, "PSP: Set %d Virtual Path(s)\n",cNumberOfLinks);
 
     /* ----- Test #1 - Nominal ----- */
     /* Set additional inputs */

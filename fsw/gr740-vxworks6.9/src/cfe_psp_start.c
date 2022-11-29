@@ -120,7 +120,7 @@ extern void CFE_PSP_InitLocalTime(void); // from cfe_psp_timer.c
  */
 static CFE_PSP_SymbolicLinks_t g_SymbolicFolderLinks[] =
 {
-    OSAL_FS_SYMBOLIC_LINKS_MAPPING
+    CFE_PSP_OSAL_FS_SYMBOLIC_LINKS_MAPPING
 };
 
 /** \brief The list of VxWorks task to change the task priority to before finishing initialization.
@@ -130,7 +130,7 @@ static CFE_PSP_SymbolicLinks_t g_SymbolicFolderLinks[] =
 */
 static CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
 {
-    VXWORKS_TASK_PRIORITIES
+    CFE_PSP_VXWORKS_TASK_PRIORITIES
 };
 
 /** \brief Total number of available processors
@@ -144,7 +144,7 @@ uint32                g_uiNumberOfProcessors = 0;
  */
 static CFE_PSP_TaskAffinity_t g_CFSTaskAffinityList[] =
 {
-    CFS_TASK_AFFINITY
+    CFE_PSP_CFS_TASK_AFFINITY
 };
 
 /**
@@ -429,7 +429,7 @@ OS_Application_Startup_Exit_Tag:
  * Description: See function declaration for info
  *
  *********************************************************/
-#if OVERRIDE_OSAL_OS_APPLICATION_RUN
+#if CFE_PSP_OVERRIDE_OSAL_OS_APPLICATION_RUN
 void OS_Application_Run(void) //UndCC_Line(SSET106) Func. name part of PSP API, cannot change
 {
     /*

@@ -62,7 +62,7 @@ extern "C" {
  ** If that behaviour is not wanted, set this define to TRUE. The PSP default
  ** function implementation is empty.
  */
-#define OVERRIDE_OSAL_OS_APPLICATION_RUN             true
+#define CFE_PSP_OVERRIDE_OSAL_OS_APPLICATION_RUN    true
 
 /** \brief The list of VxWorks tasks that PSP is tasked to adjust its priorites
  ** \par Description:
@@ -71,7 +71,7 @@ extern "C" {
  ** Values are defined in cfe_psp_config.h header.\n
  ** The priority reassignment will be moved to kernel in a future release.
 */
-#define VXWORKS_TASK_PRIORITIES                     {"tLogTask", 0},\
+#define CFE_PSP_VXWORKS_TASK_PRIORITIES             {"tLogTask", 0},\
                                                     {"tShell0", 201},\
                                                     {"tNet0", 25},\
                                                     {"ipftps", 202},\
@@ -86,7 +86,7 @@ extern "C" {
  ** function OS_FileSysAddFixedMap()
  ** 
  */
-#define OSAL_FS_SYMBOLIC_LINKS_MAPPING              {"/ram0/cf", "/cf"},\
+#define CFE_PSP_OSAL_FS_SYMBOLIC_LINKS_MAPPING      {"/ram0/cf", "/cf"},\
                                                     //{"/mnt/fmc", "/strm"}
 
 
@@ -102,10 +102,10 @@ extern "C" {
  ** \par Note:
  ** Processor number is up to number of available processors - 1.
  */
-#define CFS_TASK_AFFINITY       {"CFE",        1}, \
-                                {"SBNG",       1}, \
-                                {"TO",         2}, \
-                                {"",           2}
+#define CFE_PSP_CFS_TASK_AFFINITY       {"CFE",        1}, \
+                                        {"SBNG",       1}, \
+                                        {"TO",         2}, \
+                                        {"",           2}
 
 /**
  ** \brief Task name and priority of tasks
@@ -379,7 +379,7 @@ typedef struct
  ** The default task name in VxWorks is "ipsntpd", but it may need to be changed.
  ** This string is used to find the SNTP task in the VxWorks task list.
  */
-#define NTP_DAEMON_TASK_NAME                "ipsntps"
+#define CFE_PSP_NTP_DAEMON_TASK_NAME                "ipsntps"
 
 /**
  ** \brief SNTP Name
@@ -387,7 +387,7 @@ typedef struct
  ** \par Description:
  ** Name of SNTP service. This is used to start or kill the OS NTP service.
  */
-#define NTP_SERVICE_NAME                    "ipsntp"
+#define CFE_PSP_NTP_SERVICE_NAME                    "ipsntp"
 
 /**
  **  \brief EPOCH to Mission Time Difference
@@ -419,7 +419,7 @@ typedef struct
  ** 0 = Do not start task during startup
  ** 1 = Start task during startup
 */
-#define MEMSCRUB_TASK_START_ON_STARTUP      0
+#define CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP      0
 
 /**
  ** \brief Memory Scrub Run Mode
@@ -443,7 +443,7 @@ typedef struct
  ** - MEMSCRUB_MANUAL_MODE
  **
  */
-#define MEMSCRUB_RUN_MODE                  MEMSCRUB_AUTOMATIC_MODE
+#define CFE_PSP_MEMSCRUB_RUN_MODE                  MEMSCRUB_AUTOMATIC_MODE
 
 /**
  ** \brief Memory Scrub Default Start Address
@@ -454,7 +454,7 @@ typedef struct
  ** \par Assumptions, External Events, and Notes:
  ** Value must be set to a valid address.
  */
-#define MEMSCRUB_DEFAULT_START_ADDR        0
+#define CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR        0
 
 /**
  ** \brief Memory Scrub Default End Address
@@ -468,7 +468,7 @@ typedef struct
  ** starting memory scrub task. Set to (0) to allow program to 
  ** use general start address (physical end of RAM).
  */
-#define MEMSCRUB_DEFAULT_END_ADDR          0
+#define CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR          0
 
 
 /** \} */

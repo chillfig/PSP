@@ -160,15 +160,15 @@ static bool g_bVOLATILEDISKUpdateFlag = false;
 /** \brief USER RESERVED Bool flag to indicate a sync needs to occur */
 static bool g_bUSERRESERVEDUpdateFlag = false;
 /** \brief MEMORY SYNC Start on Startup */
-static uint32 g_uiMemorySyncStartup = MEMORY_SYNC_START_ON_STARTUP;
+static uint32 g_uiMemorySyncStartup = CFE_PSP_MEMORY_SYNC_START_ON_STARTUP;
 /** \brief MEMORY SYNC Time Between Sync Value */
-static uint32 g_uiMemorySyncTime = MEMORY_SYNC_DEFAULT_SYNC_TIME_MS;
+static uint32 g_uiMemorySyncTime = CFE_PSP_MEMORY_SYNC_DEFAULT_SYNC_TIME_MS;
 /** \brief MEMORY SYNC Statistics */
 static uint32 g_uiMemorySyncStatistics = 0;
 /** \brief MEMORY SYNC Task ID */
 static osal_id_t g_uiMemorySyncTaskId;
 /** \brief MEMORY SYNC Task Priority */
-static osal_priority_t g_uiMemorySyncTaskPriority = MEMORY_SYNC_PRIORITY_DEFAULT;
+static osal_priority_t g_uiMemorySyncTaskPriority = CFE_PSP_MEMORY_SYNC_PRIORITY_DEFAULT;
 /** \brief MEMORY SYNC Task Binary Semaphore ID */
 static osal_id_t g_MemorySyncTaskBinSem;    // NOTE: This should match OS_OBJECT_ID_UNDEFINED
 /** \brief CDS Filepath */
@@ -543,7 +543,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
-    iStatus = OS_BinSemCreate(&g_RESETBinSemId, MEMORY_RESET_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    iStatus = OS_BinSemCreate(&g_RESETBinSemId, CFE_PSP_MEMORY_RESET_BIN_SEM_NAME, OS_SEM_FULL, 0);
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE \
@@ -564,7 +564,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
-    iStatus = OS_BinSemCreate(&g_VOLATILEDISKBinSemId, MEMORY_VOLATILEDISK_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    iStatus = OS_BinSemCreate(&g_VOLATILEDISKBinSemId, CFE_PSP_MEMORY_VOLATILEDISK_BIN_SEM_NAME, OS_SEM_FULL, 0);
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE \
@@ -584,7 +584,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
-    iStatus = OS_BinSemCreate(&g_CDSBinSemId, MEMORY_CDS_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    iStatus = OS_BinSemCreate(&g_CDSBinSemId, CFE_PSP_MEMORY_CDS_BIN_SEM_NAME, OS_SEM_FULL, 0);
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE \
@@ -604,7 +604,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     {
         OS_printf("usrMemAlloc Failed\n");
     }
-    iStatus = OS_BinSemCreate(&g_USERRESERVEDBinSemId, MEMORY_USERRESERVED_BIN_SEM_NAME, OS_SEM_FULL, 0);
+    iStatus = OS_BinSemCreate(&g_USERRESERVEDBinSemId, CFE_PSP_MEMORY_USERRESERVED_BIN_SEM_NAME, OS_SEM_FULL, 0);
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE \
@@ -1759,7 +1759,7 @@ int32 CFE_PSP_MemSyncInit(void)
     int32 iReturnCode   = CFE_PSP_SUCCESS;
     int32 iStatus       = OS_ERROR;
 
-    iStatus = OS_BinSemCreate(&g_MemorySyncTaskBinSem, MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
+    iStatus = OS_BinSemCreate(&g_MemorySyncTaskBinSem, CFE_PSP_MEMORY_SYNC_BSEM_NAME, OS_SEM_FULL, 0);
     if (iStatus != OS_SUCCESS)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE \
@@ -1851,7 +1851,7 @@ int32 CFE_PSP_MemSyncStart(void)
     {
         iReturnCode = OS_TaskCreate(
                                     &g_uiMemorySyncTaskId,
-                                    MEMORY_SYNC_TASK_NAME,
+                                    CFE_PSP_MEMORY_SYNC_TASK_NAME,
                                     CFE_PSP_MemSyncTask,
                                     OSAL_TASK_STACK_ALLOCATE,
                                     OSAL_SIZE_C(4096),
@@ -1926,7 +1926,7 @@ bool CFE_PSP_MemSyncIsRunning(void)
     bool        bReturnValue    = true;
     osal_id_t   osidTaskId      = OS_OBJECT_ID_UNDEFINED;
 
-    if (OS_TaskGetIdByName(&osidTaskId, MEMORY_SYNC_TASK_NAME) == OS_ERR_NAME_NOT_FOUND)
+    if (OS_TaskGetIdByName(&osidTaskId, CFE_PSP_MEMORY_SYNC_TASK_NAME) == OS_ERR_NAME_NOT_FOUND)
     {
         bReturnValue = false;
     }
@@ -1945,11 +1945,11 @@ int32 CFE_PSP_MemSyncSetPriority(osal_priority_t priority)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
-    if (priority > MEMORY_SYNC_PRIORITY_UP_RANGE)
+    if (priority > CFE_PSP_MEMORY_SYNC_PRIORITY_UP_RANGE)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too high\n");
     }
-    else if (priority < MEMORY_SYNC_PRIORITY_LOW_RANGE)
+    else if (priority < CFE_PSP_MEMORY_SYNC_PRIORITY_LOW_RANGE)
     {
         OS_printf(MEMORY_SYNC_PRINT_SCOPE "setPriority: New priority too low\n");
     }

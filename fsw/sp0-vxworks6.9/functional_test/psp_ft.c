@@ -416,7 +416,7 @@ void ft_memory_sync(void)
     memset((void *)uiBuf_original, 0, 256);
 
     /* Allow for some time to pass to ensure sync has occurred */
-    OS_TaskDelay(MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
+    OS_TaskDelay(CFE_PSP_MEMORY_SYNC_DEFAULT_SYNC_TIME_MS + 3000);
 
     /* Read what was written */
     CFE_PSP_ReadFromUSERRESERVED((void *)uiBuf_original, 0, 256);
@@ -634,7 +634,7 @@ Functional Tests:
 */
 void ft_sp0_info(void)
 {
-    char                sp0_filename[] = SP0_DATA_DUMP_FILEPATH;
+    char                sp0_filename[] = CFE_PSP_SP0_DATA_DUMP_FILEPATH;
     char                local_ram_disk[] = "/ram0";
     char                local_flash_disk[] = "/ffx0";
     char                local_flash_disk_error[] = "/ffx9";
