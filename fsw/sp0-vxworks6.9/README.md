@@ -106,32 +106,33 @@ Kernel services:
   - #g_pDefaultedrPolicyHandlerHook
 
 - Static Functions
+  - CFE_PSP_ValidatePath()
   - CFE_PSP_ProcessResetType()
   - CFE_PSP_SetSysTasksPrio()
   - CFE_PSP_LogSoftwareResetType()
 
 ### Active Memory Scrubbing
 
-The define #MEMSCRUB_RUN_MODE defines how the Memory Scrubbing works in CFS.
+The define #CFE_PSP_MEMSCRUB_RUN_MODE defines how the Memory Scrubbing works in CFS.
 
-When Run Mode is set to Idle Mode or Timed Mode, a Task is created during initialization via the function CFE_PSP_MemScrubInit(). The Task runs in a low priority continuos while loop in automatic, but in Timed Mode, the while loop includes a task delay defined by #MEMSCRUB_TASK_DELAY_MSEC. It can only be terminated by using functions CFE_PSP_MemScrubDisable() or CFE_PSP_MemScrubDelete().
+When Run Mode is set to Idle Mode or Timed Mode, a Task is created during initialization via the function CFE_PSP_MemScrubInit(). The Task runs in a low priority continuos while loop in automatic, but in Timed Mode, the while loop includes a task delay defined by #CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC. It can only be terminated by using functions CFE_PSP_MemScrubDisable() or CFE_PSP_MemScrubDelete().
 
 When running in Manual Mode, no task is created. Run To call memory scrubbing
 
 - Defines
   - #MEMSCRUB_PRINT_SCOPE
   - #MEMSCRUB_PAGE_SIZE
-  - #MEMSCRUB_TASK_START_ON_STARTUP `*`
-  - #MEMSCRUB_RUN_MODE `*`
-  - #MEMSCRUB_BLOCKSIZE_PAGES `*`
-  - #MEMSCRUB_TASK_DELAY_MSEC `*`
-  - #MEMSCRUB_DEFAULT_START_ADDR `*`
-  - #MEMSCRUB_DEFAULT_END_ADDR `*`
-  - #MEMSCRUB_DEFAULT_PRIORITY `*`
-  - #MEMSCRUB_PRIORITY_UP_RANGE `*`
-  - #MEMSCRUB_PRIORITY_DOWN_RANGE `*`
-  - #MEMSCRUB_TASK_NAME `*`
-  - #MEMSCRUB_BSEM_NAME `*`
+  - #CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP `*`
+  - #CFE_PSP_MEMSCRUB_RUN_MODE `*`
+  - #CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES `*`
+  - #CFE_PSP_MEMSCRUB_TASK_DELAY_MSEC `*`
+  - #CFE_PSP_MEMSCRUB_DEFAULT_START_ADDR `*`
+  - #CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR `*`
+  - #CFE_PSP_MEMSCRUB_DEFAULT_PRIORITY `*`
+  - #CFE_PSP_MEMSCRUB_PRIORITY_UP_RANGE `*`
+  - #CFE_PSP_MEMSCRUB_PRIORITY_DOWN_RANGE `*`
+  - #CFE_PSP_MEMSCRUB_TASK_NAME `*`
+  - #CFE_PSP_MEMSCRUB_BSEM_NAME `*`
 
 - Structures
   - #CFE_PSP_MemScrubStatus_t `^`
@@ -171,7 +172,7 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
 ### SP0 Info
 
 - Defines
-  - #SP0_DATA_DUMP_FILEPATH `*`
+  - #CFE_PSP_SP0_DATA_DUMP_FILEPATH `*`
   - #SP0_TEXT_BUFFER_MAX_SIZE
   - #SP0_SAFEMODEUSERDATA_BUFFER_SIZE
   - #SP0_PRINT_SCOPE
@@ -222,7 +223,7 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
 
 - Defines
   - #CFE_MISSION_TIME_EPOCH_UNIX_DIFF `*`
-  - #NTP_DAEMON_TASK_NAME `*`
+  - #CFE_PSP_NTP_DAEMON_TASK_NAME `*`
   - #NTPSYNC_PRINT_SCOPE
 
 - Public Functions
@@ -329,7 +330,7 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
 
 1. Change directory to Test folder
 
-   ```shell
+   ```bash
    cd cert_testbed/psp/fsw/sp0-vxworks6.9/unit_test
    ```
 
@@ -359,7 +360,7 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
    sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]
    ```
 
-   > **Example:** ```sh run_psp.sh 192.168.22.129 ~/GATEWAY/kernels/prebuilt-kernels/vx6.9_sp0-s_tt-cpci-3-103-2_cfs/vxWorks```
+   > **Example:** ```sh run_psp.sh 192.168.22.129 ~/GATEWAY/kernels/prebuilt-kernels/vx6.9_sp0-s_tt-cpci-3-103-2_cfs/vxWorks /dev/ttyFC1```
 
 ### Results
 

@@ -235,14 +235,14 @@ void ft_support(void)
     OS_printf("[SUPPORT START]\n");
 
     /* Get startup script */
-    ret_code = CFE_PSP_GetBootStartupString(bs_original, sizeof(bs_original), 0);
+    ret_code = CFE_PSP_GetBootStartupString(bs_original, sizeof(bs_original), 1);
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
 
     /* Set new startup script */
-    ret_code = CFE_PSP_SetBootStartupString(bs_new, 0);
+    ret_code = CFE_PSP_SetBootStartupString(bs_new, 1);
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting new Boot Startup String Successful")
     
-    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
+    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 1);
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
     /* The string comparison is using memcmp because I need to compare the null character too in case 
     bs_original is 0 length */
@@ -250,11 +250,11 @@ void ft_support(void)
     FT_Assert_True(memcmp(bs_confirm, bs_new, strlen(bs_new)+1) == 0, "Confirming string boot is the new string")
 
     /* Restore original value */
-    ret_code = CFE_PSP_SetBootStartupString(bs_original, 0);
+    ret_code = CFE_PSP_SetBootStartupString(bs_original, 1);
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting original Boot Startup String Successful")
 
     /* Read again and confirm that it is the original string */
-    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
+    ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 1);
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
     FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) == 0, "Confirming string boot has been restored to original")
 

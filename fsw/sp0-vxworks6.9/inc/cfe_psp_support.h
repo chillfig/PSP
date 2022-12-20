@@ -63,14 +63,14 @@ void CFE_PSP_ToggleCFSBootPartition(void);
  ** \par Assumptions, External Events, and Notes:
  ** None
  ** 
- ** \param[out] startupBootString - Pointer to string where to save the boot string
- ** \param[in]  bufferSize - size of startupBootString array
- ** \param[in]  talkative - If true, print out the boot parameter structure
+ ** \param[out] pStartupBootString - Pointer to string where to save the boot string
+ ** \param[in]  uiBufferSize - size of pStartupBootString array
+ ** \param[in]  uiTalkative - If true, print out the boot parameter structure
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative);
+int32 CFE_PSP_GetBootStartupString(char *pStartupBootString, uint32 uiBufferSize, uint32 uiTalkative);
 
 /**
  ** \func Sets new boot startup string
@@ -79,15 +79,16 @@ int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, u
  ** Function sets a new target boot startup string.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** \warning This function cannot be verified using bootChange() command on the shell.
+ ** bootChange() command will remove the changes applied by the PSP API.
  ** 
- ** \param[in] startupScriptPath
- ** \param[in] talkative - If true, print out the boot parameter structure
+ ** \param[in] pStartupBootString
+ ** \param[in] uiTalkative - If true, print out the boot parameter structure
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
+int32 CFE_PSP_SetBootStartupString(char *pStartupBootString, uint32 uiTalkative);
 
 /**
  ** \func Prints the boot parameters to console
@@ -98,11 +99,11 @@ int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative);
  ** \par Assumptions, External Events, and Notes:
  ** None
  **
- ** \param[in] target_boot_parameters 
+ ** \param[in] pTargetBootParameters - Pointer to a BOOT_PARAMS structure 
  **
  ** \return None
  */
-void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
+void CFE_PSP_PrintBootParameters(BOOT_PARAMS *pTargetBootParameters);
 
 /**
  ** \func Gets current boot parameter structure
@@ -114,13 +115,13 @@ void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters);
  ** \par Assumptions, External Events, and Notes:
  ** None
  ** 
- ** \param[out] target_boot_parameters
- ** \param[in]  talkative - If true, print out debug messages
+ ** \param[out] pTargetBootParameters - Pointer to a BOOT_PARAMS structure 
+ ** \param[in]  uiTalkative - If true, print out debug messages
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative);
+int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *pTargetBootParameters, uint32 uiTalkative);
 
 /**
  ** \func Sets new boot parameter structure
@@ -132,13 +133,13 @@ int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talka
  ** \par Assumptions, External Events, and Notes:
  ** None
  ** 
- ** \param[in] new_boot_parameters
- ** \param[in]  talkative - If true, print out debug messages
+ ** \param[in] NewBootParameters - New parameters
+ ** \param[in] uiTalkative - If true, print out debug messages
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative);
+int32 CFE_PSP_SetBootStructure(BOOT_PARAMS NewBootParameters, uint32 uiTalkative);
 
 /**
  ** \func Get CRC of Kernel in Catalog
@@ -151,7 +152,7 @@ int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative
  ** exactly the same as the second catalog.
  ** 
  ** \param[in] pCatalogEntryName - Name of the catalog entry
- ** \param[in] bFirstCatalog - Catalog number (TRUE == 1,  FALSE == 2)
+ ** \param[in] bFirstCatalog - Get from first Catalog (TRUE == 1,  FALSE == 0)
  **
  ** \return 0 - When the Kernel is not found or bad inputs
  ** \return CRC
@@ -165,12 +166,14 @@ uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog);
  ** This function programs a new kernel on the SP0 target.
  **
  ** \par Assumptions, External Events, and Notes:
- ** The kernel file is saved in a special location on the SP0 Flash memory. This
- ** function is a blocking function and thus, it will slow down cFS. It is also 
- ** recommended to restart the target immediately.
- ** The function will set the new kernel file as the default kernel.
+ ** The kernel file is saved in a special location on the SP0 Flash memory.
+ ** The function will set the new kernel file as the default kernel. 
  ** Validity of the kernel path and file structure is left to the end user.
  ** Name of the Kernel pKernelCatalogName must be no more than 8 characters.
+ **
+ ** \warning This function is a blocking function. All interrupts will be blocked
+ ** for the duration of the function call; possibly for more than 20 seconds. 
+ ** It is recommended to restart the target immediately after function completes.
  ** 
  ** \param[in] pKernelPath - Kernel file path
  ** \param[in] pKernelCatalogName - Name of the kernel

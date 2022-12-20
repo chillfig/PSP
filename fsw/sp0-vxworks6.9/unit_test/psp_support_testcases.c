@@ -299,15 +299,59 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
 }
 
 /*=======================================================================================
+** Ut_CFE_PSP_ValidatePath(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_ValidatePath(void)
+{
+    int32 uiRetCode = CFE_PSP_ERROR;
+    char cValidPath[] = "/ffx0/testme";
+    char cInvalidPath[] = "/ff$^\nartup";
+
+    /* ----- Test case #1 - Nominal - Valid Path ----- */
+    /* Setup additional inputs */
+
+    /* Execute test */
+    uiRetCode = CFE_PSP_ValidatePath(cValidPath, strlen(cValidPath));
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ValidatePath() - 1/4: Valid Path - Nominal return code");
+
+    /* ----- Test case #2 - Nominal - Invalid Path ----- */
+    /* Setup additional inputs */
+
+    /* Execute test */
+    uiRetCode = CFE_PSP_ValidatePath(cInvalidPath, strlen(cInvalidPath));
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 2/4: Invalid Path - Nominal return code");
+
+    /* ----- Test case #3 - Error - Path is NULL ----- */
+    /* Setup additional inputs */
+
+    /* Execute test */
+    uiRetCode = CFE_PSP_ValidatePath(NULL, strlen(cInvalidPath));
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 3/4: Path Null - Nominal return code");
+
+    /* ----- Test case #4 - Error - Path length too short ----- */
+    /* Setup additional inputs */
+
+    /* Execute test */
+    uiRetCode = CFE_PSP_ValidatePath(cInvalidPath, 0);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 4/4: Path length is too short - Nominal return code");
+}
+
+/*=======================================================================================
 ** Ut_CFE_PSP_GetBootStartupString(void) test cases
 **=======================================================================================*/
 void Ut_CFE_PSP_GetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_string_invalid[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ff$^\nartup o=192.168.22.253/28";
     char cMsg_error[200] = "";
     char str_buffer[250] = "";
     char str_buffer_check[] = "/ffx0/startup";
+    char cStrInvalid[] = "/ff$^\nartup";
 
     Ut_OS_printf_Setup();
 
@@ -315,6 +359,8 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
     UT_SetDataBuffer(UT_KEY(sysNvRamGet), boot_string, sizeof(boot_string), true);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_bootStringToStruct), OK);
+    UT_SetDataBuffer(UT_KEY(PCS_bootStringToStruct), str_buffer_check, sizeof(str_buffer_check), true);
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(str_buffer, sizeof(str_buffer), 0);
     /* Verify outputs */
@@ -325,7 +371,7 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     /* ----- Test case #2 - Input 1 error ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
-    PCS_snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+    PCS_snprintf(cMsg_error, sizeof(cMsg_error), "PSP: buffer size too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(NULL, 100, 0);
     /* Verify outputs */
@@ -335,7 +381,7 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     /* ----- Test case #3 - Input 2 error ----- */
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
-    snprintf(cMsg_error, sizeof(cMsg_error), "PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+    snprintf(cMsg_error, sizeof(cMsg_error), "PSP: buffer size too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(str_buffer, 10, 0);
     /* Verify outputs */
@@ -353,17 +399,21 @@ void Ut_CFE_PSP_GetBootStartupString(void)
     UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetBootStartupString() - 4/5: Error get structure return code");
     UtAssert_OS_print(cMsg_error, "_CFE_PSP_GetBootStartupString() - 4/5: Error bad input 2 message");
 
-    /* ----- Test case #5 - Nominal - talkative ----- */
+    /* ----- Test case #5 - Nominal - talkative - invalid path ----- */
     /* Setup additional inputs */
+    UT_ResetState(0);
     Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(PCS_bootStringToStruct), OK);
+    UT_SetDataBuffer(UT_KEY(PCS_bootStringToStruct), cStrInvalid, sizeof(cStrInvalid), true);
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
-    UT_SetDataBuffer(UT_KEY(sysNvRamGet), boot_string, sizeof(boot_string), true);
+    UT_SetDataBuffer(UT_KEY(sysNvRamGet), boot_string_invalid, sizeof(boot_string_invalid), true);
+    str_buffer[0] = '\0';
     /* Execute test */
     uiRetCode = CFE_PSP_GetBootStartupString(str_buffer, sizeof(str_buffer), 1);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative return code");
-    UtAssert_StrnCmp(str_buffer,str_buffer_check,sizeof(str_buffer_check), "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative returned string");
-    UtAssert_True(Ut_OS_printf_MsgCount() == 5, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative - invalid path - return code");
+    UtAssert_StrnCmp(str_buffer,cStrInvalid,sizeof(cStrInvalid), "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative - invalid path - returned string");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 3, "_CFE_PSP_GetBootStartupString() - 5/5: Nominal talkative - invalid path - printed messages");
 }
 
 /*=======================================================================================
@@ -372,17 +422,22 @@ void Ut_CFE_PSP_GetBootStartupString(void)
 void Ut_CFE_PSP_SetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
+    char boot_line[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char boot_string[] = "/ffx0/startup";
     char boot_string_too_long[] = "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11";
+    char boot_string_invalid[] = "/ff$^\nartup";
     /* Error if CFE_PSP_SetBootStructure returns error */
     char cMsg_error[] = "PSP: Could not save new boot structure\n";
     /* Error if inputs are NULL or too short */
     char cMsg_error1[] = "PSP: Provided startup script path is NULL or cannot be longer than 160 bytes\n";
     /* Error if CFE_PSP_GetBootStructure returns error */
     char cMsg_error2[] = "PSP: ERROR, could not read the boot structure\n";
+    /* Error if startup string is invalid */
+    char cMsg_error3[] = "PSP: the provided startup script does not pass validation\n";
 
+    UT_SetDataBuffer(UT_KEY(sysNvRamGet), boot_line, sizeof(boot_line), true);
 
     /* ----- Test case #1 - Nominal - non talkative ----- */
     /* Setup additional inputs */
@@ -392,8 +447,8 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(boot_string, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetBootStartupString() - 1/6: Nominal return code");
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetBootStartupString() - 1/6: Nominal no printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetBootStartupString() - 1/7: Nominal return code");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetBootStartupString() - 1/7: Nominal no printed messages");
 
     /* ----- Test case #2 - Nominal - talkative ----- */
     /* Setup additional inputs */
@@ -403,8 +458,8 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(boot_string, 1);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetBootStartupString() - 2/6: Nominal return code");
-    UtAssert_True(Ut_OS_printf_MsgCount() == 6, "_CFE_PSP_SetBootStartupString() - 2/6: Nominal talkative printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetBootStartupString() - 2/7: Nominal return code");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 4, "_CFE_PSP_SetBootStartupString() - 2/7: Nominal talkative printed messages");
 
     /* ----- Test case #3 - Error Input 1 ----- */
     /* Setup additional inputs */
@@ -412,8 +467,8 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(NULL, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 3/6: Error Input 1 return code");
-    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_SetBootStartupString() - 3/6: Error Input 1 printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 3/7: Error Input 1 return code");
+    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_SetBootStartupString() - 3/7: Error Input 1 printed messages");
 
     /* ----- Test case #4 - Error Input 2 ----- */
     /* Setup additional inputs */
@@ -421,8 +476,8 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(boot_string_too_long, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 4/6: Error Input 2 return code");
-    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_SetBootStartupString() - 4/6: Error Input 2 printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 4/7: Error Input 2 return code");
+    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_SetBootStartupString() - 4/7: Error Input 2 printed messages");
 
     /* ----- Test case #5 - Error GetBootStructure ----- */
     /* Setup additional inputs */
@@ -431,8 +486,8 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(boot_string, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 5/6: Error GetBootStructure return code");
-    UtAssert_OS_print(cMsg_error2, "_CFE_PSP_SetBootStartupString() - 5/6: Error GetBootStructure printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 5/7: Error GetBootStructure return code");
+    UtAssert_OS_print(cMsg_error2, "_CFE_PSP_SetBootStartupString() - 5/7: Error GetBootStructure printed messages");
 
     /* ----- Test case #6 - Error SetBootStructure ----- */
     /* Setup additional inputs */
@@ -442,8 +497,19 @@ void Ut_CFE_PSP_SetBootStartupString(void)
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStartupString(boot_string, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 6/6: Error SetBootStructure return code");
-    UtAssert_OS_print(cMsg_error, "_CFE_PSP_SetBootStartupString() - 6/6: Error SetBootStructure printed messages");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 6/7: Error SetBootStructure return code");
+    UtAssert_OS_print(cMsg_error, "_CFE_PSP_SetBootStartupString() - 6/7: Error SetBootStructure printed messages");
+
+    /* ----- Test case #7 - Invalid startup path ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    /* Execute test */
+    uiRetCode = CFE_PSP_SetBootStartupString(boot_string_invalid, 0);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_SetBootStartupString() - 7/7: Invalid startup path - return code");
+    UtAssert_OS_print(cMsg_error3, "_CFE_PSP_SetBootStartupString() - 7/7: Invalid startup path - printed messages");
 }
 
 /*=======================================================================================

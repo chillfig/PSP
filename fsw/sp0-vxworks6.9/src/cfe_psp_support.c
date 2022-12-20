@@ -30,6 +30,7 @@
 #include <ioLib.h>
 #include <unistd.h>
 #include <vxWorks.h>
+#include <ctype.h>
 #include <cacheLib.h>
 #include <rebootLib.h>
 #include <bootLib.h>
@@ -307,6 +308,61 @@ void CFE_PSP_ToggleCFSBootPartition(void)
     iRetCode = CFE_PSP_SetBootStartupString(cBootString, false);
 }
 
+/**
+ ** \func Validate a file path string
+ **
+ ** \par Description:
+ ** Function checks if the provided string represents a path up to the NULL character.
+ ** The function will not check if the file exists.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** The function only checks if the string contains characters within a specified
+ ** range of HEX values: [0x21, 0x7E].
+ ** 
+ ** \param[in] cPathBuffer
+ ** \param[in] uiBufferLength
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+static int32 CFE_PSP_ValidatePath(char *pPathBuffer, uint32 uiBufferLength)
+{
+    uint16_t index = 0;
+    char     cVal = 0;
+    uint8_t  uiRange[2] = {0x21, 0x7E};
+    int32    iRet_code = CFE_PSP_SUCCESS;
+
+    /* Make sure that the path is not NULL and that it is at least 1 character long */
+    if ((pPathBuffer == NULL) || (uiBufferLength <= 0))
+    {
+        iRet_code = CFE_PSP_ERROR;
+    }
+    else
+    {
+        /* Go through the whole array */
+        for (index = 0; index < uiBufferLength; index++)
+        {
+            cVal = pPathBuffer[index];
+
+            /* If the character is the end of the string, exit loop */
+            if (cVal == '\0')
+            {
+                break;
+            }
+
+            /* Validate that the character is within the wanted range */
+            if (!((cVal >= uiRange[0]) && (cVal <= uiRange[1])))
+            {
+                iRet_code = CFE_PSP_ERROR;
+                break;
+            }
+            
+        }
+    }
+
+    return iRet_code;
+}
+
 /**********************************************************
  * 
  * Function: CFE_PSP_GetBootStartupString
@@ -314,30 +370,31 @@ void CFE_PSP_ToggleCFSBootPartition(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, uint32 talkative)
+int32 CFE_PSP_GetBootStartupString(char *pStartupBootString, uint32 uiBufferSize, uint32 uiTalkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
     BOOT_PARAMS target_boot = {};
 
-    /* Check startupBootString length */
-    if ((startupBootString == NULL) || (bufferSize < BOOT_FILE_LEN))
+    /* Check StartupBootString length */
+    if ((pStartupBootString == NULL) || (uiBufferSize < BOOT_FILE_LEN))
     {
-        OS_printf("PSP: bufferSize too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
+        OS_printf("PSP: buffer size too small, it needs to be %d bytes\n", BOOT_FILE_LEN);
         iRet_code = CFE_PSP_ERROR;
     }
     else
     {
         /* Get target parameters */
-        if (CFE_PSP_GetBootStructure(&target_boot, talkative) == CFE_PSP_SUCCESS)
+        if (CFE_PSP_GetBootStructure(&target_boot, uiTalkative) == CFE_PSP_SUCCESS)
         {
-            /* Save startupScript to provided pointer, but no more than provided bufferSize */
-            strncpy(startupBootString, target_boot.startupScript, bufferSize);
-
-            /* If talkative is turned ON, print the boot structure startup boot string */
-            if (talkative > 0)
+            if (CFE_PSP_ValidatePath(target_boot.startupScript, BOOT_FILE_LEN) == CFE_PSP_SUCCESS)
             {
-                CFE_PSP_PrintBootParameters(&target_boot);
-                OS_printf("PSP: startupBootString [%d]: `%s`\n",(uint32)strlen(startupBootString), startupBootString);
+                /* Save startupScript to provided pointer, but no more than provided uiBufferSize */
+                strncpy(pStartupBootString, target_boot.startupScript, uiBufferSize);
+            }
+            else
+            {
+                OS_printf("PSP: the startup script from the Boot Line does not pass validation\n");
+                iRet_code = CFE_PSP_ERROR;
             }
         }
         else
@@ -357,15 +414,15 @@ int32 CFE_PSP_GetBootStartupString(char *startupBootString, uint32 bufferSize, u
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
+int32 CFE_PSP_SetBootStartupString(char *pStartupBootString, uint32 uiTalkative)
 {
     int32       iRet_code = CFE_PSP_SUCCESS;
     BOOT_PARAMS target_boot = {};
 
     /* Check startupBootString length */
     /* We don't need to check for minimum length because there might be a 
-    case when the startupScriptPath is just empty string */
-    if ((startupScriptPath == NULL) || (memchr(startupScriptPath, (int) NULL, BOOT_FILE_LEN) == NULL))
+    case when the StartupScriptPath is just an empty string */
+    if ((pStartupBootString == NULL) || (memchr(pStartupBootString, (int) NULL, BOOT_FILE_LEN) == NULL))
     {
         OS_printf("PSP: Provided startup script path is NULL or cannot be longer than %d bytes\n", BOOT_FILE_LEN);
         iRet_code = CFE_PSP_ERROR;
@@ -373,24 +430,24 @@ int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
     else
     {
         /* Get current parameters */
-        if (CFE_PSP_GetBootStructure(&target_boot, talkative) == CFE_PSP_SUCCESS)
+        if (CFE_PSP_GetBootStructure(&target_boot, uiTalkative) == CFE_PSP_SUCCESS)
         {
-            /* If talkative is turned ON, print the boot structure, and copied startup boot string */
-            if (talkative > 0)
+            if (CFE_PSP_ValidatePath(pStartupBootString, BOOT_FILE_LEN) == CFE_PSP_SUCCESS)
             {
-                CFE_PSP_PrintBootParameters(&target_boot);
+                /* Update local structure */
+                memcpy(target_boot.startupScript, pStartupBootString, BOOT_FILE_LEN);
+
+                /* Save new parameters to target */
+                iRet_code = CFE_PSP_SetBootStructure(target_boot, uiTalkative);
+                if (iRet_code == CFE_PSP_ERROR)
+                {
+                    OS_printf("PSP: Could not save new boot structure\n");
+                    CFE_PSP_PrintBootParameters(&target_boot);
+                }
             }
-
-            /* Update local structure */
-            memcpy(target_boot.startupScript, startupScriptPath, BOOT_FILE_LEN);
-
-            /* Save new parameters to target */
-            iRet_code = CFE_PSP_SetBootStructure(target_boot, talkative);
-
-            if (iRet_code != CFE_PSP_SUCCESS)
+            else
             {
-                OS_printf("PSP: Could not save new boot structure\n");
-                CFE_PSP_PrintBootParameters(&target_boot);
+                OS_printf("PSP: the provided startup script does not pass validation\n");
                 iRet_code = CFE_PSP_ERROR;
             }
         }
@@ -412,44 +469,42 @@ int32 CFE_PSP_SetBootStartupString(char *startupScriptPath, uint32 talkative)
  * Description: See function declaration for info
  *
  *********************************************************/
-void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
+void CFE_PSP_PrintBootParameters(BOOT_PARAMS *pTargetBootParameters)
 {
     OS_printf(
-        "[\n"
-        "bootDev: %s\n"
-        "hostName: %s\n"
-        "targetName: %s\n"
-        "ead: %s\n"
-        "bad: %s\n"
-        "had: %s\n"
-        "gad: %s\n"
-        "bootFile: %s\n",
-        target_boot_parameters->bootDev,
-        target_boot_parameters->hostName,
-        target_boot_parameters->targetName,
-        target_boot_parameters->ead,
-        target_boot_parameters->bad,
-        target_boot_parameters->had,
-        target_boot_parameters->gad,
-        target_boot_parameters->bootFile
+        "\tbootDev: %s\n"
+        "\thostName: %s\n"
+        "\ttargetName: %s\n"
+        "\tead: %s\n"
+        "\tbad: %s\n"
+        "\thad: %s\n"
+        "\tgad: %s\n"
+        "\tbootFile: %s\n",
+        pTargetBootParameters->bootDev,
+        pTargetBootParameters->hostName,
+        pTargetBootParameters->targetName,
+        pTargetBootParameters->ead,
+        pTargetBootParameters->bad,
+        pTargetBootParameters->had,
+        pTargetBootParameters->gad,
+        pTargetBootParameters->bootFile
     );
 
     OS_printf(
-        "startupScript: %s\n"
-        "usr: %s\n"
-        "passwd: %s\n"
-        "other: %s\n"
-        "procNum: %d\n"
-        "flags: %d\n"
-        "unitNum: %d\n"
-        "]\n",
-        target_boot_parameters->startupScript,
-        target_boot_parameters->usr,
-        target_boot_parameters->passwd,
-        target_boot_parameters->other,
-        target_boot_parameters->procNum,
-        target_boot_parameters->flags,
-        target_boot_parameters->unitNum
+        "\tstartupScript: %s\n"
+        "\tusr: %s\n"
+        "\tpasswd: %s\n"
+        "\tother: %s\n"
+        "\tprocNum: %d\n"
+        "\tflags: 0x%04X\n"
+        "\tunitNum: %d\n",
+        pTargetBootParameters->startupScript,
+        pTargetBootParameters->usr,
+        pTargetBootParameters->passwd,
+        pTargetBootParameters->other,
+        pTargetBootParameters->procNum,
+        pTargetBootParameters->flags,
+        pTargetBootParameters->unitNum
     );
 }
 
@@ -460,7 +515,7 @@ void CFE_PSP_PrintBootParameters(BOOT_PARAMS *target_boot_parameters)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talkative)
+int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *pTargetBootParameters, uint32 uiTalkative)
 {
     int32   iRet_code = CFE_PSP_ERROR;
     char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
@@ -470,9 +525,9 @@ int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talka
     if (sysNvRamGet(cBootString,MAX_BOOT_LINE_SIZE,0) == OK)
     {
         /* Convert boot string to structure */
-        pRet_code = bootStringToStruct(cBootString, target_boot_parameters);
+        pRet_code = bootStringToStruct(cBootString, pTargetBootParameters);
 
-        if (talkative > 0)
+        if (uiTalkative > 0)
         {
             OS_printf("PSP: Boot String:\n");
             OS_printf("`%s`\n",cBootString);
@@ -495,18 +550,18 @@ int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *target_boot_parameters, uint32 talka
  * Description: See function declaration for info
  *
  *********************************************************/
-int32 CFE_PSP_SetBootStructure(BOOT_PARAMS new_boot_parameters, uint32 talkative)
+int32 CFE_PSP_SetBootStructure(BOOT_PARAMS NewBootParameters, uint32 uiTalkative)
 {
     int32       iRet_code = CFE_PSP_ERROR;
     char        cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
 
     /* Convert new parameters to a single boot string */
-    if (bootStructToString(cBootString, &new_boot_parameters) == OK)
+    if (bootStructToString(cBootString, &NewBootParameters) == OK)
     {
         /* Save it back on target */
         if (sysNvRamSet(cBootString, (int)strlen(cBootString) + 1, 0) == OK)
         {
-            if (talkative > 0)
+            if (uiTalkative > 0)
             {
                 OS_printf("PSP: New Boot String:\n");
                 OS_printf("`%s`\n",cBootString);
@@ -584,6 +639,8 @@ int32 CFE_PSP_KernelLoadNew(char *pKernelPath, char *pKernelCatalogName)
     const uint32_t uiBufferSize = 0x1000000;
     /* RAM address where kernel will start from */
     const uint32_t uiRAMAddress = 0x00200000;
+
+    OS_printf("While loading a new Kernel into memory, all tasks and interrupts are suspended!");
 
     /* Create Buffer for kernel writing */
     if (CreateProgrammingBuffer(uiBufferSize) == OK)

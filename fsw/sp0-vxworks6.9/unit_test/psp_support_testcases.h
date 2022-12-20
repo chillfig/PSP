@@ -36,6 +36,7 @@ void Ut_CFE_PSP_GetProcessorId(void);
 void Ut_CFE_PSP_GetSpacecraftId(void);
 void Ut_CFE_PSP_GetProcessorName(void);
 void Ut_CFE_PSP_ToggleCFSBootPartition(void);
+void Ut_CFE_PSP_ValidatePath(void);
 void Ut_CFE_PSP_GetBootStartupString(void);
 void Ut_CFE_PSP_SetBootStartupString(void);
 void Ut_CFE_PSP_GetBootStructure(void);

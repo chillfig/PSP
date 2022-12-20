@@ -481,6 +481,10 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ToggleCFSBootPartition");
 
+    UtTest_Add(Ut_CFE_PSP_ValidatePath,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ValidatePath");
+
     UtTest_Add(Ut_CFE_PSP_SetBootStartupString,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_SetBootStartupString");

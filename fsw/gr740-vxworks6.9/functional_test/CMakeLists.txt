@@ -36,9 +36,9 @@ target_link_libraries(${FT_NAME}_ft
     evs
     fs
     gateway_msg
+    gateway_sb
     osal
     resourceid
-    sb
     sbr
     tbl
     time
