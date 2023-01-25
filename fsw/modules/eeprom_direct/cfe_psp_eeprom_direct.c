@@ -52,7 +52,6 @@ void eeprom_direct_Init(uint32 PspModuleId)
 */
 
 /*
- ** Name: CFE_PSP_EepromWrite32
  **
  ** Purpose:
  **
@@ -77,17 +76,16 @@ int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
     /* check 32 bit alignment  */
     if (MemoryAddress & 0x00000003)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        return CFE_PSP_ERROR_ADDRESS_MISALIGNED;
     }
 
     /* make the Write */
     *((uint32 *)MemoryAddress) = uint32Value;
 
-    return (ret_value);
+    return ret_value;
 }
 
 /*
- ** Name: CFE_PSP_EepromWrite16
  **
  ** Purpose:
  **
@@ -116,7 +114,7 @@ int32 CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
     */
     if (MemoryAddress & 0x00000001)
     {
-        return (CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+        return CFE_PSP_ERROR_ADDRESS_MISALIGNED;
     }
 
     temp32 = uint16Value;
@@ -176,11 +174,10 @@ int32 CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
     }
 #endif
 
-    return (CFE_PSP_EepromWrite32(aligned_address, write32));
+    return CFE_PSP_EepromWrite32(aligned_address, write32);
 }
 
 /*
- ** Name: CFE_PSP_EepromWrite8
  **
  ** Purpose:
  **
@@ -260,11 +257,10 @@ int32 CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue)
 
 #endif
 
-    return (CFE_PSP_EepromWrite16(aligned_address, write16));
+    return CFE_PSP_EepromWrite16(aligned_address, write16);
 }
 
 /*
-** Name: CFE_PSP_EepromWriteEnable
 **
 ** Purpose:
 **		Enable the eeprom for write operation
@@ -284,11 +280,10 @@ int32 CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue)
 */
 int32 CFE_PSP_EepromWriteEnable(uint32 Bank)
 {
-    return (CFE_PSP_SUCCESS);
+    return CFE_PSP_SUCCESS;
 }
 
 /*
-** Name: CFE_PSP_EepromWriteDisable
 **
 ** Purpose:
 **		Disable  the eeprom from write operation
@@ -308,11 +303,10 @@ int32 CFE_PSP_EepromWriteEnable(uint32 Bank)
 */
 int32 CFE_PSP_EepromWriteDisable(uint32 Bank)
 {
-    return (CFE_PSP_SUCCESS);
+    return CFE_PSP_SUCCESS;
 }
 
 /*
-** Name: CFE_PSP_EepromPowerUp
 **
 ** Purpose:
 **		Power up the eeprom
@@ -331,11 +325,10 @@ int32 CFE_PSP_EepromWriteDisable(uint32 Bank)
 */
 int32 CFE_PSP_EepromPowerUp(uint32 Bank)
 {
-    return (CFE_PSP_SUCCESS);
+    return CFE_PSP_SUCCESS;
 }
 
 /*
-** Name: CFE_PSP_EepromPowerDown
 **
 ** Purpose:
 **		Power down the eeprom
@@ -354,6 +347,6 @@ int32 CFE_PSP_EepromPowerUp(uint32 Bank)
 */
 int32 CFE_PSP_EepromPowerDown(uint32 Bank)
 {
-    return (CFE_PSP_SUCCESS);
+    return CFE_PSP_SUCCESS;
 }
 /* UndCC_End(*) */

@@ -172,7 +172,6 @@ void timebase_vxworks_Init(uint32 PspModuleId)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_GetTimerTicksPerSecond()
 **
 **  Purpose:
 **    Provides the resolution of the least significant 32 bits of the 64 bit
@@ -192,7 +191,6 @@ uint32 CFE_PSP_GetTimerTicksPerSecond(void)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_GetTimerLow32Rollover()
 **
 **  Purpose:
 **    Provides the number that the least significant 32 bits of the 64 bit
@@ -213,7 +211,6 @@ uint32 CFE_PSP_GetTimerLow32Rollover(void)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Get_Timebase()
 **
 **  Purpose:
 **    Provides a common interface to system timebase. This routine
@@ -236,7 +233,6 @@ void CFE_PSP_Get_Timebase(uint32 *Tbu, uint32 *Tbl)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_GetTime()
 **
 **  Purpose: Gets the value of the timebase from the hardware normalized as OS_time_t
 **

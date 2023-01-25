@@ -114,11 +114,11 @@ int32 CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec)
     iResult = clock_settime(CLOCK_REALTIME, &unixTime);
     if (iResult == OK)
     {
-        OS_printf(NTPSYNC_PRINT_SCOPE "Clock set");
+        OS_printf(NTPSYNC_PRINT_SCOPE "Clock set\n");
     }
     else
     {
-        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
+        OS_printf(NTPSYNC_PRINT_SCOPE "ERROR Clock not set\n");
         iReturnStatus = CFE_PSP_ERROR;
     }
 

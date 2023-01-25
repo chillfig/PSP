@@ -66,7 +66,6 @@
 extern CFE_PSP_MemoryBlock_t PcRtems_ReservedMemBlock;
 
 /******************************************************************************
-**  Function:  CFE_PSP_Restart()
 **
 **  Purpose:
 **    Provides a common interface to the processor reset.
@@ -80,14 +79,12 @@ extern CFE_PSP_MemoryBlock_t PcRtems_ReservedMemBlock;
 
 void CFE_PSP_Restart(uint32 reset_type)
 {
-
     CFE_PSP_FlushCaches(1, PcRtems_ReservedMemBlock.BlockPtr, PcRtems_ReservedMemBlock.BlockSize);
     OS_printf("CFE_PSP_Restart is not implemented on this platform ( yet ! )\n");
     exit(-1);
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Panic()
 **
 **  Purpose:
 **    Provides a common interface to abort the cFE startup process and return
@@ -107,7 +104,6 @@ void CFE_PSP_Panic(int32 ErrorCode)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_FlushCaches()
 **
 **  Purpose:
 **    Provides a common interface to flush the processor caches. This routine
@@ -129,7 +125,6 @@ void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 }
 
 /*
-** Name: CFE_PSP_GetProcessorId
 **
 ** Purpose:
 **         return the processor ID.
@@ -147,11 +142,10 @@ void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 */
 uint32 CFE_PSP_GetProcessorId(void)
 {
-    return (CFE_PSP_CPU_ID);
+    return CFE_PSP_CPU_ID;
 }
 
 /*
-** Name: CFE_PSP_GetSpacecraftId
 **
 ** Purpose:
 **         return the spacecraft ID.
@@ -167,11 +161,10 @@ uint32 CFE_PSP_GetProcessorId(void)
 */
 uint32 CFE_PSP_GetSpacecraftId(void)
 {
-    return (CFE_PSP_SPACECRAFT_ID);
+    return CFE_PSP_SPACECRAFT_ID;
 }
 
 /*
-** Name: CFE_PSP_GetProcessorName
 **
 ** Purpose:
 **         return the processor name.
@@ -187,5 +180,5 @@ uint32 CFE_PSP_GetSpacecraftId(void)
 */
 const char *CFE_PSP_GetProcessorName(void)
 {
-    return (CFE_PSP_CPU_NAME);
+    return CFE_PSP_CPU_NAME;
 }

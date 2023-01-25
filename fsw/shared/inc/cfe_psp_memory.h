@@ -92,7 +92,6 @@ typedef struct
     void * BlockPtr;
     /** \brief  Block Size  */
     size_t BlockSize;
-
 } CFE_PSP_MemoryBlock_t;
 
 /**
@@ -121,7 +120,6 @@ typedef struct
      ** that allow CFE applications to query the general system memory map.
      */
     CFE_PSP_MemTable_t SysMemoryTable[CFE_PSP_MEM_TABLE_SIZE];
-
 } CFE_PSP_ReservedMemoryMap_t;
 
 /**

@@ -24,7 +24,6 @@
 **
 **
 ******************************************************************************/
-#define _USING_RTEMS_INCLUDES_
 
 /*
 **  Include Files
@@ -89,7 +88,6 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 int timer_count = 0;
 
 /******************************************************************************
-**  Function:  CFE_PSP_Setup()
 **
 **  Purpose:
 **    Perform initial setup.
@@ -157,7 +155,6 @@ void OS_Application_Startup(void)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Main()
 **
 **  Purpose:
 **    Application entry point.

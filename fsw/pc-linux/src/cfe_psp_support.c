@@ -52,7 +52,6 @@ extern uint32 CFE_PSP_CpuId;
 extern char   CFE_PSP_CpuName[];
 
 /******************************************************************************
-**  Function:  CFE_PSP_Restart()
 **
 **  Purpose:
 **    Provides a common interface to the processor reset.
@@ -115,7 +114,6 @@ void CFE_PSP_Restart(uint32 reset_type)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_Panic()
 **
 **  Purpose:
 **    Provides a common interface to abort the cFE startup process and return
@@ -136,7 +134,6 @@ void CFE_PSP_Panic(int32 ErrorCode)
 }
 
 /******************************************************************************
-**  Function:  CFE_PSP_FlushCaches)
 **
 **  Purpose:
 **    Provides a common interface to flush the processor caches. This routine
@@ -154,7 +151,6 @@ void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 }
 
 /*
-** Name: CFE_PSP_GetProcessorId
 **
 ** Purpose:
 **         return the processor ID.
@@ -172,11 +168,10 @@ void CFE_PSP_FlushCaches(uint32 type, void *address, uint32 size)
 */
 uint32 CFE_PSP_GetProcessorId(void)
 {
-    return (CFE_PSP_CpuId);
+    return CFE_PSP_CpuId;
 }
 
 /*
-** Name: CFE_PSP_GetSpacecraftId
 **
 ** Purpose:
 **         return the spacecraft ID.
@@ -192,11 +187,10 @@ uint32 CFE_PSP_GetProcessorId(void)
 */
 uint32 CFE_PSP_GetSpacecraftId(void)
 {
-    return (CFE_PSP_SpacecraftId);
+    return CFE_PSP_SpacecraftId;
 }
 
 /*
-** Name: CFE_PSP_GetProcessorName
 **
 ** Purpose:
 **         return the processor name.
@@ -212,5 +206,5 @@ uint32 CFE_PSP_GetSpacecraftId(void)
 */
 const char *CFE_PSP_GetProcessorName(void)
 {
-    return (CFE_PSP_CpuName);
+    return CFE_PSP_CpuName;
 }
