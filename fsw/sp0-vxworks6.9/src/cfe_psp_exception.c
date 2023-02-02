@@ -509,7 +509,10 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
                  /* Embedded floating-point round (inexact) exception enable */
                  /* _PPC_SPEFSCR_FINXE |  */
                  /* Embedded floating-point underflow exception enable */
-                 _PPC_SPEFSCR_FUNFE
+                 _PPC_SPEFSCR_FUNFE | 
+                 /* Integer overflow. An overflow occurred in the lower half of the register
+                 while a SPE integer instruction is being executed. */
+                 _PPC_SPEFSCR_OV
     );
 }
 
