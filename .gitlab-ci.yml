@@ -1,11 +1,22 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^[Dd][Rr][Aa][Ff][Tt]/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: always
+    - when: never
+
+
 variables:
   WORKSPACE: "$CI_PROJECT_DIR"
 
 stages:
-  - test
+  - trigger_cert_testbed
 
 TriggerBranch:
-  stage: test
+  stage: trigger_cert_testbed
   variables:
      SRC_BRANCH: $CI_COMMIT_REF_NAME
      SRC_SUB: $CI_PROJECT_NAME
