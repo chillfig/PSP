@@ -116,6 +116,22 @@ static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 
+/**
+ ** \brief User Reserved Memory Header
+ ** 
+ ** \par Description:
+ ** This header is written on the SP0 simulated NVRAM. It contains the signature
+ ** "URM" for identification followed by the number of bytes required to recover
+ ** the EDR and BOOT structures.
+ */
+typedef struct {
+    /* Signature for identification */
+    char signature[3];
+
+    /* Size of EDR and BOOT structure */
+    int32 size;
+} CFE_PSP_URM_EDR_t;
+
 /*
 ** Local Function Prototypes
 */
@@ -130,38 +146,33 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 int32   CFE_PSP_LoadFromNVRAM(void)
 {
     int32       iStatus = OK;
-    int32       iRet_code = CFE_PSP_SUCCESS;
+    int32       iRet_code = CFE_PSP_ERROR;
     int32       iURM_size = 0;
     int32       edr_size = 0;
     const int32 boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    const int32 urm_pack_size = 7;
+    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
     const char  urm_word[] = "URM";
     uint32      num_exceptions_in_urm = 0;
-
-    /* URM Signature is defined as { 'U', 'R', 'M', 0x00, 0x00, 0x00, 0x00 } */
-    char    urm_signature[7] = {'\0'};
+    CFE_PSP_URM_EDR_t urm_header = {"\n", 0x00};
 
     /* Copy URM signature and size in local memory */
-    iStatus = userNvRamGet(urm_signature, urm_pack_size, 0);
+    iStatus = userNvRamGet((char *)&urm_header, urm_pack_size, 0);
 
     if (iStatus == OK)
     {
         /* Check if there is the URM word in memory. This allows to skip loading in case NVRAM is empty. */
-        if (memcmp(urm_word, urm_signature, 3) == 0)
+        if (memcmp(urm_word, urm_header.signature, 3) == 0)
         {
             /* Extract URM size from signature */
-            memcpy(&iURM_size, (urm_signature + 3), sizeof(iURM_size));
+            iURM_size = urm_header.size;
 
             /* Prints the Signature Pack for debugging */
             OS_printf(PSP_EXCEP_PRINT_SCOPE 
-                    "URM Signature Pack found {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n",
-                    urm_signature[0],
-                    urm_signature[1],
-                    urm_signature[2],
-                    urm_signature[3],
-                    urm_signature[4],
-                    urm_signature[5],
-                    urm_signature[6]
+                    "URM Header found {0x%02X 0x%02X 0x%02X} with size 0x%08X\n",
+                    urm_header.signature[0],
+                    urm_header.signature[1],
+                    urm_header.signature[2],
+                    urm_header.size
             );
 
             if (iURM_size >= boot_size)
@@ -188,35 +199,32 @@ int32   CFE_PSP_LoadFromNVRAM(void)
                             iURM_size,
                             num_exceptions_in_urm
                     );
+                    iRet_code = CFE_PSP_SUCCESS;
                 }
                 else
                 {
                     OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n");
-                    iRet_code = CFE_PSP_ERROR;
                 }
             }
             else
             {
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM signature found but data is empty\n");
-                iRet_code = CFE_PSP_ERROR;
+                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Header found but data is empty\n");
             }
         }
         else
         {
             /* This section occurs when the NVRAM has not been initialized, or
             the data is corrupted. */
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "No URM Signature Pack found {0x%02X 0x%02X 0x%02X}\n", 
-                      urm_signature[0],
-                      urm_signature[1],
-                      urm_signature[2]
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "No URM Header found {0x%02X 0x%02X 0x%02X}\n", 
+                      urm_header.signature[0],
+                      urm_header.signature[1],
+                      urm_header.signature[2]
             );
-            iRet_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Signature Pack\n");
-        iRet_code = CFE_PSP_ERROR;
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Header\n");
     }
 
     return iRet_code;
@@ -231,13 +239,12 @@ int32   CFE_PSP_LoadFromNVRAM(void)
  *********************************************************/
 int32   CFE_PSP_SaveToNVRAM(void)
 {
-    int32       iStatus = OK;
-    int32       iRet_code = CFE_PSP_SUCCESS;
-    char        urm_signature_pack[7] = { 'U', 'R', 'M', 0x00, 0x00, 0x00, 0x00 };
-    const int32 urm_pack_size = sizeof(urm_signature_pack);
-    int32       iURM_size = 0;
-    int32       edr_size = 0;
-    int32       boot_size = 0;
+    int32             iStatus = OK;
+    int32             iRet_code = CFE_PSP_ERROR;
+    CFE_PSP_URM_EDR_t urm_signature_pack = {"URM", 0x00};
+    const int32       urm_pack_size = sizeof(urm_signature_pack);
+    const int32       edr_size = sizeof(CFE_PSP_ExceptionStorage_t);
+    const int32       boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
 
     /* Assign the urm size pointer */
 
@@ -245,30 +252,24 @@ int32   CFE_PSP_SaveToNVRAM(void)
     Get the size of ED&R structure and save it in the signature pack.
     The structure is defined in cfe_psp_exceptionstorage_types.h
     */
-    edr_size = (int32) sizeof(CFE_PSP_ExceptionStorage_t);
-    boot_size = (int32) sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    iURM_size = edr_size + boot_size;
-    memcpy((urm_signature_pack + 3), &iURM_size, sizeof(iURM_size));
-
+    urm_signature_pack.size = edr_size + boot_size;
+    
     /* Prints the Signature Pack for debugging */
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Signature Pack {0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}\n", 
-              urm_signature_pack[0],
-              urm_signature_pack[1],
-              urm_signature_pack[2],
-              urm_signature_pack[3],
-              urm_signature_pack[4],
-              urm_signature_pack[5],
-              urm_signature_pack[6]);
+    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Header {0x%02X 0x%02X 0x%02X} with size 0x%08X\n", 
+              urm_signature_pack.signature[0],
+              urm_signature_pack.signature[1],
+              urm_signature_pack.signature[2],
+              urm_signature_pack.size);
 
     /* Save the URM signature and size in memory */
-    iStatus = userNvRamSet(urm_signature_pack, urm_pack_size, 0);
+    iStatus = userNvRamSet((char *)&urm_signature_pack, urm_pack_size, 0);
     
     if (iStatus == OK)
     {
-        /* Save the URM data to EEPROM */
+        /* Save the Boot URM data to EEPROM */
         iStatus = userNvRamSet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
 
-        /* Save the URM data to EEPROM */
+        /* Save the EDR URM data to EEPROM */
         iStatus = userNvRamSet(
                   (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
                   edr_size,
@@ -277,18 +278,17 @@ int32   CFE_PSP_SaveToNVRAM(void)
 
         if (iStatus == OK)
         {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Data to EEPROM (%u bytes)\n", iURM_size);
+            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saved URM Data to EEPROM (%u bytes)\n", urm_signature_pack.size);
+            iRet_code = CFE_PSP_SUCCESS;
         }
         else
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Data\n");
-            iRet_code = CFE_PSP_ERROR;
         }
     }
     else
     {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Signature\n");
-        iRet_code = CFE_PSP_ERROR;
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Header\n");
     }
 
     return iRet_code;
@@ -304,11 +304,11 @@ int32   CFE_PSP_SaveToNVRAM(void)
  *********************************************************/
 int32   CFE_PSP_ClearNVRAM(void)
 {
-    int32   iRet_code = CFE_PSP_SUCCESS;
-    char    urm_signature_pack[7] = {'\0'};
+    int32             iRet_code = CFE_PSP_SUCCESS;
+    CFE_PSP_URM_EDR_t urm_signature_pack = {"", 0x00};
 
     /* Write to EEPROM */
-    if(userNvRamSet(urm_signature_pack, sizeof(urm_signature_pack), 0) != OK)
+    if(userNvRamSet((char *) &urm_signature_pack, sizeof(urm_signature_pack), 0) != OK)
     {
         iRet_code = CFE_PSP_ERROR;
     }

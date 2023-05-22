@@ -172,11 +172,11 @@ extern "C" {
  **
  ** \par Limits:
  ** This value is the total length of the active partition max length plus
- ** the failed startup failname.
+ ** the failed startup failname plus one character separator and one null character.
  **
  */
 #define CFE_PSP_FAILED_STARTUP_FULLPATH_LENGTH \
-                        CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
+                        CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH + CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 2
 
 /**
  ** \brief Define the file name of the boot startup script

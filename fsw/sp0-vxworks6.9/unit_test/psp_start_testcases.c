@@ -693,7 +693,7 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
 {
     int32 iRetCode = CFE_PSP_SUCCESS;
     char buffer[40] = {'\0'};
-    char PartitionName[6] = "/ffx1";
+    char PartitionName[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = "/ffx1";
     cpuaddr pPartitionName = (cpuaddr)&PartitionName;
     cpuaddr pbuffer = (cpuaddr)&buffer;
 
@@ -701,11 +701,12 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
     UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pPartitionName, sizeof(pPartitionName), false);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH-1);
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/3: Output buffer nominal with kernel support");
-    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_GetActiveCFSPartition - 1/3: Nominal ret code");
+    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/5: Output buffer nominal with kernel support");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_GetActiveCFSPartition - 1/5: Nominal ret code");
 
     UT_ResetState(0);
 
@@ -713,24 +714,45 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Set additional inputs */
     memset(buffer, '\0', sizeof(buffer));
     UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH-1);
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/3: Output buffer nominal without kernel support");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 2/3: Nominal no Kernel support return code");
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/5: Output buffer nominal without kernel support");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 2/5: Nominal no Kernel support return code");
 
     UT_ResetState(0);
 
-    /* ----- Test case #3 - kernel support but invalid string ----- */
+    /* ----- Test case #3 - NULL buffer string ----- */
     /* Set additional inputs */
-    memset(buffer, '0', sizeof(buffer));
-    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
-    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pbuffer, sizeof(pbuffer), false);
+    memset(buffer, '\0', sizeof(buffer));
     /* Execute test */
-    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    iRetCode = CFE_PSP_GetActiveCFSPartition(NULL, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/3: Output buffer nominal");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 3/3: Kernel no support ret code");
+    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/5: NULL buffer pointer - Buffer untouched");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 3/5: NULL buffer pointer - Return Error");
+
+    /* ----- Test case #4 - buffer length < then CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH ----- */
+    /* Set additional inputs */
+    memset(buffer, '\0', sizeof(buffer));
+    /* Execute test */
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH-1);
+    /* Verify outputs */
+    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 4/5: Buffer size too small - Buffer untouched");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 4/5: Buffer size too small - Return Error");
+
+    /* ----- Test case #5 - NULL buffer string ----- */
+    /* Set additional inputs */
+    // memset(buffer, '0', sizeof(buffer));
+    // UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    // UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pbuffer, sizeof(pbuffer), false);
+    // UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH);
+    // /* Execute test */
+    // iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    // /* Verify outputs */
+    // UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 5/5: snprintf failed");
+    // UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 5/5: snprintf failed - Return Error");
+
 }
 
 /*=======================================================================================

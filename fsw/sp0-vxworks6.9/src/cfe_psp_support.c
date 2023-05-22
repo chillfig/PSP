@@ -388,8 +388,14 @@ int32 CFE_PSP_GetBootStartupString(char *pStartupBootString, uint32 uiBufferSize
         {
             if (CFE_PSP_ValidatePath(target_boot.startupScript, BOOT_FILE_LEN) == CFE_PSP_SUCCESS)
             {
+                /*
+                REF: https://pubs.opengroup.org/onlinepubs/9699919799/functions/snprintf.html
+                "...output bytes beyond the n-1st shall be discarded instead of being written to the array, 
+                and a null byte is written at the end of the bytes actually written into the array."
+                */
+
                 /* Save startupScript to provided pointer, but no more than provided uiBufferSize */
-                strncpy(pStartupBootString, target_boot.startupScript, uiBufferSize);
+                snprintf(pStartupBootString, uiBufferSize, "%s", target_boot.startupScript);
             }
             else
             {
@@ -435,7 +441,7 @@ int32 CFE_PSP_SetBootStartupString(char *pStartupBootString, uint32 uiTalkative)
             if (CFE_PSP_ValidatePath(pStartupBootString, BOOT_FILE_LEN) == CFE_PSP_SUCCESS)
             {
                 /* Update local structure */
-                memcpy(target_boot.startupScript, pStartupBootString, BOOT_FILE_LEN);
+                snprintf(target_boot.startupScript, sizeof(target_boot.startupScript), "%s", pStartupBootString);
 
                 /* Save new parameters to target */
                 iRet_code = CFE_PSP_SetBootStructure(target_boot, uiTalkative);
@@ -553,13 +559,18 @@ int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *pTargetBootParameters, uint32 uiTalk
 int32 CFE_PSP_SetBootStructure(BOOT_PARAMS NewBootParameters, uint32 uiTalkative)
 {
     int32       iRet_code = CFE_PSP_ERROR;
+    const char *pEnd = NULL;
     char        cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
 
     /* Convert new parameters to a single boot string */
     if (bootStructToString(cBootString, &NewBootParameters) == OK)
     {
+        /* If boot scruct to string returns OK, it means that the string is valid,
+        and also NULL terminated, thus no need to check for pEnd = NULL */
+        pEnd = (const char *)memchr(cBootString, EOS, MAX_BOOT_LINE_SIZE);
+
         /* Save it back on target */
-        if (sysNvRamSet(cBootString, (int)strlen(cBootString) + 1, 0) == OK)
+        if (sysNvRamSet(cBootString, (int)((pEnd - cBootString) + 1), 0) == OK)
         {
             if (uiTalkative > 0)
             {

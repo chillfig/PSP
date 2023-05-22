@@ -2559,7 +2559,7 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     /* Additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 5);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Error creating path\n");
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, -5);
     errno = 3;
@@ -2573,6 +2573,7 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     /* Additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 5);
     UT_SetDeferredRetcode(UT_KEY(snprintf), 1, 0);
     sprintf(cMsg, MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: ERROR: %d\n", -5);
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
@@ -2595,7 +2596,6 @@ void Ut_CFE_PSP_GenerateFilepath(void)
     UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
     /* Execute test */
     iReturnCode = CFE_PSP_GenerateFilepath(99);
-    printf("MATT: tc 4 - return code: %d\n", iReturnCode);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 4/5: Invalid memory selection - return code");
     UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath - 4/5: Invalid memory selection - message");

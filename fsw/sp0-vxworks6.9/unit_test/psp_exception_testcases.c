@@ -283,12 +283,15 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     int32   iRetCode = 0;
     char    cMsg_good[256] = {'\0'};
     char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n";
-    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "No URM Signature Pack found {0x00 0x00 0x00}\n";
-    char    cMsg_bad3[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Signature Pack\n";
-    char    cMsg_bad4[] = PSP_EXCEP_PRINT_SCOPE "URM signature found but data is empty\n";
+    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "No URM Header found {0x00 0x00 0x00}\n";
+    char    cMsg_bad3[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Header\n";
+    char    cMsg_bad4[] = PSP_EXCEP_PRINT_SCOPE "URM Header found but data is empty\n";
 
     char    urm_word[] = "URM";
     int     urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+
+    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
+    CFE_PSP_URM_EDR_t urm_header = {"URM", urm_data_size};
 
     uint8   localURMBuffer[urm_data_size];
     memset(localURMBuffer, 0x00, urm_data_size);
@@ -301,52 +304,49 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
-    /* Write the EDR signature */
-    memcpy(nvram, urm_word, 3);
-    /* Write the EDR data size */
-    memcpy(nvram + 3, &urm_data_size, 4);
+    /* Write the URM Header */
+    memcpy(nvram, (char *)&urm_header, urm_pack_size);
     UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/4: Nominal - URM Data Recovered - Message");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/4: Nominal - Return Code");
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/5: Nominal - URM Data Recovered - Message");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/5: Nominal - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #1.5 - Recovered BootPtr but not Exceptions ----- */
+    /* ----- Test case #2 - Recovered BootPtr but not Exceptions ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
-    /* Write the EDR signature */
-    memcpy(nvram, urm_word, 3);
-    /* Write the EDR data size */
-    memcpy(nvram + 3, &urm_data_size, 4);
+    /* Write the URM Header */
+    memcpy(nvram, (char *)&urm_header, urm_pack_size);
     UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 2, OK);
     UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, ERROR);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 1.5/4: No exceptions recovered - Error Return Code");
+    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/5: No exceptions recovered - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 2/5: No exceptions recovered - Error Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #2 - EDR found but data size is zero ----- */
+    /* ----- Test case #3 - EDR found but data size is zero ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
-    /* Write the EDR signature */
-    memcpy(nvram, urm_word, 3);
+    /* Write the URM Header */
+    urm_header.size = 0;
+    memcpy(nvram, (char *)&urm_header, urm_pack_size);
     UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad4, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 2/4: Error URM Data - Return Code");
+    UtAssert_OS_print(cMsg_bad4, "_Ut_CFE_PSP_LoadFromNVRAM() - 3/5: Error URM Data - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 3/5: Error URM Data - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #3 - Error EDR Signature ----- */
+    /* ----- Test case #4 - Error EDR Signature ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
     /* Write the EDR data size */
@@ -355,20 +355,20 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_LoadFromNVRAM() - 3/4: Error URM Signature - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 3/4: Error URM Signature - Return Code");
+    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_LoadFromNVRAM() - 4/5: Error URM Header - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 4/5: Error URM Header - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #4 - Error userNvRamGet ----- */
+    /* ----- Test case #5 - Error userNvRamGet ----- */
     /* Setup additional inputs */
     memset(nvram,0x00,sizeof(nvram));
     UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), ERROR);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad3, "_Ut_CFE_PSP_LoadFromNVRAM() - 4/4: Error userNvRamGet - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 4/4: Error userNvRamGet - Return Code");
+    UtAssert_OS_print(cMsg_bad3, "_Ut_CFE_PSP_LoadFromNVRAM() - 5/5: Error userNvRamGet - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 5/5: Error userNvRamGet - Return Code");
 }
 
 /*=======================================================================================
@@ -380,18 +380,21 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     char    cMsg_good[256] = {'\0'};
     char    cMsg_urmpack[256] = {'\0'};
     char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Data\n";
-    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Signature\n";
+    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Header\n";
 
     uint32  urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+
+    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
+    CFE_PSP_URM_EDR_t urm_header = {"URM", urm_data_size};
 
     uint8   localURMBuffer[sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t)];
     memset(localURMBuffer, 0x00, (int)urm_data_size);
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
 
-    snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "Saving URM Data to EEPROM (%u bytes)\n", urm_data_size);
+    snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "Saved URM Data to EEPROM (%u bytes)\n", urm_data_size);
     snprintf(cMsg_urmpack,
              256,
-             PSP_EXCEP_PRINT_SCOPE "Saving URM Signature Pack {0x55 0x52 0x4D 0x00 0x00 0x05 0xF8}\n"
+             PSP_EXCEP_PRINT_SCOPE "Saving URM Header {0x55 0x52 0x4D} with size 0x000005F8\n"
     );
 
     Ut_OS_printf_Setup();
@@ -401,10 +404,9 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_SaveToNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: URM Pack Signature - Message");
+    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: URM Pack Header - Message");
     UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - URM Data Saved - Message");
     UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - Return Code");
-    
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -415,7 +417,7 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_SaveToNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: URM Pack Signature - Message");
+    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: URM Pack Header - Message");
     UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error URM Data - Message");
     UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error - Return Code");
 
@@ -427,8 +429,8 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
     /* Execute test */
     iRetCode = CFE_PSP_SaveToNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: URM Pack Signature - Message");
-    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: userNvRamSet error URM Signature - Message");
+    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: URM Pack Header - Message");
+    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: userNvRamSet error URM Header - Message");
     UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: Nominal - Return Code");
 }
 

@@ -1297,7 +1297,7 @@ static int32 CFE_PSP_GetMemArea(cpuaddr *p_area, uint32 *p_size, MEMORY_SECTION_
  ** Read data to a specific reserved memory section
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** No assumptions can be made in the type of data that is being copied
  **
  ** \param[out] p_data - Data buffer to receive data read from RAM
  ** \param[in] offset - Data offset for read location
@@ -1368,7 +1368,8 @@ static int32 CFE_PSP_ReadFromRAM(const void *p_data, uint32 offset, uint32 size,
 
             pCopyPtr = memBlock.BlockPtr;
             pCopyPtr += offset;
-            memcpy((char *)p_data, pCopyPtr, size);
+            /* Copy binary data to provided buffer */
+            memcpy((void *)p_data, pCopyPtr, size);
         }
     }
 
@@ -1382,7 +1383,7 @@ static int32 CFE_PSP_ReadFromRAM(const void *p_data, uint32 offset, uint32 size,
  ** Write data to a specific reserved memory section
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** No assumptions can be made in the type of data that is being copied
  **
  ** \param[in] p_data - Data to write to RAM
  ** \param[in] offset - Data offset for write location
@@ -1470,7 +1471,7 @@ static int32 CFE_PSP_WriteToRAM(const void *p_data, uint32 offset, uint32 size, 
             ** Compare the original and user changed data. If no changes,
             ** don't do anything
             */
-            if (memcmp((char *)pCopyPtr, (char *)p_data, size) != 0)
+            if (memcmp(pCopyPtr, p_data, size) != 0)
             {
                 /* Overwrite memory (RAM) block */
                 iStatus = OS_BinSemTake(osidBinSem);
@@ -1482,7 +1483,8 @@ static int32 CFE_PSP_WriteToRAM(const void *p_data, uint32 offset, uint32 size, 
                 }
                 else
                 {
-                    memcpy(pCopyPtr, (char *)p_data, size);
+                    /* Copy binary data to RAM */
+                    memcpy(pCopyPtr, p_data, size);
                     *p_bUpdateFlag = true;
                     iStatus = OS_BinSemGive(osidBinSem);
                     if (iStatus != OS_SUCCESS)

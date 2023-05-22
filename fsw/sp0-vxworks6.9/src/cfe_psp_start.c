@@ -635,32 +635,62 @@ int32 CFE_PSP_StartupClear(void)
  *********************************************************/
 int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size)
 {
-    int32   iReturn_code = CFE_PSP_ERROR;
+    int32   iReturn_code = CFE_PSP_SUCCESS;
+    int32   iSymbol_found = CFE_PSP_ERROR;
+    int32   iNumChar = 0;
     cpuaddr pAddressActiveFlashPartitionName = 0;
-    char    cFallback_partition_name[] = "/ffx0";
+    char    cFallback_partition_name[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = "/ffx0";
 
-    iReturn_code = OS_SymbolLookup(&pAddressActiveFlashPartitionName, "address_of_active_flash_partition_name");
-    if ((iReturn_code == OS_SUCCESS) && (pAddressActiveFlashPartitionName != 0))
+    /*
+    If the pBuffer is NULL and the buffer size is less than the maximum
+    length of the active partition length, then return error.
+    Note that the buffer can be longer, but not shorted than CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH
+    */
+    if ((pBuffer == NULL) || (uBuffer_size < CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH))
     {
-        /* Validate String */
-        if (memchr((void *)pAddressActiveFlashPartitionName, EOS, 6) != NULL)
+        iReturn_code = CFE_PSP_ERROR;
+    }
+
+    /* If the ouput string is proper, attempt to find the symbol */
+    if (iReturn_code == CFE_PSP_SUCCESS)
+    {
+        /* Assume failure */
+        iReturn_code = CFE_PSP_ERROR;
+
+        /* Find symbol in the kernel symbol table */
+        iSymbol_found = OS_SymbolLookup(&pAddressActiveFlashPartitionName, "address_of_active_flash_partition_name");
+
+        /* If symbol is found and the variable contains an end of string NULL character, return success */
+        if ((iSymbol_found == OS_SUCCESS) && (pAddressActiveFlashPartitionName != 0))
+        {
+            if (memchr((void *)pAddressActiveFlashPartitionName, EOS, 6) != NULL)
+            {
+                iReturn_code = CFE_PSP_SUCCESS;
+            }
+        }
+
+        /*
+        REF: https://pubs.opengroup.org/onlinepubs/9699919799/functions/snprintf.html
+        "...output bytes beyond the n-1st shall be discarded instead of being written to the array, 
+        and a null byte is written at the end of the bytes actually written into the array."
+        */
+        /* If no errors found, copy string to local buffer */
+        if (iReturn_code == CFE_PSP_SUCCESS)
         {
             /* Copy kernel string to pBuffer */
-            strncpy(pBuffer, (char *)pAddressActiveFlashPartitionName, uBuffer_size);
-            iReturn_code = CFE_PSP_SUCCESS;
+            iNumChar = snprintf(pBuffer, uBuffer_size, "%s", (char *)pAddressActiveFlashPartitionName);
         }
         else
         {
             /* Copy fallback string to pBuffer */
-            strncpy(pBuffer, cFallback_partition_name, uBuffer_size);
+            iNumChar = snprintf(pBuffer, uBuffer_size, "%s", cFallback_partition_name);
+        }
+        
+        /* Check that snprintf did not encounter issues */
+        if ((iNumChar <= 0) || (iNumChar >= uBuffer_size))
+        {
             iReturn_code = CFE_PSP_ERROR;
         }
-    }
-    else
-    {
-        /* Copy fallback string to pBuffer */
-        strncpy(pBuffer, cFallback_partition_name, uBuffer_size);
-        iReturn_code = CFE_PSP_ERROR;
     }
 
     return iReturn_code;
@@ -687,11 +717,12 @@ int32 CFE_PSP_StartupTimer(void)
     */
     g_StartupInfo.timerID = OS_OBJECT_ID_UNDEFINED;
     g_StartupInfo.uMaxWaitTime_sec = CFE_PSP_STARTUP_MAX_WAIT_TIME_SEC;
-    strncpy(g_StartupInfo.failed_startup_filename, 
-            CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME,
-            sizeof(g_StartupInfo.failed_startup_filename)
+    snprintf(g_StartupInfo.failed_startup_filename,
+            sizeof(g_StartupInfo.failed_startup_filename),
+            "%s",
+            CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME
     );
-    strncpy(g_StartupInfo.timer_name, "STARTUP_TIMER", sizeof(g_StartupInfo.timer_name));
+    snprintf(g_StartupInfo.timer_name, sizeof(g_StartupInfo.timer_name), "%s", "STARTUP_TIMER");
     snprintf(
         g_StartupInfo.fullpath_failed_startup_filename,
         sizeof(g_StartupInfo.fullpath_failed_startup_filename),

@@ -222,7 +222,7 @@ int32 CFE_PSP_SP0CollectStaticInfo(void)
     iStatus = aimonGetBITExecuted(&ulBitExecuted, 0);
     if (iStatus == OS_SUCCESS)
     {
-        memcpy(&g_SP0StaticInfoTable.bitExecuted, &ulBitExecuted, sizeof(g_SP0StaticInfoTable.bitExecuted));
+        g_SP0StaticInfoTable.bitExecuted = ulBitExecuted;
     }
     else
     {
@@ -234,7 +234,7 @@ int32 CFE_PSP_SP0CollectStaticInfo(void)
     iStatus = aimonGetBITResults(&ulBitResult, 0);
     if (iStatus == OS_SUCCESS)
     {
-        memcpy(&g_SP0StaticInfoTable.bitResult, &ulBitResult, sizeof(g_SP0StaticInfoTable.bitResult));
+        g_SP0StaticInfoTable.bitResult = ulBitResult;
     }
     else
     {

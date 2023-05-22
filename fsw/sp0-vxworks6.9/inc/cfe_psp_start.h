@@ -130,13 +130,18 @@ int32 CFE_PSP_StartupClear(void);
  ** currently active CFS partition.
  ** If variable is not available, function will assume a single Flash partition 
  ** and fallback to "/ffx0".
- ** Return code only refers to the availability of the kernel variable.
+ ** Note that an error returned code could mean the following:
+ ** - Null buffer (No changes to pBuffer)
+ ** - Too small buffer size (No changes to pBuffer)
+ ** - Kernel support variable does not a null terminating character
+ **   (pBuffer will contain the fallback string)
+ ** - No Kernel support variable (pBuffer will contain the fallback string)
  ** 
  ** \param[out] pBuffer - Pointer to the buffer that will receive the string
  ** \param[in] uBuffer_size - Maximum size of the buffer
  ** 
  ** \return #CFE_PSP_SUCCESS - when Kernel has symbol
- ** \return #CFE_PSP_ERROR - when Kernel does not have support
+ ** \return #CFE_PSP_ERROR - See note
  */
 int32 CFE_PSP_GetActiveCFSPartition(char *pBuffer, uint32 uBuffer_size);
 

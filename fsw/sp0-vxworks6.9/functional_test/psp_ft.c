@@ -137,6 +137,8 @@ void PSP_FT_Run(void)
 
     /* Run functional test */
     PSP_FT_Start();
+
+    PSP_FT_SendEndTestEvent();
 }
 
 /* Setup environment */
@@ -218,8 +220,6 @@ void PSP_FT_Start(void)
               "Passed: %u - "
               "Failed: %u\n",
               cnt_pass, cnt_fail);
-
-    PSP_FT_SendEndTestEvent();
 }
 
 void ft_support(void)
@@ -462,6 +462,7 @@ void ft_start(void)
     uint32_t    last_reset_type;
     char        buffer[256];
     int32_t     ret_code;
+    int32       iReturn_code = CFE_PSP_SUCCESS;
 
     OS_printf("[START]\n");
 
@@ -474,9 +475,16 @@ void ft_start(void)
 
     /* Get Active CFS Partition */
     memset(buffer,'\0', sizeof(buffer));
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    iReturn_code = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     memset(buffer,(int32_t) NULL, sizeof(buffer));
+    FT_Assert_True(iReturn_code == CFE_PSP_SUCCESS,"CFE_PSP_GetActiveCFSPartition returned success")
     FT_Assert_True(memchr(buffer, (int32_t) NULL, sizeof(buffer)) != NULL,"CFE_PSP_GetActiveCFSPartition returned a string")
+
+    iReturn_code = CFE_PSP_GetActiveCFSPartition(NULL, sizeof(buffer));
+    FT_Assert_True(iReturn_code == CFE_PSP_ERROR,"CFE_PSP_GetActiveCFSPartition returned error")
+
+    iReturn_code = CFE_PSP_GetActiveCFSPartition(buffer, CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH-1);
+    FT_Assert_True(iReturn_code == CFE_PSP_ERROR,"CFE_PSP_GetActiveCFSPartition returned error")
 
     /* CFE_PSP_StartupTimer, CFE_PSP_StartupFailedRestartSP0_hook, CFE_PSP_StartupClear */
     CFE_PSP_StartupTimer();

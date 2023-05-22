@@ -37,3 +37,4 @@ void ft_watchdog(void);
 void PSP_FT_Setup(void);
 void PSP_FT_Run(void);
 void PSP_FT_Start(void);
+void PSP_FT_SendEndTestEvent(void);

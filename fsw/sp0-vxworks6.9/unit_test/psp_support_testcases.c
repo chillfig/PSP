@@ -271,7 +271,7 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
     /* Execute test */
     CFE_PSP_ToggleCFSBootPartition();
     /* Verify outputs */
-    UtAssert_STUB_COUNT(PCS_snprintf, 0);
+    UtAssert_STUB_COUNT(PCS_snprintf, 1);
     UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
     UtAssert_STUB_COUNT(sysNvRamGet, 1);
     UtAssert_STUB_COUNT(sysNvRamSet, 1);
@@ -289,7 +289,7 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
     /* Execute test */
     CFE_PSP_ToggleCFSBootPartition();
     /* Verify outputs */
-    UtAssert_STUB_COUNT(PCS_snprintf, 1);
+    UtAssert_STUB_COUNT(PCS_snprintf, 2);
     UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
     UtAssert_STUB_COUNT(sysNvRamGet, 1);
     UtAssert_STUB_COUNT(sysNvRamSet, 1);
