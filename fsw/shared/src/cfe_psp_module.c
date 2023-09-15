@@ -65,6 +65,7 @@
  ** \brief Number of Modules
  */
 static uint32 CFE_PSP_ConfigPspModuleListLength = 0;
+static uint32 CFE_PSP_StandardPspModuleListLength = 0;
 
 /**
  ** \func Initialize a list of Modules
@@ -122,10 +123,9 @@ uint32_t CFE_PSP_ModuleInitList(uint32 BaseId, CFE_StaticModuleLoadEntry_t *List
 void CFE_PSP_ModuleInit(void)
 {
     /* First initialize the fixed set of modules for this PSP */
-    CFE_PSP_ModuleInitList(CFE_PSP_INTERNAL_MODULE_BASE, CFE_PSP_BASE_MODULE_LIST);
+    CFE_PSP_StandardPspModuleListLength = CFE_PSP_ModuleInitList(CFE_PSP_INTERNAL_MODULE_BASE, CFE_PSP_BASE_MODULE_LIST);
 
     /* Then initialize any user-selected extension modules */
-    /* Only these modules can be used with CFE_PSP_Module_GetAPIEntry or CFE_PSP_Module_FindByName */
     CFE_PSP_ConfigPspModuleListLength = CFE_PSP_ModuleInitList(CFE_PSP_MODULE_BASE, GLOBAL_CONFIGDATA.PspModuleList);
 }
 
@@ -144,11 +144,24 @@ int32 CFE_PSP_Module_GetAPIEntry(uint32 PspModuleId, CFE_PSP_ModuleApi_t **API)
     Result = CFE_PSP_INVALID_MODULE_ID;
     if ((PspModuleId & ~CFE_PSP_MODULE_INDEX_MASK) == CFE_PSP_MODULE_BASE)
     {
-        LocalId = PspModuleId & CFE_PSP_MODULE_INDEX_MASK;
-        if (LocalId < CFE_PSP_ConfigPspModuleListLength)
+        /* Last 256 enteries are for internal modules */
+        if((PspModuleId & CFE_PSP_MODULE_INDEX_MASK) >= 0xFF00 )
         {
-            *API   = (CFE_PSP_ModuleApi_t *)GLOBAL_CONFIGDATA.PspModuleList[LocalId].Api;
-            Result = CFE_PSP_SUCCESS;
+            LocalId = PspModuleId & 0xFF;
+            if (LocalId < CFE_PSP_StandardPspModuleListLength)
+            {
+                *API   = (CFE_PSP_ModuleApi_t *)CFE_PSP_BASE_MODULE_LIST[LocalId].Api;
+                Result = CFE_PSP_SUCCESS;
+            }
+        }
+        else
+        {
+            LocalId = PspModuleId & CFE_PSP_MODULE_INDEX_MASK;
+            if (LocalId < CFE_PSP_ConfigPspModuleListLength)
+            {
+                *API   = (CFE_PSP_ModuleApi_t *)GLOBAL_CONFIGDATA.PspModuleList[LocalId].Api;
+                Result = CFE_PSP_SUCCESS;
+            }
         }
     }
 
@@ -170,23 +183,38 @@ int32 CFE_PSP_Module_FindByName(const char *ModuleName, uint32 *PspModuleId)
 
     Entry  = GLOBAL_CONFIGDATA.PspModuleList;
     Result = CFE_PSP_INVALID_MODULE_NAME;
-    i      = 0;
 
     if ((ModuleName != NULL) && (PspModuleId != NULL))
     {   
-        if (Entry != NULL)
+        /* Check global list */
+        i = 0;
+        while (i < CFE_PSP_ConfigPspModuleListLength)
         {
-            i = 0;
-            while (i < CFE_PSP_ConfigPspModuleListLength)
+            if (strcmp(Entry->Name, ModuleName) == 0)
             {
-                if (strncmp(Entry->Name, ModuleName, CFE_PSP_MODULE_NAME_MAX_LENGTH) == 0)
+                *PspModuleId = CFE_PSP_MODULE_BASE | (i & CFE_PSP_MODULE_INDEX_MASK);
+                Result       = CFE_PSP_SUCCESS;
+                break;
+            }
+            ++Entry;
+            ++i;
+        }
+
+        /* Check internal list */
+        if (Result != CFE_PSP_SUCCESS)
+        {
+            Entry = CFE_PSP_BASE_MODULE_LIST;
+            i     = 0;
+            while (i < CFE_PSP_StandardPspModuleListLength)
+            {
+                if (strcmp(Entry->Name, ModuleName) == 0)
                 {
-                    *PspModuleId = CFE_PSP_MODULE_BASE | (i & CFE_PSP_MODULE_INDEX_MASK);
+                    *PspModuleId = CFE_PSP_INTERNAL_MODULE_BASE | (i & CFE_PSP_MODULE_INDEX_MASK);
                     Result       = CFE_PSP_SUCCESS;
                     break;
                 }
                 ++Entry;
-                ++i;
+               ++i;
             }
         }
     }

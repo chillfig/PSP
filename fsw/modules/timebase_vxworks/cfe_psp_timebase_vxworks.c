@@ -277,5 +277,5 @@ void CFE_PSP_GetTime(OS_time_t *LocalTime)
         *LocalTime = (OS_time_t) {NormalizedTicks};
     }
 
-} /* end CFE_PSP_GetLocalTime */
+}
 /* UndCC_End(*) */

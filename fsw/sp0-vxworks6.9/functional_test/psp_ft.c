@@ -51,6 +51,8 @@
 
 #include "psp_ft.h"
 
+#include "iodriver_base.h"
+#include "iodriver_analog_io.h"
 #define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
 
 /* Global count of pass and fail */
@@ -210,6 +212,8 @@ void PSP_FT_Start(void)
     ft_exception();
 
     ft_watchdog();
+
+    ft_sysmon();
 
     /* End CPU Activity Function */
     spyClkStop();
@@ -910,4 +914,65 @@ void ft_watchdog(void)
     FT_Assert_True(i == iter_max, "Watchdog survived %u pulses of %u msec", iter_max, wd_time_ms)
 
     OS_printf("[WATCHDOG END]\n\n");
+}
+
+/**
+ ** \brief Test functionality of Vxworks Sysmon
+ */
+void ft_sysmon(void)
+{
+    /* Initialize Variables */
+    uint32 SysMonPspModuleId;
+    int32  CpuUtilValue;
+    CFE_PSP_IODriver_Location_t    Location;
+    CFE_PSP_IODriver_AdcCode_t     Sample   = 0;
+    CFE_PSP_IODriver_AnalogRdWr_t  RdWr     = {.NumChannels = 1, .Samples = &Sample};
+    CFE_Status_t                   StatusCode;
+
+    OS_printf("[VXWORKS_SYSTEM_MONITOR]\n");
+
+    /* Nominal Use Case first*/
+    /* Check if vxworks_sysmon module is available. */
+    StatusCode = CFE_PSP_IODriver_FindByName("vxworks_sysmon", &SysMonPspModuleId);
+    FT_Assert_True((CFE_PSP_IODriver_FindByName("vxworks_sysmon", &SysMonPspModuleId) == CFE_PSP_SUCCESS),
+                    "%s is available - using PSP device ID %08lx\n","vxworks_sysmon", (unsigned long)SysMonPspModuleId);
+
+    /* Set the subsystem and subchannel Id to be 0 ('aggregate' and 'cpu-load') */
+    Location.PspModuleId = SysMonPspModuleId;
+    Location.SubchannelId = 0;
+    Location.SubsystemId = 0;
+
+    /* Start the vxworks sysmon task */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_SET_RUNNING,
+                    CFE_PSP_IODriver_U32ARG(1)) == CFE_PSP_SUCCESS), 
+                    "Starting device %08lx\n", (unsigned long)Location.PspModuleId);
+    /* Check that the Subsystem exists */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_LOOKUP_SUBSYSTEM,
+                    CFE_PSP_IODriver_CONST_STR("aggregate")) == CFE_PSP_SUCCESS), 
+                    "Found the SubSystem => \'%s\'\n", "aggregate");
+    /* Check that the Subchannel exists */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_LOOKUP_SUBCHANNEL,
+                    CFE_PSP_IODriver_CONST_STR("cpu-load")) == CFE_PSP_SUCCESS), 
+                    "Found the SubChannel \'%s\'\n", "cpu-load");
+
+    /* Check if the module is running */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_GET_RUNNING,
+                    CFE_PSP_IODriver_U32ARG(1)) == 1), 
+                    "VxWorks System Monitor is running.\n");
+
+    /* Get CPU Utilizations */
+    StatusCode = CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_ANALOG_IO_READ_CHANNELS, CFE_PSP_IODriver_VPARG(&RdWr));
+    /* Calculate the actual value */
+    CpuUtilValue = ((Sample >> 8) * 10000) / 0xFFFF;
+    FT_Assert_True(StatusCode == CFE_PSP_SUCCESS, 
+                   "Current CPU Utilization is %ld. The value is 0 because there are no apps running during the functional test.\n",(long)CpuUtilValue);
+
+    /* Stop the vxworks sysmon task */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_SET_RUNNING,
+                    CFE_PSP_IODriver_U32ARG(0)) == CFE_PSP_SUCCESS), 
+                    "Stopping device %08lx\n", (unsigned long)SysMonPspModuleId);
+    /* Check if the module has stopped running */
+    FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_GET_RUNNING, 
+                    CFE_PSP_IODriver_U32ARG(1)) == 0), 
+                    "VxWorks System Monitor is not running.\n");
 }

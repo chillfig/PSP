@@ -80,7 +80,7 @@ void Ut_CFE_PSP_SetOSTime(void)
     ts_nsec = 1;
     BASE_ts_nsec = ts_nsec;
     UT_SetDeferredRetcode(UT_KEY(clock_settime), 1, OK);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "Clock set");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "Clock set\n");
     /* Execute test */
     return_status = CFE_PSP_SetOSTime(ts_sec, ts_nsec);
     /* Verify results */
@@ -98,7 +98,7 @@ void Ut_CFE_PSP_SetOSTime(void)
     ts_nsec = 1;
     BASE_ts_nsec = ts_nsec;
     UT_SetDeferredRetcode(UT_KEY(clock_settime), 1, CFE_PSP_ERROR);
-    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR Clock not set");
+    sprintf(cMsg, NTPSYNC_PRINT_SCOPE "ERROR Clock not set\n");
     /* Execute test */
     return_status = CFE_PSP_SetOSTime(ts_sec, ts_nsec);
     /* Verify results */

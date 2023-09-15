@@ -44,37 +44,34 @@
 #include "cfe_psp.h"
 #include "psp_version.h"
 
-/**********************************************************
- * 
- * Function: CFE_PSP_GetVersionString
- * 
- * Description: See function declaration for info
+/*----------------------------------------------------------------
  *
- *********************************************************/
+ *  Purpose: Implemented per public PSP API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
 const char *CFE_PSP_GetVersionString(void)
 {
     return CFE_PSP_IMPL_VERSION;
 }
 
-/**********************************************************
- * 
- * Function: CFE_PSP_GetVersionCodeName
- * 
- * Description: See function declaration for info
+/*----------------------------------------------------------------
  *
- *********************************************************/
+ *  Purpose: Implemented per public PSP API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
 const char *CFE_PSP_GetVersionCodeName(void)
 {
     return CFE_PSP_IMPL_CODENAME;
 }
 
-/**********************************************************
- * 
- * Function: CFE_PSP_GetVersionNumber
- * 
- * Description: See function declaration for info
+/*----------------------------------------------------------------
  *
- *********************************************************/
+ *  Purpose: Implemented per public PSP API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
 void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
 {
     VersionNumbers[0] = CFE_PSP_IMPL_MAJOR_VERSION;
@@ -83,13 +80,12 @@ void CFE_PSP_GetVersionNumber(uint8 VersionNumbers[4])
     VersionNumbers[3] = CFE_PSP_IMPL_MISSION_REV;
 }
 
-/**********************************************************
- * 
- * Function: CFE_PSP_GetBuildNumber
- * 
- * Description: See function declaration for info
+/*----------------------------------------------------------------
  *
- *********************************************************/
+ *  Purpose: Implemented per public PSP API
+ *           See description in API and header file for detail
+ *
+ *-----------------------------------------------------------------*/
 uint32 CFE_PSP_GetBuildNumber(void)
 {
     return CFE_PSP_IMPL_BUILD_NUMBER;

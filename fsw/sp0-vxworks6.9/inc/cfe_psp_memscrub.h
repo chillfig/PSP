@@ -298,7 +298,7 @@ int32  CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize
 ** on startup and running in Idle or Timed Mode, function will starts the Mem Scrub task.
 **
 ** \par Assumptions, External Events, and Notes:
-** The scrubMemory function implemented by AiTech may never return an error.
+** None
 **
 ** \param None
 **
@@ -369,7 +369,7 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** memory error statistics
  **
  ** \par Assumptions, External Events, and Notes:
- ** TBD what these individual values truly represent
+ ** None
  **
  ** \param[out] pErrStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
  ** \param[in] iErrSize - Size of the memory array pointed by pStatus

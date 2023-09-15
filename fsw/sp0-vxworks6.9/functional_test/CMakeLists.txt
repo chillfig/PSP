@@ -48,6 +48,8 @@ target_link_libraries(${FT_NAME}_ft
     psp_module_api
     soft_timebase
     timebase_vxworks
+    iodriver
+    vxworks_sysmon
     psp-${CFE_PSP_TARGETNAME}-impl
     psp-${CFE_PSP_TARGETNAME}-shared
     )

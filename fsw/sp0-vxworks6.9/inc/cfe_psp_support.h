@@ -82,7 +82,7 @@ int32 CFE_PSP_GetBootStartupString(char *pStartupBootString, uint32 uiBufferSize
  ** \warning This function cannot be verified using bootChange() command on the shell.
  ** bootChange() command will remove the changes applied by the PSP API.
  ** 
- ** \param[in] pStartupBootString
+ ** \param[in] pStartupBootString -Pointer to the filename with absolute path of the startup string
  ** \param[in] uiTalkative - If true, print out the boot parameter structure
  **
  ** \return #CFE_PSP_SUCCESS
@@ -151,11 +151,11 @@ int32 CFE_PSP_SetBootStructure(BOOT_PARAMS NewBootParameters, uint32 uiTalkative
  ** On a SP0 there are 2 catalogs. If there are no errors, the first catalog is 
  ** exactly the same as the second catalog.
  ** 
- ** \param[in] pCatalogEntryName - Name of the catalog entry
+ ** \param[in] pCatalogEntryName - Name pointer of the catalog entry
  ** \param[in] bFirstCatalog - Get from first Catalog (TRUE == 1,  FALSE == 0)
  **
  ** \return 0 - When the Kernel is not found or bad inputs
- ** \return CRC
+ ** \return CRC - Checksum for catalog entry name 
  */
 uint32 CFE_PSP_KernelGetCRC(char *pCatalogEntryName, bool bFirstCatalog);
 

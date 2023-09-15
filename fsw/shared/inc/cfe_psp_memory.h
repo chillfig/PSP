@@ -281,7 +281,9 @@ int32 CFE_PSP_WriteToVOLATILEDISK(const void *p_data, uint32 offset, uint32 size
  ** Read the specified data from the specified memory area of the VOLATILEDISK.
  ** 
  ** \par Assumptions, External Events, and Notes:
- ** Assume that data read here is correct
+ ** Memory Scrubbing only fixes 1 error per block, and no more than that. 
+ ** In case there are more than 1 errors in the RMA memory used by the User Reserved Memory, 
+ ** reading using CFE_PSP_ReadFromVOLATILEDISK will produce incorrect data.
  **
  ** \param[in] p_data - Pointer to store read data
  ** \param[in] offset - Memory offset from the beginning of the memory block
@@ -386,4 +388,4 @@ extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
 ** \} <!-- End of group "psp_public_api" -->
 */
 
-#endif /* CFE_PSP_MEMORY_H */
+#endif

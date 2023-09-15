@@ -122,7 +122,7 @@ int32 CFE_PSP_CreateFile(char *fname);
 bool CFE_PSP_CheckFile(char *fname);
 
 /**
- ** \brief Create a directory
+ ** \func Create a directory
  **
  ** \par Description:
  ** Create a directory

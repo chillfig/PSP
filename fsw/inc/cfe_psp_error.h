@@ -65,7 +65,6 @@ typedef char CFE_PSP_StatusString_t[CFE_PSP_STATUS_STRING_LENGTH];
  */
 char *CFE_PSP_StatusToString(CFE_PSP_Status_t status, CFE_PSP_StatusString_t *status_string);
 
-/* Error and return codes */
 /** \name Error and return codes */
 /** \{ */
 #define CFE_PSP_SUCCESS                  (CFE_PSP_STATUS_C(0))   /**< \brief  Success */

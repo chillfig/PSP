@@ -70,6 +70,8 @@
 ** \{
 */
 
+#include "cfe_psp_error.h"
+
 /*
 ** Macro Definitions
 */
@@ -237,10 +239,6 @@ void  CFE_PSP_GetTime(OS_time_t *LocalTime);
 ** the boot startup string and let the CFE code handle it.
 ** \n
 ** By default, the restart function is called with the BOOT_CLEAR option.
-**
-** TODO: Need to evaluate if resetControl(0,0,1) would be a better option
-**
-** TODO: Need to evaluate if resetControl(0,0,1) would be a better option
 **
 ** \param[in] resetType - Type of cFE reset
 **                        #CFE_PSP_RST_TYPE_POWERON
@@ -1036,10 +1034,9 @@ int32  CFE_PSP_MemSet(void *dest, uint8 value, uint32 size);
 **
 ** \return #CFE_PSP_SUCCESS - Memory range and type information is valid and can be used.
 ** \return #CFE_PSP_INVALID_MEM_ADDR - Starting address is not valid
-** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not 
-**                                     match the passed in type.
-** \return #CFE_PSP_INVALID_MEM_RANGE - The Memory range associated with the address is not
-**                                      large enough to contain Address+Size.
+** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match the passed in type.                               
+** \return #CFE_PSP_INVALID_MEM_RANGE - The Memory range associated with the address is not large enough.
+**                                      
 */
 int32  CFE_PSP_MemValidateRange(cpuaddr Address, size_t Size, uint32 MemoryType);
 
@@ -1082,12 +1079,10 @@ uint32  CFE_PSP_MemRanges(void);
 **
 ** \return #CFE_PSP_SUCCESS - Memory range set successfully
 ** \return #CFE_PSP_INVALID_MEM_RANGE - The index into the table is invalid
-** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match
-**                                     the passed in type.
-** \return #CFE_PSP_INVALID_MEM_WORDSIZE - The WordSize parameter is not one of the 
-**                                         types.
-** \return #CFE_PSP_INVALID_MEM_ATTR - The Attributes parameter is not one of the 
-**                                     predefined types.
+** \return #CFE_PSP_INVALID_MEM_TYPE - Memory type associated with the range does not match the passed in type.                              
+** \return #CFE_PSP_INVALID_MEM_WORDSIZE - The WordSize parameter is not one of the predefined types.                            
+** \return #CFE_PSP_INVALID_MEM_ATTR - The Attributes parameter is not one of the predefined types. 
+**                                     
 */
 int32  CFE_PSP_MemRangeSet(uint32 RangeNum, uint32 MemoryType, cpuaddr StartAddr,
                            size_t Size, size_t WordSize, uint32 Attributes);
@@ -1313,4 +1308,4 @@ uint32 CFE_PSP_GetBuildNumber(void);
 ** \} <!-- End of group "psp_public_api" -->
 */
 
-#endif  /* _cfe_psp_ */
+#endif

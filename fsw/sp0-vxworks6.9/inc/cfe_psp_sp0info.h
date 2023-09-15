@@ -258,7 +258,7 @@ int32 CFE_PSP_SP0DumpData(void);
 int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path);
 
 /**
- ** \brief Lock ROM1
+ ** \func Lock ROM1
  **
  ** \par Description:
  ** Function that will lock ROM1
@@ -275,7 +275,7 @@ int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path);
 int32 CFE_PSP_SP0ROM1Lock(void);
 
 /**
- ** \brief Unlock ROM1
+ ** \func Unlock ROM1
  **
  ** \par Description:
  ** Function that will unlock ROM1
@@ -292,7 +292,7 @@ int32 CFE_PSP_SP0ROM1Lock(void);
 int32 CFE_PSP_SP0ROM1Unlock(void);
 
 /**
- ** \brief Lock ROM2
+ ** \func Lock ROM2
  **
  ** \par Description:
  ** Function that will lock ROM2
@@ -309,7 +309,7 @@ int32 CFE_PSP_SP0ROM1Unlock(void);
 int32 CFE_PSP_SP0ROM2Lock(void);
 
 /**
- ** \brief Unlock ROM2
+ ** \func Unlock ROM2
  **
  ** \par Description:
  ** Function that will unlock ROM2
@@ -326,7 +326,7 @@ int32 CFE_PSP_SP0ROM2Lock(void);
 int32 CFE_PSP_SP0ROM2Unlock(void);
 
 /**
- ** \brief Get ROM1 Lock/Unlock Status
+ ** \func Get ROM1 Lock/Unlock Status
  **
  ** \par Description:
  ** Function will return LOCK/UNLOCK status of ROM1
@@ -342,7 +342,7 @@ int32 CFE_PSP_SP0ROM2Unlock(void);
 bool CFE_PSP_SP0ROM1Status(void);
 
 /**
- ** \brief Get ROM2 Lock/Unlock Status
+ ** \func Get ROM2 Lock/Unlock Status
  **
  ** \par Description:
  ** Function will return LOCK/UNLOCK status of ROM2

@@ -358,7 +358,7 @@ int32  CFE_PSP_MemScrubDisable(void);
  ** memory error statistics
  **
  ** \par Assumptions, External Events, and Notes:
- ** TBD what these individual values truly represent
+ ** None
  **
  ** \param[out] pErrStats - Pointer to CFE_PSP_MemScrubErrStats_t structure
  ** \param[in] iErrSize - Size of the memory array pointed by pStatus

@@ -17,10 +17,14 @@ int32_t get_file_content(char *filename, char *buffer, uint16_t buffer_size);
 bool check_range_value(float current_value, float right_value, PSP_FT_VALUE_TYPE_t vt, float positive_value, float negative_value);
 
 extern CFE_PSP_ModuleApi_t CFE_PSP_timebase_vxworks_API;
+extern CFE_PSP_ModuleApi_t CFE_PSP_iodriver_API;
+extern CFE_PSP_ModuleApi_t CFE_PSP_vxworks_sysmon_API;
 
 CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] =
 {
     { .Name = "timebase_vxworks", .Api = &CFE_PSP_timebase_vxworks_API },
+    { .Name = "iodriver", .Api = &CFE_PSP_iodriver_API },
+    { .Name = "vxworks_sysmon", .Api = &CFE_PSP_vxworks_sysmon_API },
     {NULL}
 };
 
@@ -38,3 +42,4 @@ void PSP_FT_Setup(void);
 void PSP_FT_Run(void);
 void PSP_FT_Start(void);
 void PSP_FT_SendEndTestEvent(void);
+void ft_sysmon(void);

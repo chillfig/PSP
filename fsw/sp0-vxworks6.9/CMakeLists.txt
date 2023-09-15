@@ -54,3 +54,5 @@ target_include_directories(psp-${CFE_PSP_TARGETNAME}-impl PRIVATE
     $<TARGET_PROPERTY:core_api,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:time,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+target_compile_options(ut_coverage_compile INTERFACE -D_POSIX_C_SOURCE -D_VX_CPU=CPU)
