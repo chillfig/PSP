@@ -44,7 +44,7 @@ extern "C" {
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
-#define CFE_PSP_IMPL_MINOR_VERSION 8
+#define CFE_PSP_IMPL_MINOR_VERSION 9
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
 #define CFE_PSP_IMPL_REVISION      0
 

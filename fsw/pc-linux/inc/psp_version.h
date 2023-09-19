@@ -34,7 +34,7 @@
  * Version Macros, see \ref cfsversions for definitions.
  */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1  /*!< @brief Major version number */
-#define CFE_PSP_IMPL_MINOR_VERSION 4  /*!< @brief Minor version number */
+#define CFE_PSP_IMPL_MINOR_VERSION 5  /*!< @brief Minor version number */
 #define CFE_PSP_IMPL_REVISION      99 /*!< @brief Revision version number. Value of 99 indicates a development version.*/
 
 /*!
