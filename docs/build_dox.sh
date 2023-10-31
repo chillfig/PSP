@@ -4,7 +4,7 @@
 # NOTE: This shell script must run from the app's "docs" directory.
 # -------------------------------------------------------------------------------
 
-#lcAPP=psp_sp0-vxworks6.9
+
 RED="\e[31m"
 GREEN="\e[32m"
 LBLUE="\e[94m"
@@ -88,12 +88,16 @@ function update_refman()
 
 function do_pdf()
 {
-    do_html && \
-    update_refman && \
-    cd latex && \
-    make && \
-    mv refman.pdf ../$ucAPP\_sdd_s5.pdf && \
-    cd .. && \
+    do_s5 
+    ./gen_tables.sh 
+}
+
+# -------------------------------------------------------------------------------
+
+function do_s5()
+{
+    do_html
+    ./html_to_pdf.sh psp 
     rm -rf latex
 }
 
@@ -123,9 +127,14 @@ elif [ "$1" == "pdf" ]; then
     do_pdf && rm -rf html
 elif [ "$1" == "all" ]; then
     do_pdf
+elif [ "$1" == "s5" ]; then 
+    do_s5
 else
     echo -e EXAMPLE_RUN
 fi
+
+echo -e "\nDocs built for $ucAPP\nwith Hash:" 
+git rev-parse HEAD 
 
 # -------------------------------------------------------------------------------
 

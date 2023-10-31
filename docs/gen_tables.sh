@@ -43,8 +43,8 @@ function gen_tables_from_doxygen_comments()
     python3 gen_api_tbls.py psp $SW_DIR/fsw/shared/inc/cfe_psp_timesync.h "Time Sync" && \
     mv cfe_PSP_timesync.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_timesync.pdf
 
-    echo -e "\n2. Remove un-needed files\n"
-    rm -f *.docx
+    
+    mv -f *.docx $SW_DIR/docs
 }
 
 # -------------------------------------------------------------------------------------
