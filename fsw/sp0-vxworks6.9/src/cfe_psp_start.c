@@ -722,7 +722,7 @@ int32 CFE_PSP_StartupTimer(void)
             "%s",
             CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME
     );
-    snprintf(g_StartupInfo.timer_name, sizeof(g_StartupInfo.timer_name), "%s", "STARTUP_TIMER");
+    snprintf(g_StartupInfo.timer_name, sizeof(g_StartupInfo.timer_name), "%s", CFE_PSP_STARTUP_TIMER_NAME);
     snprintf(
         g_StartupInfo.fullpath_failed_startup_filename,
         sizeof(g_StartupInfo.fullpath_failed_startup_filename),

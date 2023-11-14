@@ -63,6 +63,16 @@ extern "C" {
 #define PSP_STARTUP_TIMER_PRINT_SCOPE                     "PSP Startup: "
 
 /**
+ ** \brief Default PSP StartupTimer Name 
+ ** \par Description:
+ ** This string copied into timer_name field of g_StartupInfo.
+*/
+#define CFE_PSP_STARTUP_TIMER_NAME                      "STARTUP_TIMER"
+
+/** \brief Verify that the timer name is within required length */
+CompileTimeAssert(sizeof(CFE_PSP_STARTUP_TIMER_NAME) <= OS_MAX_API_NAME, CFE_PSP_STARTUP_TIMER_NAME_TOO_LONG);
+
+/**
 ** \func Output POST results
 **
 ** \par Description:

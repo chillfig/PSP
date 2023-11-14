@@ -31,7 +31,7 @@ void iodriver_Init(uint32 PspModuleId)
 
     for (i = 0; i < CFE_PSP_IODRIVER_LOCK_TABLE_SIZE; ++i)
     {
-        snprintf(TempName, sizeof(TempName), "DriverMutex-%02u", (unsigned int)(i + 1));
+        snprintf(TempName, sizeof(TempName), CFE_PSP_DRIVER_MUTEX_NAME, (unsigned int)(i + 1));
         OS_MutSemCreate(&CFE_PSP_IODriver_Mutex_Table[i], TempName, 0);
     }
 }
