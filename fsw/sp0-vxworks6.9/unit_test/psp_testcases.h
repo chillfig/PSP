@@ -32,6 +32,8 @@
 #include "psp_sp0_info_testcases.h"
 #include "psp_ntp_testcases.h"
 #include "psp_flash_testcases.h"
+#include "psp_vxworks_sysmon_testcases.h"
+#include "psp_ping_testcases.h"
 
 /*=======================================================================================
 ** External Global Variable Declarations

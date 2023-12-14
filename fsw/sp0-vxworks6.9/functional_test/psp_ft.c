@@ -48,6 +48,7 @@
 #include "cfe_psp_timesync.h"
 #include "cfe_psp_verify.h"
 #include "psp_version.h"
+#include "cfe_psp_ping.h"
 
 #include "psp_ft.h"
 
@@ -59,6 +60,22 @@
 uint16_t cnt_tests = 0;
 uint16_t cnt_pass = 0;
 uint16_t cnt_fail = 0;
+
+/* Global helper variables for Ping */
+PSP_Ping_Stats_t  g_PingResult1     = {{0}};
+PSP_Ping_Stats_t  g_PingResult2     = {{0}};
+PSP_Ping_Stats_t  g_PingResult3     = {{0}};
+uint32            g_retVal_P1       = PSP_PING_IGNORE;
+uint32            g_retVal_P2       = PSP_PING_IGNORE;
+uint32            g_retVal_P3       = PSP_PING_IGNORE;
+const char        g_cTestIPs[5][IP_MAX_ADDRESS_LEN] = 
+                                                {
+                                                    "192.168.22.129", /* IP of Rig 1 - ACSSL */
+                                                    "192.168.22.131", /* IP of simhost4 - ACSSL */
+                                                    "192.168.22.140", /* Unknown IP */
+                                                    "192.168.22.000",
+                                                    "localhost"
+                                                };
 
 /* Helper functions */
 bool check_file_exists(char *filename)
@@ -214,6 +231,8 @@ void PSP_FT_Start(void)
     ft_watchdog();
 
     ft_sysmon();
+
+    ft_ping();
 
     /* End CPU Activity Function */
     spyClkStop();
@@ -975,4 +994,138 @@ void ft_sysmon(void)
     FT_Assert_True((CFE_PSP_IODriver_Command(&Location, CFE_PSP_IODriver_GET_RUNNING, 
                     CFE_PSP_IODriver_U32ARG(1)) == 0), 
                     "VxWorks System Monitor is not running.\n");
+}
+
+/**
+ ** \brief Test functionality of Ping Library
+ */
+static void PingTask1(void)
+{
+    OS_printf("\tStart Task 1 for Ping.\n");
+    OS_TaskDelay(500);
+    g_retVal_P1 = CFE_PSP_SinglePing(g_cTestIPs[0], 5000, &g_PingResult1);
+    OS_printf("\tEnd Task 1 for Ping.\n");
+}
+
+static void PingTask2(void)
+{
+    OS_printf("\tStart Task 2 for Ping.\n");
+    OS_TaskDelay(100);
+    g_retVal_P2 = CFE_PSP_SinglePing(g_cTestIPs[1], 5000, &g_PingResult2);
+    OS_printf("\tEnd Task 2 for Ping.\n");
+}
+
+static void PingTask3(void)
+{
+    OS_printf("\tStart Task 3 for Ping.\n");
+    g_retVal_P3 = CFE_PSP_SinglePing(g_cTestIPs[2], 5000, &g_PingResult3);
+    OS_printf("\tEnd Task 3 for Ping.\n");
+}
+
+void ft_ping(void)
+{
+    /* Ping Functional Test Starts Here */
+    OS_printf("[PING]\n");
+
+    /* Initialize Variables */
+    PSP_Ping_Stats_t  TimeResult     = {{0}};
+    uint16            usTimeoutValue = 5000;
+    PSP_Ping_Result_t retVal         = PSP_PING_TIMEOUT_ERR;
+    osal_id_t         TaskId1        = OS_OBJECT_ID_UNDEFINED;
+    osal_id_t         TaskId2        = OS_OBJECT_ID_UNDEFINED;
+    osal_id_t         TaskId3        = OS_OBJECT_ID_UNDEFINED;
+
+    /* Test Case #1: Singular Ping */
+    retVal = CFE_PSP_SinglePing(g_cTestIPs[0], usTimeoutValue, &TimeResult);
+    FT_Assert_True((retVal == PSP_PING_SUCCESS), "Ping Successfully returned, retVal = %d\n", retVal);
+    FT_Assert_True((strcmp(TimeResult.IPAddrName, g_cTestIPs[0]) == 0), "Packet Destination was %s\n", TimeResult.IPAddrName);
+    OS_printf("\tRecv from %s: ucIcmpType=%d (%s) ID = %d ---> Triptime: Seconds=%d and MicroSeconds =%d\n\n", TimeResult.IPAddrName, TimeResult.usType,
+              CFE_PSP_GetPacketTypeName(TimeResult.usType), TimeResult.usIdent, TimeResult.roundTripTime.Seconds, 
+              CFE_TIME_Sub2MicroSecs(TimeResult.roundTripTime.Subseconds));
+    
+    /* Test Case #2: Ping Multiple Target */
+    retVal = OS_TaskCreate(&TaskId1, "PSP_PING_FT_1", PingTask1, NULL, 4096, 100, 0);
+    FT_Assert_True((retVal == OS_SUCCESS), "Task 1 Created Successfully\n");
+
+    retVal = OS_TaskCreate(&TaskId2, "PSP_PING_FT_2", PingTask2, NULL, 4096, 100, 0);
+    FT_Assert_True((retVal == OS_SUCCESS), "Task 2 Created Successfully\n");
+
+    /* Delay before checking the result */
+    OS_TaskDelay(1000);
+
+    /* Confirm Results from Task 1*/
+    FT_Assert_True((g_retVal_P1 == PSP_PING_SUCCESS), "Ping Successfully returned, retVal = %d\n", g_retVal_P1);
+    FT_Assert_True((strcmp(g_PingResult1.IPAddrName, g_cTestIPs[0]) == 0), "Packet Destination was %s\n", g_PingResult1.IPAddrName);
+    OS_printf("\tRecv from %s: ucIcmpType=%d (%s) ID = %d ---> Triptime: Seconds=%d and MicroSeconds =%d\n\n", g_PingResult1.IPAddrName, g_PingResult1.usType,
+              CFE_PSP_GetPacketTypeName(g_PingResult1.usType), g_PingResult1.usIdent, g_PingResult1.roundTripTime.Seconds, 
+              CFE_TIME_Sub2MicroSecs(g_PingResult1.roundTripTime.Subseconds));
+
+    /* Confirm Results from Task 2*/
+    FT_Assert_True((g_retVal_P2 == PSP_PING_SUCCESS), "Ping Successfully returned, retVal = %d\n", g_retVal_P2);
+    FT_Assert_True((strcmp(g_PingResult2.IPAddrName, g_cTestIPs[1]) == 0), "Packet Destination was %s\n", g_PingResult2.IPAddrName);
+    OS_printf("\tRecv from %s: ucIcmpType=%d (%s) ID = %d ---> Triptime: Seconds=%d and MicroSeconds =%d\n\n", g_PingResult2.IPAddrName, g_PingResult2.usType,
+              CFE_PSP_GetPacketTypeName(g_PingResult2.usType), g_PingResult2.usIdent, g_PingResult2.roundTripTime.Seconds, 
+              CFE_TIME_Sub2MicroSecs(g_PingResult2.roundTripTime.Subseconds));
+    
+    /* Delete the Tasks and clean up values */
+    OS_TaskDelete(TaskId1);
+    OS_TaskDelete(TaskId2);
+    memset(&g_PingResult1, 0, sizeof(g_PingResult1));
+    memset(&g_PingResult2, 0, sizeof(g_PingResult2));
+    g_retVal_P1 = PSP_PING_IGNORE;
+    g_retVal_P2 = PSP_PING_IGNORE;
+    retVal = PSP_PING_IGNORE;
+    memset(&TimeResult, 0, sizeof(TimeResult));
+
+    /* Test Case #3: Fail Singular Ping */
+    retVal = CFE_PSP_SinglePing(g_cTestIPs[2], usTimeoutValue, &TimeResult);
+    FT_Assert_True((retVal == PSP_PING_TIMEOUT_ERR), "Ping Timeout, retVal = %d\n", retVal);
+    FT_Assert_True((strcmp(TimeResult.IPAddrName, "") == 0), "Packet Destination was empty.\n");
+
+    /* Test Case #4: Mix of Successful and Failing Ping */
+
+    retVal = OS_TaskCreate(&TaskId1, "PSP_PING_FT_1", PingTask1, NULL, 4096, 100, 0);
+    FT_Assert_True((retVal == OS_SUCCESS), "Task 1 Created Successfully\n");
+
+    retVal = OS_TaskCreate(&TaskId2, "PSP_PING_FT_2", PingTask2, NULL, 4096, 100, 0);
+    FT_Assert_True((retVal == OS_SUCCESS), "Task 2 Created Successfully\n");
+
+    retVal = OS_TaskCreate(&TaskId3, "PSP_PING_FT_3", PingTask3, NULL, 4096, 100, 0);
+    FT_Assert_True((retVal == OS_SUCCESS), "Task 3 Created Successfully\n");
+
+    OS_TaskDelay(1000);
+
+    /* Confirm Results from Task 1 */
+    FT_Assert_True((g_retVal_P1 == PSP_PING_SUCCESS), "Ping Successfully returned, retVal = %d\n", g_retVal_P1);
+    FT_Assert_True((strcmp(g_PingResult1.IPAddrName, g_cTestIPs[0]) == 0), "Packet Destination was %s\n", g_PingResult1.IPAddrName);
+    OS_printf("\tRecv from %s: ucIcmpType=%d (%s) ID = %d ---> Triptime: Seconds=%d and MicroSeconds =%d\n\n", g_PingResult1.IPAddrName, g_PingResult1.usType,
+              CFE_PSP_GetPacketTypeName(g_PingResult1.usType), g_PingResult1.usIdent, g_PingResult1.roundTripTime.Seconds, 
+              CFE_TIME_Sub2MicroSecs(g_PingResult1.roundTripTime.Subseconds));
+
+    /* Confirm Results from Task 2 */
+    FT_Assert_True((g_retVal_P2 == PSP_PING_SUCCESS), "Ping Successfully returned, retVal = %d\n", g_retVal_P2);
+    FT_Assert_True((strcmp(g_PingResult2.IPAddrName, g_cTestIPs[1]) == 0), "Packet Destination was %s\n", g_PingResult2.IPAddrName);
+    OS_printf("\tRecv from %s: ucIcmpType=%d (%s) ID = %d ---> Triptime: Seconds=%d and MicroSeconds =%d\n\n", g_PingResult2.IPAddrName, g_PingResult2.usType,
+              CFE_PSP_GetPacketTypeName(g_PingResult2.usType), g_PingResult2.usIdent, g_PingResult2.roundTripTime.Seconds, 
+              CFE_TIME_Sub2MicroSecs(g_PingResult2.roundTripTime.Subseconds));
+
+    /* Task 3 should not be done still, therefore the retVal_P3 should still be the default PSP_PING_IGNORE */
+    FT_Assert_True((g_retVal_P3 == PSP_PING_IGNORE), "Thread has not finished processing.\n");
+
+    OS_TaskDelay(10000);
+
+    /* Confirm Results from Task 3 */
+    FT_Assert_True((g_retVal_P3 == PSP_PING_TIMEOUT_ERR), "Ping Timeout, retVal = %d\n", g_retVal_P3);
+    FT_Assert_True((strcmp(g_PingResult3.IPAddrName, "") == 0), "Packet Destination was empty.\n");
+
+    /* Delete the Tasks */
+    OS_TaskDelete(TaskId1);
+    OS_TaskDelete(TaskId2);
+    OS_TaskDelete(TaskId3);
+
+    /* Test Case #5: Invalid IP Target */
+    retVal = PSP_PING_IGNORE;
+    memset(&TimeResult, 0, sizeof(TimeResult));
+    retVal = CFE_PSP_SinglePing(g_cTestIPs[3], usTimeoutValue, &TimeResult);
+    FT_Assert_True((retVal == PSP_PING_SND_PKT_ERR), "ICMP Packet failed to send, retVal = %d\n", retVal);
 }

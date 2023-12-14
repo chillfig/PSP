@@ -31,7 +31,8 @@
 #define TEST_SUPPORT    1
 #define TEST_WATCHDOG   1
 #define TEST_START      1
-
+#define TEST_VX_SYSMON  1
+#define TEST_PING       1
 
 /*=======================================================================================
 ** Test Setup & Teardown functions
@@ -612,6 +613,73 @@ void UtTest_Setup(void)
                "Ut_OS_Application_Startup"); 
 
     #endif  /* TEST_START == 1 */
+
+    #if TEST_VX_SYSMON == 1
+
+    UtTest_Add(Test_Init_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "VxWorks Initialization Test");
+
+    UtTest_Add(Test_Entry_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Nominal Entry Test");
+
+    UtTest_Add(Test_Aggregate_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Nominal Aggregate Test");
+
+    UtTest_Add(Test_Aggregate_Error,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Invalid Aggregate Test");
+
+    UtTest_Add(Test_Dispatch_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Nominal Dispatch Test");
+
+    UtTest_Add(Test_Dispatch_Error,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Invalid Dispatch Test");
+
+    UtTest_Add(Test_UpdateStat_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Nominal Update Stat Test");
+
+    UtTest_Add(Test_Task_Nominal,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Nominal Task Test");
+
+    UtTest_Add(Test_Task_Error,
+               ModuleTest_ResetState, Ut_CFE_PSP_Teardown,
+               "Invalid Task Test");
+
+    #endif  /* TEST_VX_SYSMON == 1 */
+
+    #if TEST_PING == 1
+
+    UtTest_Add(Ut_CFE_PSP_CalculateICMPChecksum,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_CalculateICMPChecksum");
+
+    UtTest_Add(Ut_CFE_PSP_GenerateICMPPkt,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GenerateICMPPkt");
+
+    UtTest_Add(Ut_ping_Init,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_ping_Init");
+
+    UtTest_Add(Ut_CFE_PSP_Process_Packet,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Process_Packet");
+
+    UtTest_Add(Ut_CFE_PSP_GetPacketTypeName,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetPacketTypeName");
+
+    UtTest_Add(Ut_CFE_PSP_SinglePing,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SinglePing");
+    #endif  /* TEST_PING == 1 */
 
     UtTest_Add(Ut_CFE_PSP_EndTests,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

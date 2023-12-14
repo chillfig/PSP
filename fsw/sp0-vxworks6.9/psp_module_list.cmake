@@ -5,3 +5,4 @@ ram_direct
 port_direct
 iodriver
 vxworks_sysmon
+ping

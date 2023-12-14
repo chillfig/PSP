@@ -35,6 +35,8 @@ if (CODE_COVERAGE)
 
     # Create subfolder and all concatenated files
     file(MAKE_DIRECTORY ${TMP_FOLDER_CODE_COVERAGE})
+    mergeFilesTo( psp_vxworks_sysmon_testcases.c ${PROJECT_SOURCE_DIR}/fsw/modules/vxworks_sysmon/vxworks_sysmon.c "#include \"../../modules/vxworks_sysmon/vxworks_sysmon.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_vxworks_sysmon_testcases.c)
+    mergeFilesTo( psp_ping_testcases.c ${PROJECT_SOURCE_DIR}/fsw/modules/ping/cfe_psp_ping.c "#include \"../../modules/ping/cfe_psp_ping.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_ping_testcases.c)
     mergeFilesTo( psp_exception_testcases.c ${IMPL_DIR}/src/cfe_psp_exception.c "#include \"../src/cfe_psp_exception.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_expection_testcases.c)
     mergeFilesTo( psp_memory_testcases.c ${IMPL_DIR}/src/cfe_psp_memory.c "#include \"../src/cfe_psp_memory.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_memory_testcases.c)
     mergeFilesTo( psp_flash_testcases.c ${IMPL_DIR}/src/cfe_psp_flash.c "#include \"../src/cfe_psp_flash.c\"" ${TMP_FOLDER_CODE_COVERAGE}/psp_flash_testcases.c)
@@ -59,6 +61,15 @@ add_compile_options(-w)
 # Source for this app's UT executable
 aux_source_directory(${IMPL_DIR}/unit_test/ut_stubs UT_SRCS)
 
+# Source for Vxworks sysmon module
+add_definitions(-D_CFE_PSP_MODULE_)
+include_directories(${PROJECT_SOURCE_DIR}/unit-test-coverage/ut-stubs/inc)
+include_directories(${PROJECT_SOURCE_DIR}/fsw/modules/vxworks_sysmon)
+include_directories(${PROJECT_SOURCE_DIR}/fsw/modules/iodriver/inc)
+
+# Source for Ping module
+include_directories(${PROJECT_SOURCE_DIR}/fsw/modules/ping/inc)
+
 add_executable(${UT_NAME}_ut ${UT_SRCS})
 
 # as UT assert defines OS_Application_Startup and OS_Application_Run, we need
@@ -69,6 +80,7 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
     OS_BSPMain=PCS_OS_BSPMain
     snprintf=PCS_snprintf
     bootStringToStruct=PCS_bootStringToStruct
+    spyClkStartCommon=PCS_spyClkStartCommon
 )
 
 # To support the starting and killing of NTP daemon process (NTP Sync Module)

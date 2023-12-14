@@ -50,6 +50,7 @@ target_link_libraries(${FT_NAME}_ft
     timebase_vxworks
     iodriver
     vxworks_sysmon
+    ping
     psp-${CFE_PSP_TARGETNAME}-impl
     psp-${CFE_PSP_TARGETNAME}-shared
     )

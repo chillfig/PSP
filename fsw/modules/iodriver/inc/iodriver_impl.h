@@ -39,7 +39,7 @@
 #define CFE_PSP_DRIVER_MUTEX_NAME  "DriverMutex-%02u"
 
 /** \brief Verify that the driver mutex name is within required length */
-CompileTimeAssert(sizeof(CFE_PSP_DRIVER_MUTEX_NAME) <= OS_MAX_PATH_LEN, CFE_PSP_DRIVER_MUTEX_NAME_TOO_LONG);
+CompileTimeAssert(sizeof(CFE_PSP_DRIVER_MUTEX_NAME) < OS_MAX_PATH_LEN, CFE_PSP_DRIVER_MUTEX_NAME_TOO_LONG);
 
 /**
  * Prototype for a basic device command function
