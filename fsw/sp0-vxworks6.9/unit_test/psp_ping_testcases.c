@@ -137,23 +137,41 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UtAssert_OS_print(cStrOSprintfOutput, cStrTestDescription);
     UtAssert_True(retVal == PSP_PING_CRT_PKT_ERR, cStrTestDescription);
 
-    /* ----- Test case #2 - Invalid Argument - ID value is NULL ----- */
+    /* ----- Test case #2 - ID value is NULL ----- */
 
     /* Test setups */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+    memset(outIcmpPkt, 0, sizeof(outIcmpPkt));
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
+    UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_MutSemGive), 1, OS_SUCCESS);
+    g_usPingIdentNum = 10;
 
     /* Execute test */
     retVal = CFE_PSP_GenerateICMPPkt(outIcmpPkt, NULL);
 
     /* Verify outputs */
-    strncpy(cStrTestDescription, "_GenerateICMPPkt() - 2/6: Null Argument - ID value is NULL", sizeof(cStrTestDescription));
-    strncpy(cStrOSprintfOutput, "CFE_PSP_GenerateICMPPkt(): Invalid Argument.\n", MAX_OS_PRINTF_MESSAGES);
-    UtAssert_OS_print(cStrOSprintfOutput, cStrTestDescription);
-    UtAssert_True(retVal == PSP_PING_CRT_PKT_ERR, cStrTestDescription);
+    strncpy(cStrTestDescription, "_GenerateICMPPkt() - 2/6: ID value is NULL", sizeof(cStrTestDescription));
+    memcpy(&icmpHdr, outIcmpPkt, sizeof(struct icmphdr));
+    UtAssert_True(retVal == CFE_PSP_SUCCESS, cStrTestDescription);
+    UtAssert_True(strcmp(CFE_PSP_GetPacketTypeName(icmpHdr.ucType), "Echo") == 0, cStrTestDescription);
+    UtAssert_True(icmpHdr.ucCode == 0, cStrTestDescription);
+    UtAssert_True(icmpHdr.ucType == ICMP_ECHO, cStrTestDescription);
+    UtAssert_True(icmpHdr.un.echo.usID == 10, cStrTestDescription);
+    UtAssert_True(icmpHdr.un.echo.usSequence == 0, cStrTestDescription);
+    UtAssert_True(icmpHdr.usChecksum == 62476, cStrTestDescription);
 
+    /* Move the PacketHdr to point at the Payload */
+    memcpy(&myTime, &outIcmpPkt[ICMP_HEADER_SIZE], sizeof(CFE_TIME_SysTime_t));
+    UtAssert_True(myTime.Seconds == 1, cStrTestDescription);
+    UtAssert_True(myTime.Subseconds == 1000, cStrTestDescription);
+    UtAssert_True(g_usPingIdentNum == 11, cStrTestDescription);
 
-    /* ----- Test case #2 - Failed Mutex Take ----- */
+    /* ----- Test case #3 - Failed Mutex Take ----- */
 
     /* Test setups */
     UT_ResetState(0);
@@ -170,7 +188,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UtAssert_OS_print(cStrOSprintfOutput, cStrTestDescription);
     UtAssert_True(retVal == PSP_PING_CRT_PKT_ERR, cStrTestDescription);
 
-    /* ----- Test case #3 - Failed Mutex Give ----- */
+    /* ----- Test case #4 - Failed Mutex Give ----- */
 
     /* Test setups */
     UT_ResetState(0);
@@ -188,7 +206,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UtAssert_OS_print(cStrOSprintfOutput, cStrTestDescription);
     UtAssert_True(retVal == PSP_PING_CRT_PKT_ERR, cStrTestDescription);
 
-    /* ----- Test case #4 - GetOSTime Fails ----- */
+    /* ----- Test case #5 - GetOSTime Fails ----- */
 
     /* Test setups */
     UT_ResetState(0);
@@ -207,7 +225,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UtAssert_OS_print(cStrOSprintfOutput, cStrTestDescription);
     UtAssert_True(retVal == PSP_PING_CRT_PKT_ERR, cStrTestDescription);
 
-    /* ----- Test case #5 - Nominal ----- */
+    /* ----- Test case #6 - Nominal ----- */
 
     /* Test setups */
     UT_ResetState(0);
@@ -232,14 +250,14 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UtAssert_True(icmpHdr.ucType == ICMP_ECHO, cStrTestDescription);
     UtAssert_True(icmpHdr.un.echo.usID == 10, cStrTestDescription);
     UtAssert_True(icmpHdr.un.echo.usSequence == 0, cStrTestDescription);
-    UtAssert_True(icmpHdr.usChecksum == 28311, cStrTestDescription);
+    UtAssert_True(icmpHdr.usChecksum == 62476, cStrTestDescription);
 
     /* Move the PacketHdr to point at the Payload */
     memcpy(&myTime, &outIcmpPkt[ICMP_HEADER_SIZE], sizeof(CFE_TIME_SysTime_t));
     UtAssert_True(myTime.Seconds == 1, cStrTestDescription);
     UtAssert_True(myTime.Subseconds == 1000, cStrTestDescription);
     UtAssert_True(g_usPingIdentNum == 11, cStrTestDescription);
-    UtAssert_True(usID == 10, cStrTestDescription);    
+    UtAssert_True(usID == 10, cStrTestDescription);
 }
 
 void Ut_ping_Init(void)
