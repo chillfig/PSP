@@ -1,3 +1,29 @@
+/*********************************************************************************************************/
+/** \export_control EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
+*   This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
+*   15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government
+*   and are authorized for export by NASA only to fulfill responsibilities of the parties or of a
+*   Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using
+*   License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and
+*   Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
+*   or to any person other than the authorized ultimate consignee or end-user(s), either in their
+*   original form or after being incorporated into other items, without first obtaining approval from
+*   the U.S. government or as otherwise authorized by U.S. law and regulations.
+*
+*   \file cfe_psp_memory.h
+*
+*   \brief Header file for the Reserved Memory-related supporting functions
+*
+*   \brief Header file containing the function declarations to initialize, manage, and delete Reserved Memory
+*
+*   \copyright
+*   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
+*   Aeronautics and Space Administration. All Other Rights Reserved.
+*
+*   \brief This file was cloned-n-owned at the NASA Johnson Space Center from the NASA cFE open source 
+*   with license below.
+**********************************************************************************************************/
+
 /************************************************************************
  * NASA Docket No. GSC-18,719-1, and identified as “core Flight System: Bootes”
  *
@@ -15,39 +41,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ************************************************************************/
-
-/*
-**  Author:  A. Cudmore
-**
-**  Purpose:  This file contains PSP support routine internal prototypes
-**            and typedefs. The routines and typedefs are intended for
-**            the local PSP routines only.
-**
-**  Modification History:
-**
-*/
-
-/**
- ** \file  cfe_psp_memory.h
- **
- ** \brief Header file for the Reserved Memory-related supporting functions
- **
- ** \copyright
- ** Copyright 2016-2019 United States Government as represented by the 
- ** Administrator of the National Aeronautics and Space Administration. 
- ** All Other Rights Reserved.\n
- ** This software was created at NASA's Johnson Space Center.
- ** This software is governed by the NASA Open Source Agreement and may be 
- ** used, distributed and modified only pursuant to the terms of that agreement.
- **
- ** \par Description:
- ** Header file containing the function declarations to initialize, manage, and 
- ** delete Reserved Memory
- **
- ** \par Limitations, Assumptions, External Events, and Notes:
- ** None
- **
- */
 
 #ifndef CFE_PSP_MEMORY_H
 #define CFE_PSP_MEMORY_H

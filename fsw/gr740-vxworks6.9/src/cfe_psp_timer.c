@@ -1,26 +1,29 @@
-/************************************************************************************************
-** File:  cfe_psp_timer.c
-**
-**
-**      Copyright (c) 2004-2011, United States Government as represented by 
-**      Administrator for The National Aeronautics and Space Administration. 
-**  All Rights Reserved.
-**
-**      This is governed by the NASA Open Source Agreement and may be used,
-**      distributed and modified only pursuant to the terms of that agreement.
-**
-**
-** Purpose:
-**   This file contains glue routines between the cFE and the OS Board Support Package ( BSP ).
-**   The functions here allow the cFE to interface functions that are board and OS specific
-**   and usually dont fit well in the OS abstraction layer.
-**
-** History:
-**   2005/06/05  K.Audra    | Initial version,
-**   2014/08/08  S. Duran   | Modified for ut699 SPARC LEON3 board
-**   2020/06/03  J. Pham    | Modified for GR740 SPARC LEON4 board
-**
-*************************************************************************************************/
+/*********************************************************************************************************/
+/** \export_control EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
+*   This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
+*   15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government
+*   and are authorized for export by NASA only to fulfill responsibilities of the parties or of a
+*   Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using
+*   License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and
+*   Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
+*   or to any person other than the authorized ultimate consignee or end-user(s), either in their
+*   original form or after being incorporated into other items, without first obtaining approval from
+*   the U.S. government or as otherwise authorized by U.S. law and regulations.
+*
+*   \file cfe_psp_timer.c
+*
+*   \brief Contains glue routines between the cFE and the OS Board Support Package (BSP)
+*
+*   \brief The functions here allow the cFE to interface functions that are board and OS specific and 
+*   usually do not fit well in the OS abstraction layer.
+*
+*   \copyright
+*   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
+*   Aeronautics and Space Administration. All Other Rights Reserved.
+*
+*   \brief This file was created at NASA's Johnson Space Center.
+**********************************************************************************************************/
+
 /*
 **  Include Files
 */

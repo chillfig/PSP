@@ -235,6 +235,8 @@ endstmt=</TR> \
 "platform_cfg=\xrefitem pspsp0vx69platcfg \"Purpose\" \"SP0-VxWorks6.9 PSP Platform Configuration Parameters\" " \
 "func=\xrefitem pspsp0vx69bapis \"Purpose\" \"SP0-VxWorks6.9 PSP Application Programming Interfaces\" "
 
+ALIASES             += export_control="\brief"
+
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
 # will allow you to use the command class in the itcl::class meaning.

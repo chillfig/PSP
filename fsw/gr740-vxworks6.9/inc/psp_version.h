@@ -1,27 +1,25 @@
-/** 
- ** \file
- **
- ** \brief API header to obtain the values of the various version identifiers
- **
- ** \copyright
- ** Copyright (c) 2019-2021 United States Government as represented by
- ** the Administrator of the National Aeronautics and Space Administration.
- ** All Rights Reserved.
- ** Unless required by applicable law or agreed to in writing, software
- ** distributed under the License is distributed on an "AS IS" BASIS,
- ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- ** See the License for the specific language governing permissions and
- ** limitations under the License.
- **
- ** \par Description:
- ** Provide version identifiers for the cFE Platform Support Packages (PSP).
- ** See #cfsversions for version and build number and description**  GSC-18128-1, "Core Flight Executive Version 6.7"
- **
- ** \par Limitations, Assumptions, External Events, and Notes:
- ** None
- **
- */
-
+/*********************************************************************************************************/
+/** \export_control EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
+*   This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
+*   15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government
+*   and are authorized for export by NASA only to fulfill responsibilities of the parties or of a
+*   Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using
+*   License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and
+*   Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
+*   or to any person other than the authorized ultimate consignee or end-user(s), either in their
+*   original form or after being incorporated into other items, without first obtaining approval from
+*   the U.S. government or as otherwise authorized by U.S. law and regulations.
+*
+*   \file psp_version.h
+*
+*   \brief API header to obtain the values of the various version identifiers
+*
+*   \copyright
+*   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
+*   Aeronautics and Space Administration. All Other Rights Reserved.
+*
+*   \brief This file was created at NASA's Johnson Space Center.
+**********************************************************************************************************/
 
 #ifndef PSP_VERSION_H
 #define PSP_VERSION_H

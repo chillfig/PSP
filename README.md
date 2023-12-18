@@ -1,18 +1,19 @@
-![Static Analysis](https://github.com/nasa/psp/workflows/Static%20Analysis/badge.svg)
-![Format Check](https://github.com/nasa/psp/workflows/Format%20Check/badge.svg)
+*********************************************************************************************************
+# Export Control Marking
 
-# Core Flight System : Framework : Platform Support Package
+All files under this top-level directory, including all files in its sub-directories, are subject to 
+NASA Export Control restrictions, as stated below:
 
-This repository contains NASA's Platform Support Package (PSP), which is a framework component of the Core Flight System.
+EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
 
-This is a collection of APIs abstracting platform specific functionality to be located in the `psp` subdirectory of a cFS Mission Tree. The Core Flight System is bundled at <https://github.com/nasa/cFS>, which includes build and execution instructions.
+    This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
+    15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government 
+    and are authorized for export by NASA only to fulfill responsibilities of the parties or of a 
+    Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using 
+    License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and 
+    Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
+    or to any person other than the authorized ultimate consignee or end-user(s), either in their
+    original form or after being incorporated into other items, without first obtaining approval from
+    the U.S. government or as otherwise authorized by U.S. law and regulations.
+**********************************************************************************************************
 
-## Known issues
-
-See all open issues and closed to milestones later than this version.
-
-## Getting Help
-
-For best results, submit issues:questions or issues:help wanted requests at <https://github.com/nasa/cFS>.
-
-Official cFS page: <http://cfs.gsfc.nasa.gov>

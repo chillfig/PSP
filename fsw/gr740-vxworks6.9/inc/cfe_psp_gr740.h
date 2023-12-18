@@ -1,28 +1,28 @@
-/**
- ** \file
- **
- ** \brief Registers and Component definitions for GR740
- **
- ** \copyright
- ** Copyright (c) 2019-2021 United States Government as represented by
- ** the Administrator of the National Aeronautics and Space Administration.
- ** All Rights Reserved.
- ** Unless required by applicable law or agreed to in writing, software
- ** distributed under the License is distributed on an "AS IS" BASIS,
- ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- ** See the License for the specific language governing permissions and
- ** limitations under the License.
- **
- ** \par Description:
- ** The GR740 BSP for VxWorks 6.9 lacks a common header file with all the 
- ** definitions of components and registers. This header attempts to add what is
- ** missing.
- **
- ** \par Limitations, Assumptions, External Events, and Notes:
- ** This is not a complete set.
- **
- */
-
+/*********************************************************************************************************/
+/** \export_control EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
+*   This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
+*   15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government
+*   and are authorized for export by NASA only to fulfill responsibilities of the parties or of a
+*   Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using
+*   License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and
+*   Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
+*   or to any person other than the authorized ultimate consignee or end-user(s), either in their
+*   original form or after being incorporated into other items, without first obtaining approval from
+*   the U.S. government or as otherwise authorized by U.S. law and regulations.
+*
+*   \file cfe_psp_gr740.h
+*
+*   \brief Registers and component definitions for GRP740
+*
+*   \brief The GR740 BSP for VxWorks 6.9 lacks a common header file with all the definitions of components
+*   and registers. This header attempts to add what is missing. This is not a complete set.
+*
+*   \copyright
+*   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
+*   Aeronautics and Space Administration. All Other Rights Reserved.
+*
+*   \brief This file was created at NASA's Johnson Space Center.
+**********************************************************************************************************/
 
 #ifndef CFE_PSP_GR740_H
 #define CFE_PSP_GR740_H
