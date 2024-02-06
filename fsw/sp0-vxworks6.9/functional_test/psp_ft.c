@@ -88,8 +88,8 @@ uint32            g_retVal_P2       = PSP_PING_IGNORE;
 uint32            g_retVal_P3       = PSP_PING_IGNORE;
 const char        g_cTestIPs[5][IP_MAX_ADDRESS_LEN] = 
                                                 {
-                                                    "192.168.22.129", /* IP of Rig 1 - ACSSL */
-                                                    "192.168.22.131", /* IP of simhost4 - ACSSL */
+                                                    "192.168.22.129", /* IP of Rig GMC1 - ACSSL */
+                                                    "192.168.22.132", /* IP of giab-sim host - ACSSL */
                                                     "192.168.22.140", /* Unknown IP */
                                                     "192.168.22.000",
                                                     "localhost"
