@@ -241,7 +241,8 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
 ### NTP Time Sync
 
 - Defines
-  - #CFE_MISSION_TIME_EPOCH_UNIX_DIFF `*`
+  - #CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS `*`
+  - #CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS `*`
   - #CFE_PSP_NTP_DAEMON_TASK_NAME `*`
   - #NTPSYNC_PRINT_SCOPE
 

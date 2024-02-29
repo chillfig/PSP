@@ -144,12 +144,29 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
         
         if (iResult == OK)
         {
-            /* If the unix time has synchronized with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
-            if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
+            /* If the unix time has synchronized with NTP, it must be bigger than 
+               CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS 
+            */
+            if (((unixTime.tv_sec == CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS) && 
+                (unixTime.tv_nsec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000)) || 
+                (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS))
             {
-                myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
-                tv_msec = (uint32)unixTime.tv_nsec / 1000;
-                myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                /* Unix Time secs greater than or equal to epoch secs, but subsecs less than epoch subsecs */
+                if (unixTime.tv_nsec < CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000)
+                {
+                    tv_msec = (uint32) (unixTime.tv_nsec + 1000000000 - 
+                        CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000) / 1000;
+                    myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                    myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS - 1;
+                }
+                /* Unix Time secs greater than or equal to epoch secs, and subsecs greater than
+                   or equal to epoch subsecs */
+                else
+                {
+                    tv_msec = (uint32) (unixTime.tv_nsec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000) / 1000;
+                    myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                    myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS;
+                }
             }
             else
             {

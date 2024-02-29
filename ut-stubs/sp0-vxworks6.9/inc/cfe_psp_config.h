@@ -686,7 +686,9 @@ typedef struct
  **  NTP Sync will not occur if NTP time is less than this value
  ** 
  */
-#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS 946727935
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS 816000
+
 /** \} */
 
 /******************************************************************************/

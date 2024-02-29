@@ -106,7 +106,10 @@ int32  CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec);
 ** \par Assumptions, External Events, and Notes:
 ** This function is used by the NTP Sync task to grab the current OS time.
 ** It uses CLOCK_REALTIME.\n
-** NTP Sync will not occur if NTP time is less than CFE_MISSION_TIME_EPOCH_UNIX_DIFF
+** This function will only return a valid time if NTP sync has occurred and current 
+** system time is greater than the CFE mission time epoch. Note that this function 
+** utilizes the POSIX clock_gettime API with a CLOCK_REALTIME clock which is adjusted 
+** by NTP and may include leap seconds depending on the NTP server configuration.
 **
 ** \param[out] myT - Pointer to the variable that stores the returned time value
 ** 

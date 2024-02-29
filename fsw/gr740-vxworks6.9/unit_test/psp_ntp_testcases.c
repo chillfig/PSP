@@ -138,57 +138,101 @@ void Ut_CFE_PSP_GetOSTime(void)
 
     /* ----- Test #1 - &myT == NULL ----- */
     /* Set additional variables */
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
+    getTimeReturnStruct.tv_nsec = (CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS + 1) * 1000;
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "CFE_PSP_GetOSTime called without a proper argument\n");
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(NULL);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 1/4: Null pointer");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 1/4: " NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 1/4: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 1/4: myT.Subseconds did not change");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 1/6: Null pointer");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 1/6: " NTPSYNC_PRINT_SCOPE "ERROR: Invalid timestamp");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 1/6: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 1/6: myT.Subseconds did not change");
 
     /* ----- Test #2 - &myT != NULL, clock_gettime fail ----- */
     /* Set additional variables */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
+    getTimeReturnStruct.tv_nsec = (CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS + 1) * 1000;
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), ERROR);
     sprintf(cMsg, NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(&myT);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 2/4: not null pointer, clock_gettime fail");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 2/4: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 2/4: myT.Seconds did not change");
-    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 2/4: myT.Subseconds did not change");
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 2/6: not null pointer, clock_gettime fail");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetOSTime - 2/6: " NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 2/6: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 2/6: myT.Subseconds did not change");
 
-    /* ----- Test #3 - &myT != NUll, clock_gettime success, unixTime > CFE...UNIX_DIFF ----- */
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
-    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
-    /* Execute test */
-    return_code = CFE_PSP_GetOSTime(&myT);
-    /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 3/4: clock_gettime success");
-    UtAssert_True(myT.Seconds == 1, "_CFE_PSP_GetOSTime - 3/4: myT.Seconds changed");
-
-
-    /* ----- Test #4 - &myT != NUll, clock_gettime success, unixTime < CFE...UNIX_DIFF ----- */
+    /*Test #3 - &myT != NUll, clock_gettime success, tv_sec >= CFE...UNIX_DIFF_SECS+1, tv_nsec<CFE...MICROSECS*1000 */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     myT.Seconds = 0;
     myT.Subseconds = 0;
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF - 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
+    getTimeReturnStruct.tv_nsec = 0;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
-    UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     /* Execute test */
     return_code = CFE_PSP_GetOSTime(&myT);
     /* Verify results */
-    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 4/4: clock_gettime success");
-    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 4/4: myT.Seconds did not change");
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 3/6: clock_gettime success");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 3/6: myT.Seconds changed");
+    UtAssert_True(myT.Subseconds == CFE_TIME_Micro2SubSecs(184000), 
+        "_CFE_PSP_GetOSTime - 3/6: myT.Subseconds changed");
+
+    /* Test #4 - &myT != NUll, clock_gettime success, tv_sec == CFE...UNIX_DIFF_SECS, tv_nsec > CFE...MICROSECS*1000*/
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS;
+    getTimeReturnStruct.tv_nsec = (CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS + 1) * 1000;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    /* Execute test */
+    return_code = CFE_PSP_GetOSTime(&myT);
+    /* Verify results */
+    UtAssert_True(return_code == CFE_PSP_SUCCESS, "_CFE_PSP_GetOSTime - 4/6: clock_gettime success");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 4/6: myT.Seconds changed");
+    UtAssert_True(myT.Subseconds == CFE_TIME_Micro2SubSecs(1), "_CFE_PSP_GetOSTime - 4/6: myT.Subseconds changed");
+
+    /* Test #5 - &myT != NUll, clock_gettime success, tv_sec == CFE...UNIX_DIFF, tv_nsec <= CFE...MICROS*1000 */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS;
+    getTimeReturnStruct.tv_nsec = (CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS - 1) * 1000;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    /* Execute test */
+    return_code = CFE_PSP_GetOSTime(&myT);
+    /* Verify results */
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 5/6: Invalid time");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 5/6: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 5/6: myT.Subseconds did not change");
+
+    /* ----- Test #6 - &myT != NUll, clock_gettime success, tv_sec < CFE...UNIX_DIFF ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    myT.Seconds = 0;
+    myT.Subseconds = 0;
+    UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS - 1;
+    getTimeReturnStruct.tv_nsec = (CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS + 1) * 1000;
+    UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
+    /* Execute test */
+    return_code = CFE_PSP_GetOSTime(&myT);
+    /* Verify results */
+    UtAssert_True(return_code == CFE_PSP_ERROR, "_CFE_PSP_GetOSTime - 6/6: clock_gettime success");
+    UtAssert_True(myT.Seconds == 0, "_CFE_PSP_GetOSTime - 6/6: myT.Seconds did not change");
+    UtAssert_True(myT.Subseconds == 0, "_CFE_PSP_GetOSTime - 6/6: myT.Subseconds did not change");
 }
 
 /*=======================================================================================

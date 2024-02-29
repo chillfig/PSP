@@ -136,7 +136,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     Ut_OS_printf_Setup();
     memset(outIcmpPkt, 0, sizeof(outIcmpPkt));
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_SUCCESS);
@@ -223,7 +223,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     UT_ResetState(0);
     memset(outIcmpPkt, 0, sizeof(outIcmpPkt));
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_SUCCESS);
@@ -415,7 +415,7 @@ void Ut_CFE_PSP_Process_Packet(void)
     CFE_TIME_SysTime_t ExpecTime = {0};
     ExpecTime.Seconds = 1;
     ExpecTime.Subseconds = 0; 
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
     ucBytesProcessing = ICMP_PACKET_SIZE + IP_HEADER_LEN;
 
     memset(inIcmpPkt, 0, ICMP_RTN_PACKET_SIZE);
@@ -604,7 +604,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -632,7 +632,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -659,7 +659,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -684,7 +684,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -709,7 +709,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -735,7 +735,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     destaddr = 0;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
 
     UT_SetDataBuffer(UT_KEY(inet_addr), &destaddr, sizeof(destaddr), false);
     UT_SetDeferredRetcode(UT_KEY(socket), 1, 1);
@@ -767,7 +767,7 @@ void Ut_CFE_PSP_SinglePing(void)
     g_usPingIdentNum = 0;
     CheckTime.Seconds = 3;
     CheckTime.Subseconds = 1;
-    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF + 1;
+    getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
     pIpReplyHdr = &inIcmpPkt;
     pIpReplyHdr->ip_hl = IP_HEADER_LEN >> 2;
 

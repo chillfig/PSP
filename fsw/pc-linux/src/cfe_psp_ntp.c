@@ -103,44 +103,62 @@ int32 CFE_PSP_SetOSTime(const uint32 ts_sec, const uint32 ts_nsec)
  */
 int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 {
-    struct timespec     unixTime;
+    struct timespec     unixTime = {0,0};
     uint32              tv_msec = 0;
-    int                 ret;
-    int32               return_code = CFE_PSP_SUCCESS;
+    int                 iResult = CFE_PSP_ERROR;
+    int32               iReturnStatus = CFE_PSP_SUCCESS;
 
     if (myT != NULL)
     {
         /* Get real time clock from OS */
-        ret = clock_gettime(CLOCK_REALTIME, &unixTime);
+        iResult = clock_gettime(CLOCK_REALTIME, &unixTime);
         
-        if (ret == CFE_PSP_SUCCESS)
+        if (iResult == CFE_PSP_SUCCESS)
         {
-            /* If the unix time has synchronized with NTP, it must be bigger than CFE_MISSION_TIME_EPOCH_UNIX_DIFF */
-            if (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF)
+            /* If the unix time has synchronized with NTP, it must be bigger than 
+               CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS 
+            */
+            if (((unixTime.tv_sec == CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS) && 
+                (unixTime.tv_nsec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000)) || 
+                (unixTime.tv_sec > CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS))
             {
-                myT->Seconds = (uint32) unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF;
-                tv_msec = (uint32) unixTime.tv_nsec / 1000;
-                myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                /* Unix Time secs greater than or equal to epoch secs, but subsecs less than epoch subsecs */
+                if (unixTime.tv_nsec < CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000)
+                {
+                    tv_msec = (uint32) (unixTime.tv_nsec + 1000000000 - 
+                        CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000) / 1000;
+                    myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                    myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS - 1;
+                }
+                /* Unix Time secs greater than or equal to epoch secs, and subsecs greater than
+                   or equal to epoch subsecs 
+                */
+                else
+                {
+                    tv_msec = (uint32) (unixTime.tv_nsec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000) / 1000;
+                    myT->Subseconds = CFE_TIME_Micro2SubSecs(tv_msec);
+                    myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS;
+                }
             }
             else
             {
                 /* OS has not sync with NTP server yet. */
-                return_code = CFE_PSP_ERROR;
+                iReturnStatus = CFE_PSP_ERROR;
             }
         }
         else
         {
             OS_printf(NTPSYNC_PRINT_SCOPE "clock_gettime function failed\n");
-            return_code = CFE_PSP_ERROR;
+            iReturnStatus = CFE_PSP_ERROR;
         }
     }
     else
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "CFE_PSP_GetOSTime called without a proper argument\n");
-        return_code = CFE_PSP_ERROR;
+        iReturnStatus = CFE_PSP_ERROR;
     }
-
-    return return_code;
+    
+    return iReturnStatus;
 }
 
 /******************************************************************************

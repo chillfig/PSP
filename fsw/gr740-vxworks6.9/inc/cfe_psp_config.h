@@ -393,9 +393,10 @@ typedef struct
  **  Value could be positive or negative depending if Mission Epoch is before 
  **  or after UNIX Epoch.
  **  NTP Sync will not occur if NTP time is less than this value
- ** 
+ **  This UNIX epoch difference should be against the mission epoch time specified in cfe_mission_cfg.h
  */
-#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF    946727936
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS 946727935
+#define CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS 816000
 
 /** \} */
 
