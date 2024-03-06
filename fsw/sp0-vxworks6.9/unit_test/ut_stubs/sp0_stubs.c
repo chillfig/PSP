@@ -279,6 +279,23 @@ char *PCS_bootStringToStruct (char * bootString, BOOT_PARAMS * pBootParams)
     return bootString;
 }
 
+int PCS_bootStructToString(char * bootString, BOOT_PARAMS * pBootParams)
+{
+    int32 Status;
+ 
+    char cBootString[BOOT_FILE_LEN] = {0};
+ 
+    Status = UT_DEFAULT_IMPL(PCS_bootStructToString);
+ 
+    if (Status == OK)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(PCS_bootStructToString), (char *) cBootString, BOOT_FILE_LEN);
+        memcpy(bootString, cBootString, BOOT_FILE_LEN);
+    }
+ 
+    return Status;
+}
+
 int PCS_OS_BSPMain(void)
 {
     int iStatus;

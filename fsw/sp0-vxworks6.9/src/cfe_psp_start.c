@@ -434,67 +434,60 @@ static int32 CFE_PSP_SetSysTasksPrio(void)
  *********************************************************/
 void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
 {
-    /*
-    This function is called when the process of starting up CFS is taking 
-    longer time than 60 seconds. VSM is responsible for clearing the timer.
-    
-    Process:
-    - Update fail.txt
-    - Set Reset Memory
-    - If CFS is restarting for 3 times, reboot with POWERON (Clear the User Reserved Memory)
-    - If CFS is restarting for less than 3 times, reboot with PROCESSOR
-    - If CFS is restarting for 1 time with POWERON, change Boot Startup String
+    /* This function is called when CFS has not started within g_StartupInfo.uMaxWaitTime_sec.
+       Process:
+        - If CFS has attempted startup less than CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS times,
+              set restart with CFE_PSP_RST_TYPE_PROCESSOR (retains the User Reserved Memory)
+        - If CFS has attempted startup CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS times, 
+              set restart with CFE_PSP_RST_TYPE_POWERON (clears the User Reserved Memory)
+        - If CFS has restarted again after a CFE_PSP_RST_TYPE_POWERON,
+              set restart with CFE_PSP_RST_TYPE_CFS_TOGGLE (switches boot partition)
+        - Update g_StartupInfo.fullpath_failed_startup_filename contents
+        - Perform reboot
     */
-    int32   iFD = 0;
+    int32   iFd = 0;
     CFE_PSP_Startup_structure_t startup_buffer = {};
     ssize_t iBytes_read = 0;
     ssize_t iBytes_wrote = 0;
     off_t   lOffset = 0;
     int32   iRet = 0;
     uint32  uiRestartType = CFE_PSP_RST_TYPE_PROCESSOR;
-    bool    RemoveFile = false;
+    bool    bRemoveStartupFailFile = false;
 
     if (OS_ObjectIdEqual(g_StartupInfo.timerID, timer_id))
     {
 
         OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE "Startup Timer Expired!!\nRestarting\n");
 
-        /* Append  */
-        iFD = open(g_StartupInfo.fullpath_failed_startup_filename, O_CREAT | O_RDWR, 0644);
-        if (iFD <= 0)
+        /* Append */
+        iFd = open(g_StartupInfo.fullpath_failed_startup_filename, O_CREAT | O_RDWR, 0644);
+        if (iFd <= 0)
         {
             OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
                       "Error, could not open `%s`\n",
                       g_StartupInfo.fullpath_failed_startup_filename
             );
-            /*
-            If we cannot open or create a file in the active CFS partition
-            change partition.
-            */
+            /* If we cannot open or create a file in the active CFS partition
+               change partition. */
             uiRestartType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
         }
         else
         {
             /* Created New, Wrong Size, or Right Size */
-            iBytes_read = read(iFD, (char *)&startup_buffer, sizeof(startup_buffer));
+            iBytes_read = read(iFd, (char *)&startup_buffer, sizeof(startup_buffer));
             if (iBytes_read == 0)
             {
-                /*
-                This is the case when the file is empty or just created.
-                Both startup_failed_attempts and startup_failed_reset_attempts
-                are set to zero.
-                */
+                /* Both startup_failed_attempts and startup_failed_reset_attempts are assumed to
+                   start with a value of 0 until this file is read with valid contents */
                 g_StartupInfo.startup_failed_attempts++;
             }
             else if ((iBytes_read != 0) && (iBytes_read != sizeof(startup_buffer)))
             {
-                /*
-                If we are reading less or more than the startup_buffer size, it means
-                that the file is corrupted or the CFS instance has changed the definition
-                of the g_StartupInfo structure.
-                In any case, the file content cannot be read. All reset counters 
-                are reset to zero just like the previous case.
-                */
+                /* If we are reading less or more than the startup_buffer size, it means
+                   that the file is corrupted or the CFS instance has changed the definition
+                   of the g_StartupInfo structure.
+                   In any case, the file content cannot be read. All reset counters 
+                   are reset to zero just like the previous case. */
                 OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
                           "Error, could not read structure from `%s`, deleting file.\n",
                           g_StartupInfo.fullpath_failed_startup_filename
@@ -504,23 +497,30 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
             else
             {
                 startup_buffer.startup_failed_attempts++;
+                OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
+                          "Startup failed attempts: %d/%d\n", 
+                          startup_buffer.startup_failed_attempts, CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS);
 
                 if (startup_buffer.startup_failed_attempts == CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS)
                 {
                     startup_buffer.startup_failed_attempts = 0;
                     startup_buffer.startup_failed_reset_attempts++;
 
-                    /* too many attempts, restart with POWERON to delete user reserved memory */
-                    OS_printf("PSP DEBUG: iBytes_read = %d --> POWERON\n", iBytes_read);
-
-                    /* If the previous reset was due to POWERON, switch boot partition */
-                    if (g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON)
-                    {
-                        /* Switch boot partition */
-                        uiRestartType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
-                    }
-
+                    OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
+                              "Too many startup failures. Attempt next restart with CFE_PSP_RST_TYPE_POWERON.\n");
+                    
                     uiRestartType = CFE_PSP_RST_TYPE_POWERON;
+                }
+
+                /* If the previous reset was also a CFE_PSP_RST_TYPE_POWERON reset, at this point, it's
+                   unlikely another CFE_PSP_RST_TYPE_POWERON reset will help, so switch the boot partition
+                   to revert to a previous image. */
+                if (g_StartupInfo.ResetType == CFE_PSP_RST_TYPE_POWERON)
+                {
+                    OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
+                              "Previous reset was also a CFE_PSP_RST_TYPE_POWERON. Switch boot partition.\n");
+
+                    uiRestartType = CFE_PSP_RST_TYPE_CFS_TOGGLE;
                 }
 
                 g_StartupInfo.startup_failed_attempts = startup_buffer.startup_failed_attempts;
@@ -529,7 +529,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
             }
 
             /* Replace whatever is in the file */
-            lOffset = lseek(iFD, 0, SEEK_SET);
+            lOffset = lseek(iFd, 0, SEEK_SET);
             if (lOffset != 0)
             {
                 /* If we cannot operate on the file, delete it */
@@ -537,22 +537,26 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
                           "Error, could not set the write pointer for `%s`\n",
                           g_StartupInfo.fullpath_failed_startup_filename
                 );
-                RemoveFile = true;
+
+                bRemoveStartupFailFile = true;
             }
             else
             {
                 /* Write current startup info structure */
-                iBytes_wrote = write(iFD,(char *) &g_StartupInfo, sizeof(g_StartupInfo));
+                iBytes_wrote = write(iFd,(char *) &g_StartupInfo, sizeof(g_StartupInfo));
                 if (iBytes_wrote != sizeof(g_StartupInfo))
                 {
                     OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
                               "Error, could not write to `%s`, deleting file.\n",
                               g_StartupInfo.fullpath_failed_startup_filename
                     );
+
+                    bRemoveStartupFailFile = true;
                 }
             }
+
             /* Close file */
-            iRet = close(iFD);
+            iRet = close(iFd);
             if (iRet < 0)
             {
                 OS_printf(PSP_STARTUP_TIMER_PRINT_SCOPE
@@ -561,7 +565,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
                 );
             }
 
-            if (RemoveFile)
+            if (bRemoveStartupFailFile == true)
             {
                 remove(g_StartupInfo.fullpath_failed_startup_filename);
             }

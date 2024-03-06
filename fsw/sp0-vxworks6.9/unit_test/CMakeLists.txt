@@ -95,6 +95,7 @@ target_compile_definitions(${UT_NAME}_ut PRIVATE
     OS_BSPMain=PCS_OS_BSPMain
     snprintf=PCS_snprintf
     bootStringToStruct=PCS_bootStringToStruct
+    bootStructToString=PCS_bootStructToString
     spyClkStartCommon=PCS_spyClkStartCommon
 )
 

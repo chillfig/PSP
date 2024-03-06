@@ -306,7 +306,7 @@ void CFE_PSP_ToggleCFSBootPartition(void)
     }
 
     /* Set Boot Startup String */
-    iRetCode = CFE_PSP_SetBootStartupString(cBootString, false);
+    iRetCode = CFE_PSP_SetBootStartupString(cBootString, true);
 }
 
 /**

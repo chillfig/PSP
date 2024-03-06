@@ -465,7 +465,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     g_StartupInfo.startup_failed_attempts = 0;
     g_StartupInfo.startup_failed_reset_attempts = 0;
     sprintf(g_StartupInfo.fullpath_failed_startup_filename, "/ffx0/fail.txt");
-    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
+    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
 
     /* Setup for the CFE_PSP_Restart */
     CFE_PSP_ReservedMemoryBootRecord_t localBootRecord;
@@ -477,7 +477,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_StartupFailed - 1/7: Wrong TimerID");
+    UtAssert_OS_print(cMsg_error1, "_CFE_PSP_StartupFailed - 1/9: Wrong TimerID");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -495,10 +495,10 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 2/7: Startup timer expired message");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/7: Error, could not open file");
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 2/9: Startup timer expired message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/9: Error, could not open file");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_CFS_TOGGLE);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 2/9: Restart Message");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -517,14 +517,14 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 3/7: Startup timer expired message");
-    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 3/7: Increase number of failed attempts");
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 3/9: Startup timer expired message");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 3/9: Increase number of failed attempts");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not set the write pointer for `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: lseek error message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/9: lseek error message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not close file `%s`\n", g_StartupInfo.fullpath_failed_startup_filename);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: close error message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/9: close error message");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 3/9: Restart Message");
 
     Ut_OS_printf_Setup();
 
@@ -543,11 +543,11 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 4/7: Startup timer expired message");
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 4/9: Startup timer expired message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not read structure from `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/7: read error message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/9: read error message");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 4/9: Restart Message");
 
     Ut_OS_printf_Setup();
 
@@ -567,17 +567,17 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 5/7: Startup timer expired message");
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 5/9: Startup timer expired message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not read structure from `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: lseek error message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/9: lseek error message");
     sprintf(cMsg, PSP_STARTUP_TIMER_PRINT_SCOPE "Error, could not write to `%s`, deleting file.\n", g_StartupInfo.fullpath_failed_startup_filename);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: write error message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/9: write error message");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 5/9: Restart Message");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #6 - open, read, lseek, write, close, remove ----- */
+    /* ----- Test case #6 - open, read, lseek, write, close, remove, processor reset----- */
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(open), 1);
     UT_SetDefaultReturnValue(UT_KEY(read), sizeof(buffer));
@@ -594,15 +594,15 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 6/7: Startup timer expired message");
-    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 6/7: Increase number of failed attempts");
-    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 0), "_CFE_PSP_StartupFailed - 6/7: Reset attempts not changed");
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 6/9: Startup timer expired message");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 6/9: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 0), "_CFE_PSP_StartupFailed - 6/9: Reset attempts not changed");
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 6/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 6/9: Restart Message");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #7 - open, read, lseek, write, close, remove ----- */
+    /* ----- Test case #7 - open, read, lseek, write, close, remove, poweron reset ----- */
     /* Set additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(open), 1);
     UT_SetDefaultReturnValue(UT_KEY(read), sizeof(buffer));
@@ -619,13 +619,94 @@ void Ut_CFE_PSP_StartupFailed(void)
     /* Execute test */
     CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 7/7: Startup timer expired message");
-    UtAssert_True((g_StartupInfo.startup_failed_attempts == 0), "_CFE_PSP_StartupFailed - 7/7: Increase number of failed attempts");
-    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 1), "_CFE_PSP_StartupFailed - 7/7: Reset attempts not changed");
-    sprintf(cMsg, "PSP DEBUG: iBytes_read = %d --> POWERON\n", sizeof(buffer));
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/7: PSP DEBUG message");    
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 7/9: Startup timer expired message");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 0), "_CFE_PSP_StartupFailed - 7/9: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 1), "_CFE_PSP_StartupFailed - 7/9: Reset attempts not changed");
+    sprintf(cMsg, "PSP Startup: Too many startup failures. Attempt next restart with CFE_PSP_RST_TYPE_POWERON.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/9: PSP DEBUG message");    
     sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_POWERON);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/7: Restart Message");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 7/9: Restart Message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #8 - open, read, lseek, write, close, remove, toggle cfs reset ----- */
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), 1);
+    UT_SetDefaultReturnValue(UT_KEY(read), sizeof(buffer));
+    buffer.startup_failed_attempts = 0;
+    UT_SetDataBuffer(UT_KEY(read), &buffer, sizeof(buffer), false);
+    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
+    UT_SetDefaultReturnValue(UT_KEY(lseek), 0);
+    UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
+    UT_SetDefaultReturnValue(UT_KEY(close), 0);
+    UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    /* Execute test */
+    CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 8/9: Startup timer expired message");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 8/9: Increase number of failed attempts");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 0), "_CFE_PSP_StartupFailed - 8/9: Reset attempts not changed");  
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_CFS_TOGGLE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 8/9: Restart Message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #9 - Control flow works as intended - processor, processor, poweron, toggle  ----- */
+    /* Variable declarations*/
+    char cBootString[] = "/ffx1/startup";
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), 1);
+    UT_SetDefaultReturnValue(UT_KEY(read), sizeof(buffer));
+    buffer.startup_failed_attempts = 0;
+    g_StartupInfo.startup_failed_reset_attempts = 0;
+    UT_SetDataBuffer(UT_KEY(read), &buffer, sizeof(buffer), false); 
+    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
+    UT_SetDefaultReturnValue(UT_KEY(lseek), 0);
+    UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
+    UT_SetDefaultReturnValue(UT_KEY(close), 0);
+    UT_SetDefaultReturnValue(UT_KEY(remove), 0);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_bootStructToString), OK);
+    UT_SetDataBuffer(UT_KEY(PCS_bootStructToString), cBootString, sizeof(cBootString), false);
+    UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
+    /* Execute test */
+    for (int i = 0; i < CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS + 1; i++)
+    {
+        UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, OS_SUCCESS);
+        CFE_PSP_StartupFailedRestartSP0_hook(tmpID);
+        buffer.startup_failed_attempts++;
+        if (i == CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS - 1)
+        {
+            buffer.startup_failed_attempts = 0;
+            buffer.startup_failed_reset_attempts = 1;
+            g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_POWERON;
+        }
+        UT_SetDataBuffer(UT_KEY(read), &buffer, sizeof(buffer), false);
+    }
+    
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_notice, "_CFE_PSP_StartupFailed - 9/9: Startup timer expired message");
+    UtAssert_True((g_StartupInfo.startup_failed_attempts == 1), "_CFE_PSP_StartupFailed - 9/9: Number failed attempts correct");
+    UtAssert_True((g_StartupInfo.startup_failed_reset_attempts == 1), "_CFE_PSP_StartupFailed - 9/9: Reset attempts changed");  
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: Restart Message - Processor 1");
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_PROCESSOR);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: Restart Message - Processor 2");
+    sprintf(cMsg, "PSP Startup: Too many startup failures. Attempt next restart with CFE_PSP_RST_TYPE_POWERON.\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: PSP DEBUG: Poweron Message");
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_POWERON);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: Restart Message - Poweron 3");
+    sprintf(cMsg, "WARNING: PSP Restart called with %d\n", CFE_PSP_RST_TYPE_CFS_TOGGLE);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: Restart Message - Toggle 4");
+    sprintf(cMsg, "PSP: New Boot String:\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: cFS Partition Sucessfully Toggled 1/2");
+    sprintf(cMsg, "`%s`\n", cBootString);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_StartupFailed - 9/9: cFS Partition Sucessfully Toggled 2/2");
 }
 
 /*=======================================================================================
