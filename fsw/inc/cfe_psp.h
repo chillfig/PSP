@@ -125,7 +125,7 @@
 /** \{ */
 #define CFE_PSP_RST_TYPE_PROCESSOR      1  /**< Volatile disk, Critical Data Store and User Reserved memory could still be valid */
 #define CFE_PSP_RST_TYPE_POWERON        2  /**< All memory has been cleared */
-#define CFE_PSP_RST_TYPE_CFS_TOGGLE     3  /**< Switch CFS partition and set to clear all memory */
+#define CFE_PSP_RST_TYPE_CFS_TOGGLE     3  /**< Switch CFS partition */
 #define CFE_PSP_RST_TYPE_SHELL          4  /**< Restart to VxWorks shell */
 #define CFE_PSP_RST_TYPE_MAX            5  /**< Placeholder to indicate 1+ the maximum value that the PSP will ever use. */
 /** \} */

@@ -699,6 +699,9 @@ int32 CFE_PSP_SP0ROM2Unlock(void)
  ** lock/unlock the BOOT ROM as intended. See attachment on
  ** GWCFS-1226 Jira Story
  **
+ ** \par Code coverage rationale: Can not stub out hardware register to
+ ** to test off nominal cases.    
+ **
  ** \param[in] uiCode - Code to indicate lock/unlock ROM1/2
  **
  ** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
@@ -714,7 +717,7 @@ static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode)
     *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x00000080;
     *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)0x000000A5;
     
-    switch(uiCode)
+    switch (uiCode)
     {
         case SP0_ROM1_CODE_LOCK:
             *(uint32_t *)SP0_BOOT_ROM_STATUS_ADDR = (uint32_t)SP0_ROM1_CODE_LOCK;

@@ -116,22 +116,6 @@ static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 
-/**
- ** \brief User Reserved Memory Header
- ** 
- ** \par Description:
- ** This header is written on the SP0 simulated NVRAM. It contains the signature
- ** "URM" for identification followed by the number of bytes required to recover
- ** the EDR and BOOT structures.
- */
-typedef struct {
-    /* Signature for identification */
-    char signature[3];
-
-    /* Size of EDR and BOOT structure */
-    int32 size;
-} CFE_PSP_URM_EDR_t;
-
 /*
 ** Local Function Prototypes
 */

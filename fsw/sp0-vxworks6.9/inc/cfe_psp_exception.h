@@ -93,6 +93,22 @@ int32   CFE_PSP_SaveToNVRAM(void);
 int32   CFE_PSP_ClearNVRAM(void);
 
 /**
+ ** \brief User Reserved Memory Header
+ ** 
+ ** \par Description:
+ ** This header is written on the SP0 simulated NVRAM. It contains the signature
+ ** "URM" for identification followed by the number of bytes required to recover
+ ** the EDR and BOOT structures.
+ */
+typedef struct {
+    /* Signature for identification */
+    char signature[3];
+
+    /* Size of EDR and BOOT structure */
+    int32 size;
+} CFE_PSP_URM_EDR_t; /** Included in header to aid with UT for CFE_PSP_InitProcessorReservedMemory*/
+
+/**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->
 */
 

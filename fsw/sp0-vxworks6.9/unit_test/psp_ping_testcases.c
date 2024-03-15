@@ -137,6 +137,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     memset(outIcmpPkt, 0, sizeof(outIcmpPkt));
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
     getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
+    getTimeReturnStruct.tv_nsec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_SUCCESS);
@@ -224,6 +225,7 @@ void Ut_CFE_PSP_GenerateICMPPkt(void)
     memset(outIcmpPkt, 0, sizeof(outIcmpPkt));
     UT_SetDefaultReturnValue(UT_KEY(clock_gettime), OK);
     getTimeReturnStruct.tv_sec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS + 1;
+    getTimeReturnStruct.tv_nsec = CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000;
     UT_SetDataBuffer(UT_KEY(clock_gettime), &getTimeReturnStruct, sizeof(getTimeReturnStruct), false);
     UT_SetDefaultReturnValue(UT_KEY(CFE_TIME_Micro2SubSecs), 1000);
     UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_SUCCESS);

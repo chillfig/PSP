@@ -607,6 +607,7 @@ void Ut_CFE_PSP_StartupFailed(void)
     UT_SetDefaultReturnValue(UT_KEY(open), 1);
     UT_SetDefaultReturnValue(UT_KEY(read), sizeof(buffer));
     buffer.startup_failed_attempts = CFE_PSP_STARTUP_MAX_PROCESSOR_RESETS - 1;
+    g_StartupInfo.ResetType = CFE_PSP_RST_TYPE_PROCESSOR;
     UT_SetDataBuffer(UT_KEY(read), &buffer, sizeof(buffer), false);
     UT_SetDefaultReturnValue(UT_KEY(lseek), 0);
     UT_SetDefaultReturnValue(UT_KEY(write), sizeof(g_StartupInfo));
@@ -785,7 +786,9 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     int32 iRetCode = CFE_PSP_SUCCESS;
     char buffer[40] = {'\0'};
     char PartitionName[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = "/ffx1";
+    char longPartitionName[CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH + 1] = "/ffx11";
     cpuaddr pPartitionName = (cpuaddr)&PartitionName;
+    cpuaddr plongPartitionName = (cpuaddr)&longPartitionName; 
     cpuaddr pbuffer = (cpuaddr)&buffer;
 
     /* ----- Test case #1 - Nominal kernel support ----- */
@@ -796,8 +799,8 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/5: Output buffer nominal with kernel support");
-    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_GetActiveCFSPartition - 1/5: Nominal ret code");
+    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 1/7: Output buffer nominal with kernel support");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_CFE_PSP_GetActiveCFSPartition - 1/7: Nominal ret code");
 
     UT_ResetState(0);
 
@@ -809,8 +812,8 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/5: Output buffer nominal without kernel support");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 2/5: Nominal no Kernel support return code");
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 2/7: Output buffer nominal without kernel support");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 2/7: Nominal no Kernel support return code");
 
     UT_ResetState(0);
 
@@ -820,8 +823,8 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(NULL, sizeof(buffer));
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/5: NULL buffer pointer - Buffer untouched");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 3/5: NULL buffer pointer - Return Error");
+    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 3/7: NULL buffer pointer - Buffer untouched");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 3/7: NULL buffer pointer - Return Error");
 
     /* ----- Test case #4 - buffer length < then CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH ----- */
     /* Set additional inputs */
@@ -829,8 +832,8 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     /* Execute test */
     iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH-1);
     /* Verify outputs */
-    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 4/5: Buffer size too small - Buffer untouched");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 4/5: Buffer size too small - Return Error");
+    UtAssert_True(memcmp(buffer, "\0\0\0\0\0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 4/7: Buffer size too small - Buffer untouched");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 4/7: Buffer size too small - Return Error");
 
     /* ----- Test case #5 - NULL buffer string ----- */
     /* Set additional inputs */
@@ -841,8 +844,35 @@ void Ut_CFE_PSP_GetActiveCFSPartition(void)
     // /* Execute test */
     // iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
     // /* Verify outputs */
-    // UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 5/5: snprintf failed");
-    // UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 5/5: snprintf failed - Return Error");
+    // UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 5/7: snprintf failed");
+    // UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 5/7: snprintf failed - Return Error");
+
+    UT_ResetState(0);
+
+    /* ----- Test case #6 - Partition name is too long ----- */
+    /* Set additional inputs */
+    memset(buffer, '\0', sizeof(buffer));
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &plongPartitionName, sizeof(plongPartitionName), false);
+    /* Execute test */
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    /* Verify outputs */
+    UtAssert_True(memcmp(buffer, "/ffx0\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 6/7: Output buffer nominal without kernel support");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 6/7: Partition name too large");
+
+    UT_ResetState(0);
+
+    /* ----- Test case #7 - Snprintf error ----- */
+    /* Set additional inputs */
+    memset(buffer, '\0', sizeof(buffer));
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &pPartitionName, sizeof(pPartitionName), false);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), sizeof(buffer)+1);
+    /* Execute test */
+    iRetCode = CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
+    /* Verify outputs */
+    UtAssert_True(memcmp(buffer, "/ffx1\0", 6) == 0, "_CFE_PSP_GetActiveCFSPartition - 7/7: Snprintf failure");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_CFE_PSP_GetActiveCFSPartition - 7/7: Snprintf failure");
 
 }
 
@@ -1013,7 +1043,7 @@ void Ut_OS_Application_Startup(void)
     /* Execute test */
     UT_OS_Application_Startup();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 1/4: Successful startup notice message");
+    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 1/6: Successful startup notice message");
     UtAssert_STUB_COUNT(userReservedGet, 2);
 
     Ut_OS_printf_Setup();
@@ -1028,8 +1058,8 @@ void Ut_OS_Application_Startup(void)
     /* Execute test */
     UT_OS_Application_Startup();
     /* Verify outputs */
-    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 2/4: Missing startup notice message");
-    UtAssert_OS_print(cMsg_mem_init_failed, "_OS_Application_Startup - 2/4: Initialization of User Reserved Memory failed message");
+    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 2/6: Missing startup notice message");
+    UtAssert_OS_print(cMsg_mem_init_failed, "_OS_Application_Startup - 2/6: Initialization of User Reserved Memory failed message");
 
     Ut_OS_printf_Setup();
 
@@ -1042,8 +1072,8 @@ void Ut_OS_Application_Startup(void)
     UT_OS_Application_Startup();
     /* Verify outputs */
     sprintf(cMsg, "PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n", OS_ERROR);
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/4: OS_API_Init error message");
-    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 3/4: Successful startup notice message missing");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 3/6: OS_API_Init error message");
+    UtAssert_NoOS_print(cMsg_notice, "_OS_Application_Startup - 3/6: Successful startup notice message missing");
 
     Ut_OS_printf_Setup();
 
@@ -1058,12 +1088,71 @@ void Ut_OS_Application_Startup(void)
     UT_OS_Application_Startup();
     /* Verify outputs */
     sprintf(cMsg, "PSP: OS_FileSysAddFixedMap() failure: %d\n", OS_ERROR);
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: CFE_PSP_SetFileSysAddFixedMap error Message");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/6: CFE_PSP_SetFileSysAddFixedMap error Message");
     sprintf(cMsg, "PSP: Some or all Virtual FS Mapping has failed\n");
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: OS_Application_Startup error Message");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/6: OS_Application_Startup error Message");
     sprintf(cMsg, "PSP: At least one vxWorks task priority set failed. System may have degraded performance.\n");
-    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/4: SetSysTasksPrio error Message");
-    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 4/4: Successful startup notice message");
+    UtAssert_OS_print(cMsg, "_OS_Application_Startup - 4/6: SetSysTasksPrio error Message");
+    UtAssert_OS_print(cMsg_notice, "_OS_Application_Startup - 4/6: Successful startup notice message");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #5 - Static info able to be collected ----- */
+    /* Setup additional inputs */
+    CFE_PSP_SP0StaticInfoTable_t localStaticTable;
+    USER_SAFE_MODE_DATA_STRUCT smud; 
+    smud.safeMode = 0; 
+    smud.sbc = SM_LOCAL_SBC; 
+    smud.mckCause = 1; 
+    smud.reason = 0; 
+    uiResetSrc = 0;
+    UT_SetDefaultReturnValue(UT_KEY(OS_API_Init), OS_SUCCESS); 
+    UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), CFE_PSP_SUCCESS); 
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), OS_SUCCESS); 
+    UT_SetDefaultReturnValue(UT_KEY(OS_TimerSet), OS_SUCCESS); 
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0); 
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0); 
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS); 
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true); 
+    UT_SetDeferredRetcode(UT_KEY(aimonGetBITExecuted), 1 , OS_SUCCESS); 
+    UT_SetDeferredRetcode(UT_KEY(aimonGetBITExecuted), 1 , OS_ERROR);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false); 
+    UT_SetDeferredRetcode(UT_KEY(aimonGetBITResults), 1, OS_SUCCESS); 
+    UT_SetDeferredRetcode(UT_KEY(aimonGetBITResults), 1, OS_ERROR);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false); 
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS); 
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false); 
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1); 
+    /* Execute test */
+    UT_OS_Application_Startup();
+    /* Verify outputs */
+    CFE_PSP_SP0GetStaticInfoTable(&localStaticTable, sizeof(localStaticTable), 0);
+    snprintf(cMsg, sizeof(cMsg), "{\"Safe mode\": %d, \"sbc\": \"%s\", \"reason\": %d, \"cause\": \"0x%08x\"}", smud.safeMode, "LOCAL", smud.reason, smud.mckCause);
+    UtAssert_True(strncmp(cMsg, localStaticTable.safeModeUserData, sizeof(cMsg)) == 0, "_OS_Application_Startup - 5/6: Collect static info success");
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #6 - Dynamic info able to be collected ----- */
+    /* Setup additional inputs */
+    CFE_PSP_SP0DynamicInfoTable_t localDynamicTable;
+    UT_SetDefaultReturnValue(UT_KEY(OS_API_Init), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(OS_FileSysAddFixedMap), CFE_PSP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(tempSensorRead), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(volSensorRead), OS_SUCCESS);
+    /* Execute test */
+    UT_OS_Application_Startup();
+    /* Verify outputs */
+    CFE_PSP_SP0GetDynamicInfoTable(&localDynamicTable, sizeof(localDynamicTable), 0);
+    /* tempSensorRead and volSensorRead are stubbed to return 25.5f and 5.05f */
+    for (int i = 0; i < sizeof(localDynamicTable.temperatures)/sizeof(localDynamicTable.temperatures[0]); i++)
+    {
+        UtAssert_True(localDynamicTable.temperatures[i] == 25.5f, "_OS_Application_Startup - 6/6: Collect dynamic info success - temperature correct %d/4", i);
+    }
+    for (int i = 0; i < sizeof(localDynamicTable.voltages)/sizeof(localDynamicTable.voltages[0]); i++)
+    {
+        UtAssert_True(localDynamicTable.voltages[i] == 5.05f, "_OS_Application_Startup - 6/6: Collect dynamic info success - voltage correct %d/6", i);
+    }
 }
 
 /*=======================================================================================
@@ -1120,8 +1209,8 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* Test for task name "tLogTask". New priority will change from -1 to 0 */
     iReturnCode = CFE_PSP_SetTaskPrio(tName, iNewPrio);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 1/6: Nominal - Priority set to 0");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetTaskPrio - 1/6: Nominal - Priority set to 0 ");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 1/7: Nominal - Priority set to 0");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetTaskPrio - 1/7: Nominal - Priority set to 0 ");
     
     /* ----- Test case #2 - Nominal Priority set to 255 for task name "tLogTask" ----- */
     /* Setup additional inputs */
@@ -1138,8 +1227,8 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* We cast 260 to uint8 type so ccppc doesn't give build error. Result is the same? */
     iReturnCode = CFE_PSP_SetTaskPrio(tName, iNewPrio);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 2/6: Nominal - Priority set to 255");
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetTaskPrio - 2/6: Nominal - Priority set to 255");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 2/7: Nominal - Priority set to 255");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetTaskPrio - 2/7: Nominal - Priority set to 255");
 
     /* ----- Test case #3 - Failed to set priority to 25 for task name "tLogTask" ----- */
     /* Setup additional inputs */
@@ -1156,8 +1245,8 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* Test for task name "tLogTask" */
     iReturnCode = CFE_PSP_SetTaskPrio(tName, iNewPrio);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 3/6: Failed - Failed to set priority to 25");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 3/6: Failed - Failed to set priority to 25");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 3/7: Failed - Failed to set priority to 25");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 3/7: Failed - Failed to set priority to 25");
 
     /* ----- Test case #4 - Failed to set priority to 25 for task name "tLogTask",
      * taskNameToId failure -----
@@ -1172,8 +1261,8 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* Execute test */
     iReturnCode = CFE_PSP_SetTaskPrio(tName, iNewPrio);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 4/6: Failed - Task ID lookup failure");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 4/6: Task ID lookup failure");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_SetTaskPrio - 4/7: Failed - Task ID lookup failure");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 4/7: Task ID lookup failure");
 
     /* ----- Test case #5 - task name is null,
      * taskNameToId failure -----
@@ -1185,11 +1274,11 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* Execute test */
     iReturnCode = CFE_PSP_SetTaskPrio(tName_null, iNewPrio);
     /* Verify outputs */
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetTaskPrio - 5/6: No printed messages");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_SetTaskPrio - 5/6: Failed - task name is null does not print any message");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 5/6: Null task name returns error");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetTaskPrio - 5/7: No printed messages");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_SetTaskPrio - 5/7: Failed - task name is null does not print any message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 5/7: Null task name returns error");
 
-    /* ----- Test case #5 - task name is null,
+    /* ----- Test case #6 - task name is null,
      * taskNameToId failure -----
      */
     /* Setup additional inputs */
@@ -1199,9 +1288,23 @@ void Ut_CFE_PSP_SetTaskPrio(void)
     /* Execute test */
     iReturnCode = CFE_PSP_SetTaskPrio(tName_too_long, iNewPrio);
     /* Verify outputs */
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetTaskPrio - 6/6: No printed messages");
-    UtAssert_NoOS_print(cMsg, "_CFE_PSP_SetTaskPrio - 6/6: Failed - task name array does not contain NULL terminating string");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 6/6: task name string without NULL returns error");
+    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_SetTaskPrio - 6/7: No printed messages");
+    UtAssert_NoOS_print(cMsg, "_CFE_PSP_SetTaskPrio - 6/7: Failed - task name array does not contain NULL terminating string");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 6/7: task name string without NULL returns error");
+
+    /* ----- Test case #7 - Failed to get task priority ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    iNewPrio = 0;
+    iCurPrio = 10;
+    UT_SetDeferredRetcode(UT_KEY(taskNameToId), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(taskPriorityGet), 1, ERROR);
+    /* Execute test */
+    iReturnCode = CFE_PSP_SetTaskPrio(tName, iNewPrio);
+    /* Verify outputs */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_SetTaskPrio - 7/7: Failed to get task priority");
+
 }
 
 /*=======================================================================================

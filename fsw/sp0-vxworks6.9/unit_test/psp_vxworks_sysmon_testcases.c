@@ -252,7 +252,9 @@ void Test_Dispatch_Nominal(void)
     Sample[0] = -1;
     Sample[1] = -1;
     StatusCode = EntryAPI->DeviceCommand(CFE_PSP_IODriver_ANALOG_IO_READ_CHANNELS, 1, 0, CFE_PSP_IODriver_VPARG(&RdWr));
-    UtAssert_True(StatusCode == CFE_PSP_SUCCESS && Sample[0] == 0 && Sample[1] == -1, "Nominal Case: Dispatch cpuload");
+    UtAssert_True(StatusCode == CFE_PSP_SUCCESS, "Nominal Case: Dispatch cpuload");
+    UtAssert_True(Sample[0] == 0, "Nominal Case: Dispatch cpuload");
+    UtAssert_True(Sample[1] == -1, "Nominal Case: Dispatch cpuload");
 }
 
 void Test_Dispatch_Error(void)
@@ -267,12 +269,16 @@ void Test_Dispatch_Error(void)
     Sample[0] = -1;
     Sample[1] = -1;
     StatusCode = EntryAPI->DeviceCommand(CFE_PSP_IODriver_ANALOG_IO_READ_CHANNELS, 1, 2, CFE_PSP_IODriver_VPARG(&RdWr));
-    UtAssert_True(Sample[0] == -1 && Sample[1] == -1 && StatusCode == CFE_PSP_ERROR,  "Error Case: Dispatch cpuload, subchannel >= max cpu");
+    UtAssert_True(Sample[0] == -1,  "Error Case: Dispatch cpuload, subchannel >= max cpu");
+    UtAssert_True(Sample[1] == -1,  "Error Case: Dispatch cpuload, subchannel >= max cpu");
+    UtAssert_True(StatusCode == CFE_PSP_ERROR,  "Error Case: Dispatch cpuload, subchannel >= max cpu");
 
     /* Error Case: Dispatch Analog Read Channels, NumChannels > max cpu */
     RdWr.NumChannels = 2;
     StatusCode =EntryAPI->DeviceCommand(CFE_PSP_IODriver_ANALOG_IO_READ_CHANNELS, 1, 0, CFE_PSP_IODriver_VPARG(&RdWr));
-    UtAssert_True(StatusCode == CFE_PSP_ERROR && Sample[0] == -1 && Sample[1] == -1, "Error Case: Dispatch cpuload, NumChannels > max cpu");
+    UtAssert_True(StatusCode == CFE_PSP_ERROR, "Error Case: Dispatch cpuload, NumChannels > max cpu");
+    UtAssert_True(Sample[0] == -1, "Error Case: Dispatch cpuload, NumChannels > max cpu");
+    UtAssert_True(Sample[1] == -1, "Error Case: Dispatch cpuload, NumChannels > max cpu");
 
     /* Error Case: Command Code Not Found */
     StatusCode = EntryAPI->DeviceCommand(10, 1, 0, CFE_PSP_IODriver_U32ARG(1));
@@ -319,7 +325,8 @@ void Test_UpdateStat_Nominal(void)
     memset(&vxworks_sysmon_global, 0, sizeof(vxworks_sysmon_global));
     UT_SetDefaultReturnValue(UT_KEY(strncmp), -1);
     vxworks_sysmon_update_stat(fmt, "KERNEL", "", "", "", 95, 7990, 95, 1998); /* Function under test */
-    UtAssert_True(vxworks_sysmon_global.cpu_load.per_core[0].avg_load  == 0  && vxworks_sysmon_global.cpu_load.num_cpus == 0, "Nominal Case: Not Idle String");
+    UtAssert_True(vxworks_sysmon_global.cpu_load.per_core[0].avg_load  == 0, "Nominal Case: Not Idle String");
+    UtAssert_True(vxworks_sysmon_global.cpu_load.num_cpus == 0, "Nominal Case: Not Idle String");
 
 }
 

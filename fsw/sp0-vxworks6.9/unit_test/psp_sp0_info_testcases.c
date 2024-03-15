@@ -100,7 +100,7 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 1/10: Nominal SP0s");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 1/11: Nominal SP0s");
 
     Ut_OS_printf_Setup();
 
@@ -127,8 +127,8 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_readreset,"_CFE_PSP_SP0CollectStaticInfo - 2/10: ReadResetSourceReg failed message");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 2/10: Failed return code");
+    UtAssert_OS_print(cMsg_readreset,"_CFE_PSP_SP0CollectStaticInfo - 2/11: ReadResetSourceReg failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 2/11: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -153,8 +153,8 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_retrieve,"_CFE_PSP_SP0CollectStaticInfo - 3/10: ReadSafeModeUserData failed message");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 3/10: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_retrieve,"_CFE_PSP_SP0CollectStaticInfo - 3/11: ReadSafeModeUserData failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 3/11: Failed return code");
 
     Ut_OS_printf_Setup();
 
@@ -182,7 +182,7 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 4/10: Nominal with REMOTE SBC");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 4/11: Nominal with REMOTE SBC");
     
     Ut_OS_printf_Setup();
 
@@ -209,13 +209,13 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0CollectStaticInfo - 5/10: ReadSafeModeUserData snprintf failed");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 5/10: Failed return code");
+    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0CollectStaticInfo - 5/11: ReadSafeModeUserData snprintf failed");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 5/11: Failed return code");
 
     Ut_OS_printf_Setup();
 
 
-    /* ----- Test case # - 5.5 returnSelectedBootFlash 2nd boot ----- */
+    /* ----- Test case #6 - 5.5 returnSelectedBootFlash 2nd boot ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
@@ -235,11 +235,11 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 6/10: Nominal 2nd boot device");
+    UtAssert_True((ret == CFE_PSP_SUCCESS), "_CFE_PSP_SP0CollectStaticInfo - 6/11: Nominal 2nd boot device");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #8 - aimonGetBITExecute Fail ----- */
+    /* ----- Test case #7 - aimonGetBITExecute Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
@@ -259,13 +259,13 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitexec,"_CFE_PSP_SP0CollectStaticInfo - 7/10: aimonGetBITExecute failed message");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 7/10: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitexec,"_CFE_PSP_SP0CollectStaticInfo - 7/11: aimonGetBITExecute failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 7/11: Failed return code");
 
     Ut_OS_printf_Setup();
 
 
-    /* ----- Test case #9 - aimonGetBITResults Fail ----- */
+    /* ----- Test case #8 - aimonGetBITResults Fail ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
@@ -285,13 +285,13 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_aimongetbitres,"_CFE_PSP_SP0CollectStaticInfo - 8/10: aimonGetBITResults failed message");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 8/10: Failed return code");
+    UtAssert_OS_print(cMsg_aimongetbitres,"_CFE_PSP_SP0CollectStaticInfo - 8/11: aimonGetBITResults failed message");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 8/11: Failed return code");
 
     Ut_OS_printf_Setup();
 
 
-    /* ----- Test case #12 - clock_gettime error ----- */
+    /* ----- Test case #9 - clock_gettime error ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
@@ -312,10 +312,10 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0CollectStaticInfo - 9/10: clock_gettime error");
-    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 9/10: Even though g_cSP0DataDump too small return code success");
+    UtAssert_OS_print(cMsg_localtime, "_CFE_PSP_SP0CollectStaticInfo - 9/11: clock_gettime error");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 9/11: Even though g_cSP0DataDump too small return code success");
 
-    /* ----- Test case #13 - last snprintf error ----- */
+    /* ----- Test case #10 - last snprintf error ----- */
     /* Setup additional inputs */
     memset(g_cSP0DataDump,(int)NULL,SP0_TEXT_BUFFER_MAX_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(sysModel), 1);
@@ -337,8 +337,35 @@ void Ut_CFE_PSP_SP0CollectStaticInfo(void)
     /* Execute test */
     ret = CFE_PSP_SP0CollectStaticInfo();
     /* Verify outputs */
-    UtAssert_True(g_iSP0DataDumpLength == -1, "_CFE_PSP_SP0CollectStaticInfo - 10/10: snprintf error, g_cSP0DataDump is -1");
-    UtAssert_True((ret == CFE_PSP_ERROR_LEVEL_0), "_CFE_PSP_SP0CollectStaticInfo - 10/10: although snprintf return code success");
+    UtAssert_True(g_iSP0DataDumpLength == -1, "_CFE_PSP_SP0CollectStaticInfo - 10/11: snprintf error, g_cSP0DataDump is -1");
+    UtAssert_True((ret == CFE_PSP_ERROR_LEVEL_0), "_CFE_PSP_SP0CollectStaticInfo - 10/11: although snprintf return code success");
+
+    Ut_OS_printf_Setup();
+    
+    /* ----- Test case #11 - ReadSafeModeUserData - snprintf failed with buffer size greater than max----- */
+    /* Setup additional inputs */
+    memset(g_cSP0DataDump, 0, sizeof(g_cSP0DataDump));
+    UT_SetDefaultReturnValue(UT_KEY(sysModel), 0);
+    /* getCoreClockSpeed for SP0s = 0 */
+    UT_SetDefaultReturnValue(UT_KEY(getCoreClockSpeed), 0);
+    UT_SetDefaultReturnValue(UT_KEY(ReadResetSourceReg), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadResetSourceReg), &uiResetSrc, sizeof(uiResetSrc), true);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITExecuted), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITExecuted), &bitExecuted, sizeof(bitExecuted), false);
+    UT_SetDefaultReturnValue(UT_KEY(aimonGetBITResults), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(aimonGetBITResults), &bitResult, sizeof(bitResult), false);
+
+    UT_SetDefaultReturnValue(UT_KEY(ReadSafeModeUserData), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(ReadSafeModeUserData), &smud, sizeof(smud), false);
+    UT_SetDefaultReturnValue(UT_KEY(returnSelectedBootFlash), 1);
+
+    UT_SetDeferredRetcode(UT_KEY(PCS_snprintf), 1, SP0_SAFEMODEUSERDATA_BUFFER_SIZE + 1);
+
+    /* Execute test */
+    ret = CFE_PSP_SP0CollectStaticInfo();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_safemode_nowrite,"_CFE_PSP_SP0CollectStaticInfo - 11/11: ReadSafeModeUserData snprintf failed");
+    UtAssert_True((ret == CFE_PSP_ERROR), "_CFE_PSP_SP0CollectStaticInfo - 11/11: Failed return code");
 }
 
 /*=======================================================================================
@@ -572,7 +599,18 @@ void Ut_CFE_PSP_SP0PrintToBuffer(void)
     ret_code = CFE_PSP_SP0PrintToBuffer();
     /* Verify outputs */
 
-    UtAssert_NA("_CFE_PSP_SP0PrintToBuffer - 1/1: N/A");
+    UtAssert_NA("_CFE_PSP_SP0PrintToBuffer - 1/2: N/A");
+
+    /* ----- Test case #2 - Buffer dump too long ----- */
+    /* Setup additional inputs */
+    Ut_OS_printf_Setup();
+    /* Set the content of the output data to a fixed value for testing */
+    memset(g_cSP0DataDump, 0, sizeof(g_cSP0DataDump));
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), SP0_TEXT_BUFFER_MAX_SIZE);
+    /* Execute test */
+    ret_code = CFE_PSP_SP0PrintToBuffer();
+    /* Verify outputs */
+    UtAssert_True(ret_code == CFE_PSP_ERROR, "_CFE_PSP_SP0PrintToBuffer - 2/2: Print to buffer fail");
 }
 
 /*=======================================================================================
@@ -831,6 +869,7 @@ void Ut_CFE_PSP_SP0ROMXCmd(void)
     iReturnCode = CFE_PSP_SP0ROMXCmd((uint32_t) 0x00000000);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_SP0_PRINT_SCOPE "ROMX_COMMAND - 5/5: Default switch case - return code");
+
 }
 
 /**********************************************************

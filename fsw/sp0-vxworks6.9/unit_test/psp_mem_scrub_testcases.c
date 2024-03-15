@@ -66,8 +66,8 @@ void Ut_CFE_PSP_MemScrubInit(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 1/5: Correct return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 1/5: Unable to create semaphore OS_SEM_FAILURE - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 1/6: Correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 1/6: Unable to create semaphore OS_SEM_FAILURE - message");
 
     /* ----- Test case #2 - Unable to create binary semaphore already created ----- */
     /* Set additional inputs */
@@ -78,8 +78,8 @@ void Ut_CFE_PSP_MemScrubInit(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 2/5: Correct return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 2/5: Unable to create semaphore OS_ERR_NAME_TAKEN - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 2/6: Correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 2/6: Unable to create semaphore OS_ERR_NAME_TAKEN - message");
 
     /* ----- Test case #3 - Unable to Enable mem scrub task ----- */
     /* Set additional inputs */
@@ -93,10 +93,10 @@ void Ut_CFE_PSP_MemScrubInit(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 3/5: Correct return code");
-    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 3/5: Unable to enable mem scrub task - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_MemScrubInit - 3/6: Correct return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_MemScrubInit - 3/6: Unable to enable mem scrub task - message");
 
-    /* ----- Tes case #4 - Successfully enable memory scrub task ----- */
+    /* ----- Test case #4 - Successfully enable memory scrub task ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -108,9 +108,9 @@ void Ut_CFE_PSP_MemScrubInit(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubInit - 4/5: Correct return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubInit - 4/6: Correct return code");
 
-    /* ----- Tes case #5 - Successfully initialized memory scrub run mode 3 ----- */
+    /* ----- Test case #5 - Successfully initialized memory scrub run mode MEMSCRUB_MANUAL_MODE ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -123,8 +123,19 @@ void Ut_CFE_PSP_MemScrubInit(void)
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubInit - 5/5: Correct return code");
-    UtAssert_True((Ut_OS_printf_MsgCount() == 0), "_CFE_PSP_MemScrubInit - 5/5: No message output");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubInit - 5/6: Correct return code");
+    UtAssert_True((Ut_OS_printf_MsgCount() == 0), "_CFE_PSP_MemScrubInit - 5/6: No message output");
+
+    /* ----- Test case #6 - CFE_PSP_MemScrubInit() Success Without Starting Mem Scrub Task ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    g_bMemScrubStartOnStartup = false;
+    /* Execute test */
+    iReturnCode = CFE_PSP_MemScrubInit();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubInit - 6/6: Correct return code");
 }
 
 /*=======================================================================================

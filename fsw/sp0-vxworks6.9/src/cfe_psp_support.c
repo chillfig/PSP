@@ -305,6 +305,11 @@ void CFE_PSP_ToggleCFSBootPartition(void)
         }
     }
 
+    if (ucIndex == ucMaxIterations)
+    {
+        OS_printf("PSP: Invalid cFS partition: `%s'\nStartup script will be set to null.\n", g_StartupInfo.active_cfs_partition);
+    }
+
     /* Set Boot Startup String */
     iRetCode = CFE_PSP_SetBootStartupString(cBootString, true);
 }

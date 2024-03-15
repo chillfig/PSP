@@ -255,7 +255,8 @@ void Ut_CFE_PSP_GetProcessorName(void)
 void Ut_CFE_PSP_ToggleCFSBootPartition(void)
 {
     char cMsg[256] = {'\0'};
-
+    char startupString[] = "/ffx0/startup";
+    char startupString2[] = "/ffx1/startup";
     Ut_OS_printf_Setup();
 
     /* ----- Test case #1 - Nominal ----- */
@@ -267,8 +268,9 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
     /* Execute test */
     CFE_PSP_ToggleCFSBootPartition();
     /* Verify outputs */
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_ToggleCFSBootPartition() - 1/3: Nominal no printed messages");
-
+    snprintf(cMsg, sizeof(cMsg), "PSP: New Boot String:\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 1/4: Nominal");
+    
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
@@ -285,7 +287,14 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
     UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
     UtAssert_STUB_COUNT(sysNvRamGet, 1);
     UtAssert_STUB_COUNT(sysNvRamSet, 1);
-    UtAssert_True(Ut_OS_printf_MsgCount() == 0, "_CFE_PSP_ToggleCFSBootPartition() - 2/3: Nominal no printed messages");
+    snprintf(cMsg, sizeof(cMsg), "PSP: New Boot String:\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 2/4: Nominal ");
+    snprintf(cMsg, sizeof(cMsg), "``\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 2/4: Nominal ");
+    snprintf(cMsg, sizeof(cMsg), "PSP: Invalid cFS partition: `%s'\nStartup script will be set to null.\n", g_StartupInfo.active_cfs_partition);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 2/4: Nominal ");
+
+
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
@@ -304,8 +313,25 @@ void Ut_CFE_PSP_ToggleCFSBootPartition(void)
     UtAssert_STUB_COUNT(sysNvRamGet, 1);
     UtAssert_STUB_COUNT(sysNvRamSet, 1);
     snprintf(cMsg, 256, "PSP: Could not construct new boot startup string.\n`%s`/`%s`\n", g_cAvailable_cfs_partitions[0], CFE_PSP_STARTUP_FILENAME);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 3/3: snprintf error message");
-    UtAssert_True(Ut_OS_printf_MsgCount() == 1, "_CFE_PSP_ToggleCFSBootPartition() - 3/3: Nominal no printed messages");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 3/4: snprintf error message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #4 - snprintf error ----- */
+    /* Setup additional inputs */
+    strncpy(g_StartupInfo.active_cfs_partition, "/ffx0", sizeof(g_StartupInfo.active_cfs_partition));
+    UT_SetDefaultReturnValue(UT_KEY(PCS_snprintf), 2);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
+    /* Execute test */
+    CFE_PSP_ToggleCFSBootPartition();
+    /* Verify outputs */
+    UtAssert_STUB_COUNT(PCS_bootStringToStruct, 1);
+    UtAssert_STUB_COUNT(sysNvRamGet, 1);
+    UtAssert_STUB_COUNT(sysNvRamSet, 1);
+    snprintf(cMsg, 256, "PSP: Could not construct new boot startup string.\n`%s`/`%s`\n", g_cAvailable_cfs_partitions[1], CFE_PSP_STARTUP_FILENAME);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ToggleCFSBootPartition() - 4/4: snprintf error message");
 }
 
 /*=======================================================================================
@@ -316,6 +342,7 @@ void Ut_CFE_PSP_ValidatePath(void)
     int32 uiRetCode = CFE_PSP_ERROR;
     char cValidPath[] = "/ffx0/testme";
     char cInvalidPath[] = "/ff$^\nartup";
+    char cInvalidPath2[] = "/ff$^€artup";
 
     /* ----- Test case #1 - Nominal - Valid Path ----- */
     /* Setup additional inputs */
@@ -323,7 +350,7 @@ void Ut_CFE_PSP_ValidatePath(void)
     /* Execute test */
     uiRetCode = CFE_PSP_ValidatePath(cValidPath, strlen(cValidPath));
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ValidatePath() - 1/4: Valid Path - Nominal return code");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ValidatePath() - 1/5: Valid Path - Nominal return code");
 
     /* ----- Test case #2 - Nominal - Invalid Path ----- */
     /* Setup additional inputs */
@@ -331,7 +358,7 @@ void Ut_CFE_PSP_ValidatePath(void)
     /* Execute test */
     uiRetCode = CFE_PSP_ValidatePath(cInvalidPath, strlen(cInvalidPath));
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 2/4: Invalid Path - Nominal return code");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 2/5: Invalid Path - Nominal return code");
 
     /* ----- Test case #3 - Error - Path is NULL ----- */
     /* Setup additional inputs */
@@ -339,7 +366,7 @@ void Ut_CFE_PSP_ValidatePath(void)
     /* Execute test */
     uiRetCode = CFE_PSP_ValidatePath(NULL, strlen(cInvalidPath));
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 3/4: Path Null - Nominal return code");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 3/5: Path Null - Nominal return code");
 
     /* ----- Test case #4 - Error - Path length too short ----- */
     /* Setup additional inputs */
@@ -347,7 +374,16 @@ void Ut_CFE_PSP_ValidatePath(void)
     /* Execute test */
     uiRetCode = CFE_PSP_ValidatePath(cInvalidPath, 0);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 4/4: Path length is too short - Nominal return code");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 4/5: Path length is too short - Nominal return code");
+
+    /* ----- Test case #5 - Nominal - Invalid Path ----- */
+    /* Setup additional inputs */
+ 
+    /* Execute test */
+    uiRetCode = CFE_PSP_ValidatePath(cInvalidPath2, strlen(cInvalidPath2));
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_ValidatePath() - 5/5: Invalid Path - Nominal return code");
+
 }
 
 /*=======================================================================================
@@ -575,10 +611,10 @@ void Ut_CFE_PSP_SetBootStructure(void)
     BOOT_PARAMS test_param = {{0}};
     char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char cMsg_talkative[] = {"PSP: New Boot String:\n"};
+    char cMsg_talkative_boot[] = "`motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28`\n";
     char cMsg_error_saving[] = {"PSP: Could not set new boot string\n"};
     char cMsg_error_structure[] = {"PSP: Could not convert structure to boot string\n"};
-
-    UT_SetDefaultReturnValue(UT_KEY(bootStructToString), OK);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_bootStructToString), OK);
 
     /* ----- Test case #1 - Nominal - non talkative ----- */
     /* Setup additional inputs */
@@ -598,11 +634,13 @@ void Ut_CFE_PSP_SetBootStructure(void)
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
     /* Set new parameters */
     bootStringToStruct(boot_string, &test_param);
+    UT_SetDataBuffer(UT_KEY(PCS_bootStructToString), boot_string, sizeof(boot_string), false);
     /* Execute test */
     uiRetCode = CFE_PSP_SetBootStructure(test_param, 1);
     /* Verify outputs */
     UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_SetBootStructure() - 2/4: Nominal return code - talkative");
     UtAssert_OS_print(cMsg_talkative, "_CFE_PSP_SetBootStructure() - 2/4: Nominal message - talkative");
+    UtAssert_OS_print(cMsg_talkative_boot, "_CFE_PSP_SetBootStructure() - 2/4: Nominal message - Printed boot string");
 
     /* ----- Test case #3 - Error saving boot string ----- */
     /* Setup additional inputs */
@@ -620,7 +658,7 @@ void Ut_CFE_PSP_SetBootStructure(void)
     /* Setup additional inputs */
     Ut_OS_printf_Setup();
     UT_SetDefaultReturnValue(UT_KEY(sysNvRamSet), OK);
-    UT_SetDefaultReturnValue(UT_KEY(bootStructToString), ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_bootStructToString), ERROR);
     /* Set new parameters */
     memset(&test_param,'1',sizeof(test_param));
     /* Execute test */

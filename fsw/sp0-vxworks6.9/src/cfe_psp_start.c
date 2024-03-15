@@ -481,7 +481,7 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
                    start with a value of 0 until this file is read with valid contents */
                 g_StartupInfo.startup_failed_attempts++;
             }
-            else if ((iBytes_read != 0) && (iBytes_read != sizeof(startup_buffer)))
+            else if (iBytes_read != sizeof(startup_buffer))
             {
                 /* If we are reading less or more than the startup_buffer size, it means
                    that the file is corrupted or the CFS instance has changed the definition
@@ -525,7 +525,6 @@ void CFE_PSP_StartupFailedRestartSP0_hook(osal_id_t timer_id)
 
                 g_StartupInfo.startup_failed_attempts = startup_buffer.startup_failed_attempts;
                 g_StartupInfo.startup_failed_reset_attempts = startup_buffer.startup_failed_reset_attempts;
-
             }
 
             /* Replace whatever is in the file */
@@ -840,14 +839,14 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     hardware and POST, and setup the task to dump the collected information 
     when abort is called.
     */
-    if (CFE_PSP_SP0CollectStaticInfo() != CFE_PSP_SUCCESS)
-    {
-        OS_printf("PSP: Error while collecting static SP0 information\n");
-    }
-
     if (CFE_PSP_SP0CollectDynamicInfo() != CFE_PSP_SUCCESS)
     {
         OS_printf("PSP: Error while collecting dynamic SP0 information\n");
+    }
+
+    if (CFE_PSP_SP0CollectStaticInfo() != CFE_PSP_SUCCESS)
+    {
+        OS_printf("PSP: Error while collecting static SP0 information\n");
     }
 
     CFE_PSP_SetupReservedMemoryMap();

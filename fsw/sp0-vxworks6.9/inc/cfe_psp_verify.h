@@ -263,6 +263,12 @@ CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FIL
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) <= CFE_PSP_FAILED_STARTUP_FILENAME_MAX_LENGTH, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_LONG);
 /** \brief Verify that the failed startup file name is within required length */
 CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME) > 1, CFE_PSP_STARTUP_FAILED_STARTUP_FILENAME_TOO_SHORT);
+/** 
+ * \brief Verify that the boot string does not exceed max boot line size 
+ * 
+ * \note The format of the boot string is %s/%s where the first is the active partition name and the second is the startup file name
+*/
+CompileTimeAssert(sizeof(CFE_PSP_STARTUP_FILENAME)+sizeof(CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH)+1 < MAX_BOOT_LINE_SIZE, CFE_PSP_BOOTSTRING_TOO_LONG);
 
 /**
 ** \} <!-- End of group "psp_public_api" -->

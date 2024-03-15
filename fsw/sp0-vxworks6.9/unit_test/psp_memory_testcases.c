@@ -31,6 +31,7 @@
 #include "utstubs.h"
 #include "ut_psp_utils.h"
 #include "cfe_psp.h"
+#include "cfe_psp_exception.h"
 
 #include "psp_memory_testcases.h"
 #include "../src/cfe_psp_memory.c"
@@ -385,6 +386,7 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     g_uiMemorySyncStartup = false;
 
     /** For CFE_PSP_LoadNVRAM **/
+    CFE_PSP_URM_EDR_t urm_header = {"URM", 20};
     char    urm_word[] = "URM";
     uint32  urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
     uint8   localURMBuffer[urm_data_size];
@@ -416,8 +418,8 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 1/4: Invalid Block Size message");
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 1/4: Invalid Block Size return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 1/7: Invalid Block Size message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_InitProcessorReservedMemory 1/7: Invalid Block Size return code");
 
     /* ----- Test case #2 - Nominal with g_uiMemorySyncStartup false ----- */
     /* Set additional inputs */
@@ -429,12 +431,12 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_POWERON);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/4: Not processor reset - return code");
-    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_InitProcessorReservedMemory 2/4: Not processor reset - boot reset type check");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: CDS Block Check ");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: Reset Block Check");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: Volatile Disk Block Check");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/4: User Reserved Block Check");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 2/7: Not processor reset - return code");
+    UtAssert_True(CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type == CFE_PSP_RST_TYPE_PROCESSOR, "_CFE_PSP_InitProcessorReservedMemory 2/7: Not processor reset - boot reset type check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/7: CDS Block Check ");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/7: Reset Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/7: Volatile Disk Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 2/7: User Reserved Block Check");
 
     /* ----- Test case #3 - Nominal with g_uiMemorySyncStartup True - Restore Data SUCCESS ----- */
     /* Set additional inputs */
@@ -447,10 +449,10 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 3/4: Not processor reset - return code");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 3/4: Reset Block Check");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 3/7: Not processor reset - return code");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 3/7: Reset Block Check");
 
-    /* ----- Test case #3 - Nominal with g_uiMemorySyncStartup True - Restore Data ERROR ----- */
+    /* ----- Test case #4 - Nominal with g_uiMemorySyncStartup True - Restore Data ERROR ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
@@ -462,11 +464,90 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 4/4: Not processor reset - return code");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: CDS Block Check ");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: Reset Block Check");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: Volatile Disk Block Check");
-    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/4: User Reserved Block Check");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 4/7: Not processor reset - return code");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: CDS Block Check ");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: Reset Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: Volatile Disk Block Check");
+    UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: User Reserved Block Check");
+
+    /* ----- Test case #5 - NVRAM Load Success ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_uiMemorySyncStartup = true;
+    CFE_PSP_ReservedMemoryMap.BootPtr = (void*)(localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t));
+    urm_header.size = urm_data_size;
+    memset(nvram,0x00,sizeof(nvram));
+    memcpy(nvram, (char *)&urm_header, sizeof(CFE_PSP_URM_EDR_t));
+    /** For CFE_PSP_LoadNVRAM **/
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDataBuffer(UT_KEY(userNvRamGet), &urm_header, sizeof(urm_header), false);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
+    /* Execute test */
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from NVRAM success");
+    sprintf(cMsg, "PSP EXC: URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_header.size);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from NVRAM success");
+
+    /* ----- Test case #6 - Reset Memory success ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_uiMemorySyncStartup = true;
+    UT_SetDefaultReturnValue(UT_KEY(stat), 0);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(creat), 0);
+    UT_SetDefaultReturnValue(UT_KEY(read), -1);
+    /* Setting WriteToFlash == True */
+    UT_SetDefaultReturnValue(UT_KEY(open), 0);
+    UT_SetDefaultReturnValue(UT_KEY(write), CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_ERROR);
+    memset(g_RESETFilepath, "/", sizeof(g_RESETFilepath));
+    memset(g_CDSFilepath, "/", sizeof(g_CDSFilepath));
+    memset(g_VOLATILEDISKFilepath, "/", sizeof(g_VOLATILEDISKFilepath));
+    memset(g_USERRESERVEDFilepath, "/", sizeof(g_USERRESERVEDFilepath));
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
+    /* Execute test */
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 6/7: Reset Memory Success");
+    snprintf(cMsg, sizeof(cMsg), "PSP FLASH: FILE: <%s>\n", g_RESETFilepath);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 6/7: Restore Reset Success");
+    snprintf(cMsg, sizeof(cMsg), "PSP FLASH: FILE: <%s>\n", g_CDSFilepath);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 6/7: Restore CDS Success");
+    snprintf(cMsg, sizeof(cMsg), "PSP FLASH: FILE: <%s>\n", g_USERRESERVEDFilepath);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 6/7: Restore User Reserved Success");
+
+    /* ----- Test case #7 - Volatile Disk success ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    g_uiMemorySyncStartup = true;
+    UT_SetDefaultReturnValue(UT_KEY(stat), 0);
+    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
+    UT_SetDefaultReturnValue(UT_KEY(read), -1);
+    /* Setting WriteToFlash == True */
+    UT_SetDefaultReturnValue(UT_KEY(open), 0);
+    UT_SetDefaultReturnValue(UT_KEY(write), CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_ERROR);
+    memset(g_RESETFilepath, '\0', sizeof(g_RESETFilepath));
+    memset(g_CDSFilepath, '\0', sizeof(g_CDSFilepath));
+    memset(g_VOLATILEDISKFilepath, "/", sizeof(g_VOLATILEDISKFilepath));
+    memset(g_USERRESERVEDFilepath, '\0', sizeof(g_USERRESERVEDFilepath));
+    CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
+    /* Execute test */
+    iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 7/7: Reset Memory Success");
+    snprintf(cMsg, sizeof(cMsg), "PSP FLASH: FILE: <%s>\n", g_VOLATILEDISKFilepath);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 7/7: Restore Volatile Disk Success"); 
+    snprintf(cMsg, sizeof(cMsg), "PSP FLASH: WriteToFLASH: Unable to close file\n");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 7/7: Restore Volatile Disk WriteToFlash Close"); 
 
     /* Leave Memory Sync Off for the OS_Application_Startup Testcases */
     g_uiMemorySyncStartup = false;
@@ -594,7 +675,7 @@ void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetKernelTextSegmentInfo(puiKernelSegment, puiKernelSegmentSize);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/2:Nominal");
+    UtAssert_True(uiRetCode == OS_SUCCESS, "_CFE_PSP_GetKernelTextSegmentInfo - 1/3:Nominal");
 
     UT_ResetState(0);
 
@@ -605,8 +686,19 @@ void Ut_CFE_PSP_GetKernelTextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetKernelTextSegmentInfo(puiKernelSegment, puiKernelSegmentSize);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 2/2: Failed Kernel segment size pointer is NULL");
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 2/3: Failed Kernel segment size pointer is NULL");
+
+     /* ----- Test case #3 - Kernel segment pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiKernelSegment = NULL;
+    puiKernelSegmentSize = &uiKernelSegmentSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetKernelTextSegmentInfo(puiKernelSegment, puiKernelSegmentSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == OS_ERROR, "_CFE_PSP_GetKernelTextSegmentInfo - 3/3: Failed Kernel segment pointer is NULL");
 }
+
+
 
 /*=======================================================================================
 ** Ut_CFE_PSP_GetCFETextSegmentInfo() test cases
@@ -640,7 +732,7 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/6: Nominal moduleInfoGet returned success");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 1/7: Nominal moduleInfoGet returned success");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
     UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 1);
@@ -659,8 +751,8 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/6: CFESegment was not changed");
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/6: Nominal moduleInfoGet returned error");
+    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/7: CFESegment was not changed");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/7: Nominal moduleInfoGet returned error");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
     UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 1);
@@ -675,8 +767,8 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/6: puiSizeOfCFESegment pointer is NULL");
-    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 3/6: CFESegment was not changed");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 3/7: puiSizeOfCFESegment pointer is NULL");
+    UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 3/7: CFESegment was not changed");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 0);
     UtAssert_STUB_COUNT(moduleFindByName, 0);
     UtAssert_STUB_COUNT(moduleInfoGet, 0);
@@ -691,7 +783,7 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/6: pCFESegment pointer is NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 4/7: pCFESegment pointer is NULL");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 0);
     UtAssert_STUB_COUNT(moduleFindByName, 0);
     UtAssert_STUB_COUNT(moduleInfoGet, 0);
@@ -707,7 +799,7 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 5/6: Failed because moduleFindByName returned NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 5/7: Failed because moduleFindByName returned NULL");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
     UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 0);
@@ -726,10 +818,32 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 6/6: Nominal moduleInfoGet returned success");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 6/7: Nominal moduleInfoGet returned success");
     UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
     UtAssert_STUB_COUNT(moduleFindByName, 0);
     UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
+    UtAssert_STUB_COUNT(moduleInfoGet, 1);
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #7 - No Module ID address----- */
+    /* Setup additional inputs */
+    CFESegment = 0;
+    puiSizeOfCFESegment = &uiSizeOfCFESegment;
+    GetModuleIdAddr = 0;
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDataBuffer(UT_KEY(OS_SymbolLookup), &GetModuleIdAddr, sizeof(GetModuleIdAddr), false);
+    UT_SetDefaultReturnValue(UT_KEY(moduleFindByName), NULL);
+    UT_SetDataBuffer(UT_KEY(moduleFindByName), &moduleInfo, sizeof(&moduleInfo), false);
+    UT_SetDefaultReturnValue(UT_KEY(moduleInfoGet), OK);
+    UT_SetDataBuffer(UT_KEY(moduleInfoGet), &moduleInfo, sizeof(&moduleInfo), false);
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCFETextSegmentInfo(pCFESegment, puiSizeOfCFESegment);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCFETextSegmentInfo - 7/7: Nominal moduleInfoGet returned success");
+    UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
+    UtAssert_STUB_COUNT(moduleFindByName, 1);
     UtAssert_STUB_COUNT(moduleInfoGet, 1);
 }
 
@@ -1938,8 +2052,8 @@ void Ut_CFE_PSP_MemSyncInit(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/4: Failed to create binary semaphore - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/5: Failed to create binary semaphore - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 1/5: Failed to create binary semaphore - message");
 
     /* ----- Test case #2: Start on startup false ----- */
     UT_ResetState(0);
@@ -1948,7 +2062,7 @@ void Ut_CFE_PSP_MemSyncInit(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 2/4: Successfully create binary semaphore - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 2/5: Successfully create binary semaphore - return code");
 
     /* ----- Test case #3: Start on startup true, fail to start ----- */
     /* Set additional inputs */
@@ -1963,21 +2077,31 @@ void Ut_CFE_PSP_MemSyncInit(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
-    UtAssert_True(iReturnCode ==CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/4: Failed to start task - message");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/5: Failed to start task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 3/5: Failed to start task - message");
 
-    /* ----- Test case #4: Start on startup true, start task----- */
+    /* ----- Test case #4: Start on startup true, start task fail----- */
     /* Set additional inputs */
     UT_ResetState(0);
     UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
     UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
     g_MemorySyncTaskBinSem = OS_OBJECT_ID_UNDEFINED;
-    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskCreate), 1, OS_ERROR);
     g_uiMemorySyncStartup = true;
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncInit();
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 4/4: Failed to start task - return code");
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 4/5: Failed to start task");
+
+    /* ----- Test case #5: memory sync startup false----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemCreate), 1, OS_SUCCESS);
+    g_uiMemorySyncStartup = false;
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MemSyncInit();
+    /* Verify Results*/
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "Init - 5/5: Memory sync startup false");
 
     /* Leave Memory Sync Off for the OS_Application_Startup Testcases */
     g_uiMemorySyncStartup = false;
@@ -2001,8 +2125,8 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/4: Fail to stop task - message");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/5: Fail to stop task - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 1/5: Fail to stop task - message");
 
     /* ----- Test case #2: Fail to take binsem ----- */
     /* Set additional inputs */
@@ -2015,8 +2139,8 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail to take bsem - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/4: Fail take bsem - message");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/5: Fail to take bsem - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 2/5: Fail take bsem - message");
 
     /* ----- Test case #3: Fail to delete bsem ----- */
     /* Set additional inputs */
@@ -2030,8 +2154,8 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail to delete bsem - return code");
-    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/4: Fail delete bsem - message");
+    UtAssert_True((iReturnCode == CFE_PSP_ERROR), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/5: Fail to delete bsem - return code");
+    UtAssert_OS_print(cMsg, UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 3/5: Fail delete bsem - message");
 
     /* ----- Test case #4: Successfully destroy ----- */
     /* Set additional inputs */
@@ -2044,7 +2168,19 @@ void Ut_CFE_PSP_MemSyncDestroy(void)
     /* Execute tests */
     iReturnCode = CFE_PSP_MemSyncDestroy();
     /* Verify results */
-    UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/4: Success - return code");
+    UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 4/5: Success - return code");
+
+    /* ----- Test case #5: Memsync stop, binsem undefined ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    g_MemorySyncTaskBinSem =  OS_OBJECT_ID_UNDEFINED;
+    UT_SetDeferredRetcode(UT_KEY(OS_TaskGetIdByName), 1, OS_ERR_NAME_NOT_FOUND);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemTake), 1, OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(OS_BinSemDelete), 1, OS_SUCCESS);
+    /* Execute tests */
+    iReturnCode = CFE_PSP_MemSyncDestroy();
+    /* Verify results */
+    UtAssert_True((iReturnCode == CFE_PSP_SUCCESS), UT_MEMORY_SYNC_PRINT_SCOPE "Destroy - 5/5: Success - return code");
 }
 
 /**********************************************************
