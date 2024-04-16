@@ -68,6 +68,7 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
 #include "cfe_psp_exception.h"
+#include "cfe_psp_flash.h"
 
 /*
 ** Defines
@@ -87,15 +88,12 @@ edrPolicyHandlerHookRemove
 /** \brief Declared in Aitech BSP 'bootrom.map' */
 extern STATUS edrErrorPolicyHookRemove(void);
 
-/**
- ** \brief This function allows the user to read data from the user area of the non-volatile boot EEPROM
- */
-extern STATUS userNvRamGet (char *dat_ptr, int nbytes, int offset);
-/**
- ** \brief This function allows the user to write data to the user area of the non-volatile boot EEPROM
- */
-extern STATUS userNvRamSet (char *dat_ptr, int nbytes, int offset);
-
+/** \brief  Reserved Memory Map */
+extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
+/** \brief Boot Record Filepath */
+extern char g_BOOTRECORDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH];
+/** \brief Exception Storage Filepath */
+extern char g_EXCEPTIONFilepath[CFE_PSP_FILEPATH_MAX_LENGTH];
 /*
 ** Global variables
 */
@@ -115,7 +113,6 @@ static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
  */
 static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
-
 /*
 ** Local Function Prototypes
 */
@@ -127,91 +124,9 @@ static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_LoadFromNVRAM(void)
+int32 CFE_PSP_LoadFromNVRAM(void)
 {
-    int32       iStatus = OK;
-    int32       iRet_code = CFE_PSP_ERROR;
-    int32       iURM_size = 0;
-    int32       edr_size = 0;
-    const int32 boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
-    const char  urm_word[] = "URM";
-    uint32      num_exceptions_in_urm = 0;
-    CFE_PSP_URM_EDR_t urm_header = {"\n", 0x00};
-
-    /* Copy URM signature and size in local memory */
-    iStatus = userNvRamGet((char *)&urm_header, urm_pack_size, 0);
-
-    if (iStatus == OK)
-    {
-        /* Check if there is the URM word in memory. This allows to skip loading in case NVRAM is empty. */
-        if (memcmp(urm_word, urm_header.signature, 3) == 0)
-        {
-            /* Extract URM size from signature */
-            iURM_size = urm_header.size;
-
-            /* Prints the Signature Pack for debugging */
-            OS_printf(PSP_EXCEP_PRINT_SCOPE 
-                    "URM Header found {0x%02X 0x%02X 0x%02X} with size 0x%08X\n",
-                    urm_header.signature[0],
-                    urm_header.signature[1],
-                    urm_header.signature[2],
-                    urm_header.size
-            );
-
-            if (iURM_size >= boot_size)
-            {
-
-                edr_size = iURM_size - boot_size;
-
-                /* Load Boot Record data from EEPROM */
-                iStatus = userNvRamGet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
-
-                /* Load data from EEPROM to ED&R pointer */
-                iStatus = userNvRamGet(
-                        (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-                        edr_size,
-                        boot_size + urm_pack_size
-                );
-
-                if (iStatus == OK)
-                {
-                    /* Get the number of exceptions loaded from EEPROM */
-                    num_exceptions_in_urm = CFE_PSP_Exception_GetCount();
-
-                    OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
-                            iURM_size,
-                            num_exceptions_in_urm
-                    );
-                    iRet_code = CFE_PSP_SUCCESS;
-                }
-                else
-                {
-                    OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n");
-                }
-            }
-            else
-            {
-                OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Header found but data is empty\n");
-            }
-        }
-        else
-        {
-            /* This section occurs when the NVRAM has not been initialized, or
-            the data is corrupted. */
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "No URM Header found {0x%02X 0x%02X 0x%02X}\n", 
-                      urm_header.signature[0],
-                      urm_header.signature[1],
-                      urm_header.signature[2]
-            );
-        }
-    }
-    else
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Header\n");
-    }
-
-    return iRet_code;
+    return CFE_PSP_LoadExceptionData();
 }
 
 /**********************************************************
@@ -221,61 +136,9 @@ int32   CFE_PSP_LoadFromNVRAM(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_SaveToNVRAM(void)
+int32 CFE_PSP_SaveToNVRAM(void)
 {
-    int32             iStatus = OK;
-    int32             iRet_code = CFE_PSP_ERROR;
-    CFE_PSP_URM_EDR_t urm_signature_pack = {"URM", 0x00};
-    const int32       urm_pack_size = sizeof(urm_signature_pack);
-    const int32       edr_size = sizeof(CFE_PSP_ExceptionStorage_t);
-    const int32       boot_size = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-
-    /* Assign the urm size pointer */
-
-    /*
-    Get the size of ED&R structure and save it in the signature pack.
-    The structure is defined in cfe_psp_exceptionstorage_types.h
-    */
-    urm_signature_pack.size = edr_size + boot_size;
-    
-    /* Prints the Signature Pack for debugging */
-    OS_printf(PSP_EXCEP_PRINT_SCOPE "Saving URM Header {0x%02X 0x%02X 0x%02X} with size 0x%08X\n", 
-              urm_signature_pack.signature[0],
-              urm_signature_pack.signature[1],
-              urm_signature_pack.signature[2],
-              urm_signature_pack.size);
-
-    /* Save the URM signature and size in memory */
-    iStatus = userNvRamSet((char *)&urm_signature_pack, urm_pack_size, 0);
-    
-    if (iStatus == OK)
-    {
-        /* Save the Boot URM data to EEPROM */
-        iStatus = userNvRamSet((char *)CFE_PSP_ReservedMemoryMap.BootPtr, boot_size, urm_pack_size);
-
-        /* Save the EDR URM data to EEPROM */
-        iStatus = userNvRamSet(
-                  (char *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-                  edr_size,
-                  urm_pack_size + boot_size
-        );
-
-        if (iStatus == OK)
-        {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "Saved URM Data to EEPROM (%u bytes)\n", urm_signature_pack.size);
-            iRet_code = CFE_PSP_SUCCESS;
-        }
-        else
-        {
-            OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Data\n");
-        }
-    }
-    else
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Header\n");
-    }
-
-    return iRet_code;
+    return CFE_PSP_SaveExceptionData();
 }
 
 
@@ -286,18 +149,97 @@ int32   CFE_PSP_SaveToNVRAM(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-int32   CFE_PSP_ClearNVRAM(void)
+int32 CFE_PSP_ClearNVRAM(void)
 {
-    int32             iRet_code = CFE_PSP_SUCCESS;
-    CFE_PSP_URM_EDR_t urm_signature_pack = {"", 0x00};
+    return CFE_PSP_ClearExceptionData();
+}
 
-    /* Write to EEPROM */
-    if(userNvRamSet((char *) &urm_signature_pack, sizeof(urm_signature_pack), 0) != OK)
+int32 CFE_PSP_LoadExceptionData(void)
+{
+    int32       iStatus = OK;
+    int32       iRetCode = CFE_PSP_ERROR;
+    const int32 iBootRecordSize = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+    const int32 iEdrSize = sizeof(CFE_PSP_ExceptionStorage_t);
+    const int32 iURM_size = iBootRecordSize + iEdrSize;
+    uint32      uiNumUrmExceptions = 0;
+
+    /* Load Boot Record data from flash */
+    iStatus = CFE_PSP_ReadFromFlash((uint32 *)CFE_PSP_ReservedMemoryMap.BootPtr, 
+                                    iBootRecordSize, g_BOOTRECORDFilepath);
+
+    /* Load data from flash to ED&R pointer */
+    iStatus = CFE_PSP_ReadFromFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                                    iEdrSize, g_EXCEPTIONFilepath);
+
+    if (iStatus == CFE_PSP_SUCCESS)
     {
-        iRet_code = CFE_PSP_ERROR;
+        /* Get the number of exceptions loaded from flash */
+        uiNumUrmExceptions = CFE_PSP_Exception_GetCount();
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
+                    iURM_size, uiNumUrmExceptions);
+        iRetCode = CFE_PSP_SUCCESS;
+    }
+    else
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "ReadFromFlash ERROR, could not load URM Data\n");
     }
 
-    return iRet_code;
+    return iRetCode;
+}
+
+int32 CFE_PSP_SaveExceptionData(void)
+{
+    int32             iStatus = OK;
+    int32             iRetCode = CFE_PSP_ERROR;
+    const int32       iEdrSize = sizeof(CFE_PSP_ExceptionStorage_t);
+    const int32       iBootRecordSize = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
+    const int32       iURM_size = iBootRecordSize + iEdrSize;
+
+    /* Save the Boot URM data to flash */
+    iStatus = CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.BootPtr, 
+                                    iBootRecordSize, g_BOOTRECORDFilepath);
+
+    /* Save the EDR URM data to flash */
+    iStatus = CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
+                                    iEdrSize, g_EXCEPTIONFilepath);
+
+    if (iStatus == OK)
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Saved URM Data to flash (%u bytes)\n", iURM_size);
+        iRetCode = CFE_PSP_SUCCESS;
+    }
+    else
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "WriteToFlash ERROR, could not save URM Data\n");
+    }
+    return iRetCode;
+}
+
+int32 CFE_PSP_ClearExceptionData(void)
+{
+    int32   iRetCode = CFE_PSP_ERROR;
+    int32   iStatusException = CFE_PSP_ERROR;
+    int32   iStatusBoot = CFE_PSP_ERROR;
+
+    iStatusException = CFE_PSP_DeleteFile(g_EXCEPTIONFilepath);
+    if (iStatusException != CFE_PSP_SUCCESS)
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Unable to delete exception file\n");
+    }
+
+    iStatusBoot = CFE_PSP_DeleteFile(g_BOOTRECORDFilepath);
+    if (iStatusBoot != CFE_PSP_SUCCESS)
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Unable to delete boot record file\n");
+    }
+
+    if ((iStatusException == CFE_PSP_SUCCESS) && (iStatusBoot == CFE_PSP_SUCCESS))
+    {
+        OS_printf(PSP_EXCEP_PRINT_SCOPE "Exception and Boot Record files deleted successfully\n");
+        iRetCode = CFE_PSP_SUCCESS;
+    }
+
+    return iRetCode;
 }
 
 /**
@@ -343,7 +285,7 @@ int32   CFE_PSP_ClearNVRAM(void)
 BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
-    BOOL returnStatus = false;
+    BOOL bReturnStatus = false;
     EDR_TASK_INFO *pInfo = NULL;
     
     /*
@@ -379,8 +321,8 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 
         CFE_PSP_Exception_WriteComplete();
 
-        /* After write complete, the EDR data in RAM is ready to be backup up on EEPROM */
-        CFE_PSP_SaveToNVRAM();
+        /* After write complete, the EDR data in RAM is ready to be backup up on flash */
+        CFE_PSP_SaveExceptionData();
 
         if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {
@@ -389,7 +331,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
             */
             if (g_pDefaultedrPolicyHandlerHook != NULL)
             {
-                returnStatus = g_pDefaultedrPolicyHandlerHook(type, pInfo, debug);
+                bReturnStatus = g_pDefaultedrPolicyHandlerHook(type, pInfo, debug);
             }
             else
             {
@@ -409,7 +351,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         GLOBAL_CFE_CONFIGDATA.SystemNotify();
     }
 
-    return returnStatus;
+    return bReturnStatus;
 }
 
 /**********************************************************
@@ -509,13 +451,13 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
  *********************************************************/
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
-    int32       iRet_code = CFE_PSP_SUCCESS;
+    int32       iRetCode = CFE_PSP_SUCCESS;
     int32       iRetChar = 0;
     const char  *pTaskName = NULL;
 
     if ((Buffer == NULL) || (ReasonBuf == NULL))
     {
-        iRet_code = CFE_PSP_ERROR;
+        iRetCode = CFE_PSP_ERROR;
     }
     else
     {
@@ -538,15 +480,15 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t *Buffer
         if (iRetChar < 0)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save exception reason on buffer\n");
-            iRet_code = CFE_PSP_ERROR;
+            iRetCode = CFE_PSP_ERROR;
         }
         if (iRetChar >= ReasonSize)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save the whole exception reason string on buffer\n");
-            iRet_code = CFE_PSP_ERROR;
+            iRetCode = CFE_PSP_ERROR;
         }
     }
 
-    return iRet_code;
+    return iRetCode;
 }
 

@@ -27,6 +27,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <ioLib.h>
 /* #include <target_config.h> */
 #include "uttest.h"
 #include "utstubs.h"
@@ -269,21 +270,34 @@ void Ut_CFE_PSP_ClearNVRAM(void)
 {
     int32   iRetCode = 0;
 
+    Ut_OS_printf_Setup();
+
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, 0);
+    UT_SetDefaultReturnValue(UT_KEY(remove), OS_SUCCESS);
+    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
     /* Execute test */
     iRetCode = CFE_PSP_ClearNVRAM();
     /* Verify outputs */
-    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_edrClearEEPROM() - 1/2: Nominal - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Exception and Boot Record files deleted successfully\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
 
     /* ----- Test case #2 - Error ----- */
     /* Setup additional inputs */
-    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
+    UT_SetDefaultReturnValue(UT_KEY(remove), OS_ERROR);
+    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
     /* Execute test */
     iRetCode = CFE_PSP_ClearNVRAM();
     /* Verify outputs */
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_edrClearEEPROM() - 2/2: userNvRamGet error - Return Code");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_ClearNVRAM() - 2/2: CFE_PSP_ClearNVRAM error");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete exception file\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Exception error message");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete boot record file\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Boot record error message");
 }
 
 /*=======================================================================================
@@ -293,93 +307,45 @@ void Ut_CFE_PSP_LoadFromNVRAM(void)
 {
     int32   iRetCode = 0;
     char    cMsg_good[256] = {'\0'};
-    char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Data\n";
-    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "No URM Header found {0x00 0x00 0x00}\n";
-    char    cMsg_bad3[] = PSP_EXCEP_PRINT_SCOPE "userNvRamGet ERROR, could not load URM Header\n";
-    char    cMsg_bad4[] = PSP_EXCEP_PRINT_SCOPE "URM Header found but data is empty\n";
+    char    cMsg_bad[] = PSP_EXCEP_PRINT_SCOPE "ReadFromFlash ERROR, could not load URM Data\n";
 
-    char    urm_word[] = "URM";
-    int     urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-
-    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
-    CFE_PSP_URM_EDR_t urm_header = {"URM", urm_data_size};
-
-    uint8   localURMBuffer[urm_data_size];
-    memset(localURMBuffer, 0x00, urm_data_size);
+    uint8   localURMBuffer[sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t)];
+    memset(localURMBuffer, 0x00, sizeof(localURMBuffer));
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
     CFE_PSP_ReservedMemoryMap.BootPtr = (void*)(localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t));
 
-    snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_data_size);
+    snprintf(cMsg_good, sizeof(cMsg_good), PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - 0 new exception(s)\n", sizeof(localURMBuffer));
 
+    UT_ResetState(0);
     Ut_OS_printf_Setup();
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    /* Write the URM Header */
-    memcpy(nvram, (char *)&urm_header, urm_pack_size);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ExceptionStorage_t));
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/5: Nominal - URM Data Recovered - Message");
-    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/5: Nominal - Return Code");
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/2: Nominal - URM Data Recovered - Message");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_LoadFromNVRAM() - 1/2: Nominal - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
+
     /* ----- Test case #2 - Recovered BootPtr but not Exceptions ----- */
     /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    /* Write the URM Header */
-    memcpy(nvram, (char *)&urm_header, urm_pack_size);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 2, OK);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamGet), 1, ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(read), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
     /* Execute test */
     iRetCode = CFE_PSP_LoadFromNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/5: No exceptions recovered - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 2/5: No exceptions recovered - Error Return Code");
-
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    /* ----- Test case #3 - EDR found but data size is zero ----- */
-    /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    /* Write the URM Header */
-    urm_header.size = 0;
-    memcpy(nvram, (char *)&urm_header, urm_pack_size);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
-    /* Execute test */
-    iRetCode = CFE_PSP_LoadFromNVRAM();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad4, "_Ut_CFE_PSP_LoadFromNVRAM() - 3/5: Error URM Data - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 3/5: Error URM Data - Return Code");
-
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    /* ----- Test case #4 - Error EDR Signature ----- */
-    /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    /* Write the EDR data size */
-    memcpy(nvram + 3, &urm_data_size, 4);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
-    /* Execute test */
-    iRetCode = CFE_PSP_LoadFromNVRAM();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_LoadFromNVRAM() - 4/5: Error URM Header - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 4/5: Error URM Header - Return Code");
-
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    /* ----- Test case #5 - Error userNvRamGet ----- */
-    /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), ERROR);
-    /* Execute test */
-    iRetCode = CFE_PSP_LoadFromNVRAM();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_bad3, "_Ut_CFE_PSP_LoadFromNVRAM() - 5/5: Error userNvRamGet - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 5/5: Error userNvRamGet - Return Code");
+    UtAssert_OS_print(cMsg_bad, "_Ut_CFE_PSP_LoadFromNVRAM() - 2/2: Error message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_LoadFromNVRAM() - 2/2: Error ReadFromFlash");
 }
 
 /*=======================================================================================
@@ -389,62 +355,174 @@ void Ut_CFE_PSP_SaveToNVRAM(void)
 {
     int32   iRetCode = 0;
     char    cMsg_good[256] = {'\0'};
-    char    cMsg_urmpack[256] = {'\0'};
-    char    cMsg_bad1[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Data\n";
-    char    cMsg_bad2[] = PSP_EXCEP_PRINT_SCOPE "userNvRamSet ERROR, could not save URM Header\n";
-
-    uint32  urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-
-    const int32 urm_pack_size = sizeof(CFE_PSP_URM_EDR_t);
-    CFE_PSP_URM_EDR_t urm_header = {"URM", urm_data_size};
+    char    cMsg_bad[] = PSP_EXCEP_PRINT_SCOPE "WriteToFlash ERROR, could not save URM Data\n";
 
     uint8   localURMBuffer[sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t)];
-    memset(localURMBuffer, 0x00, (int)urm_data_size);
+    memset(localURMBuffer, 0x00, sizeof(localURMBuffer));
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
 
-    snprintf(cMsg_good, 256, PSP_EXCEP_PRINT_SCOPE "Saved URM Data to EEPROM (%u bytes)\n", urm_data_size);
-    snprintf(cMsg_urmpack,
-             256,
-             PSP_EXCEP_PRINT_SCOPE "Saving URM Header {0x55 0x52 0x4D} with size 0x000005F8\n"
-    );
+    snprintf(cMsg_good, sizeof(cMsg_good), 
+                PSP_EXCEP_PRINT_SCOPE "Saved URM Data to flash (%u bytes)\n", sizeof(localURMBuffer));
 
     Ut_OS_printf_Setup();
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ExceptionStorage_t));
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
     /* Execute test */
     iRetCode = CFE_PSP_SaveToNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: URM Pack Header - Message");
-    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - URM Data Saved - Message");
-    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_SaveToNVRAM() - 1/3: Nominal - Return Code");
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_SaveToNVRAM() - 1/2: Nominal - URM Data Saved - Message");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_SaveToNVRAM() - 1/2: Nominal - Return Code");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
-    /* ----- Test case #2 -  ----- */
+    /* ----- Test case #2 - Fail to write exception storage ----- */
     /* Setup additional inputs */
-    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 2, 0);
-    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(write), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
     /* Execute test */
     iRetCode = CFE_PSP_SaveToNVRAM();
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: URM Pack Header - Message");
-    UtAssert_OS_print(cMsg_bad1, "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error URM Data - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 2/3: userNvRamSet error - Return Code");
-
-    UT_ResetState(0);
-    Ut_OS_printf_Setup();
-    /* ----- Test case #3 -  ----- */
-    /* Setup additional inputs */
-    UT_SetDeferredRetcode(UT_KEY(userNvRamSet), 1, -1);
-    /* Execute test */
-    iRetCode = CFE_PSP_SaveToNVRAM();
-    /* Verify outputs */
-    UtAssert_OS_print(cMsg_urmpack, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: URM Pack Header - Message");
-    UtAssert_OS_print(cMsg_bad2, "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: userNvRamSet error URM Header - Message");
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 3/3: Nominal - Return Code");
+    UtAssert_OS_print(cMsg_bad, "_Ut_CFE_PSP_SaveToNVRAM() - 2/2: CFE_PSP_SaveToNVRAM error saving URM data");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_SaveToNVRAM() - 2/2: Error return code");
 }
 
+/*=======================================================================================
+** Ut_CFE_PSP_ClearExceptionData(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_ClearExceptionData(void)
+{
+    int32   iRetCode = 0;
+
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(remove), OS_SUCCESS);
+    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_ClearExceptionData();
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Exception and Boot Record files deleted successfully\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Error ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(remove), OS_ERROR);
+    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_ClearExceptionData();
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_ClearNVRAM() - 2/2: CFE_PSP_ClearNVRAM error");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete exception file\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Exception error message");
+    UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete boot record file\n",
+                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Boot record error message");}
+
+/*=======================================================================================
+** Ut_CFE_PSP_LoadExceptionData(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_LoadExceptionData(void)
+{
+    int32   iRetCode = 0;
+    char    cMsg_good[256] = {'\0'};
+    char    cMsg_bad[] = PSP_EXCEP_PRINT_SCOPE "ReadFromFlash ERROR, could not load URM Data\n";
+
+    uint8   localURMBuffer[sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t)];
+    memset(localURMBuffer, 0x00, sizeof(localURMBuffer));
+    CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
+    CFE_PSP_ReservedMemoryMap.BootPtr = (void*)(localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t));
+
+    snprintf(cMsg_good, sizeof(cMsg_good), PSP_EXCEP_PRINT_SCOPE 
+            "URM Data Recovered (%d bytes) - 0 new exception(s)\n", sizeof(localURMBuffer));
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ExceptionStorage_t));
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_LoadExceptionData();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_LoadExceptionData() - 1/2: Nominal - URM Data Recovered - Message");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_Ut_CFE_PSP_LoadExceptionData() - 1/2: Nominal - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #2 - Recovered BootPtr but not Exceptions ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(read), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
+    /* Execute test */
+    iRetCode = CFE_PSP_LoadExceptionData();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad, "_Ut_CFE_PSP_LoadExceptionData() - 2/2: No exceptions recovered - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), 
+                    "_Ut_CFE_PSP_LoadExceptionData() - 2/2: No exceptions recovered - Error Return Code");
+}
+
+/*=======================================================================================
+** Ut_CFE_PSP_SaveExceptionData(void) test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_SaveExceptionData(void)
+{
+    int32   iRetCode = 0;
+    char    cMsg_good[256] = {'\0'};
+    char    cMsg_bad[] = PSP_EXCEP_PRINT_SCOPE "WriteToFlash ERROR, could not save URM Data\n";
+
+    uint8   localURMBuffer[sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t)];
+    memset(localURMBuffer, 0x00, sizeof(localURMBuffer));
+    CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
+
+    snprintf(cMsg_good, sizeof(cMsg_good), PSP_EXCEP_PRINT_SCOPE "Saved URM Data to flash (%u bytes)\n",
+                sizeof(localURMBuffer));
+
+    Ut_OS_printf_Setup();
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ExceptionStorage_t));
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    /* Execute test */
+    iRetCode = CFE_PSP_SaveExceptionData();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_good, "_Ut_CFE_PSP_SaveExceptionData() - 1/2: Nominal - URM Data Saved - Message");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_SaveExceptionData() - 1/2: Nominal - Return Code");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    /* ----- Test case #2 - Fail to write exception storage ----- */
+    /* Setup additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(write), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(write), 1, OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
+    /* Execute test */
+    iRetCode = CFE_PSP_SaveExceptionData();
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_bad,    
+                        "_Ut_CFE_PSP_SaveExceptionData() - 2/2: CFE_PSP_SaveExceptionData error URM Data - Message");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), 
+                    "_Ut_CFE_PSP_SaveExceptionData() - 2/2: CFE_PSP_SaveExceptionData error - Return Code");
+}
 /*=======================================================================================
 ** End of file psp_exception_testcases.c
 **=======================================================================================*/

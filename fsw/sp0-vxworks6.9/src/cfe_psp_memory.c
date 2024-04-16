@@ -79,10 +79,14 @@ typedef enum
     OP_RESET        = 1,
     /** \brief Volatile Disk section*/
     OP_VOLATILEDISK = 2,
-    /** \brief User Reserver section*/
+    /** \brief User Reserved section*/
     OP_USERRESERVED = 3,
+    /** \brief Boot Record section*/
+    OP_BOOTRECORD = 4,
+    /** \brief Exception Storage section*/
+    OP_EXCEPTION = 5,
     /** \brief Not Applicable section. Used as a No-Op */
-    OP_NA           = 4
+    OP_NA           = 6
 } MEMORY_SECTION_t;
 
 /*
@@ -113,6 +117,8 @@ static int32 CFE_PSP_CDSFilepath(void);
 static int32 CFE_PSP_ResetFilepath(void);
 static int32 CFE_PSP_VolatileDiskFilepath(void);
 static int32 CFE_PSP_UserReservedFilepath(void);
+static int32 CFE_PSP_BootRecordFilepath(void);
+static int32 CFE_PSP_ExceptionStorageFilepath(void);
 static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op);
 
 /*
@@ -180,7 +186,11 @@ static char g_RESETFilepath[CFE_PSP_FILEPATH_MAX_LENGTH]        = {};
 /** \brief VOLATILE DISK Filepath */
 static char g_VOLATILEDISKFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
 /** \brief USER RESERVED Filepath */
-static char g_USERRESERVEDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
+char g_USERRESERVEDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
+/** \brief BOOT RECORD Filepath */
+char g_BOOTRECORDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
+/** \brief EXCEPTION STORAGE Filepath */
+char g_EXCEPTIONFilepath[CFE_PSP_FILEPATH_MAX_LENGTH] = {};
 
 /**
  ** \func Calculate 16 bits CRC from input data
@@ -326,11 +336,11 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
             ** Attempt to restore above memory sections
             */
 
-            /* Attempt recovering NVRAM data */
-            if (CFE_PSP_LoadFromNVRAM() != CFE_PSP_SUCCESS)
+            /* Attempt recovering flash data */
+            if (CFE_PSP_LoadExceptionData() != CFE_PSP_SUCCESS)
             {
-                /* Save it back if the NVRAM is empty */
-                CFE_PSP_SaveToNVRAM();
+                /* Save it back if the flash is empty */
+                CFE_PSP_SaveExceptionData();
             }
 
             /* RESET MEMORY - Not sure if still valid */
@@ -636,11 +646,15 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     CFE_PSP_ResetFilepath();
     CFE_PSP_VolatileDiskFilepath();
     CFE_PSP_UserReservedFilepath();
+    CFE_PSP_BootRecordFilepath();
+    CFE_PSP_ExceptionStorageFilepath();
 
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "CDS FILEPATH: <%s>\n", g_CDSFilepath);
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "RESET FILEPATH: <%s>\n", g_RESETFilepath);
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "VOLATILEDISK FILEPATH: <%s>\n", g_VOLATILEDISKFilepath);
     OS_printf(MEMORY_SYNC_PRINT_SCOPE "USERRESERVED FILEPATH: <%s>\n", g_USERRESERVEDFilepath);
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "BOOT RECORD FILEPATH: <%s>\n", g_BOOTRECORDFilepath);
+    OS_printf(MEMORY_SYNC_PRINT_SCOPE "EXCEPTION FILEPATH: <%s>\n", g_EXCEPTIONFilepath);
     
     /*
     ** Set up the "RAM" entry in the memory table.
@@ -2110,6 +2124,42 @@ static int32 CFE_PSP_UserReservedFilepath(void)
 }
 
 /**
+ ** \brief Construct BOOT RECORD Filepath
+ **
+ ** \par Description:
+ ** Generate/construct BOOT RECORD filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
+static int32 CFE_PSP_BootRecordFilepath(void)
+{
+    return CFE_PSP_GenerateFilepath(OP_BOOTRECORD);
+}
+
+/**
+ ** \brief Construct EXCEPTION STORAGE Filepath
+ **
+ ** \par Description:
+ ** Generate/construct EXCEPTION STORAGE filepath
+ **
+ ** \par Assumptions, Notes, and External Events:
+ ** This function will wait for current memory
+ ** sync to finish. This function will not allow
+ ** memory to be synced to flash until complete.
+ **
+ ** \param None
+ */
+static int32 CFE_PSP_ExceptionStorageFilepath(void)
+{
+    return CFE_PSP_GenerateFilepath(OP_EXCEPTION);
+}
+
+/**
  ** \brief Construct Reserved Memory Section Filepaths
  **
  ** \par Description:
@@ -2177,6 +2227,16 @@ static int32 CFE_PSP_GenerateFilepath(MEMORY_SECTION_t op)
                                                     caActivePath, CFE_PSP_USERRESERVED_FLASH_FILEPATH);
                     break;
 
+                case OP_BOOTRECORD:
+                    iResult = snprintf(g_BOOTRECORDFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
+                                                    caActivePath, CFE_PSP_BOOTRECORD_FLASH_FILEPATH);
+                    break;
+
+                case OP_EXCEPTION:
+                    iResult = snprintf(g_EXCEPTIONFilepath, CFE_PSP_FILEPATH_MAX_LENGTH - 1, "%s/%s",
+                                                    caActivePath, CFE_PSP_EXCEPTION_FLASH_FILEPATH);
+                    break;
+                    
                 default:
                     iResult = -1;
                     OS_printf(MEMORY_SYNC_PRINT_SCOPE "GenerateFilepath: Invalid Memory Section\n");

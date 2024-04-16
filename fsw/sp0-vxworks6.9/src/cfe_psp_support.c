@@ -121,7 +121,7 @@ void CFE_PSP_Restart(uint32 resetType)
         reset type POWERON, else assume PROCESSOR.
          */
         CFE_PSP_DeleteProcessorReservedMemory();
-        CFE_PSP_ClearNVRAM();
+        CFE_PSP_ClearExceptionData();
     }
     else
     {
@@ -133,7 +133,7 @@ void CFE_PSP_Restart(uint32 resetType)
         /* Stop Mem Sync and Synch URM to Flash */
         CFE_PSP_FlushToFLASH();
 
-        CFE_PSP_SaveToNVRAM();
+        CFE_PSP_SaveExceptionData();
     }
 
     /* Delay to let console catch up on printing logs. */

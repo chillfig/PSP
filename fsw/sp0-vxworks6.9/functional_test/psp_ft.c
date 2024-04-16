@@ -73,6 +73,7 @@
 #include "iodriver_base.h"
 #include "iodriver_analog_io.h"
 #define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
+#define CFE_PSP_EXCEPTION_TEST_ID           17891328
 
 /* Global count of pass and fail */
 uint16_t cnt_tests = 0;
@@ -189,12 +190,14 @@ void PSP_FT_Setup(void)
     close(tmp_fd);
 
     /* Clear flash from backups */
-    userNvRamSet(buffer, sizeof(buffer), 0);
+    CFE_PSP_ClearExceptionData();
     remove("/ffx0/CDS");
     remove("/ffx0/URM/VODI.bkp");
     remove("/ffx0/URM/USRR.bkp");
     remove("/ffx0/URM/RESET.bkp");
     remove("/ffx0/URM/CDS.bkp");
+    remove("/ffx0/URM/BTRD.bkp");
+    remove("/ffx0/URM/EXCP.bkp");
 
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     CFE_PSP_Main();
@@ -329,17 +332,17 @@ void ft_exception(void)
     CFE_PSP_SetDefaultExceptionEnvironment
     */
 
-    ret_code = CFE_PSP_SaveToNVRAM();
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Saving ED&R Data to EEPROM was Successful")
+    ret_code = CFE_PSP_SaveExceptionData();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Saving ED&R Data to flash was Successful")
 
-    ret_code = CFE_PSP_LoadFromNVRAM();
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Loading ED&R Data from EEPROM returned Success")
+    ret_code = CFE_PSP_LoadExceptionData();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Loading ED&R Data from flash returned Success")
 
-    ret_code = CFE_PSP_ClearNVRAM();
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Clearing ED&R Data in EEPROM returned Success")
+    ret_code = CFE_PSP_ClearExceptionData();
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Clearing ED&R Data in flash returned Success")
 
-    ret_code = CFE_PSP_LoadFromNVRAM();
-    FT_Assert_True(ret_code == CFE_PSP_ERROR, "Loading ED&R Data from EEPROM after Clear EDR returned Error")
+    ret_code = CFE_PSP_LoadExceptionData();
+    FT_Assert_True(ret_code == CFE_PSP_ERROR, "Loading ED&R Data from flash after Clear EDR returned Error")
 
     EDR_USER_FATAL_INJECT(true, "Test Fatal EDR Inject");
 
@@ -352,6 +355,16 @@ void ft_exception(void)
 
     ret_code = CFE_PSP_Exception_GetSummary(&LogId, &TaskId, ReasonBuf, sizeof(ReasonBuf));
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Summary of Exception Data returned Success")
+
+    /* Need to write the exception to flash */
+    CFE_PSP_SaveExceptionData();
+
+    /* Load exception from flash */
+    CFE_PSP_LoadExceptionData();
+    FT_Assert_True(CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumWritten == 1, "Data written to flash success");
+    FT_Assert_True(CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->NumRead == 1, "Data written to flash success");
+    /* The context_id is the same as the exception induced above */
+    FT_Assert_True(CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr->Entries[0].context_id == CFE_PSP_EXCEPTION_TEST_ID, "Data written to flash success");
 
     OS_printf("[EXCEPTION END]\n\n");
 }

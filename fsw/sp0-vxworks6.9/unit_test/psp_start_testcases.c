@@ -1005,9 +1005,7 @@ void Ut_OS_Application_Startup(void)
     UT_SetDefaultReturnValue(UT_KEY(open), 99);
     UT_SetDefaultReturnValue(UT_KEY(write), 10);
     UT_SetDefaultReturnValue(UT_KEY(close), OK);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
     UT_SetDefaultReturnValue(UT_KEY(userMemAlloc), OK);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
     
     /* For CFE_PSP_SetupReservedMemoryMap */
     UT_SetDeferredRetcode(UT_KEY(CFE_PSP_MemRangeSet), 1, CFE_PSP_SUCCESS);

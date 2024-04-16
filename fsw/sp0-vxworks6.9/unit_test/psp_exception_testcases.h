@@ -46,6 +46,9 @@ void Ut_CFE_PSP_ExceptionGetSummary_Impl(void);
 void Ut_CFE_PSP_LoadFromNVRAM(void);
 void Ut_CFE_PSP_SaveToNVRAM(void);
 void Ut_CFE_PSP_ClearNVRAM(void);
+void Ut_CFE_PSP_ClearExceptionData(void);
+void Ut_CFE_PSP_LoadExceptionData(void);
+void Ut_CFE_PSP_SaveExceptionData(void);
 
 #endif  /* UT_PSP_EXCEPTION_TESTCASES_H */
 

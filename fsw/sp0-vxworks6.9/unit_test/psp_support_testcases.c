@@ -74,7 +74,6 @@ void Ut_CFE_PSP_Restart(void)
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = 0;
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskDelay), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(OS_TaskGetIdByName), OS_ERR_NAME_NOT_FOUND);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
     sprintf(cMsg, "PSP Restart called with %d\n", uiResetType);
     /* Execute test */
     CFE_PSP_Restart(uiResetType);

@@ -469,6 +469,12 @@ typedef struct
 /** \brief User Reserved File name on FLASH */
 #define CFE_PSP_USERRESERVED_FLASH_FILEPATH         "USRR.bkp"
 
+/** \brief Boot Record File name on FLASH */
+#define CFE_PSP_BOOTRECORD_FLASH_FILEPATH           "BTRD.bkp"
+
+/** \brief Exception Storage File name on FLASH */
+#define CFE_PSP_EXCEPTION_FLASH_FILEPATH            "EXCP.bkp"
+
 /******************************************************************************/
 /** \name Memory Scrubbing Configuration Parameters */
 /** \{ */

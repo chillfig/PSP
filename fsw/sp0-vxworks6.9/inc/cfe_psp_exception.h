@@ -14,7 +14,7 @@
 *
 *   \brief API header for collecting SP0(s) hardware and software information
 *
-*   \brief Functions here allow PSP to load and save exceptions from EEPROM.
+*   \brief Functions here allow PSP to load and save exceptions from flash.
 *
 *   \copyright
 *   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
@@ -37,50 +37,101 @@ extern "C" {
 */
 
 /**
- ** \func Load data from NVRAM
+ ** \func Load data from flash
  ** 
  ** \par Description:
  ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
- ** This function will first verify that the EEPROM user area contains a valid,
- ** signature, then recover it.
- ** Data is saved to NVRAM (EEPROM) using #CFE_PSP_SaveToNVRAM.
+ ** This function will recover the flash user data.
+ ** Data is saved using #CFE_PSP_SaveToNVRAM
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
+ ** This function is preserved for backwards compatibility, and simply calls 
+ ** CFE_PSP_LoadExceptionData which is the new preferred API.
  **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_LoadFromNVRAM(void);
+int32 CFE_PSP_LoadFromNVRAM(void);
 
 /**
- ** \func Save data to NVRAM
+ ** \func Save data to flash
  ** 
  ** \par Description:
  ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
- ** This function will save the ED&R and Memory Boot data to the NVRAM user area.
- ** It will also save a simple signature to allow the #CFE_PSP_LoadFromNVRAM to
- ** validate the presence of data.
+ ** This function will save the ED&R and Memory Boot data to persistent memory.
+ ** 
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
+ ** This function is preserved for backwards compatibility, and simply calls
+ ** CFE_PSP_SaveExceptionData which is the new preferred API.
  **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SaveToNVRAM(void);
+int32 CFE_PSP_SaveToNVRAM(void);
 
 /**
- ** \func Clear NVRAM
+ ** \func Clear flash
  ** 
  ** \par Description:
- ** Function reset to \0 the signature in NVRAM.
+ ** Function reset to \0 the signature in flash.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function is preserved for backwards compatibility, and simply calls
+ ** CFE_PSP_ClearExceptionData which is the new preferred API.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_ClearNVRAM(void);
+
+/**
+ ** \func Load exception data from flash
+ ** 
+ ** \par Description:
+ ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
+ ** This function will recover the flash user data.
+ ** Data is saved to FLASH using #CFE_PSP_SaveExceptionData.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function makes use of the user FLASH to minimize reading and writing to EEPROM.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_LoadExceptionData(void);
+
+/**
+ ** \func Save exception data to flash
+ ** 
+ ** \par Description:
+ ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
+ ** This function will save the ED&R and Memory Boot data to flash.
+ ** 
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** This function makes use of the user FLASH to minimize reading and writing to EEPROM.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_SaveExceptionData(void);
+
+/**
+ ** \func Clear exception data
+ ** 
+ ** \par Description:
+ ** Function reset to \0 the signature in flash.
  **
  ** \par Assumptions, External Events, and Notes:
  ** None
@@ -90,23 +141,7 @@ int32   CFE_PSP_SaveToNVRAM(void);
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_ClearNVRAM(void);
-
-/**
- ** \brief User Reserved Memory Header
- ** 
- ** \par Description:
- ** This header is written on the SP0 simulated NVRAM. It contains the signature
- ** "URM" for identification followed by the number of bytes required to recover
- ** the EDR and BOOT structures.
- */
-typedef struct {
-    /* Signature for identification */
-    char signature[3];
-
-    /* Size of EDR and BOOT structure */
-    int32 size;
-} CFE_PSP_URM_EDR_t; /** Included in header to aid with UT for CFE_PSP_InitProcessorReservedMemory*/
+int32 CFE_PSP_ClearExceptionData(void);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

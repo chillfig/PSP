@@ -85,6 +85,8 @@ void Ut_CFE_PSP_CDSFilepath(void);
 void Ut_CFE_PSP_ResetFilepath(void);
 void Ut_CFE_PSP_VolatileDiskFilepath(void);
 void Ut_CFE_PSP_UserReservedFilepath(void);
+void Ut_CFE_PSP_BootRecordFilepath(void);
+void Ut_CFE_PSP_ExceptionStorageFilepath(void);
 void Ut_CFE_PSP_GenerateFilepath(void);
 void Ut_CFE_PSP_CheckURMFilesExists(void);
 void Ut_CFE_PSP_FlushToFLASH(void);

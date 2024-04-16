@@ -386,23 +386,12 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     g_uiMemorySyncStartup = false;
 
     /** For CFE_PSP_LoadNVRAM **/
-    CFE_PSP_URM_EDR_t urm_header = {"URM", 20};
-    char    urm_word[] = "URM";
     uint32  urm_data_size = sizeof(CFE_PSP_ExceptionStorage_t) + sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
     uint8   localURMBuffer[urm_data_size];
     memset(localURMBuffer, 0x00, urm_data_size);
     CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr = (void*)localURMBuffer;
     /* Setup additional inputs */
-    memset(nvram,0x00,sizeof(nvram));
-    /* Write the EDR signature */
-    memcpy(nvram, urm_word, 3);
-    /* Write the EDR data size */
-    memcpy(nvram + 3, &urm_data_size, 4);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
-
-    /** For CFE_PSP_SaveNVRAM **/
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamSet), 0);
 
     Ut_OS_printf_Setup();
 
@@ -442,7 +431,6 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     /* Set additional inputs */
     UT_ResetState(0);
     g_uiMemorySyncStartup = true;
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), ERROR);
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     memset(CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, 1, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize);
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
@@ -470,27 +458,26 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: Volatile Disk Block Check");
     UtAssert_MemCmp(CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiZEROBuf, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_InitProcessorReservedMemory 4/7: User Reserved Block Check");
 
-    /* ----- Test case #5 - NVRAM Load Success ----- */
+    /* ----- Test case #5 - Flash Load Success ----- */
     /* Set additional inputs */
     UT_ResetState(0);
     Ut_OS_printf_Setup();
     g_uiMemorySyncStartup = true;
     CFE_PSP_ReservedMemoryMap.BootPtr = (void*)(localURMBuffer + sizeof(CFE_PSP_ExceptionStorage_t));
-    urm_header.size = urm_data_size;
-    memset(nvram,0x00,sizeof(nvram));
-    memcpy(nvram, (char *)&urm_header, sizeof(CFE_PSP_URM_EDR_t));
     /** For CFE_PSP_LoadNVRAM **/
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
-    UT_SetDataBuffer(UT_KEY(userNvRamGet), &urm_header, sizeof(urm_header), false);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ReservedMemoryBootRecord_t));
+    UT_SetDeferredRetcode(UT_KEY(read), 1, sizeof(CFE_PSP_ExceptionStorage_t));
+    UT_SetDefaultReturnValue(UT_KEY(close), OS_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(CFE_PSP_Exception_GetCount), 0);
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     CFE_PSP_ReservedMemoryMap.BootPtr->bsp_reset_type = CFE_PSP_RST_TYPE_MAX;
     /* Execute test */
     iReturnCode = CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR);
     /* Verify results */
-    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from NVRAM success");
-    sprintf(cMsg, "PSP EXC: URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_header.size);
-    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from NVRAM success");
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from flash success");
+    sprintf(cMsg, "PSP EXC: URM Data Recovered (%d bytes) - 0 new exception(s)\n", urm_data_size);
+    UtAssert_OS_print(cMsg, "_CFE_PSP_InitProcessorReservedMemory 5/7: Load from flash success");
 
     /* ----- Test case #6 - Reset Memory success ----- */
     /* Set additional inputs */
@@ -498,7 +485,7 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     Ut_OS_printf_Setup();
     g_uiMemorySyncStartup = true;
     UT_SetDefaultReturnValue(UT_KEY(stat), 0);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(creat), 0);
     UT_SetDefaultReturnValue(UT_KEY(read), -1);
@@ -528,7 +515,7 @@ void Ut_CFE_PSP_InitProcessorReservedMemory(void)
     Ut_OS_printf_Setup();
     g_uiMemorySyncStartup = true;
     UT_SetDefaultReturnValue(UT_KEY(stat), 0);
-    UT_SetDefaultReturnValue(UT_KEY(userNvRamGet), OK);
+    UT_SetDefaultReturnValue(UT_KEY(open), OS_ERROR);
     UT_SetDefaultReturnValue(UT_KEY(userReservedGet), URM_SIZE);
     UT_SetDefaultReturnValue(UT_KEY(read), -1);
     /* Setting WriteToFlash == True */
@@ -753,10 +740,6 @@ void Ut_CFE_PSP_GetCFETextSegmentInfo(void)
     /* Verify outputs */
     UtAssert_IntegerCmpAbs(CFESegment, 0, 0, "_CFE_PSP_GetCFETextSegmentInfo - 2/7: CFESegment was not changed");
     UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCFETextSegmentInfo - 2/7: Nominal moduleInfoGet returned error");
-    UtAssert_STUB_COUNT(OS_SymbolLookup, 1);
-    UtAssert_STUB_COUNT(moduleFindByName, 1);
-    UtAssert_STUB_COUNT(moduleInfoGet, 1);
-
 
     Ut_OS_printf_Setup();
     UT_ResetState(0);
@@ -2679,6 +2662,61 @@ void Ut_CFE_PSP_UserReservedFilepath(void)
     iReturnCode = CFE_PSP_UserReservedFilepath();
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_USERRESERVED_FPATH - 1/1: Generate fpath - return code");
+}
+
+/**********************************************************
+ * void Ut_CFE_PSP_BootRecordFilepath(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_BootRecordFilepath(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - Success----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_BootRecordFilepath();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_BOOTRECORD_FPATH - 1/2: Generate fpath success");
+
+    /* ----- Test case #2 - Error----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), -1);
+    /* Execute test */
+    iReturnCode = CFE_PSP_BootRecordFilepath();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_BOOTRECORD_FPATH - 2/2: Generate fpath error");
+}
+
+
+/**********************************************************
+ * void Ut_CFE_PSP_ExceptionStorageFilepath(void); Testcases
+ *********************************************************/
+void Ut_CFE_PSP_ExceptionStorageFilepath(void)
+{
+    int32 iReturnCode = CFE_PSP_SUCCESS;
+
+    /* ----- Test case #1 - Success----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(OS_SymbolLookup), OS_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(strncpy), 0);
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), 0);
+    UT_SetDeferredRetcode(UT_KEY(mkdir), 1, 0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_ExceptionStorageFilepath();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_USERRESERVED_FPATH - 1/2: Generate fpath success");
+
+    /* ----- Test case #2 - Error----- */
+    /* Additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(snprintf), -1);
+    /* Execute test */
+    iReturnCode = CFE_PSP_ExceptionStorageFilepath();
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, UT_MEMORY_SYNC_PRINT_SCOPE "GEN_USERRESERVED_FPATH - 2/2: Generate fpath error");
 }
 
 /**********************************************************

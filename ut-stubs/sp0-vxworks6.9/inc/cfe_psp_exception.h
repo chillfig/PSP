@@ -36,60 +36,59 @@ extern "C" {
 */
 
 /**
- ** \func Load data from NVRAM
+ ** \func Load data from flash
  ** 
  ** \par Description:
  ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
- ** This function will first verify that the EEPROM user area contains a valid,
- ** signature, then recover it.
- ** Data is saved to NVRAM (EEPROM) using #CFE_PSP_SaveToNVRAM.
+ ** This function will recover the flash user data.
+ ** Data is saved using #CFE_PSP_SaveToNVRAM
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
+ ** This function is preserved for backwards compatibility, and simply calls 
+ ** CFE_PSP_LoadExceptionData which is the new preferred API.
  **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_LoadFromNVRAM(void);
+int32 CFE_PSP_LoadFromNVRAM(void);
 
 /**
- ** \func Save data to NVRAM
+ ** \func Save data to flash
  ** 
  ** \par Description:
  ** During CFS startup, the ED&R and Memory Boot data in RAM is cleared.
- ** This function will save the ED&R and Memory Boot data to the NVRAM user area.
- ** It will also save a simple signature to allow the #CFE_PSP_LoadFromNVRAM to
- ** validate the presence of data.
+ ** This function will save the ED&R and Memory Boot data to persistent memory.
+ ** 
  **
  ** \par Assumptions, External Events, and Notes:
- ** This function makes use of the onboard EEPROM user area with maximum usable
- ** space of 20 kB. Read and Write access is slow.
+ ** This function is preserved for backwards compatibility, and simply calls
+ ** CFE_PSP_SaveExceptionData which is the new preferred API.
  **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_SaveToNVRAM(void);
+int32 CFE_PSP_SaveToNVRAM(void);
 
 /**
- ** \func Clear NVRAM
+ ** \func Clear flash
  ** 
  ** \par Description:
- ** Function reset to \0 the signature in NVRAM.
+ ** Function reset to \0 the signature in flash.
  **
  ** \par Assumptions, External Events, and Notes:
- ** None
+ ** This function is preserved for backwards compatibility, and simply calls
+ ** CFE_PSP_ClearExceptionData which is the new preferred API.
  **
  ** \param None
  **
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-int32   CFE_PSP_ClearNVRAM(void);
+int32 CFE_PSP_ClearNVRAM(void);
 
 /**
 ** \} <!-- End of group "psp_public_api_sp0vx69" -->

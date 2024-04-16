@@ -327,6 +327,14 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_UserReservedFilepath");
 
+    UtTest_Add(Ut_CFE_PSP_BootRecordFilepath,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_BootRecordFilepath");
+
+    UtTest_Add(Ut_CFE_PSP_ExceptionStorageFilepath,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ExceptionStorageFilepath");
+
     UtTest_Add(Ut_CFE_PSP_GenerateFilepath,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GenerateFilepath");
@@ -449,6 +457,18 @@ void UtTest_Setup(void)
     UtTest_Add(Ut_CFE_PSP_ClearNVRAM,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_ClearNVRAM");
+
+    UtTest_Add(Ut_CFE_PSP_ClearExceptionData,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_ClearExceptionData");
+
+    UtTest_Add(Ut_CFE_PSP_LoadExceptionData,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_LoadExceptionData");
+
+    UtTest_Add(Ut_CFE_PSP_SaveExceptionData,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_SaveExceptionData");
 
     #endif /* TEST_EXCEPTION == 1 */
 
