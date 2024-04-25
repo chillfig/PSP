@@ -404,29 +404,41 @@ void Ut_CFE_PSP_ClearExceptionData(void)
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
     UT_SetDefaultReturnValue(UT_KEY(remove), OS_SUCCESS);
-    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
     /* Execute test */
     iRetCode = CFE_PSP_ClearExceptionData();
     /* Verify outputs */
-    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal");
+    UtAssert_True((iRetCode == CFE_PSP_SUCCESS), "Ut_CFE_PSP_ClearExceptionData() - 1/3: Nominal");
     UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Exception and Boot Record files deleted successfully\n",
-                        "_Ut_CFE_PSP_ClearNVRAM() - 1/2: Nominal message");
+                        "Ut_CFE_PSP_ClearExceptionData() - 1/3: Nominal message");
 
     UT_ResetState(0);
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #2 - Error ----- */
+    /* ----- Test case #2 - Error deleting exception data file----- */
     /* Setup additional inputs */
-    UT_SetDefaultReturnValue(UT_KEY(remove), OS_ERROR);
-    //UT_SetDefaultReturnValue(UT_KEY(stat), 0);
+    UT_SetDeferredRetcode(UT_KEY(remove), 1 , OS_ERROR);
+    UT_SetDeferredRetcode(UT_KEY(remove), 1 , OS_SUCCESS);
     /* Execute test */
     iRetCode = CFE_PSP_ClearExceptionData();
     /* Verify outputs */
-    UtAssert_True((iRetCode == CFE_PSP_ERROR), "_Ut_CFE_PSP_ClearNVRAM() - 2/2: CFE_PSP_ClearNVRAM error");
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "Ut_CFE_PSP_ClearExceptionData() - 2/3: CFE_PSP_ClearNVRAM error");
     UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete exception file\n",
-                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Exception error message");
+                        "Ut_CFE_PSP_ClearExceptionData() - 2/3: Exception error message");
+
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+
+    /* ----- Test case #3 - Error deleting boot record file----- */
+    /* Setup additional inputs */
+    UT_SetDeferredRetcode(UT_KEY(remove), 1 , OS_SUCCESS);
+    UT_SetDeferredRetcode(UT_KEY(remove), 1 , OS_ERROR);
+    /* Execute test */
+    iRetCode = CFE_PSP_ClearExceptionData();
+    /* Verify outputs */
+    UtAssert_True((iRetCode == CFE_PSP_ERROR), "Ut_CFE_PSP_ClearExceptionData() - 3/3: CFE_PSP_ClearNVRAM error");
     UtAssert_OS_print(PSP_EXCEP_PRINT_SCOPE "Unable to delete boot record file\n",
-                        "_Ut_CFE_PSP_ClearNVRAM() - 2/2: Boot record error message");}
+                        "Ut_CFE_PSP_ClearExceptionData() - 3/3: Boot record error message");
+}
 
 /*=======================================================================================
 ** Ut_CFE_PSP_LoadExceptionData(void) test cases

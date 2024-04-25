@@ -182,8 +182,6 @@ void PSP_FT_Run(void)
 /* Setup environment */
 void PSP_FT_Setup(void)
 {
-    char buffer[10];
-
     /** Create an empty cfe_es_startup to remove the error **/
     int32_t tmp_fd;
     tmp_fd = creat("/ram0/cf/cfe_es_startup.scr",O_RDWR);
