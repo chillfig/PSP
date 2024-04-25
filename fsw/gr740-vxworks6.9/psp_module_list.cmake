@@ -1,6 +1,8 @@
 soft_timebase
 timebase_vxworks
-eeprom_notimpl
+eeprom_direct
 ram_direct
-port_notimpl
+port_direct
 iodriver
+vxworks_sysmon
+ping

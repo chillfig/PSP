@@ -51,6 +51,42 @@ extern char *pEndOfURM;
 ** Function definitions
 **=======================================================================================*/
 
+/*=======================================================================================
+** Ut_CFE_PSP_Main() test cases
+**=======================================================================================*/
+void Ut_CFE_PSP_Main(void)
+{
+    /* ----- Test case #1: - Previous instance of CFS found ----- */
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), 10);
+    /* Execute test */
+    CFE_PSP_Main();
+    /* Verify results */
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 0);
+    UtAssert_NA("_CFE_PSP_Main - 1/3: Found previous instance of CFS");
+
+    /* ----- Test case #2: - OS_BSPMain returns error ----- */
+    UT_ResetState(0);
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), TASK_ID_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_ERROR);
+    /* Execute test */
+    CFE_PSP_Main();
+    /* Verify results */
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
+    UtAssert_NA("_CFE_PSP_Main - 2/3: OS_BSPMain returned error");
+
+    /* ----- Test case #3: - Nominal ----- */
+    UT_ResetState(0);
+    /* Set additional inputs */
+    UT_SetDefaultReturnValue(UT_KEY(taskNameToId), TASK_ID_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(PCS_OS_BSPMain), OS_SUCCESS);
+    /* Execute test */
+    CFE_PSP_Main();
+    /* Verify results */
+    UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
+    UtAssert_NA("_CFE_PSP_Main - 3/3: Nominal, OS_BSPMain success");
+}
 
 /*=======================================================================================
 ** Ut_OS_Application_Startup() test cases

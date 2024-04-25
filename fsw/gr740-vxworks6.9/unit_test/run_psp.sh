@@ -139,7 +139,7 @@ logfile $logfilename
 EOT
 
 # Start a screen session and save the output to file
-screen -L -c startup_screenrc -S PSP_UT_SCREEN -dm $TARGET_SERIAL
+screen -L -c startup_screenrc -S PSP_UT_SCREEN -dm $TARGET_SERIAL 115200
 
 echo "${INFO}Starting tests on $TARGET_NAME${RESET}"
 # Call tcl script that downloads the object modules from the

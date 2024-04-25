@@ -39,6 +39,7 @@
 ** Function Declarations
 **=======================================================================================*/
 
+void Ut_CFE_PSP_Main(void);
 void Ut_CFE_PSP_SetSysTasksPrio(void);
 void Ut_CFE_PSP_FindProcessor(void);
 void Ut_CFE_PSP_OS_EventHandler(void);

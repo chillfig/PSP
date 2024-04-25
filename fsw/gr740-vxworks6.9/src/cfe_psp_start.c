@@ -58,6 +58,7 @@
 #include "cfe_psp_memscrub.h"
 #include "cfe_psp_module.h"
 #include "cfe_psp_timer.h"
+#include "cfe_psp_gr740info.h"
 
 /* To find number of CPU available */
 #include <vxCpuLib.h>
@@ -75,6 +76,8 @@
 #define CFE_PSP_NONVOL_STARTUP_FILE  (GLOBAL_CONFIGDATA.CfeConfig->NonvolStartupFile)
 /** \} */
 
+/** \brief OSAL OS_BSPMain Entry Point */
+extern int OS_BSPMain(void);
 /** \brief Console Shell Task ID */
 static TASK_ID g_uiShellTaskID = 0;
 
@@ -112,6 +115,32 @@ static CFE_PSP_TaskAffinity_t g_CFSTaskAffinityList[] =
 {
     CFE_PSP_CFS_TASK_AFFINITY
 };
+
+void CFE_PSP_Main(void)
+{
+    int32   iStatus = 0;
+    TASK_ID iTaskID = 0;
+    /* Add method to check if another CFS instance is already running then exit */
+    iTaskID = taskNameToId((char *)"CFE_ES");
+    if (iTaskID != TASK_ID_ERROR)
+    {
+        // UndCC_NextLine(SSET134)
+        printf("Another instance of CFS is already running [%d]\n",iTaskID);
+    }
+    else
+    {
+        /* Start CFS */
+        iStatus = OS_BSPMain();
+
+        /* If OS_BSPMain returns an error, then print a note */
+        if (iStatus != 0)
+        {
+            /* At this point, CFS is closing and there is no guarantee that the OS_printf will work. */
+            // UndCC_NextLine(SSET134)
+            printf("\nPSP: Exiting CFE_PSP_Main() - OS_BSPMain application status [%d]\n", iStatus);
+        }
+    }
+}
 
 /**
  ** \brief Change system task priorities
@@ -324,6 +353,24 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     {
         /* Startup can continue, but it may fail later, depending on config */
         OS_printf("PSP: Some or all Virtual FS Mapping has failed\n");
+    }
+
+    /* Initialize GR740 Temperature Sensor */
+    CFE_PSP_TempSensorInit();
+    /* 
+    ** Collect GR740 information for Telemetry
+    ** This functions should run as early as possible to collect information from
+    ** hardware and POST, and setup the task to dump the collected information 
+    ** when abort is called.
+    */
+    if (CFE_PSP_GR740CollectDynamicInfo() != CFE_PSP_SUCCESS)
+    {
+        OS_printf("PSP: Error while collecting dynamic GR740 information\n");
+    }
+
+    if (CFE_PSP_GR740CollectStaticInfo() != CFE_PSP_SUCCESS)
+    {
+        OS_printf("PSP: Error while collecting static GR740 information\n");
     }
 
     /*

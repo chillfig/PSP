@@ -30,6 +30,9 @@ list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_psp_module_list.c)
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_module_list.c)
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/${TGT_NAME}/cfe_static_symbol_list.c)
 
+file(TOUCH ${CMAKE_BINARY_DIR}/../../src/cfe_build_env_table.c)
+file(TOUCH ${CMAKE_BINARY_DIR}/../../src/cfe_module_version_table.c)
+
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/../../src/cfe_build_env_table.c)
 list(APPEND FT_SRCS ${CMAKE_BINARY_DIR}/../../src/cfe_module_version_table.c)
 
@@ -60,6 +63,9 @@ target_link_libraries(${FT_NAME}_ft
     psp_module_api
     soft_timebase
     timebase_vxworks
+    iodriver
+    vxworks_sysmon
+    ping
     psp-${CFE_PSP_TARGETNAME}-impl
     psp-${CFE_PSP_TARGETNAME}-shared
     )

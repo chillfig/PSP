@@ -121,23 +121,9 @@ int32_t get_file_content(char *filename, char *buffer, uint16_t buffer_size)
  ** \return true current value within range
  ** \return false current value is outside range
  */
-bool check_range_value(float current_value, float right_value, PSP_FT_VALUE_TYPE_t vt, float positive_value, float negative_value)
+bool check_range_value(uint32_t current_value, uint32_t positive_value, uint32_t negative_value)
 {
-    float upper_value = 0.0;
-    float bottom_value = 0.0;
-    
-    if (vt == PSP_FT_VALUE_PERCENT)
-    {
-        upper_value = right_value + ((right_value * positive_value) / 100);
-        bottom_value = right_value - ((right_value * negative_value) / 100);
-    }
-    else if (vt == PSP_FT_VALUE_RAW)
-    {
-        upper_value = positive_value;
-        bottom_value = negative_value;
-    }
-
-    if ((current_value < upper_value) && (current_value > bottom_value))
+    if ((current_value < positive_value) && (current_value > negative_value))
     {
         return true;
     }
@@ -174,7 +160,7 @@ void PSP_FT_Setup(void)
     */
 
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
-    OS_BSPMain();
+    CFE_PSP_Main();
 }
 
 /**
@@ -558,8 +544,8 @@ void ft_gr740_info(void)
 {
     int32_t     ret_code = CFE_PSP_ERROR;
     uint32_t    uiTemp_value = 0;
-    uint32_t    uiIndex = 0;
-    uint32_t    uiMaxIndex = 5;
+    CFE_PSP_GR740StaticInfoTable_t     gr740_static_table;
+    CFE_PSP_GR740DynamicInfoTable_t    gr740_dynamic_table;
 
     OS_printf("[GR740_INFO]\n");
 
@@ -569,20 +555,43 @@ void ft_gr740_info(void)
     /* Check result */
     FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting up onboard temperature sensor - returned success")
 
-    /* Check Temperature value uiMaxIndex times in a loop */
-    for (uiIndex = 1; uiIndex <= uiMaxIndex; uiIndex++)
+    ret_code = CFE_PSP_GetTemperatureAwait(&uiTemp_value);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Getting onboard temperature value - returned success")
+    if (ret_code == CFE_PSP_SUCCESS)
     {
-        ret_code = CFE_PSP_GetTemperatureAwait(&uiTemp_value);
-        FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Getting onboard temperature value - returned success")
-        if (ret_code == CFE_PSP_SUCCESS)
-        {
-            FT_Assert_True(
-                check_range_value(uiTemp_value, 30, PSP_FT_VALUE_RAW, 55.0, 10.0), 
-                "%u. GR740 Temperature is %u [C]", uiIndex, uiTemp_value
-                )
-        }
+        OS_printf("GR740 Temp: %u\n", uiTemp_value);
+        FT_Assert_True( 
+            check_range_value(uiTemp_value, 55, 10), 
+            "GR740 Temperature is %u [C]", uiTemp_value)
     }
 
+    /*** Collect Static GR740 Info ***/
+    /* Get the hardware/software information from target */
+    ret_code = CFE_PSP_GR740CollectStaticInfo();
+    /* Check result */
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Static GR740 info - returned success")
+
+    /*** Collect Dynamic GR740 Info ***/
+    /* Get the hardware/software information from target */
+    ret_code = CFE_PSP_GR740CollectDynamicInfo();
+    /* Check result */
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Dynamic GR740 info - returned success")
+
+    /*** Get GR740 Info Table and check their values ***/
+    /* Get the table that was filled up by the GetInfo function */
+    ret_code = CFE_PSP_GR740GetStaticInfoTable(&gr740_static_table, sizeof(gr740_static_table), 0);
+    OS_printf("Data gathered at %s UTC\n", ctime(&gr740_static_table.lastUpdatedUTC.tv_sec));
+    FT_Assert_True(
+        ret_code == CFE_PSP_SUCCESS,
+        "CFE_PSP_GR740GetStaticInfoTable returns SUCCESS"
+    )
+    /* Get the table that was filled up by the GetInfo function */
+    ret_code = CFE_PSP_GR740GetDynamicInfoTable(&gr740_dynamic_table, sizeof(gr740_dynamic_table), 0);
+    OS_printf("Data gathered at %s UTC\n", ctime(&gr740_dynamic_table.lastUpdatedUTC.tv_sec));
+    FT_Assert_True(
+        ret_code == CFE_PSP_SUCCESS,
+        "CFE_PSP_GR740GetDynamicInfoTable returns SUCCESS"
+    )
     OS_printf("[GR740_INFO END]\n\n");
 }
 

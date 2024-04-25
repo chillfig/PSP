@@ -259,6 +259,18 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_GetTemperatureAwait");
 
+    UtTest_Add(Ut_CFE_PSP_GR740CollectStaticInfo,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GR740CollectStaticInfo");
+
+    UtTest_Add(Ut_CFE_PSP_GR740CollectDynamicInfo,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GR740CollectDynamicInfo");
+
+    UtTest_Add(Ut_CFE_PSP_GR740PrintToBuffer,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GR740PrintToBuffer");
+
     #endif /* TEST_GR740_INFO == 1 */
 
     #if TEST_TIMER == 1
@@ -276,6 +288,10 @@ void UtTest_Setup(void)
 
     #if TEST_START == 1
     /* cfe_psp_start.c test cases area */
+
+    UtTest_Add(Ut_CFE_PSP_Main,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_Main");    
 
     UtTest_Add(Ut_CFE_PSP_SuspendConsoleShellTask,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,

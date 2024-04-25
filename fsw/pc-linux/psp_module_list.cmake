@@ -4,7 +4,7 @@
 soft_timebase
 timebase_posix_clock
 eeprom_mmap_file
-ram_notimpl
+ram_direct
 port_notimpl
 iodriver
 linux_sysmon

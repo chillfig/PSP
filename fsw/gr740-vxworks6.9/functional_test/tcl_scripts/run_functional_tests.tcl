@@ -57,6 +57,7 @@ set waiting_for 0
 while {([set event [wtxEventGet]] == "") && ($waiting_for < $max_wait)} {
     msleep 1000
     incr waiting_for
+    puts stdout "Checking for DONE event... $waiting_for secs"
 }
 
 # If we received an event message, print it

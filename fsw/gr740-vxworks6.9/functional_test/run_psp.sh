@@ -98,7 +98,7 @@ TARGET_SERIAL=$3
 if [ -z $4 ]; then
     echo -e "Using default 115200 for [TARGET_SERIAL_BAUD]\n"
     TARGET_SERIAL_BAUD=115200
-elif
+else
     TARGET_SERIAL_BAUD=$4
 fi
 
@@ -113,7 +113,6 @@ then
 fi
 
 SCRIPT_ROOT=$CERT_TESTBED_ROOT/psp/fsw/gr740-vxworks6.9/functional_test
-
 TCL_SCRIPT_ROOT=$SCRIPT_ROOT/tcl_scripts
 
 cd $TCL_SCRIPT_ROOT

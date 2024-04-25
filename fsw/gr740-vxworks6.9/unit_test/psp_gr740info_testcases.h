@@ -41,6 +41,11 @@
 **=======================================================================================*/
 void Ut_CFE_PSP_TempSensorInit(void);
 void Ut_CFE_PSP_GetTemperatureAwait(void);
+void Ut_CFE_PSP_GR740CollectStaticInfo(void);
+void Ut_CFE_PSP_GR740CollectDynamicInfo(void);
+void Ut_CFE_PSP_GR740PrintToBuffer(void);
+void Ut_CFE_PSP_GR740GetStaticInfoTable(void);
+void Ut_CFE_PSP_GR740GetDynamicInfoTable(void);
 
 #endif  /* UT_PSP_GR740INFO_TESTCASES_H */
 
