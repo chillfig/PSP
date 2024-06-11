@@ -380,7 +380,7 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
    sh run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]
    ```
 
-   > **Example:** ```sh run_psp.sh 192.168.22.129 ~/GATEWAY/kernels/prebuilt-kernels/vx6.9_sp0-s_tt-cpci-3-103-2_cfs/vxWorks /dev/ttyFC1```
+   > **Example:** ```sh run_psp.sh 172.27.5.100 ~/GATEWAY/kernels/prebuilt-kernels/vx6.9_sp0-s_tt-cpci-3-103-2_cfs/vxWorks /dev/ttyFC1```
 
 ### Results
 

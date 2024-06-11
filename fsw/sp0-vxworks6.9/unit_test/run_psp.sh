@@ -43,7 +43,7 @@ INFO=`tput setaf 4`
 RESET=`tput sgr0`
 
 RUN_PSP_HELP="To run PSP UT on Target\nSyntax: \$ bash run_psp.sh [TARGET_IP] [KERNEL_FILE_PATH] [TARGET_SERIAL]\n"
-RUN_PSP_EXAMPLE="\$ bash run_psp.sh 192.168.22.129 ~/kernel/vxWorks /dev/ttyFC1\n"
+RUN_PSP_EXAMPLE="\$ bash run_psp.sh 172.27.5.100 ~/kernel/vxWorks /dev/ttyFC1\n"
 
 SCRIPT_ROOT=$(readlink -f $(dirname $0))
 CERT_TESTBED_ROOT=$(dirname $(dirname $(dirname $(dirname $SCRIPT_ROOT))))

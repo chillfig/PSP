@@ -439,7 +439,7 @@ void Ut_CFE_PSP_Process_Packet(void)
     pMyTime = (char *)inIcmpPkt + IP_HEADER_LEN + ICMP_HEADER_SIZE;
     pMyTime->Seconds = 0;
     pMyTime->Subseconds = 0;
-    inet_pton(AF_INET, "192.168.22.129", &from.sin_addr);
+    inet_pton(AF_INET, "172.27.5.100", &from.sin_addr);
 
     /* Execute test */
     retVal = CFE_PSP_Process_Packet(&inIcmpPkt, ucBytesProcessing, &from, usIdent, &StatPacket);
@@ -447,7 +447,7 @@ void Ut_CFE_PSP_Process_Packet(void)
     /* Verify outputs */
     strncpy(cStrTestDescription, "_CFE_PSP_Process_Packet() - 4/4: Nominal", sizeof(cStrTestDescription));
     UtAssert_True(retVal == PSP_PING_SUCCESS, cStrTestDescription);
-    UtAssert_True(strcmp(StatPacket.IPAddrName, "192.168.22.129") == 0, cStrTestDescription);
+    UtAssert_True(strcmp(StatPacket.IPAddrName, "172.27.5.100") == 0, cStrTestDescription);
     UtAssert_True(StatPacket.roundTripTime.Seconds == 1, cStrTestDescription);
     UtAssert_True(StatPacket.usIdent == usIdent, cStrTestDescription);
     UtAssert_True(StatPacket.usType ==  ICMP_ECHOREPLY, cStrTestDescription);
@@ -569,7 +569,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(socket), 1, -1);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 5/13: Failed to Create Socket", sizeof(cStrTestDescription));
@@ -591,7 +591,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(OS_MutSemTake), 1, OS_ERROR);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 6/13: Failed to Generate ICMP Packet", sizeof(cStrTestDescription));
@@ -619,7 +619,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(sendto), 1, -1);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 7/13: Failed to Send ICMP Packet - Error at sendto", sizeof(cStrTestDescription));
@@ -646,7 +646,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(sendto), 1, 85);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 8/13: Failed to Send ICMP Packet - Different packet size sent out", sizeof(cStrTestDescription));
@@ -674,7 +674,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(select), 1, -1);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 9/13: Select call failed", MAX_OS_PRINTF_MESSAGES);
@@ -699,7 +699,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(select), 5000, 0);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
     
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 10/13: Empty Packets", MAX_OS_PRINTF_MESSAGES);
@@ -725,7 +725,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(recvfrom), 1, -1);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
 
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 11/13: RecvFrom Fails its call", MAX_OS_PRINTF_MESSAGES);
@@ -755,7 +755,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDeferredRetcode(UT_KEY(select), 5000, 0);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
 
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 12/13: Packet was ignored and timed out", MAX_OS_PRINTF_MESSAGES);
@@ -789,7 +789,7 @@ void Ut_CFE_PSP_SinglePing(void)
     UT_SetDataBuffer(UT_KEY(CFE_TIME_Subtract), &CheckTime, sizeof(CheckTime), false);
 
     /* Execute test */
-    retVal = CFE_PSP_SinglePing("192.168.22.129", 5000, &StatPacket);
+    retVal = CFE_PSP_SinglePing("172.27.5.100", 5000, &StatPacket);
 
     /* Verify Output */
     strncpy(cStrTestDescription, "_SinglePing() - 13/13: Nominal", MAX_OS_PRINTF_MESSAGES);

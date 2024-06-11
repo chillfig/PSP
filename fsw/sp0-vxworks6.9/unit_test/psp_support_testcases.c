@@ -391,8 +391,8 @@ void Ut_CFE_PSP_ValidatePath(void)
 void Ut_CFE_PSP_GetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
-    char boot_string_invalid[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ff$^\nartup o=192.168.22.253/28";
+    char boot_string[] = "motetsec(0,0)172.27.5.253:vxWorks_sp0_pmc_revb_3101 e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_string_invalid[] = "motetsec(0,0)172.27.5.253:vxWorks_sp0_pmc_revb_3101 e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ff$^\nartup o=192.168.22.253/28";
     char cMsg_error[200] = "";
     char str_buffer[250] = "";
     char str_buffer_check[] = "/ffx0/startup";
@@ -467,7 +467,7 @@ void Ut_CFE_PSP_GetBootStartupString(void)
 void Ut_CFE_PSP_SetBootStartupString(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
-    char boot_line[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_line[] = "motetsec(0,0)172.27.5.253:vxWorks_sp0_pmc_revb_3101 e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char boot_string[] = "/ffx0/startup";
     char boot_string_too_long[] = "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
                                   "/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup/ffx0/startup11"
@@ -564,7 +564,7 @@ void Ut_CFE_PSP_GetBootStructure(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
     BOOT_PARAMS test_param = {{0}};
-    char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks_sp0_pmc_revb_3101 e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_string[] = "motetsec(0,0)172.27.5.253:vxWorks_sp0_pmc_revb_3101 e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char cMsg_talkative[] = {"PSP: Boot String:\n"};
     char cMsg_error[] = {"PSP: Could not get boot string\n"};
 
@@ -608,9 +608,9 @@ void Ut_CFE_PSP_SetBootStructure(void)
 {
     int32 uiRetCode = CFE_PSP_ERROR;
     BOOT_PARAMS test_param = {{0}};
-    char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_string[] = "motetsec(0,0)172.27.5.253:vxWorks e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
     char cMsg_talkative[] = {"PSP: New Boot String:\n"};
-    char cMsg_talkative_boot[] = "`motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28`\n";
+    char cMsg_talkative_boot[] = "`motetsec(0,0)172.27.5.253:vxWorks e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28`\n";
     char cMsg_error_saving[] = {"PSP: Could not set new boot string\n"};
     char cMsg_error_structure[] = {"PSP: Could not convert structure to boot string\n"};
     UT_SetDefaultReturnValue(UT_KEY(PCS_bootStructToString), OK);
@@ -673,7 +673,7 @@ void Ut_CFE_PSP_SetBootStructure(void)
 void Ut_CFE_PSP_PrintBootParameters(void)
 {
     BOOT_PARAMS test_param = {{0}};
-    char boot_string[] = "motetsec(0,0)192.168.22.132:vxWorks e=192.168.22.129:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
+    char boot_string[] = "motetsec(0,0)172.27.5.253:vxWorks e=172.27.5.100:ffffffc0 h=192.168.22.131 f=0x480 s=/ffx0/startup o=192.168.22.253/28";
 
     Ut_OS_printf_Setup();
     bootStringToStruct(boot_string, &test_param);
