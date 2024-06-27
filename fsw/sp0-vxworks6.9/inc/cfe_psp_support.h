@@ -1,14 +1,12 @@
 /*********************************************************************************************************/
-/** \export_control EAR ECCN 9D515.a, 9E515.a, License Exception GOV 740.11 (b)(2)(ii):
-*   This document contains data within the purview of the U.S. Export Administration Regulations (EAR),
-*   15 CFR 730-774, as is classified as ECCN 9E515.a. These items are controlled by the U.S. Government
-*   and are authorized for export by NASA only to fulfill responsibilities of the parties or of a
-*   Cooperating Agency of a NASA Gateway program partner (CSA, ESA, JAXA) and their contractors using
-*   License Exception GOV 740.11 (b)(2)(ii) in furtherance of the ISS Intergovernmental Agreement and
-*   Gateway MOUs. They may not be resold, transferred, or otherwise disposed of, to any other country
-*   or to any person other than the authorized ultimate consignee or end-user(s), either in their
-*   original form or after being incorporated into other items, without first obtaining approval from
-*   the U.S. government or as otherwise authorized by U.S. law and regulations.
+/** \export_control EAR ECCN 9E515.a and/or 9E515.f (HALO)
+*   Export Administration Regulations (EAR) Notice
+*   This document contains information which falls under the purview of the Export Administration Regulations (EAR),
+*   15 CFR §730-774 and is export controlled. It may be used only to fulfill responsibilities of the Parties of,
+*   or a Cooperating Agency of a NASA Gateway Program Partner (CSA, ESA, JAXA, MBRSC) and their contractors in
+*   furtherance of the Gateway MOUs with ESA, CSA, and Japan and IA with MBRSC. Any use, re-transfer,
+*   or disclosure to any party for any purpose other than the designated use of fulfilling the responsibilities
+*   of the Gateway MOUs and IA requires prior U.S. Government authorization.
 *
 *   \file cfe_psp_support.h
 *
