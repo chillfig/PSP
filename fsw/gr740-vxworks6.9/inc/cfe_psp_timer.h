@@ -10,7 +10,7 @@
 *
 *   \file cfe_psp_timer.h
 *
-*   \brief Main PSP configuration file for GRP740
+*   \brief Main PSP configuration file for GR740
 *
 *   \copyright
 *   Copyright © 2023-2024 United States Government as represented by the Administrator of the National

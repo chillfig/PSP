@@ -65,6 +65,22 @@ char *PCS_sysMemTop(void)
     return BufPtr;
 }
 
+char *PCS_sysPhysMemTop(void)
+{
+    int32 Status;
+    char *BufPtr;
+
+    BufPtr = NULL;
+    Status = UT_DEFAULT_IMPL(PCS_sysPhysMemTop);
+    if (Status == 0)
+    {
+        UT_GetDataBuffer(UT_KEY(PCS_sysPhysMemTop), (void **)&BufPtr, NULL, NULL);
+    }
+
+    return BufPtr;
+}
+
+
 void PCS_PciOutByte(uint32_t address, uint8_t data)
 {
     UT_DEFAULT_IMPL(PCS_PciOutByte);

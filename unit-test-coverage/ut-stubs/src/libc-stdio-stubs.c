@@ -189,7 +189,7 @@ int PCS_snprintf(char *s, size_t maxlen, const char *format, ...)
     return actual;
 }
 
-int PCS_vsnprintf(char *s, size_t maxlen, const char *format, PCS_va_list arg)
+int PCS_vsnprintf(char *s, size_t maxlen, const char *format, va_list arg)
 {
     int32 Status;
     int   actual = 0;
@@ -200,7 +200,7 @@ int PCS_vsnprintf(char *s, size_t maxlen, const char *format, PCS_va_list arg)
      * cannot do the real vsnprintf because we lost the args. */
     if (Status >= 0)
     {
-        actual = snprintf(s, maxlen, "%s", format);
+        actual = vsnprintf(s, maxlen, format, arg);
     }
 
     if (Status != 0)

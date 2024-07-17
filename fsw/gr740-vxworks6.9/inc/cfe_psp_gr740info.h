@@ -26,6 +26,8 @@
 #ifndef PSP_GR740_INFO_H
 #define PSP_GR740_INFO_H
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -148,6 +150,21 @@ int32 CFE_PSP_GR740GetStaticInfoTable(CFE_PSP_GR740StaticInfoTable_t *pStatic, s
  */
 int32 CFE_PSP_GR740GetDynamicInfoTable(CFE_PSP_GR740DynamicInfoTable_t *pDynamic, size_t iDynamicSize, uint8_t print_to_console);
 
+/**
+ ** \func Print the GR740 data to string buffer
+ ** 
+ ** \par Description:
+ ** Internal function to print the gathered data from GR740 to a string buffer.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_GR740PrintToBuffer(void);
 
 /**
 ** \} <!-- End of group "psp_public_api_gr740vx69" -->

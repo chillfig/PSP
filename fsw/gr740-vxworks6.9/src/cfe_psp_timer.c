@@ -38,7 +38,7 @@
 #include "osapi.h"
 
 #include <target_config.h>
-#include "cfe_psp_gr740.h"
+#include <gr740.h>
 #include "cfe_psp_timer.h"
 
 /*
@@ -55,7 +55,7 @@
  ** local global variables for PSP Timer
  */
 /* static void CFE_PSP_AuxClkHandler(int32 arg); */
-static bool g_bTimerInitialized = false;
+bool g_bTimerInitialized = false;
 
 
 void CFE_PSP_InitLocalTime(void)
@@ -89,20 +89,16 @@ void vxTimeBaseGet(uint32 *Tbu, uint32 *Tbl) //UndCC_Line(SSET106) Func. name pa
     uint32_t upper1 = 0;
     uint64_t time = 0;
 
-    uint32_t uiRet_Code = CFE_PSP_SUCCESS;
-
-    /* If any of the pointers provided are NULL, return immediately */
     if ((Tbu == NULL) || (Tbl == NULL))
     {
-        uiRet_Code = CFE_PSP_ERROR;
         OS_printf(TIMER_PRINT_SCOPE "Input variables are NULL\n");
+        goto vxTimeBaseGet_Exit_Tag;
     }
 
-    /* Check that the timer is initialized */
     if (g_bTimerInitialized != true)
     {
-        uiRet_Code = CFE_PSP_ERROR;
         OS_printf(TIMER_PRINT_SCOPE "Timer is not initialized\n");
+        goto vxTimeBaseGet_Exit_Tag;
     }
 
     /*
@@ -111,50 +107,26 @@ void vxTimeBaseGet(uint32 *Tbu, uint32 *Tbl) //UndCC_Line(SSET106) Func. name pa
      ** sysTimestampLock() automatically blocks interrupts during execution.
      **
      */
-    if (uiRet_Code == CFE_PSP_SUCCESS)
+    /*
+     ** The resolution of our timer is given by:
+     **   one timer tick = 1 / sysTimestampFreq() in seconds
+     */
+
+    upper0 = TIMER1_REG->timer[TS_TIMER_HIGH_ID].counter;
+    lower  = TIMER1_REG->timer[TS_TIMER_LOW_ID].counter;
+    upper1 = TIMER1_REG->timer[TS_TIMER_HIGH_ID].counter;
+
+    if (upper0 != upper1)
     {
-        /*
-         ** The resolution of our timer is given by:
-         **   one timer tick = 1 / sysTimestampFreq() in seconds
-         */
-
-        upper0 = TIMER1_REG->timer[TS_TIMER_HIGH_ID].counter;
-        lower  = TIMER1_REG->timer[TS_TIMER_LOW_ID].counter;
-        upper1 = TIMER1_REG->timer[TS_TIMER_HIGH_ID].counter;
-
-        if (upper0 != upper1)
-        {
-            lower = 0xFFFFFFFF; // lower rolled over before reading upper1
-        }
-        time = upper1;
-        time = (time << 32) | lower;
-        time = 0xFFFFFFFFFFFFFFFFULL - time;
-
-        *Tbu = (time >> 32) & 0xFFFFFFFFU;
-        *Tbl = time & 0xFFFFFFFFU;
+        lower = 0xFFFFFFFF; // lower rolled over before reading upper1
     }
-}
+    time = upper1;
+    time = (time << 32) | lower;
+    time = 0xFFFFFFFFFFFFFFFFULL - time;
 
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-// This function is for debug only.
-// Remove this function after the CFE_PSP_Get_Timebase() function has been fully debugged.
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-int DEBUG_GetTime(void)
-{
-    uint32 Tbu, Tbl;
-    OS_time_t localTime;
+    *Tbu = (time >> 32) & 0xFFFFFFFFU;
+    *Tbl = time & 0xFFFFFFFFU;
 
-    CFE_PSP_Get_Timebase(&Tbu, &Tbl);
-    CFE_PSP_GetTime(&localTime);
-
-    OS_printf("CFE_PSP_Get_Timebase(0x%08x, 0x%08x)\n", Tbu, Tbl);
-    OS_printf("CFE_PSP_GetTime(%lld)\n", localTime.ticks);
-
-    int64_t subsecondDiv = 10000000ULL;
-    uint32_t seconds = localTime.ticks / subsecondDiv;
-    uint32_t subsecs = localTime.ticks % subsecondDiv;
-
-    OS_printf("%d sec, %d us\n", seconds, subsecs / 10U);
-
-    return 0;
+vxTimeBaseGet_Exit_Tag:
+    return;
 }

@@ -34,7 +34,7 @@
 #include "arch/sparc/fppSparcLib.h"
 
 #include "common_types.h"
-#include "cfe_psp_gr740.h"
+#include <gr740.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,10 +92,12 @@ extern "C" {
  ** \par Note:
  ** Processor number is up to number of available processors - 1.
  */
-#define CFE_PSP_CFS_TASK_AFFINITY       {"CFE",        1}, \
-                                        {"SBNG",       1}, \
-                                        {"TO",         2}, \
-                                        {"",           2}
+#define CFE_PSP_CFS_TASK_AFFINITY       {"SBNG",       1}, \
+                                        {"TTE_MGR",    1}, \
+                                        {"SCH_TT",     1}, \
+                                        {"CP",         2}, \
+                                        {"CFE",        2}, \
+                                        {"VS",         3}
 
 /**
  ** \brief Task name and priority of tasks
@@ -226,7 +228,7 @@ typedef struct
     /**
      ** \brief Tick Count
      */
-    UINT64     ticks;
+    uint64     ticks;
     /**
      ** \brief vector number
      */

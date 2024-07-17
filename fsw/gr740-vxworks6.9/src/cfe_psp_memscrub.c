@@ -24,7 +24,7 @@
 /* Include PSP API */
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
-#include "cfe_psp_gr740.h"
+#include <gr740.h>
 #include "cfe_psp_memscrub.h"
 
 /* Defined in cfe_psp_memory.c */
@@ -33,12 +33,12 @@ extern uint32 g_uiEndOfRam;
 /** \brief Contains the boolean value if Mem Scrub should start at startup
  **
  */
-static bool g_bMemScrubStartOnStartup = CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP;
+bool g_bMemScrubStartOnStartup = CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP;
 
 /**
  ** \brief Mem Scrub Error Statistics
  */
-static CFE_PSP_MemScrubErrStats_t g_MemScrub_Stats = 
+CFE_PSP_MemScrubErrStats_t g_MemScrub_Stats = 
 {
 	.uiCurrentPosition = 0,
 	.uiRUNCOUNT = 0,
@@ -50,7 +50,7 @@ static CFE_PSP_MemScrubErrStats_t g_MemScrub_Stats =
 /**
  ** \brief Mem Scrub configuration and status structure
  */
-static CFE_PSP_MemScrubStatus_t g_MemScrub_Status = 
+CFE_PSP_MemScrubStatus_t g_MemScrub_Status = 
 {
 /*
 What are the MODEs for?
@@ -75,7 +75,7 @@ This below is not the same!
  ** \return #CFE_PSP_SUCCESS if all the variables pass checks
  ** \return #CFE_PSP_ERROR if any check fails
  */
-static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
+int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
 {
     int32 iRetCode = CFE_PSP_SUCCESS;
 
@@ -89,7 +89,7 @@ static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
     /* If top of memory has not been initialized, then initialize it */
     if (g_uiEndOfRam == 0)
     {
-        g_uiEndOfRam = (uint32) sysPhysMemTop();
+        g_uiEndOfRam = (cpuaddr)sysPhysMemTop();
     }
 
 	/* check highest address */
@@ -152,7 +152,7 @@ int32 CFE_PSP_MemScrubInit(void)
  * Description: See function declaration for info
  *
  *********************************************************/
-bool  CFE_PSP_MemScrubIsRunning(void)
+bool CFE_PSP_MemScrubIsRunning(void)
 {
 	return (bool)GET_MEMSCRUB_STATUS(MEMSCRUB_STATUS_CURRENT_STATE);
 }
@@ -168,10 +168,10 @@ int32 CFE_PSP_MemScrubDisable(void)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
-	/* Enable Memory Scrubber */
-	SET_MEMSCRUB_CONFIG(MEMSCRUB_CONFIG_SCRUBBER_ENABLE, 0);
+    /* Enable Memory Scrubber */
+    SET_MEMSCRUB_CONFIG(MEMSCRUB_CONFIG_SCRUBBER_ENABLE, 0);
 
-	if (CFE_PSP_MemScrubIsRunning() == false)
+    if (CFE_PSP_MemScrubIsRunning() == false)
     {
         iReturnCode = CFE_PSP_SUCCESS;
     }
@@ -190,10 +190,10 @@ int32 CFE_PSP_MemScrubEnable(void)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 
-	/* Enable Memory Scrubber */
-	SET_MEMSCRUB_CONFIG(MEMSCRUB_CONFIG_SCRUBBER_ENABLE, 1);
+    /* Enable Memory Scrubber */
+    SET_MEMSCRUB_CONFIG(MEMSCRUB_CONFIG_SCRUBBER_ENABLE, 1);
 
-	if (CFE_PSP_MemScrubIsRunning() == true)
+    if (CFE_PSP_MemScrubIsRunning() == true)
     {
         iReturnCode = CFE_PSP_SUCCESS;
     }
@@ -215,23 +215,23 @@ int32 CFE_PSP_MemScrubSet(CFE_PSP_MemScrubStatus_t *pNewConfiguration)
 	
     iReturnCode = CFE_PSP_MemScrubValidate(pNewConfiguration);
 
-	/* Validate new configuration */
-	if (iReturnCode == CFE_PSP_SUCCESS)
-    {	
+    /* Validate new configuration */
+    if (iReturnCode == CFE_PSP_SUCCESS)
+    {
         /* If Scrubber is running, stop it */
         uiMemScrubEnabled = CFE_PSP_MemScrubIsRunning();
         if (uiMemScrubEnabled == true)
         {
             CFE_PSP_MemScrubDisable();
         }
-        
+
         /* Set new values, addresses are masked [4:0] should be zeros for start, ones for end */
         g_MemScrub_Status.uiMemScrubEndAddr = ( pNewConfiguration->uiMemScrubEndAddr |= 0x0000001F );
         g_MemScrub_Status.uiMemScrubStartAddr = ( pNewConfiguration->uiMemScrubStartAddr &= 0xFFFFFFE0 );
-        
+
         /* Set values in registers */
         MEMSCRUB_REG->range_low_addr = g_MemScrub_Status.uiMemScrubStartAddr;
-	    MEMSCRUB_REG->range_high_addr = g_MemScrub_Status.uiMemScrubEndAddr;
+        MEMSCRUB_REG->range_high_addr = g_MemScrub_Status.uiMemScrubEndAddr;
 
         /* If the SCrubber was running, start it */
         if (uiMemScrubEnabled == true)

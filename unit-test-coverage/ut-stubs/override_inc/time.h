@@ -44,4 +44,16 @@
 
 #include "PCS_time.h"
 
+/* -----------------------------------------  */
+/* mappings for declarations in time.h */
+/* -----------------------------------------  */
+#define time_t PCS_time_t
+#define timespec PCS_timespec
+
+#define clock_settime PCS_clock_settime
+#define clock_gettime PCS_clock_gettime
+
+#define CLOCK_REALTIME   PCS_CLOCK_REALTIME
+#define CLOCK_MONOTONIC  PCS_CLOCK_MONOTONIC
+
 #endif

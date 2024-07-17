@@ -89,6 +89,7 @@ extern PCS_STATUS  PCS_taskDeleteForce(PCS_TASK_ID tid);
 extern PCS_STATUS  PCS_taskSuspend(PCS_TASK_ID tid);
 extern PCS_STATUS  PCS_taskResume(PCS_TASK_ID tid);
 extern PCS_STATUS  PCS_taskPrioritySet(PCS_TASK_ID tid, int newPriority);
+extern PCS_STATUS  PCS_taskPriorityGet(PCS_TASK_ID tid, int *pPriority);
 extern PCS_TASK_ID PCS_taskSpawn(char *name, int priority, int options, int stackSize, PCS_FUNCPTR entryPt, int arg1,
                                  int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9,
                                  int arg10);
@@ -98,5 +99,10 @@ PCS_STATUS PCS_taskInit(PCS_WIND_TCB *pTcb, char *name, int priority, int option
                         int arg8, int arg9, int arg10);
 
 PCS_WIND_TCB *PCS_taskTcb(PCS_TASK_ID tid);
+
+PCS_STATUS PCS_taskLock(void);
+PCS_STATUS PCS_taskUnlock(void);
+PCS_STATUS PCS_taskCpuLock(void);
+PCS_STATUS PCS_taskCpuUnlock(void);
 
 #endif

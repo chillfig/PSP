@@ -50,17 +50,17 @@ static PCS_WIND_TCB PCS_LOCAL_TASK = {0};
 
 const char *PCS_taskName(PCS_TASK_ID task_id)
 {
-    const char *retval;
-    int32       Status;
+    int32 Status;
+    char *BufPtr;
 
-    retval = NULL;
+    BufPtr = NULL;
     Status = UT_DEFAULT_IMPL(PCS_taskName);
     if (Status == 0)
     {
-        UT_Stub_CopyToLocal(UT_KEY(PCS_taskName), &retval, sizeof(retval));
+        UT_GetDataBuffer(UT_KEY(PCS_taskName), (void **)&BufPtr, NULL, NULL);
     }
 
-    return retval;
+    return BufPtr;
 }
 
 void PCS_taskExit(int code)
@@ -124,6 +124,21 @@ PCS_STATUS PCS_taskPrioritySet(PCS_TASK_ID tid, int newPriority)
     return UT_DEFAULT_IMPL(PCS_taskPrioritySet);
 }
 
+PCS_STATUS PCS_taskPriorityGet(PCS_TASK_ID tid, int *pPriority)
+{
+    int32 iStatus;
+    UT_Stub_RegisterContext(UT_KEY(PCS_taskPriorityGet), pPriority);
+
+    iStatus = UT_DEFAULT_IMPL(PCS_taskPriorityGet);
+
+    if (iStatus >= 0)
+    {
+        UT_Stub_CopyToLocal(UT_KEY(PCS_taskPriorityGet), (int32 *) pPriority, sizeof(*pPriority));
+    }
+    
+    return iStatus;
+}
+
 PCS_STATUS PCS_taskInit(PCS_WIND_TCB *pTcb, char *name, int priority, int options, char *pStackBase, int stackSize,
                         PCS_FUNCPTR entryPt, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7,
                         int arg8, int arg9, int arg10)
@@ -178,4 +193,24 @@ PCS_WIND_TCB *PCS_taskTcb(PCS_TASK_ID tid)
     }
 
     return LocalTcb;
+}
+
+PCS_STATUS PCS_taskLock(void)
+{
+    return UT_DEFAULT_IMPL(PCS_taskLock);
+}
+
+PCS_STATUS PCS_taskUnlock(void)
+{
+    return UT_DEFAULT_IMPL(PCS_taskUnlock);
+}
+
+PCS_STATUS PCS_taskCpuLock(void)
+{
+    return UT_DEFAULT_IMPL(PCS_taskCpuLock);
+}
+
+PCS_STATUS PCS_taskCpuUnlock(void)
+{
+    return UT_DEFAULT_IMPL(PCS_taskCpuUnlock);
 }

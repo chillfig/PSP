@@ -28,17 +28,14 @@
 */
 
 #include <stdio.h>
-#include <ioLib.h>
 #include <errno.h>
 #include <vxWorks.h>
-#include <float.h>
-#include <stat.h>
 
 /* For supporting REALTIME clock */
 #include <timers.h>
 
 /* GR740 Hardware Registers Definitions */
-#include "cfe_psp_gr740.h"
+#include <gr740.h>
 
 /* Include PSP API */
 #include "cfe_psp.h"
@@ -48,7 +45,7 @@
 /*
 ** Static Function Declarations
 */
-static int32 CFE_PSP_GR740PrintToBuffer(void);
+int32 CFE_PSP_GR740PrintToBuffer(void);
 
 /*
 ** Static Variables
@@ -56,20 +53,20 @@ static int32 CFE_PSP_GR740PrintToBuffer(void);
 /** \name GR740 Information String Buffer */
 /** \{ */
 /** \brief GR740 String Buffer */ //is the text buffer arbitrarily sized?
-static char g_cGR740DataDump[GR740_TEXT_BUFFER_MAX_SIZE];
+char g_cGR740DataDump[GR740_TEXT_BUFFER_MAX_SIZE];
 /** \brief Actual length of the string buffer */
-static int32 g_iGR740DataDumpLength;
+int32 g_iGR740DataDumpLength;
 /** \} */
 
 /**
  ** \brief GR740 Static Info Table
  */
-static CFE_PSP_GR740StaticInfoTable_t g_GR740StaticInfoTable;
+CFE_PSP_GR740StaticInfoTable_t g_GR740StaticInfoTable;
 
 /**
  ** \brief GR740 Dynamic Data Table
  */
-static CFE_PSP_GR740DynamicInfoTable_t g_GR740DynamicInfoTable;
+CFE_PSP_GR740DynamicInfoTable_t g_GR740DynamicInfoTable;
 
 int32 CFE_PSP_TempSensorInit(void)
 {
@@ -93,6 +90,11 @@ int32 CFE_PSP_GetTemperatureAwait(uint32 * uiTempPtr)
     int32 iReturnCode = CFE_PSP_ERROR;
     uint32 uiLocalTemp = 0;
 
+    if (uiTempPtr == NULL)
+    {
+        goto CFE_PSP_GetTemperatureAwait_Exit_Tag;
+    }
+
     if (GET_TEMPERATURE_STATUS(TEMPERATURE_STATUS_UPD) == 1)
     {
         uiLocalTemp = (GET_TEMPERATURE_STATUS(TEMPERATURE_STATUS_DATA));
@@ -100,6 +102,7 @@ int32 CFE_PSP_GetTemperatureAwait(uint32 * uiTempPtr)
         iReturnCode = CFE_PSP_SUCCESS;
     }
 
+CFE_PSP_GetTemperatureAwait_Exit_Tag:
     return iReturnCode;
 }
 
@@ -192,7 +195,7 @@ int32 CFE_PSP_GR740CollectDynamicInfo(void)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_GR740PrintToBuffer(void)
+int32 CFE_PSP_GR740PrintToBuffer(void)
 {
     int32   iRet_code = CFE_PSP_SUCCESS;
 

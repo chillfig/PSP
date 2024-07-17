@@ -30,9 +30,6 @@
 #include <unistd.h>
 #include <taskLib.h>
 #include <vxWorks.h>
-/* For NFS */
-#include <nfsCommon.h>
-#include <hostLib.h>
 
 /*
  ** cFE includes 
@@ -77,7 +74,7 @@
 /** \brief OSAL OS_BSPMain Entry Point */
 extern int OS_BSPMain(void);
 /** \brief Console Shell Task ID */
-static TASK_ID g_uiShellTaskID = 0;
+TASK_ID g_uiShellTaskID = (TASK_ID)0;
 
 extern void CFE_PSP_InitLocalTime(void); // from cfe_psp_timer.c
 
@@ -103,7 +100,7 @@ static CFE_PSP_OS_Task_and_priority_t g_VxWorksTaskList[] =
 /** \brief Total number of available processors
  **
  */
-uint32                g_uiNumberOfProcessors = 0;
+uint32 g_uiNumberOfProcessors = 0;
 
 /** \brief The list of CFS tasks with associated processor number
  ** \par Note:
@@ -157,7 +154,7 @@ void CFE_PSP_Main(void)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_SetSysTasksPrio(void)
+int32 CFE_PSP_SetSysTasksPrio(void)
 {
     int32 iStatus = CFE_PSP_SUCCESS;
     uint32 uiIndex = 0;
@@ -192,7 +189,7 @@ static int32 CFE_PSP_SetSysTasksPrio(void)
  ** \return The processor number to assign
  **
  */
-static int32 CFE_PSP_FindProcessor(char *pTaskName)
+int32 CFE_PSP_FindProcessor(char *pTaskName)
 {
     int32 iRetProcessorNumber = -1;
     uint32 uiIndex = 0;
@@ -237,7 +234,7 @@ int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *pData
     cpuset_t  cpuset = 0;
 
     /* osal_id_t osal_tid; */
-    TASK_ID   tid = 0;
+    TASK_ID tid = 0;
 
     /* osal_tid = OS_OBJECT_ID_UNDEFINED; */
 
@@ -273,7 +270,7 @@ int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *pData
                     {
                         OS_printf("Could not set task affinity\n");
                         taskCpuAffinityGet(tid, &cpuset);
-                        OS_printf("- Current task affinity: [\"%s\" - TID: %08X -> %04X]\n", cTaskName, tid, (unsigned int)cpuset);
+                        OS_printf("- Current task affinity: [\"%s\" - TID: %p -> %04X]\n", cTaskName, (void*)tid, (unsigned int)cpuset);
                     }
                 }
             }
@@ -334,7 +331,7 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     iStatus = OS_API_Init();
     if (iStatus != OS_SUCCESS)
     {
-        OS_printf("PSP: OS_Application_Startup() - OS_API_Init() failed (0x%X)\n", iStatus);
+        OS_printf("PSP: OS_Application_Startup() - OS_API_Init() failed %d\n", iStatus);
 
         /* Is OSAL fails, log the startup failure and restart target */
         //CFE_PSP_StartupFailedRestartSP0_hook(g_StartupInfo.timerID);
@@ -462,13 +459,13 @@ void OS_Application_Run(void) //UndCC_Line(SSET106) Func. name part of PSP API, 
  *********************************************************/
 int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
 {
-    int32 iTID = CFE_PSP_ERROR;
+    TASK_ID iTID = TASK_ID_ERROR;
     int32 iCurPriority = 0;
     uint8 ucCurPrio = 0;
     uint8 ucNewPrio = 0;
     int32 iStatus = CFE_PSP_ERROR;
 
-    if ((tName != NULL) && (memchr(tName, (int) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH) != NULL))
+    if ((tName != NULL) && (memchr(tName, (cpuaddr) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH) != NULL))
     {
         ucNewPrio = tgtPrio;
 
@@ -502,7 +499,7 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
 
 
 /******************************************************************************
- **  Function:  ResetSysTasksPrio()
+ **  Function:  CFE_PSP_ResetSysTasksPrio()
  **
  **  Copied from UT700 PSP, NOSA licensed
  **
@@ -514,7 +511,7 @@ int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
  **  Return: none
  **
  */
-void ResetSysTasksPrio(void)
+void CFE_PSP_ResetSysTasksPrio(void)
 {
     OS_printf("\nResetting system tasks' priority to default\n");
     CFE_PSP_SetTaskPrio("tLogTask", 0);
@@ -550,11 +547,11 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
         iStatus = taskSuspend(g_uiShellTaskID);
         if (iStatus == OK)
         {
-            OS_printf("Shell Task Suspended [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task Suspended [%p]\n", (void*)g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be suspended [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task could not be suspended [%p]\n", (void*)g_uiShellTaskID);
         }
     }
     else
@@ -562,11 +559,11 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
         iStatus = taskResume(g_uiShellTaskID);
         if (iStatus == OK)
         {
-            OS_printf("Shell Task Resumed [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task Resumed [%p]\n", (void*)g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be resumed [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task could not be resumed [%p]\n", (void*)g_uiShellTaskID);
         }
     }
 

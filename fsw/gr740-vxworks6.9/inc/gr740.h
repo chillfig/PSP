@@ -8,7 +8,7 @@
 *   or disclosure to any party for any purpose other than the designated use of fulfilling the responsibilities
 *   of the Gateway MOUs and IA requires prior U.S. Government authorization.
 *
-*   \file cfe_psp_gr740.h
+*   \file gr740.h
 *
 *   \brief Registers and component definitions for GRP740
 *

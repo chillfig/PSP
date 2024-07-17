@@ -25,28 +25,30 @@
 # target implementation.  This makes it implementation-specific even though
 # the same source code is used with multiple targets.
 
-
-# To support the starting and killing of NTP daemon process
-string(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
-if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
-    set(WIND_COMPONENT_STRING $ENV{WIND_COMPONENTS})
-    string(REPLACE ":" ";" WIND_COMPONENT_LIST ${WIND_COMPONENT_STRING})
-    list(LENGTH WIND_COMPONENT_LIST LEN)
-    if (${LEN} GREATER 1)
-        message(WARNING "Environment variable WIND_COMPONENTS includes more than one path. 
-                The last one is choosen automatically.")
-        list(GET $WIND_COMPONENT_LIST 1 WIND_COMPONENT_PATH)
-    else()
-        set(WIND_COMPONENT_PATH ${WIND_COMPONENT_STRING})
-    endif()
-    message("WIND_COMPONENT_PATH = `" ${WIND_COMPONENT_PATH} "`")
-    include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/include)
-    include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/config)
-    include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/port/vxworks/config)
-    include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/port/vxworks/include)
+if("${SYSTEM_NAME}" STREQUAL "pc-linux")
 else()
-    message("VxWorks Installed components are " $ENV{WIND_COMPONENTS_LIBNAMES})    
-    message(FATAL_ERROR "VxWorks IP NET2 6.9 component is required to build PSP")
+    # To support the starting and killing of NTP daemon process
+    string(FIND "$ENV{WIND_COMPONENTS_LIBNAMES}" "ip_net2-6.9" VXWORKS_COMPONENT_IPNET2_69)
+    if (NOT ${VXWORKS_COMPONENT_IPNET2_69} EQUAL -1)
+        set(WIND_COMPONENT_STRING $ENV{WIND_COMPONENTS})
+        string(REPLACE ":" ";" WIND_COMPONENT_LIST ${WIND_COMPONENT_STRING})
+        list(LENGTH WIND_COMPONENT_LIST LEN)
+        if (${LEN} GREATER 1)
+            message(WARNING "Environment variable WIND_COMPONENTS includes more than one path. 
+                    The last one is choosen automatically.")
+            list(GET $WIND_COMPONENT_LIST 1 WIND_COMPONENT_PATH)
+        else()
+            set(WIND_COMPONENT_PATH ${WIND_COMPONENT_STRING})
+        endif()
+        message("WIND_COMPONENT_PATH = `" ${WIND_COMPONENT_PATH} "`")
+        include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/include)
+        include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/config)
+        include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/port/vxworks/config)
+        include_directories(${WIND_COMPONENT_PATH}/ip_net2-6.9/ipcom/port/vxworks/include)
+    else()
+        message("VxWorks Installed components are " $ENV{WIND_COMPONENTS_LIBNAMES})    
+        message(FATAL_ERROR "VxWorks IP NET2 6.9 component is required to build PSP")
+    endif()
 endif()
 
 # Build the target implementation as a library

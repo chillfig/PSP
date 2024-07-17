@@ -38,7 +38,7 @@
 #include "cacheLib.h"
 #include "cacheLib.h"
 #include "rebootLib.h"
-
+#include "intLib.h"
 
 /*
 ** cFE includes

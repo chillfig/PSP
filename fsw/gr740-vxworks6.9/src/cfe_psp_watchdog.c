@@ -38,12 +38,8 @@
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "cfe_psp_timer.h"
-#include "cfe_psp_gr740.h"
-
-
-#define WD_TIMER_ID         (4)
-#define CFE_PSP_WATCHDOG_MIN_MS (CFE_PSP_WATCHDOG_MIN / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC)
-#define CFE_PSP_WATCHDOG_MAX_MS (CFE_PSP_WATCHDOG_MAX / CFE_PSP_WATCHDOG_CTR_TICKS_PER_MILLISEC)
+#include <gr740.h>
+#include "cfe_psp_watchdog.h"
 
 /*
 ** Types and prototypes for this module
@@ -55,10 +51,10 @@
 */
 
 /** \brief Watchdog current millisecond value */
-static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
+uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
 
 /** \brief Watchdog current status */
-static bool g_bWatchdogStatus = false;
+bool g_bWatchdogStatus = false;
 
 /**********************************************************
  * 

@@ -64,6 +64,47 @@
 #include "uttest.h"
 #include "utstubs.h"
 
+/*=======================================================================================
+** Macro Definitions
+**=======================================================================================*/
+
+#define URM_SIZE 10000
+
+/****************** Helper macros for PSP asserts ******************/
+#define     UtAssert_OS_print(cText, Description) \
+                UtAssert(Ut_OS_printfHistoryWithText(cText), Description, __FILE__, __LINE__)
+#define     UtAssert_NoOS_print(cText, Description) \
+                UtAssert(Ut_OS_printfHistoryWithText(cText) == false, Description, __FILE__, __LINE__)
+#define     UtAssert_ES_WriteToSysLog(cText, Description) \
+                UtAssert(Ut_ES_WriteToSysLogWithText(cText), Description, __FILE__, __LINE__)
+#define     UtAssert_NoES_WriteToSysLog(cText, Description) \
+                UtAssert(Ut_ES_WriteToSysLogWithText(cText) == false, Description, __FILE__, __LINE__)
+#define     UtAssert_logMsg(cText, Description) \
+                UtAssert(Ut_logMsgHistoryWithText(cText), Description, __FILE__, __LINE__)
+#define     UtAssert_NologMsg(cText, Description) \
+                UtAssert(Ut_logMsgHistoryWithText(cText) == false, Description, __FILE__, __LINE__)
+
+/*=======================================================================================
+** Data Structures
+**=======================================================================================*/
+
+/*=======================================================================================
+** Function Declarations
+**=======================================================================================*/
+int32   Ut_OS_printf_Hook(void *UserObj, int32 StubRetcode,
+                          uint32 CallCount, const UT_StubContext_t *Context, va_list va);
+void    Ut_OS_printf_Setup(void);
+bool    Ut_OS_printfHistoryWithText(const char *cText);
+int32   Ut_ES_WriteToSysLog_Hook(void *UserObj, int32 StubRetcode,
+                                 uint32 CallCount, const UT_StubContext_t *Context, va_list va);
+void    Ut_ES_WriteToSysLog_Setup(void);
+bool    Ut_ES_WriteToSysLogWithText(const char *cText);
+int32   Ut_logMsg_hook(void *UserObj, int32 StubRetcode,
+                       uint32 CallCount, const UT_StubContext_t *Context, va_list va);
+void    Ut_logMsg_Setup(void);
+bool    Ut_logMsgHistoryWithText(const char *cText);
+uint8   Ut_OS_printf_MsgCount(void);
+
 void Test_CFE_PSP_Exception_GetBuffer(void);
 void Test_CFE_PSP_Exception_GetNextContextBuffer(void);
 void Test_CFE_PSP_Exception_GetSummary(void);

@@ -361,7 +361,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
     ** If the VxWorks reserved memory size is smaller than the 
     ** requested, print error
     */
-    if(GR740_ReservedMemBlock.BlockSize > reserve_memory_size)
+    if (GR740_ReservedMemBlock.BlockSize > reserve_memory_size)
     {
         OS_printf(MEMORY_PRINT_SCOPE "VxWorks Reserved Memory Block Size not large enough, "
                   "Total Size = 0x%lx, "
@@ -426,8 +426,7 @@ int32 CFE_PSP_InitProcessorReservedMemory( uint32 RestartType )
 void CFE_PSP_SetupReservedMemoryMap(void)
 {
     cpuaddr     start_addr;
-    uint32      reserve_memory_size = 0;
-    int32       iStatus = OS_SUCCESS;
+    size_t      reserve_memory_size = 0;
     cpuaddr     end_addr;
 
     /* 
@@ -436,7 +435,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     */
     userReservedGet((char **) &start_addr, &reserve_memory_size);
     memset(&CFE_PSP_ReservedMemoryMap, 0, sizeof(CFE_PSP_ReservedMemoryMap));
-    g_uiEndOfRam = (uint32)sysPhysMemTop();
+    g_uiEndOfRam = (cpuaddr)sysPhysMemTop();
 
     end_addr = start_addr;
 
@@ -500,18 +499,7 @@ void CFE_PSP_SetupReservedMemoryMap(void)
     ** What is the purpose of this? Should we be more detailed with our set?
     ** We don't actually use all of RAM (nor should we at a cFS level?)
     */
-    iStatus = CFE_PSP_MemRangeSet(
-                                    0, 
-                                    CFE_PSP_MEM_RAM, 
-                                    0, 
-                                    g_uiEndOfRam, 
-                                    CFE_PSP_MEM_SIZE_DWORD, 
-                                    CFE_PSP_MEM_ATTR_READWRITE
-                                );
-    if (iStatus != OS_SUCCESS)
-    {
-        OS_printf(MEMORY_PRINT_SCOPE "SetupReservedMemory: MemRangeSet failed\n");
-    }
+    CFE_PSP_MemRangeSet(0, CFE_PSP_MEM_RAM, 0, g_uiEndOfRam, CFE_PSP_MEM_SIZE_DWORD, CFE_PSP_MEM_ATTR_READWRITE);
 }
 
 /******************************************************************************

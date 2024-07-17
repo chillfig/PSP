@@ -60,20 +60,30 @@ add_library(ut_psp_libc_stubs STATIC EXCLUDE_FROM_ALL
     src/libc-stdio-stubs.c
     src/libc-stdlib-stubs.c
     src/libc-string-stubs.c
+    src/posix-fcntl-stubs.c
+    src/posix-unistd-stubs.c
     src/vxworks-ataDrv-stubs.c
     src/vxworks-cacheLib-stubs.c
-    src/vxworks-moduleLib-stubs.c
-    src/vxworks-taskLib-stubs.c
+    src/vxworks-edrLib-stubs.c
     src/vxworks-excLib-stubs.c
     src/vxworks-fppLib-stubs.c
+    src/vxworks-gr740-stubs.c
+    src/vxworks-intLib-stubs.c
+    src/vxworks-ipcom_ipd-stubs.c
     src/vxworks-mcpx750-stubs.c
+    src/vxworks-moduleLib-stubs.c
     src/vxworks-rebootLib-stubs.c
-    src/vxworks-sysLib-stubs.c
-    src/vxworks-vxLib-stubs.c
     src/vxworks-spyLib-stubs.c
     src/vxworks-spyLibP-stubs.c
+    src/vxworks-sysLib-stubs.c
+    src/vxworks-taskLib-stubs.c
+    src/vxworks-taskLibCommon-stubs.c
+    src/vxworks-time-stubs.c
+    src/vxworks-userReservedMem-stubs.c
+    src/vxworks-vxCpuLib-stubs.c
+    src/vxworks-vxLib-stubs.c
 )
-    
+
 target_include_directories(ut_libc_stubs PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
@@ -82,9 +92,12 @@ target_link_libraries(ut_psp_libc_stubs PRIVATE
     psp_module_api
     ut_assert 
 )
-    
+
 add_library(ut_psp_cfe_stubs STATIC EXCLUDE_FROM_ALL
     src/cfe-configdata-stubs.c
+    src/cfe-time-stubs.c
+    src/cfeSupport-stubs.c
+    src/psp-stubs.c
 )
 
 target_link_libraries(ut_psp_cfe_stubs PRIVATE 

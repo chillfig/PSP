@@ -1,0 +1,75 @@
+/************************************************************************
+ * NASA Docket No. GSC-18,719-1, and identified as “core Flight System: Bootes”
+ *
+ * Copyright (c) 2020 United States Government as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ************************************************************************/
+
+/* PSP coverage stub replacement for ipcom_err.h */
+#ifndef OVERRIDE_IPCOM_ERR_H
+#define OVERRIDE_IPCOM_ERR_H
+
+#include "PCS_ipcom_err.h"
+
+/* ----------------------------------------- */
+/* mappings for declarations in ipcom_err.h */
+/* ----------------------------------------- */
+
+#define IP_PUBLIC
+#define Ip_err PCS_Ip_err
+
+#define IPCOM_SUCCESS PCS_IPCOM_SUCCESS
+#define IPCOM_ERR_FAILED PCS_IPCOM_ERR_FAILED
+#define IPCOM_ERR_NO_MEMORY PCS_IPCOM_ERR_NO_MEMORY
+#define IPCOM_ERR_NOT_FOUND PCS_IPCOM_ERR_NOT_FOUND
+#define IPCOM_ERR_NOT_SUPPORTED PCS_IPCOM_ERR_NOT_SUPPORTED
+#define IPCOM_ERR_PERMISSION_DENIED PCS_IPCOM_ERR_PERMISSION_DENIED
+#define IPCOM_ERR_ALREADY_OPEN PCS_IPCOM_ERR_ALREADY_OPEN
+#define IPCOM_ERR_ALREADY_CLOSED PCS_IPCOM_ERR_ALREADY_CLOSED
+#define IPCOM_ERR_ALREADY_INSTALLED PCS_IPCOM_ERR_ALREADY_INSTALLED
+#define IPCOM_ERR_ALREADY_STARTED PCS_IPCOM_ERR_ALREADY_STARTED
+#define IPCOM_ERR_NOT_OPENED PCS_IPCOM_ERR_NOT_OPENED
+#define IPCOM_ERR_NOT_CLOSED PCS_IPCOM_ERR_NOT_CLOSED
+#define IPCOM_ERR_NOT_INSTALLED PCS_IPCOM_ERR_NOT_INSTALLED
+#define IPCOM_ERR_NOT_STARTED PCS_IPCOM_ERR_NOT_STARTED
+#define IPCOM_ERR_INVALID_ARG PCS_IPCOM_ERR_INVALID_ARG
+#define IPCOM_ERR_INVALID_CONFIG PCS_IPCOM_ERR_INVALID_CONFIG
+#define IPCOM_ERR_INVALID_VERSION PCS_IPCOM_ERR_INVALID_VERSION
+#define IPCOM_ERR_INVALID_ALIGNMENT PCS_IPCOM_ERR_INVALID_ALIGNMENT
+#define IPCOM_ERR_INVALID_INTERFACE PCS_IPCOM_ERR_INVALID_INTERFACE
+#define IPCOM_ERR_NO_ROUTE PCS_IPCOM_ERR_NO_ROUTE
+#define IPCOM_ERR_DEAD_ROUTE PCS_IPCOM_ERR_DEAD_ROUTE
+#define IPCOM_ERR_INVALID_ROUTE PCS_IPCOM_ERR_INVALID_ROUTE
+#define IPCOM_ERR_INVALID_MASK PCS_IPCOM_ERR_INVALID_MASK
+#define IPCOM_ERR_INVALID_RTCLIENT PCS_IPCOM_ERR_INVALID_RTCLIENT
+#define IPCOM_ERR_DUPLICATE PCS_IPCOM_ERR_DUPLICATE
+#define IPCOM_ERR_LOCKED PCS_IPCOM_ERR_LOCKED
+#define IPCOM_ERR_END PCS_IPCOM_ERR_END
+#define IPCOM_ERR_READONLY PCS_IPCOM_ERR_READONLY
+#define IPCOM_ERR_INVALID_TAG_VALUE PCS_IPCOM_ERR_INVALID_TAG_VALUE
+#define IPCOM_ERR_UNSUPPORTED_TAG PCS_IPCOM_ERR_UNSUPPORTED_TAG
+#define IPCOM_ERR_INVALID_PACKET PCS_IPCOM_ERR_INVALID_PACKET
+#define IPCOM_ERR_BAD_PACKET PCS_IPCOM_ERR_BAD_PACKET
+#define IPCOM_ERR_IGNORED_PACKET PCS_IPCOM_ERR_IGNORED_PACKET
+#define IPCOM_ERR_SOCKCALLFAILED PCS_IPCOM_ERR_SOCKCALLFAILED
+#define IPCOM_ERR_REACHED_MIN PCS_IPCOM_ERR_REACHED_MIN
+#define IPCOM_ERR_REACHED_MAX PCS_IPCOM_ERR_REACHED_MAX
+#define IPCOM_ERR_TIMEOUT PCS_IPCOM_ERR_TIMEOUT
+#define IPCOM_ERR_WOULDBLOCK PCS_IPCOM_ERR_WOULDBLOCK
+#define IPCOM_ERR_INTERRUPT PCS_IPCOM_ERR_INTERRUPT
+#define IPCOM_ERR_PENDING PCS_IPCOM_ERR_PENDING
+#define IPCOM_ERR_AUTH_FAILED PCS_IPCOM_ERR_AUTH_FAILED
+#define IPCOM_ERR_AUTH_UNKNOWN PCS_IPCOM_ERR_AUTH_UNKNOWN
+
+#endif

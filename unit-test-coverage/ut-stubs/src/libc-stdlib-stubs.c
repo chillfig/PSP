@@ -165,7 +165,7 @@ void *PCS_malloc(size_t sz)
         return NULL;
     }
 
-    NextSize  = (NextSize + MPOOL_ALIGN - 1) & ~((size_t)MPOOL_ALIGN);
+    NextSize  = (NextSize + MPOOL_ALIGN - 1) & ~((size_t)MPOOL_ALIGN - 1);
     NextBlock = Rec->BlockAddr + MPOOL_ALIGN;
     Rec->BlockAddr += NextSize;
     Rec->Size += NextSize;
@@ -217,4 +217,24 @@ void PCS_free(void *ptr)
             }
         }
     }
+}
+
+int PCS_abs(int value)
+{
+    int32         Status;
+    unsigned long Result = 0;
+
+    Status = UT_DEFAULT_IMPL_RC(PCS_abs, -1);
+
+    if (Status < 0)
+    {
+        /* do the real op */
+        Result = abs(value);
+    }
+    else
+    {
+        Result = Status;
+    }
+
+    return Result;
 }

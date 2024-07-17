@@ -193,6 +193,21 @@ void OS_Application_Startup(void);
 void OS_Application_Run(void);
 
 /**
+ **  \func Reset the system task priorities
+ **
+ **  Copied from UT700 PSP, NOSA licensed
+ **
+ **  Purpose:
+ **    reset changed task priorities back to defaults
+ **
+ **  Arguments: none
+ **
+ **  Return: none
+ **
+ */
+void CFE_PSP_ResetSysTasksPrio(void);
+
+/**
  ** \func Suspend/Resume the Console Shell Task
  **
  ** \par Description:
@@ -224,6 +239,25 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend);
 ** \return Last reset type
 */
 uint32 CFE_PSP_GetRestartType(uint32 *resetSubType);
+
+/**
+ ** \brief Change system task priorities
+ **
+ ** \par Description:
+ ** This function changes the system task priorities so that they are 
+ ** lower than CFS system task priorities.
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** tNet0 priority should be adjusted to be right below what ever
+ ** gets defined for CI/TO apps in your system if using the network
+ ** interface CCSDS/UDP for CI/TO apps.
+ **
+ ** \param None
+ **
+ ** \return #CFE_PSP_SUCCESS
+ ** \return #CFE_PSP_ERROR
+ */
+int32 CFE_PSP_SetSysTasksPrio(void);
 
 /**
  ** \func Set task priority
@@ -258,6 +292,38 @@ int32 CFE_PSP_SetTaskPrio(const char* tName, uint8 tgtPrio);
  */
 int32 CFE_PSP_SetFileSysAddFixedMap(osal_id_t *fs_id);
 
+/**
+ ** \brief Find the Task Name and return the related processor number
+ **
+ ** \par Description:
+ ** 
+ **
+ ** \param pTaskName - Pointer to the name of the task
+ **
+ ** \return -1 - if Task Name was not found in the list
+ ** \return The processor number to assign
+ **
+ */
+int32 CFE_PSP_FindProcessor(char *pTaskName);
+
+/**
+ ** \brief Task creation event handler
+ **
+ ** \par Description:
+ ** In single core targets this function does nothing.
+ ** In multi core targets this function assign tasks to specific cores.
+ **  
+ ** \par Limitations, Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param event - 
+ ** \param object_id - 
+ ** \param pData - 
+ **
+ ** \return #OS_SUCCESS
+ ** \return #OS_ERROR
+ */
+int32 CFE_PSP_OS_EventHandler(OS_Event_t event, osal_id_t object_id, void *pData);
 
 /**
 ** \} <!-- End of group "psp_public_api_gr740vx69" -->

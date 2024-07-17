@@ -83,7 +83,7 @@ void Ut_vxTimeBaseGet(void)
     uiTicks = uiU;
     uiTicks <<= 32;
     uiTicks |= uiL;
-    UtAssert_True((uiTicks > 0), "Ut_vxTimeBaseGet() - 1/3: Nominal");
+    UtAssert_True((uiTicks > 0), "Ut_vxTimeBaseGet() - 1/4: Nominal");
 
     Ut_OS_printf_Setup();
 
@@ -95,18 +95,28 @@ void Ut_vxTimeBaseGet(void)
     /* Execute test */
     vxTimeBaseGet(&uiU, &uiL);
     /* Verify outputs */
-    UtAssert_True(((uiU == 0) && (uiL == 0)), "Ut_vxTimeBaseGet() - 2/3: Timer not initialized - unchanged inputs");
-    UtAssert_OS_print(cMsg_timer_not_init, "Ut_vxTimeBaseGet - 2/32: Timer not initialized - message");
+    UtAssert_True(((uiU == 0) && (uiL == 0)), "Ut_vxTimeBaseGet() - 2/4: Timer not initialized - unchanged inputs");
+    UtAssert_OS_print(cMsg_timer_not_init, "Ut_vxTimeBaseGet - 2/4: Timer not initialized - message");
 
     Ut_OS_printf_Setup();
 
-    /* ----- Test case #3 - NULL Inputs ----- */
+    /* ----- Test case #3 - NULL Tbu ----- */
     /* Setup additional inputs */
     g_bTimerInitialized = true;
     uiU = 0;
     uiL = 0;
     /* Execute test */
-    vxTimeBaseGet(NULL, NULL);
+    vxTimeBaseGet(NULL, &uiL);
     /* Verify outputs */
-    UtAssert_OS_print(cMsg_input_null, "Ut_vxTimeBaseGet - 3/3: NULL Inputs - message");
+    UtAssert_OS_print(cMsg_input_null, "Ut_vxTimeBaseGet - 3/4: NULL Tbu");
+
+    /* ----- Test case #4 - NULL Tbl ----- */
+    /* Setup additional inputs */
+    g_bTimerInitialized = true;
+    uiU = 0;
+    uiL = 0;
+    /* Execute test */
+    vxTimeBaseGet(NULL, &uiL);
+    /* Verify outputs */
+    UtAssert_OS_print(cMsg_input_null, "Ut_vxTimeBaseGet - 3/4: NULL Tbu");
 }

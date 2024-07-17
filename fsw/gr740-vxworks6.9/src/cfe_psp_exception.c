@@ -78,7 +78,7 @@ extern STATUS edrErrorPolicyHookRemove(void);
  ** \brief g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
+bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
  ** \brief g_pDefaultedrPolicyHandlerHook
@@ -87,7 +87,7 @@ static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
  ** The EDR_POLICY_HANDLER_HOOK is a function pointer defined
  ** in VxWorks header file edrLibP.h.
  */
-static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
+EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 /***************************************************************************
  **                        FUNCTIONS DEFINITIONS
@@ -310,7 +310,7 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save exception reason on buffer\n");
             iRet_code = CFE_PSP_ERROR;
         }
-        if (iRetChar >= ReasonSize)
+        else if (iRetChar >= (int)ReasonSize)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save the whole exception reason string on buffer\n");
             iRet_code = CFE_PSP_ERROR;

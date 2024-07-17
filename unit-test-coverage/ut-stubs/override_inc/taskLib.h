@@ -43,6 +43,8 @@
 #define OVERRIDE_TASKLIB_H
 
 #include "PCS_taskLib.h"
+#include <taskLibCommon.h>
+#include <cpuset.h>
 #include <vxWorks.h>
 
 /* ----------------------------------------- */
@@ -69,8 +71,14 @@
 #define taskSuspend     PCS_taskSuspend
 #define taskResume      PCS_taskResume
 #define taskPrioritySet PCS_taskPrioritySet
+#define taskPriorityGet PCS_taskPriorityGet
 #define taskSpawn       PCS_taskSpawn
 #define taskInit        PCS_taskInit
 #define taskTcb         PCS_taskTcb
+
+#define taskLock        PCS_taskLock
+#define taskUnlock      PCS_taskUnlock
+#define taskCpuLock     PCS_taskCpuLock
+#define taskCpuUnlock   PCS_taskCpuUnlock
 
 #endif

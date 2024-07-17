@@ -51,10 +51,6 @@
 /* ----------------------------------------- */
 /* types normally defined in stdarg.h */
 /* ----------------------------------------- */
-typedef struct
-{
-    void *p;
-} PCS_va_list;
 
 /* ----------------------------------------- */
 /* prototypes normally declared in stdarg.h */

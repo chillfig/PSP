@@ -58,6 +58,7 @@
 /* ----------------------------------------- */
 extern int   PCS_sysClkRateGet(void);
 extern char *PCS_sysMemTop(void);
+extern char *PCS_sysPhysMemTop(void);
 
 extern void PCS_PciOutByte(uint32_t address, uint8_t data);
 extern void PCS_PciOutLong(uint32_t address, uint32_t data);

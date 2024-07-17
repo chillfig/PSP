@@ -41,7 +41,6 @@ add_definitions(
     -DIP_PORT_VXWORKS=69
     -D_EMBED_
     -D_EB
-    -DENDIAN=_EB
     -DSOFTWARE_BIG_BIT_ORDER
     ) 
 

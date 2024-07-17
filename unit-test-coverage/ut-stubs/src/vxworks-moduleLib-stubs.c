@@ -54,7 +54,7 @@ PCS_MODULE_ID PCS_moduleFindByName(const char *moduleName)
     Status = UT_DEFAULT_IMPL(PCS_moduleFindByName);
     if (Status == 0)
     {
-        UT_Stub_CopyToLocal(UT_KEY(PCS_moduleFindByName), &retval, sizeof(retval));
+        retval = (PCS_MODULE_ID)0x12345678;
     }
 
     return retval;

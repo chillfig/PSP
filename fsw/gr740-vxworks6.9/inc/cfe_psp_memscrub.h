@@ -214,6 +214,8 @@ int32 CFE_PSP_MemScrubDelete(void);
 */
 int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize, bool talk);
 
+int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues);
+
 /**
 ** \func Initialize the Memory Scrubbing process
 **

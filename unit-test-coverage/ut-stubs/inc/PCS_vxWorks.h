@@ -91,6 +91,7 @@ typedef int32_t      PCS_INT32;
 typedef uint32_t     PCS_UINT32;
 
 typedef long PCS_Vx_usr_arg_t;
+typedef long PCS_Vx_exit_code_t;
 
 /* Function pointers are used in many VxWorks modules. */
 /*

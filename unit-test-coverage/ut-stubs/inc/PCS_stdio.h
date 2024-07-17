@@ -45,6 +45,9 @@
 #include "PCS_basetypes.h"
 #include "PCS_stdarg.h"
 
+/* Include this for va_list */
+#include <stdarg.h>
+
 /* ----------------------------------------- */
 /* constants normally defined in stdio.h */
 /* ----------------------------------------- */
@@ -65,7 +68,7 @@ extern int       PCS_fputs(const char *s, PCS_FILE *stream);
 extern int       PCS_remove(const char *filename);
 extern int       PCS_rename(const char *old, const char *nw);
 extern int       PCS_snprintf(char *s, size_t maxlen, const char *format, ...);
-extern int       PCS_vsnprintf(char *s, size_t maxlen, const char *format, PCS_va_list arg);
+extern int       PCS_vsnprintf(char *s, size_t maxlen, const char *format, va_list arg);
 extern int       PCS_printf(const char *format, ...);
 extern int       PCS_putchar(int c);
 extern void      PCS_perror(const char *str);

@@ -46,6 +46,15 @@
 
 #include "PCS_string.h"
 
+int PCS_memcmp(void *dest, const void *src, size_t n)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL_RC(PCS_memcmp, memcmp(dest, src, n));
+
+    return Status;
+}
+
 void *PCS_memset(void *s, int c, size_t n)
 {
     int32 Status;
@@ -82,6 +91,21 @@ void *PCS_memcpy(void *dest, const void *src, size_t n)
     }
 
     return Result;
+}
+
+void *PCS_memchr(const void *s, int c, size_t n)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(PCS_memchr);
+
+    if (Status == 0)
+    {
+        /* "nominal" response */
+        return memchr(s, c, n);
+    }
+
+    return (char *)0;
 }
 
 char *PCS_strchr(const char *s, int c)
