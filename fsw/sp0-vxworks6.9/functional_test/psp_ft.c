@@ -65,6 +65,7 @@
 #include "cfe_psp_verify.h"
 #include "psp_version.h"
 #include "cfe_psp_ping.h"
+#include "tte_errata.h"
 
 #include "psp_ft.h"
 
@@ -250,6 +251,8 @@ void PSP_FT_Start(void)
     ft_sysmon();
 
     ft_ping();
+
+    ft_tte_errata();
 
     /* End CPU Activity Function */
     spyClkStop();
@@ -1155,4 +1158,18 @@ void ft_ping(void)
     memset(&TimeResult, 0, sizeof(TimeResult));
     retVal = CFE_PSP_SinglePing(g_cTestIPs[3], usTimeoutValue, &TimeResult);
     FT_Assert_True((retVal == PSP_PING_SND_PKT_ERR), "ICMP Packet failed to send, retVal = %d\n", retVal);
+}
+
+void ft_tte_errata(void)
+{
+    uint32 dpe_bit = 0;
+    int32  iRetCode = CFE_PSP_ERROR;
+
+    OS_printf("[TTE_ERRATA]\n");
+
+    OS_printf("Probing %02x:%02x.%u\n", g_iBusNum, g_iDevNum, g_iFuncNum);
+
+    /* Call once */
+    iRetCode = CFE_PSP_GetPCIDpeBit(&dpe_bit);
+    FT_Assert_True((iRetCode == CFE_PSP_SUCCESS), "TTE Errata: DPE Bit read successfully 0x%04x", dpe_bit);
 }

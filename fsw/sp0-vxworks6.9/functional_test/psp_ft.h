@@ -41,6 +41,7 @@ extern CFE_PSP_ModuleApi_t CFE_PSP_timebase_vxworks_API;
 extern CFE_PSP_ModuleApi_t CFE_PSP_iodriver_API;
 extern CFE_PSP_ModuleApi_t CFE_PSP_vxworks_sysmon_API;
 extern CFE_PSP_ModuleApi_t CFE_PSP_ping_API;
+extern CFE_PSP_ModuleApi_t CFE_PSP_tte_errata_API;
 
 CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] =
 {
@@ -48,6 +49,7 @@ CFE_StaticModuleLoadEntry_t CFE_PSP_BASE_MODULE_LIST[] =
     { .Name = "iodriver", .Api = &CFE_PSP_iodriver_API },
     { .Name = "vxworks_sysmon", .Api = &CFE_PSP_vxworks_sysmon_API },
     { .Name = "ping", .Api = &CFE_PSP_ping_API },
+    { .Name = "tte_errata", .Api = &CFE_PSP_tte_errata_API },
     {NULL}
 };
 
@@ -67,3 +69,4 @@ void PSP_FT_Start(void);
 void PSP_FT_SendEndTestEvent(void);
 void ft_sysmon(void);
 void ft_ping(void);
+void ft_tte_errata(void);

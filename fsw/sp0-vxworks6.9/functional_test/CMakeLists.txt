@@ -65,6 +65,7 @@ target_link_libraries(${FT_NAME}_ft
     iodriver
     vxworks_sysmon
     ping
+    tte_errata
     psp-${CFE_PSP_TARGETNAME}-impl
     psp-${CFE_PSP_TARGETNAME}-shared
     )

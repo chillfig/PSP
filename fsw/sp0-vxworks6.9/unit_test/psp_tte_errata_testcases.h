@@ -8,9 +8,9 @@
 *   or disclosure to any party for any purpose other than the designated use of fulfilling the responsibilities
 *   of the Gateway MOUs and IA requires prior U.S. Government authorization.
 *
-*   \file psp_testcases.h
+*   \file psp_tte_errata_testcases.h
 *
-*   \brief This file contains function declarations of test cases for the PSP module.
+*   \brief This header file contains function declarations for test cases for tte_errata PSP module.
 *
 *   \copyright
 *   Copyright © 2023-2024 United States Government as represented by the Administrator of the National
@@ -19,28 +19,14 @@
 *   \brief This file was created at NASA's Johnson Space Center.
 **********************************************************************************************************/
 
-#ifndef UT_PSP_TESTCASES_H
-#define UT_PSP_TESTCASES_H
+#ifndef UT_PSP_TTE_ERRATA_TESTCASES_H
+#define UT_PSP_TTE_ERRATA_TESTCASES_H
 
 /*=======================================================================================
 ** Includes
 **=======================================================================================*/
 
-#include <errno.h>
 #include "utassert.h"
-#include "psp_start_testcases.h"
-#include "psp_memory_testcases.h"
-#include "psp_mem_scrub_testcases.h"
-#include "psp_exception_testcases.h"
-#include "psp_support_testcases.h"
-#include "psp_watchdog_testcases.h"
-#include "psp_sp0_info_testcases.h"
-#include "psp_ntp_testcases.h"
-#include "psp_flash_testcases.h"
-#include "psp_vxworks_sysmon_testcases.h"
-#include "psp_ping_testcases.h"
-#include "psp_tte_errata_testcases.h"
-#include "psp_tte_errata_pci7_testcases.h"
 
 /*=======================================================================================
 ** External Global Variable Declarations
@@ -49,16 +35,10 @@
 /*=======================================================================================
 ** Function Declarations
 **=======================================================================================*/
+void Ut_tte_errata_Init(void);
 
-void Ut_CFE_PSP_Setup(void);
-void Ut_CFE_PSP_Teardown(void);
-void Ut_CFE_PSP_InitEvent(void);
-void Ut_CFE_PSP_EndTests(void);
-
-#endif  /* UT_PSP_TESTCASES_H */
+#endif  /* UT_PSP_TTE_ERRATA_TESTCASES_H */
 
 /*=======================================================================================
-** End of file psp_testcases.h
+** End of file psp_tte_errata_testcases.h
 **=======================================================================================*/
-
-

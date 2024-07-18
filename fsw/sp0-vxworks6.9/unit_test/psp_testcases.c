@@ -36,6 +36,7 @@
 #define TEST_START      1
 #define TEST_VX_SYSMON  1
 #define TEST_PING       1
+#define TEST_TTE_ERRATA 1
 
 /*=======================================================================================
 ** Test Setup & Teardown functions
@@ -703,6 +704,18 @@ void UtTest_Setup(void)
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
                "Ut_CFE_PSP_SinglePing");
     #endif  /* TEST_PING == 1 */
+
+    #if TEST_TTE_ERRATA == 1
+
+    UtTest_Add(Ut_CFE_PSP_GetPCIDpeBit,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_CFE_PSP_GetPCIDpeBit");
+
+    UtTest_Add(Ut_tte_errata_Init,
+               Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
+               "Ut_tte_errata_Init");
+
+    #endif /* TEST_TTE_ERRATA == 1 */
 
     UtTest_Add(Ut_CFE_PSP_EndTests,
                Ut_CFE_PSP_Setup, Ut_CFE_PSP_Teardown,
