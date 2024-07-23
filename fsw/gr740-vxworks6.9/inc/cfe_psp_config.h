@@ -463,6 +463,16 @@ typedef struct
  */
 #define CFE_PSP_MEMSCRUB_DEFAULT_END_ADDR          0
 
+/**
+ ** \brief Spy Library FPGA Timer ID
+ **
+ ** \par Description:
+ ** FPGA Timer ID used to run the overridable Spy Library
+ ** monitoring using the FPGA timer instead of CPU timer.
+ ** Note that this macro is only relevant if the spylib_fpga
+ ** module is installed as part of the PSP module list.
+ */
+#define CFE_PSP_SPYLIB_FPGA_TIMER_ID 1
 
 /** \} */
 

@@ -733,6 +733,16 @@ typedef struct
 /** \brief USER RESERVED Binary Semaphore Name */
 #define MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
 
+/**
+ ** \brief Spy Library FPGA Timer ID
+ **
+ ** \par Description:
+ ** FPGA Timer ID used to run the overridable Spy Library
+ ** monitoring using the FPGA timer instead of CPU timer.
+ ** Note that this macro is only relevant if the spylib_fpga
+ ** module is installed as part of the PSP module list.
+ */
+#define CFE_PSP_SPYLIB_FPGA_TIMER_ID 1
 
 /**
 ** \} <!-- End of group "psp_sp0vx69_platcfg" -->

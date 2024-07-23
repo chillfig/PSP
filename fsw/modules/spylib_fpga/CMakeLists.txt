@@ -1,4 +1,10 @@
 #*****************************************************************************************************************
+#  Note that this file has been cloned-n-owned from its open-source github
+#  repository for Gateway as of September 2023. Therefore, it is subject to
+#  NASA Export Control restrictions, as stated below.
+#*****************************************************************************************************************
+ 
+#*****************************************************************************************************************
 # Export Control Marking
 #
 # EAR ECCN 9E515.a and/or 9E515.f (HALO)
@@ -11,13 +17,7 @@
 # or disclosure to any party for any purpose other than the designated use of fulfilling the responsibilities
 # of the Gateway MOUs and IA requires prior U.S. Government authorization.
 #*****************************************************************************************************************
-soft_timebase
-timebase_vxworks
-eeprom_direct
-ram_direct
-port_direct
-iodriver
-vxworks_sysmon
-ping
-spylib_fpga
-tte_errata
+
+# Pseudo-terminal interface module
+# add_definitions(-DDEBUG_BUILD)
+add_psp_module(spylib_fpga spylib_fpga.c)
