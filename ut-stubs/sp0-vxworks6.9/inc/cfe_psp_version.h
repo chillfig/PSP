@@ -46,22 +46,29 @@ extern "C" {
 
 /** \name Version Macro Definitions */
 /** \{ */
-/** \brief Development Build Macro Definitions - Build Number */
-#define CFE_PSP_IMPL_BUILD_NUMBER   124
-/** \brief Development Build Macro Definitions - Baseline */
-#define CFE_PSP_IMPL_BUILD_BASELINE "v1.6.0-rc1"
+/** \brief Build Number - reserved for end user */
+#define CFE_PSP_IMPL_BUILD_NUMBER   0
+/** \brief Build Baseline is not used for gateway */
+#define CFE_PSP_IMPL_BUILD_BASELINE ""
 /** \brief ONLY APPLY for OFFICIAL releases. Major version number. */
 #define CFE_PSP_IMPL_MAJOR_VERSION 1
 /** \brief ONLY APPLY for OFFICIAL releases. Minor version number. */
 #define CFE_PSP_IMPL_MINOR_VERSION 6 
 /** \brief ONLY APPLY for OFFICIAL releases. Revision number. */
 #define CFE_PSP_IMPL_REVISION      0 
-/** \brief ONLY APPLY for OFFICIAL releases.
- ** Revision version number. A value of "99" indicates an unreleased development version.
+
+/**
+ ** \brief Mission revision.
+ **
+ ** Reserved for mission use to denote patches/customizations as needed.
  */
 #define CFE_PSP_IMPL_MISSION_REV   0
-/** \brief ONLY APPLY for OFFICIAL releases. Codename */
-#define CFE_PSP_IMPL_CODENAME "Draco"
+
+/**
+ * \brief Release bundle codename 
+ * \details The parent bundle this version was released with.
+ */
+#define CFE_PSP_IMPL_CODENAME "gw_draco_v2.2"
 /** \} */
 
 /** \name Tools to construct version string */
@@ -71,19 +78,18 @@ extern "C" {
 /** \brief Helper function to concatenate strings from integer */
 #define CFE_PSP_IMPL_STR(x) CFE_PSP_IMPL_STR_HELPER(x) 
 
-/** \brief DEVELOPMENT Build Version Number.
- ** \details Baseline git tag + Number of commits since baseline. @n
- ** See @ref cfsversions for format differences between development and release versions.
+/** 
+ ** \brief Version Number.
  */
-#define CFE_PSP_IMPL_VERSION CFE_PSP_IMPL_BUILD_BASELINE "+dev" CFE_PSP_IMPL_STR(CFE_PSP_IMPL_BUILD_NUMBER)
+#define CFE_PSP_IMPL_VERSION "v"CFE_PSP_IMPL_STR(CFE_PSP_IMPL_MAJOR_VERSION)"." \
+    CFE_PSP_IMPL_STR(CFE_PSP_IMPL_MINOR_VERSION)"." \
+    CFE_PSP_IMPL_STR(CFE_PSP_IMPL_REVISION)"." \
+    CFE_PSP_IMPL_STR(CFE_PSP_IMPL_MISSION_REV) \
 
-/** \brief DEVELOPMENT Build Version String.
- **  \details Reports the current development build's baseline, number, and name. Also includes a note about the latest
- ** official version. @n See @ref cfsversions for format differences between development and release versions.
+/** \brief Version String.
+ ** \details Reports the current development version number and bundle name.
  */
-#define CFE_PSP_IMPL_VERSION_STRING                                                       \
-    " PSP Development Build " CFE_PSP_IMPL_VERSION /* Codename for current development */ \
-    ", Last Official Release: psp v1.4.0"          /* For full support please use this version */
+#define CFE_PSP_IMPL_VERSION_STRING CFE_PSP_IMPL_VERSION " " CFE_PSP_IMPL_CODENAME
 /** \} */
 
 
