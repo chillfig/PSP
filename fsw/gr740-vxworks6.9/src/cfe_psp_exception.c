@@ -136,7 +136,7 @@ EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 {
     CFE_PSP_Exception_LogData_t *pBuffer = NULL;
-    BOOL returnStatus = false;
+    BOOL bReturnStatus = false;
     EDR_TASK_INFO *pInfo = NULL;
     
     /*
@@ -168,8 +168,6 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
 
         CFE_PSP_Exception_WriteComplete();
 
-        /* After write complete, the EDR data in RAM is ready to be backup up on EEPROM */
-        /* CFE_PSP_SaveToNVRAM(); */
 
         if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {
@@ -178,7 +176,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
             */
             if (g_pDefaultedrPolicyHandlerHook != NULL)
             {
-                returnStatus = g_pDefaultedrPolicyHandlerHook(type, pInfo, debug);
+                bReturnStatus = g_pDefaultedrPolicyHandlerHook(type, pInfo, debug);
             }
             else
             {
@@ -198,7 +196,7 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         GLOBAL_CFE_CONFIGDATA.SystemNotify();
     }
 
-    return returnStatus;
+    return bReturnStatus;
 }
 
 
@@ -279,13 +277,13 @@ void CFE_PSP_SetDefaultExceptionEnvironment(void)
  *********************************************************/
 int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer, char *ReasonBuf, uint32 ReasonSize)
 {
-    int32       iRet_code = CFE_PSP_SUCCESS;
+    int32       iRetCode = CFE_PSP_SUCCESS;
     int32       iRetChar = 0;
     const char  *pTaskName = NULL;
 
     if ((Buffer == NULL) || (ReasonBuf == NULL))
     {
-        iRet_code = CFE_PSP_ERROR;
+        iRetCode = CFE_PSP_ERROR;
     }
     else
     {
@@ -308,15 +306,15 @@ int32 CFE_PSP_ExceptionGetSummary_Impl(const CFE_PSP_Exception_LogData_t* Buffer
         if (iRetChar < 0)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save exception reason on buffer\n");
-            iRet_code = CFE_PSP_ERROR;
+            iRetCode = CFE_PSP_ERROR;
         }
         else if (iRetChar >= (int)ReasonSize)
         {
             OS_printf(PSP_EXCEP_PRINT_SCOPE "Could not save the whole exception reason string on buffer\n");
-            iRet_code = CFE_PSP_ERROR;
+            iRetCode = CFE_PSP_ERROR;
         }
     }
 
-    return iRet_code;
+    return iRetCode;
 }
 

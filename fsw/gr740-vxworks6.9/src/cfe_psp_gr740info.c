@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <vxWorks.h>
+#include <stat.h>
 
 /* For supporting REALTIME clock */
 #include <timers.h>
@@ -124,6 +125,31 @@ int32 CFE_PSP_GR740CollectStaticInfo(void)
     memset(&g_GR740StaticInfoTable, 0x00, sizeof(g_GR740StaticInfoTable));
     g_iGR740DataDumpLength = 0;
 
+    /* This routine returns the model name of the CPU board. The returned string 
+       depends on the board model and CPU version being used, for example, "PPC Board". */
+    g_GR740StaticInfoTable.systemModel = sysModel();
+
+    /* This routine returns a pointer to a BSP version and revision number, for
+    example, 1.1/0. BSP_REV is concatenated to BSP_VERSION and returned. */
+    g_GR740StaticInfoTable.systemBspRev = sysBspRev();
+
+    /* This function returns the address of the first missing byte of memory, which
+       indicates the top of memory. Normally, the user specifies the amount of 
+       physical memory with the macro LOCAL_MEM_SIZE in config.h. */
+    g_GR740StaticInfoTable.systemPhysMemTop = (cpuaddr) sysPhysMemTop();
+
+    /* This routine returns the processor number for the CPU board, which is set 
+       with sysProcNumSet( ). */
+    g_GR740StaticInfoTable.systemProcNum = sysProcNumGet();
+
+    /* This routine returns the system clock rate. The number of ticks per second 
+       of the system tick timer. */
+    g_GR740StaticInfoTable.systemClkRateGet = sysClkRateGet();
+
+    /* This routine returns the interrupt rate of the auxiliary clock.
+       The number of ticks per second of the auxiliary clock. */
+    g_GR740StaticInfoTable.systemAuxClkRateGet = sysAuxClkRateGet();
+
     /* Get real time clock from OS */
     iStatus = clock_gettime(CLOCK_REALTIME, &g_GR740StaticInfoTable.lastUpdatedUTC);
     if (iStatus != OK)
@@ -197,15 +223,32 @@ int32 CFE_PSP_GR740CollectDynamicInfo(void)
  */
 int32 CFE_PSP_GR740PrintToBuffer(void)
 {
-    int32   iRet_code = CFE_PSP_SUCCESS;
+    int32  iRetCode = CFE_PSP_SUCCESS;
+    uint32 uiTotalMemory_MiB = 0;
+
+    /* Coverts bytes to Mibytes */
+    uiTotalMemory_MiB = (g_GR740StaticInfoTable.systemPhysMemTop >> 20);
 
     /* Output to local string buffer */
     g_iGR740DataDumpLength = snprintf(
         g_cGR740DataDump, 
-        GR740_TEXT_BUFFER_MAX_SIZE,
+        sizeof(g_cGR740DataDump),
         "UTC sec: %u\n"
+        "SysModel: %s\n"
+        "SysBspRev: %s\n"
+        "SysPhysMemTop: 0x%08X (%u MiB)\n"
+        "sysProcNum: %d\n"
+        "sysClkRateGet: %d [Ticks/sec]\n"
+        "sysAuxClkRateGet: %d [Ticks/sec]\n"
         "Temp:  %u [C]\n",
         g_GR740DynamicInfoTable.lastUpdatedUTC.tv_sec,
+        g_GR740StaticInfoTable.systemModel,
+        g_GR740StaticInfoTable.systemBspRev,
+        g_GR740StaticInfoTable.systemPhysMemTop,
+        uiTotalMemory_MiB,
+        g_GR740StaticInfoTable.systemProcNum,
+        g_GR740StaticInfoTable.systemClkRateGet,
+        g_GR740StaticInfoTable.systemAuxClkRateGet,
         g_GR740DynamicInfoTable.temperature
     );
 
@@ -217,16 +260,16 @@ int32 CFE_PSP_GR740PrintToBuffer(void)
     {
         /* This will make sure that we don't write garbage to file */
         g_iGR740DataDumpLength = -1;
-        iRet_code = CFE_PSP_ERROR;
+        iRetCode = CFE_PSP_ERROR;
     }
     /* Check if it was truncated */
     if (g_iGR740DataDumpLength >= GR740_TEXT_BUFFER_MAX_SIZE)
     {
         /* Return error but don't do anything else. */
-        iRet_code = CFE_PSP_ERROR;
+        iRetCode = CFE_PSP_ERROR;
     }
 
-    return iRet_code;
+    return iRetCode;
 }
 
 /**********************************************************
@@ -320,4 +363,32 @@ int32 CFE_PSP_GR740GetStaticInfoTable(CFE_PSP_GR740StaticInfoTable_t *pStatic, s
         }
     }
     return iRetCode;
+}
+
+/**********************************************************
+ * 
+ * Function: CFE_PSP_SP0GetDiskFreeSize
+ * 
+ * Description: See function declaration for info
+ *
+ *********************************************************/
+int64_t CFE_PSP_GR740GetDiskFreeSize(char *disk_root_path)
+{
+    int64_t lFree_size_bytes = CFE_PSP_ERROR;
+    long block_size = 0;
+    int64_t lBlocks_available = 0;
+    struct statfs disk_stats;
+
+    memset(&disk_stats, 0, sizeof(disk_stats));
+
+    if ((disk_root_path != NULL) && memchr(disk_root_path, (cpuaddr)NULL, CFE_PSP_MAXIMUM_TASK_LENGTH))
+    {
+        if (statfs(disk_root_path, &disk_stats) == OK)
+        {
+            block_size = disk_stats.f_bsize;
+            lBlocks_available = disk_stats.f_bavail;
+            lFree_size_bytes = block_size * lBlocks_available;
+        }
+    }
+    return lFree_size_bytes;
 }

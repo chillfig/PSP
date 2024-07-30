@@ -38,38 +38,32 @@
  * U.S. Government authorization.
  *************************************************************************/
 
-/* PSP coverage stub replacement for sysLib.h */
-#ifndef PCS_SYSLIB_H
-#define PCS_SYSLIB_H
+/* PSP coverage stub replacement for stat.h */
+#ifndef PCS_STAT_H
+#define PCS_STAT_H
 
 #include "PCS_basetypes.h"
-#include "PCS_vxWorks.h"
+#include "PCS_stdarg.h"
+
+/* Include this for va_list */
+#include <stdarg.h>
 
 /* ----------------------------------------- */
-/* constants normally defined in sysLib.h */
+/* constants normally defined in stat.h */
 /* ----------------------------------------- */
 
 /* ----------------------------------------- */
-/* types normally defined in sysLib.h */
+/* types normally defined in stat.h */
 /* ----------------------------------------- */
+struct PCS_statfs
+{
+    long f_bsize;
+    int64_t f_bavail;
+};
 
 /* ----------------------------------------- */
-/* prototypes normally declared in sysLib.h */
+/* prototypes normally declared in stat.h */
 /* ----------------------------------------- */
-extern int   PCS_sysClkRateGet(void);
-extern char *PCS_sysMemTop(void);
-extern char *PCS_sysPhysMemTop(void);
-extern char *PCS_sysModel(void);
-extern char *PCS_sysBspRev(void);
-extern int PCS_sysProcNumGet(void);
-extern int PCS_sysAuxClkRateGet(void);
-
-extern void PCS_PciOutByte(uint32_t address, uint8_t data);
-extern void PCS_PciOutLong(uint32_t address, uint32_t data);
-extern void PCS_sysPciWrite32(uint32_t address, uint32_t data);
-extern void PCS_sysPciRead32(uint32_t address, uint32_t *data);
-
-extern unsigned int PCS_GetWrsKernelTextStart(void);
-extern unsigned int PCS_GetWrsKernelTextEnd(void);
+extern int PCS_statfs(const char *path, struct PCS_statfs *buf);
 
 #endif

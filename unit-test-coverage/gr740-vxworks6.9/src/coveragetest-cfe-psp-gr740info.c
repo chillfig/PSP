@@ -45,6 +45,7 @@
 #include "PCS_rebootLib.h"
 #include "PCS_cacheLib.h"
 #include "PCS_cfe_configdata.h"
+#include "PCS_stat.h"
 
 #include "cfe_psp.h"
 #include "cfe_psp_gr740info.h"
@@ -411,6 +412,52 @@ void Test_CFE_PSP_GR740GetDynamicInfoTable(void)
                     "_CFE_PSP_GR740GetDynamicInfoTable - 5/5: Nominal return success");
 }
 
+/*=======================================================================================
+** Ut_CFE_PSP_GR740GetDiskFreeSize(void) test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GR740GetDiskFreeSize(void)
+{
+    char        ram_disk_path_ram[] = "/ram0";
+    char        ram_disk_path_bad[] = "/f";
+    char        ram_disk_path_too_long[200] = {0};
+    int64_t     return_value = 0;
+    struct PCS_statfs test_statfs;
+
+    /* Setup */
+    test_statfs.f_bsize = 10;
+    test_statfs.f_bavail = 20;
+    UT_SetDataBuffer(UT_KEY(PCS_statfs), &test_statfs, sizeof(test_statfs), false);
+    /* Execute test */
+    return_value = CFE_PSP_GR740GetDiskFreeSize(ram_disk_path_ram);
+    /* Verify outputs */
+    UtAssert_True(return_value > 0, "_CFE_PSP_GR740GetDiskFreeSize - 1/4: Nominal");
+
+    UT_ResetState(0);
+
+    /* Execute test */
+    test_statfs.f_bsize = 10;
+    test_statfs.f_bavail = 20;
+    UT_SetDataBuffer(UT_KEY(PCS_statfs), &test_statfs, sizeof(test_statfs), false);
+    UT_SetDeferredRetcode(UT_KEY(PCS_statfs), 1, PCS_ERROR);
+    return_value = CFE_PSP_GR740GetDiskFreeSize(ram_disk_path_bad);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_GR740GetDiskFreeSize - 2/4: Bad path");
+
+    UT_ResetState(0);
+
+    /* Execute test */
+    return_value = CFE_PSP_GR740GetDiskFreeSize(NULL);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_GR740GetDiskFreeSize - 3/4: NULL path");
+
+    UT_ResetState(0);
+
+    memset(ram_disk_path_too_long,0x11,sizeof(ram_disk_path_too_long));
+    /* Execute test */
+    return_value = CFE_PSP_GR740GetDiskFreeSize(ram_disk_path_too_long);
+    /* Verify outputs */
+    UtAssert_True(return_value == CFE_PSP_ERROR, "_CFE_PSP_GR740GetDiskFreeSize - 4/4: Path too long");
+}
 
 
 /*=======================================================================================

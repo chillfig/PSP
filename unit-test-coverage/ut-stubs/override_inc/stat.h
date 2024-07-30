@@ -38,38 +38,15 @@
  * U.S. Government authorization.
  *************************************************************************/
 
-/* PSP coverage stub replacement for sysLib.h */
-#ifndef PCS_SYSLIB_H
-#define PCS_SYSLIB_H
+/* PSP coverage stub replacement for stat.h */
+#ifndef OVERRIDE_STAT_H
+#define OVERRIDE_STAT_H
 
-#include "PCS_basetypes.h"
-#include "PCS_vxWorks.h"
-
-/* ----------------------------------------- */
-/* constants normally defined in sysLib.h */
-/* ----------------------------------------- */
+#include "PCS_stat.h"
 
 /* ----------------------------------------- */
-/* types normally defined in sysLib.h */
+/* mappings for declarations in stat.h */
 /* ----------------------------------------- */
-
-/* ----------------------------------------- */
-/* prototypes normally declared in sysLib.h */
-/* ----------------------------------------- */
-extern int   PCS_sysClkRateGet(void);
-extern char *PCS_sysMemTop(void);
-extern char *PCS_sysPhysMemTop(void);
-extern char *PCS_sysModel(void);
-extern char *PCS_sysBspRev(void);
-extern int PCS_sysProcNumGet(void);
-extern int PCS_sysAuxClkRateGet(void);
-
-extern void PCS_PciOutByte(uint32_t address, uint8_t data);
-extern void PCS_PciOutLong(uint32_t address, uint32_t data);
-extern void PCS_sysPciWrite32(uint32_t address, uint32_t data);
-extern void PCS_sysPciRead32(uint32_t address, uint32_t *data);
-
-extern unsigned int PCS_GetWrsKernelTextStart(void);
-extern unsigned int PCS_GetWrsKernelTextEnd(void);
+#define statfs PCS_statfs
 
 #endif

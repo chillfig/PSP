@@ -64,7 +64,14 @@
 
 #include "psp_ft.h"
 
-#define CFE_1HZ_TASK_NAME                   "TIME_1HZ_TASK"
+#define PSP_FT_TEST_VXWORKS_TASK_NAME "TEST_PSP_FT_TASK"
+#define PSP_FT_TEST_VXWORKS_TASK_PRIORITY 100
+#define PSP_FT_TEST_VXWORKS_TASK_STACK_SIZE 4096
+
+typedef struct
+{
+    bool bStarted;
+} PSP_FT_TEST_TASK_CONTEXT;
 
 /** \brief OSAL OS_BSPMain Entry Point */
 extern int OS_BSPMain(void);
@@ -73,6 +80,7 @@ extern int OS_BSPMain(void);
 uint16_t cnt_tests = 0;
 uint16_t cnt_pass = 0;
 uint16_t cnt_fail = 0;
+PSP_FT_TEST_TASK_CONTEXT testContext;
 
 /* Helper functions */
 bool check_file_exists(char *filename)
@@ -205,6 +213,8 @@ void PSP_FT_Start(void)
 
     ft_support();
 
+    ft_gr740_info();
+
     ft_timer();
 
     ft_watchdog();
@@ -231,319 +241,24 @@ void ft_support(void)
 
     OS_printf("[SUPPORT START]\n");
 
-    // /* Get startup script */
-    // ret_code = CFE_PSP_GetBootStartupString(bs_original, sizeof(bs_original), 0);
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
-
-    // /* Set new startup script */
-    // ret_code = CFE_PSP_SetBootStartupString(bs_new, 0);
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting new Boot Startup String Successful")
-    
-    // ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
-    // /* The string comparison is using memcmp because I need to compare the null character too in case 
-    // bs_original is 0 length */
-    // FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) != 0, "Confirming string boot has changed compared to original")
-    // FT_Assert_True(memcmp(bs_confirm, bs_new, strlen(bs_new)+1) == 0, "Confirming string boot is the new string")
-
-    // /* Restore original value */
-    // ret_code = CFE_PSP_SetBootStartupString(bs_original, 0);
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Setting original Boot Startup String Successful")
-
-    // /* Read again and confirm that it is the original string */
-    // ret_code = CFE_PSP_GetBootStartupString(bs_confirm, sizeof(bs_confirm), 0);
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Boot Startup String Successful")
-    // FT_Assert_True(memcmp(bs_confirm, bs_original, strlen(bs_original)+1) == 0, "Confirming string boot has been restored to original")
-
-    // /* Read CRC of AITECH20 kernel */
-    // uiCRC = CFE_PSP_KernelGetCRC(cKernelName, true);
-    // FT_Assert_True((uiCRC != 0), "Get `AITECH20` CRC");
-
-    // /* Read CRC of random name kernel */
-    // uiCRC = CFE_PSP_KernelGetCRC(cKernelNameBad, true);
-    // FT_Assert_True((uiCRC == 0), "Could not get `IEH0` CRC");
-
     OS_printf("[SUPPORT END]\n\n");
 }
 
-void ft_exception(void)
-{
-    uint32_t  exceptionCount = 0;
-    char      ReasonBuf[128];
-    uint32_t  LogId = 0;
-    osal_id_t TaskId;
-    int32_t   ret_code = 0;
-    CFE_PSP_Exception_LogData_t *pBuffer = NULL;
-
-    OS_printf("[EXCEPTION START]\n");
-
-    /*
-    At this point of the functional test, the exception hook function has already
-    being assigned and the default exception environment set up.
-    CFE_PSP_edrPolicyHandlerHook
-    CFE_PSP_AttachExceptions
-    CFE_PSP_SetDefaultExceptionEnvironment
-    */
-
-    // ret_code = CFE_PSP_SaveToNVRAM();
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Saving ED&R Data to EEPROM was Successful")
-
-    // ret_code = CFE_PSP_LoadFromNVRAM();
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Loading ED&R Data from EEPROM returned Success")
-
-    // ret_code = CFE_PSP_ClearNVRAM();
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Clearing ED&R Data in EEPROM returned Success")
-
-    // ret_code = CFE_PSP_LoadFromNVRAM();
-    // FT_Assert_True(ret_code == CFE_PSP_ERROR, "Loading ED&R Data from EEPROM after Clear EDR returned Error")
-
-    EDR_USER_FATAL_INJECT(true, "Test Fatal EDR Inject");
-
-    pBuffer = CFE_PSP_Exception_GetNextContextBuffer();
-    pBuffer->sys_task_id = 0;
-    CFE_PSP_Exception_WriteComplete();
-
-    /* NEED TO INDUCE AN EXCEPTION */
-    exceptionCount = CFE_PSP_Exception_GetCount();
-    FT_Assert_True(exceptionCount == 1, "Exception Count is one")
-
-    ret_code = CFE_PSP_Exception_GetSummary(&LogId, &TaskId, ReasonBuf, sizeof(ReasonBuf));
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Summary of Exception Data returned Success")
-
-    OS_printf("[EXCEPTION END]\n\n");
-}
-
 /*
 Functional Tests:
-- 
-*/
-void ft_memory(void)
-{
-    int32_t     ret_code = 0;
-
-    cpuaddr     ptrResetAddr = 0;
-    cpuaddr     ptrUserAddr = 0;
-    cpuaddr     ptrVolAddr = 0;
-    cpuaddr     ptrKernelSeg = 0;
-    cpuaddr     ptrCFETextSeg = 0;
-
-    uint32_t    size_of_resetArea = 0;
-    uint32_t    size_of_UserArea = 0;
-    uint32_t    size_of_VolArea = 0;
-    uint32_t    size_of_KernelSeg = 0;
-    uint32_t    size_of_CFETestSeg = 0;
-
-    uint32_t    uCDSSize;
-    int32_t     char_data = 0x11;
-    char        data_buffer[100] = {};
-    char        data_buffer_readback[100] = {};
-    
-    OS_printf("[MEMORY START]\n");
-
-    /* Check the CDS Size in User Memory RAM */
-    ret_code = CFE_PSP_GetCDSSize(&uCDSSize);
-    FT_Assert_True(uCDSSize > 1, "CDS Size larger than zero (%d bytes)",uCDSSize)
-
-    /* Set the local data memory */
-    memset(data_buffer, char_data, sizeof(data_buffer));
-
-    ret_code = CFE_PSP_WriteToCDS(data_buffer, 0, sizeof(data_buffer));
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToCDS returned SUCCESS")
-
-    ret_code = CFE_PSP_ReadFromCDS(data_buffer_readback, 0, sizeof(data_buffer_readback));
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadToCDS returned SUCCESS")
-    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(data_buffer));
-    FT_Assert_True(ret_code == 0, "ReadCDS returned the same data as the WriteCDS")
-
-    /* Set the local data memory */
-    memset(data_buffer, char_data+1, sizeof(data_buffer));
-
-    ret_code = CFE_PSP_WriteToCDS(data_buffer, 0, sizeof(data_buffer));
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToCDS returned SUCCESS")
-
-    ret_code = CFE_PSP_ReadFromCDS(data_buffer_readback, 0, sizeof(data_buffer_readback));
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadToCDS returned SUCCESS")
-    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(data_buffer));
-    FT_Assert_True(ret_code == 0, "ReadCDS returned the same data as the WriteCDS")
-
-
-    ret_code = CFE_PSP_GetResetArea(&ptrResetAddr,&size_of_resetArea);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Reset Area")
-
-    ret_code = CFE_PSP_GetUserReservedArea(&ptrUserAddr, &size_of_UserArea);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get User Reserved Memory")
-
-    ret_code = CFE_PSP_GetVolatileDiskMem(&ptrVolAddr, &size_of_VolArea);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Volatile Disk Memory")
-
-    ret_code = CFE_PSP_GetKernelTextSegmentInfo(&ptrKernelSeg, &size_of_KernelSeg);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Kernel Text Segment Info")
-    
-    ret_code = CFE_PSP_GetCFETextSegmentInfo(&ptrCFETextSeg, &size_of_CFETestSeg);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get CFE Text Segment Info")
-
-    /*
-    Following set of functions should only be used by PSP internally. The memory
-    is already setup and initialized by the time the functional test runs.
-    CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR)
-    CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_POWERON )
-    CFE_PSP_SetupReservedMemoryMap
-    CFE_PSP_DeleteProcessorReservedMemory
-    */
-
-    OS_printf("[MEMORY END]\n\n");
-}
-
-/*
-Functional Tests:
-- Get Reset Type (void)
-- Get Process Reset Type (void)
-- Get Last Software Reset Type (void)
-- Get POST results (void)
-- Change Task Priority with new priority and same priority
-- Change Task Priority of wrong task name
-*/
-void ft_start(void)
-{
-/*     bool        test_case = false;
-    uint32_t    last_reset_type;
-    char        buffer[256]; */
-    int32_t     ret_code;
-
-    OS_printf("[START]\n");
-
-    /* Check if it gets the right Reset type */
-/*     last_reset_type = CFE_PSP_GetRestartType(NULL);
-    test_case = ((last_reset_type == CFE_PSP_RST_TYPE_POWERON) ||
-                (last_reset_type == CFE_PSP_RST_TYPE_PROCESSOR) ||
-                (last_reset_type == CFE_PSP_RST_TYPE_MAX));
-    FT_Assert_True(test_case, "CFE_PSP_GetRestartType returned valid reset type") */
-
-    /* Get Active CFS Partition */
-/*     memset(buffer,'\0', sizeof(buffer));
-    CFE_PSP_GetActiveCFSPartition(buffer, sizeof(buffer));
-    memset(buffer,(int32_t) NULL, sizeof(buffer));
-    FT_Assert_True(memchr(buffer, (int32_t) NULL, sizeof(buffer)) != NULL,"CFE_PSP_GetActiveCFSPartition returned a string") */
-
-    /* CFE_PSP_StartupTimer, CFE_PSP_StartupFailedRestartSP0_hook, CFE_PSP_StartupClear */
-/*     CFE_PSP_StartupTimer();
-    CFE_PSP_StartupClear(); */
-
-    /* Print the POST results */
-/*     CFE_PSP_ProcessPOSTResults();
-    FT_Assert_True(true, "CFE_PSP_ProcessPOSTResults has no return value (void)") */
-
-    /* Change task priority tests */
-    ret_code = CFE_PSP_SetTaskPrio(CFE_1HZ_TASK_NAME, 26);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "CFE_PSP_SetTaskPrio return code for successful priority change")
-
-    ret_code = CFE_PSP_SetTaskPrio(CFE_1HZ_TASK_NAME, 26);
-    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "CFE_PSP_SetTaskPrio return code for successful priority change")
-
-    ret_code = CFE_PSP_SetTaskPrio("SOMETHING_WRONG", 220);
-    FT_Assert_True(ret_code == CFE_PSP_ERROR, "CFE_PSP_SetTaskPrio return code for wrong task name")
-
-    OS_printf("[START END]\n\n");
-}
-
-void ft_ssr(void)
-{
-    int32_t ret_code;
-
-    OS_printf("[SSR START]\n\n");
-
-    /* Make sure InitSSR returns not implemented */
-    ret_code = CFE_PSP_InitSSR(0,0,NULL);
-    FT_Assert_True(ret_code == CFE_PSP_ERROR_NOT_IMPLEMENTED, "CFE_PSP_InitSSR returned not implemented")
-
-    OS_printf("[SSR END]\n\n");
-}
-
-void ft_mem_scrub(void)
-{
-    // int32_t       ret_code = 0;
-    // uint32_t      index_counter = 0;
-
-    // CFE_PSP_MemScrubStatus_t  mem_scrub_stats1;
-    // CFE_PSP_MemScrubStatus_t  mem_scrub_stats2;
-    // CFE_PSP_MemScrubErrStats_t mem_scrub_ddr_stats;
-
-    OS_printf("[MEM_SCRUB]\n");
-
-    // /* Status should return all zeros */
-    // CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
-    // FT_Assert_True((mem_scrub_stats1.uiMemScrubEndAddr != 0), "Retrieved MEM Scrub configuration and status")
-
-    // if (mem_scrub_stats1.RunMode != MEMSCRUB_MANUAL_MODE)
-    // {
-    //     /* Disable MEM Scrub task */
-    //     CFE_PSP_MemScrubDisable();
-    //     FT_Assert_True((CFE_PSP_MemScrubIsRunning() == false), "Mem Scrub task disabled and confirm is not running")
-    // }    
-
-    // mem_scrub_stats1.RunMode = MEMSCRUB_IDLE_MODE;
-    // ret_code = CFE_PSP_MemScrubSet(&mem_scrub_stats1);
-    // FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub Run Mode configuration applied")
-
-    // /* Enable MEM Scrub task */
-    // ret_code = CFE_PSP_MemScrubEnable();
-    // FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
-
-    // /* Get error statistics */
-    // CFE_PSP_MemScrubErrStats(&mem_scrub_ddr_stats, false);
-    // FT_Assert_True(true, "Mem Scrub DDR statistics")
-
-    // /* Set different values */
-    // mem_scrub_stats1.uiMemScrubStartAddr = 20 * MEMSCRUB_PAGE_SIZE;
-    // mem_scrub_stats1.uiMemScrubEndAddr = 120 * MEMSCRUB_PAGE_SIZE;
-    // mem_scrub_stats1.opMemScrubTaskPriority = 240;
-    // ret_code = CFE_PSP_MemScrubSet(&mem_scrub_stats1);
-    // CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
-    // FT_Assert_True((mem_scrub_stats2.uiMemScrubStartAddr == mem_scrub_stats1.uiMemScrubStartAddr), "Mem Scrub Start Address successfully changed")
-    // FT_Assert_True((mem_scrub_stats2.uiMemScrubEndAddr == mem_scrub_stats1.uiMemScrubEndAddr), "Mem Scrub End Address successfully changed")
-    // FT_Assert_True((mem_scrub_stats2.opMemScrubTaskPriority == mem_scrub_stats1.opMemScrubTaskPriority), "Mem Scrub priority successfully changed")
-
-    // /* Delete Task */
-    // ret_code = CFE_PSP_MemScrubDelete();
-    // FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Deleted task return code")
-    // FT_Assert_True((CFE_PSP_MemScrubIsRunning() == false), "Deleted task confirmed is not running")
-    
-    // /* Re-Initialize Task */
-    // ret_code = CFE_PSP_MemScrubInit();
-    // FT_Assert_True((CFE_PSP_MemScrubIsRunning() == true), "Initialized task confirmed is running")
-    // FT_Assert_True((ret_code == CFE_PSP_SUCCESS), "Mem Scrub task enabled and confirm is running")
-
-    // /* Check if value of memory pages scrubbed changes after 10 seconds */
-    // CFE_PSP_MemScrubGet(&mem_scrub_stats1, false);
-    // for (index_counter = 0; index_counter < 10; index_counter++)
-    // {
-    //     CFE_PSP_MemScrubGet(&mem_scrub_stats2, false);
-    //     if (mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages)
-    //     {
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         OS_TaskDelay(1000);
-    //     }
-    // }
-    // FT_Assert_True((mem_scrub_stats1.uiMemScrubTotalPages < mem_scrub_stats2.uiMemScrubTotalPages), 
-    //     "MEM Scrub status returns progress after %u sec", index_counter
-    //     )
-
-    OS_printf("[MEM_SCRUB END]\n\n");
-}
-
-/*
-Functional Tests:
-
+- Get GR740 Info and check return code
+- Get GR740 Table and check values
+- Dump GR740 Info and check if file exists
+- Check file system sizes and check return value
 */
 void ft_gr740_info(void)
 {
-    int32_t     ret_code = CFE_PSP_ERROR;
-    uint32_t    uiTemp_value = 0;
+    char                local_ram_disk[] = "/ram0";
+    int64_t             fs_size_ram = 0;
     CFE_PSP_GR740StaticInfoTable_t     gr740_static_table;
     CFE_PSP_GR740DynamicInfoTable_t    gr740_dynamic_table;
+    int32_t             ret_code = CFE_PSP_ERROR;
+    uint32_t            uiTemp_value = 0;
 
     OS_printf("[GR740_INFO]\n");
 
@@ -590,7 +305,297 @@ void ft_gr740_info(void)
         ret_code == CFE_PSP_SUCCESS,
         "CFE_PSP_GR740GetDynamicInfoTable returns SUCCESS"
     )
+
+    /*** Check file system sizes ***/
+    /* Prepare */
+
+    /* Execute function */
+    fs_size_ram = CFE_PSP_GR740GetDiskFreeSize(local_ram_disk);
+    /* Check result */
+    FT_Assert_True(fs_size_ram > 0, "Check file system size - /ram0 file system size = %lld bytes", fs_size_ram)
+
     OS_printf("[GR740_INFO END]\n\n");
+}
+
+void ft_exception(void)
+{
+    uint32_t  exceptionCount = 0;
+    char      ReasonBuf[128];
+    uint32_t  LogId = 0;
+    osal_id_t TaskId;
+    int32_t   ret_code = 0;
+    CFE_PSP_Exception_LogData_t *pBuffer = NULL;
+
+    OS_printf("[EXCEPTION START]\n");
+
+    /*
+    At this point of the functional test, the exception hook function has already
+    being assigned and the default exception environment set up.
+    CFE_PSP_edrPolicyHandlerHook
+    CFE_PSP_AttachExceptions
+    CFE_PSP_SetDefaultExceptionEnvironment
+    */
+
+    EDR_USER_FATAL_INJECT(true, "Test Fatal EDR Inject");
+
+    pBuffer = CFE_PSP_Exception_GetNextContextBuffer();
+    pBuffer->sys_task_id = 0;
+    CFE_PSP_Exception_WriteComplete();
+
+    /* NEED TO INDUCE AN EXCEPTION */
+    exceptionCount = CFE_PSP_Exception_GetCount();
+    FT_Assert_True(exceptionCount == 1, "Exception Count is one")
+
+    ret_code = CFE_PSP_Exception_GetSummary(&LogId, &TaskId, ReasonBuf, sizeof(ReasonBuf));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Summary of Exception Data returned Success")
+
+    OS_printf("[EXCEPTION END]\n\n");
+}
+
+/*
+Functional Tests:
+- 
+*/
+void ft_memory(void)
+{
+    int32_t     ret_code = 0;
+
+    cpuaddr     ptrSectionAddr = 0;
+    cpuaddr     ptrKernelSeg = 0;
+    cpuaddr     ptrCFETextSeg = 0;
+
+    uint32_t    size_of_section_area = 0;
+    uint32_t    size_of_KernelSeg = 0;
+    uint32_t    size_of_CFETestSeg = 0;
+
+    int32_t     char_data = 0x11;
+    const int   DATA_BUFFER_SIZE = 100;
+    char        data_buffer[DATA_BUFFER_SIZE];
+    char        data_buffer_readback[DATA_BUFFER_SIZE];
+    uint32_t    sizeof_test_data = 0;
+
+    memset(data_buffer, 0, sizeof(data_buffer));
+    memset(data_buffer_readback, 0, sizeof(data_buffer_readback));
+
+    OS_printf("[MEMORY START]\n");
+
+    ret_code = CFE_PSP_GetKernelTextSegmentInfo(&ptrKernelSeg, &size_of_KernelSeg);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Kernel Text Segment Info")
+    
+    ret_code = CFE_PSP_GetCFETextSegmentInfo(&ptrCFETextSeg, &size_of_CFETestSeg);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get CFE Text Segment Info")
+
+    /**********************************************************
+     * 
+     * RESET MEMORY SECTION HANDLING
+     * 
+     **********************************************************/
+    size_of_section_area = 0;
+    ret_code = CFE_PSP_GetRESETSize(&size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS && size_of_section_area == GLOBAL_CONFIGDATA.CfeConfig->ResetAreaSize, "Get RESET Size %d", size_of_section_area)
+    ret_code = CFE_PSP_GetResetArea(&ptrSectionAddr, &size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get Reset Area %p %d", (void*)ptrSectionAddr, size_of_section_area)
+
+    sizeof_test_data = size_of_section_area > DATA_BUFFER_SIZE ? DATA_BUFFER_SIZE : size_of_section_area;
+
+    memset(data_buffer, char_data, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToRESET(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToRESET returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromRESET(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromRESET returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromRESET returned the same data as the WriteCDS")
+
+    memset(data_buffer, char_data+1, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToRESET(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToRESET returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromRESET(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromRESET returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromRESET returned the same data as the WriteCDS")
+
+    /**********************************************************
+     * 
+     * CDS MEMORY SECTION HANDLING
+     * 
+     **********************************************************/
+    size_of_section_area = 0;
+    ret_code = CFE_PSP_GetCDSSize(&size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS && size_of_section_area == GLOBAL_CONFIGDATA.CfeConfig->CdsSize, "Get CDS Size %d", size_of_section_area)
+    ret_code = CFE_PSP_GetCDSArea(&ptrSectionAddr, &size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get CDS Area %p %d", (void*)ptrSectionAddr, size_of_section_area)
+
+    sizeof_test_data = size_of_section_area > DATA_BUFFER_SIZE ? DATA_BUFFER_SIZE : size_of_section_area;
+
+    memset(data_buffer, char_data, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToCDS(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToCDS returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromCDS(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromCDS returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromCDS returned the same data as the WriteToCDS")
+
+    memset(data_buffer, char_data+1, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToCDS(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToCDS returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromCDS(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromCDS returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromCDS returned the same data as the WriteToCDS")
+
+    /**********************************************************
+     * 
+     * VOLATILE DISK MEMORY SECTION HANDLING
+     * 
+     **********************************************************/
+    size_of_section_area = 0;
+    ret_code = CFE_PSP_GetVOLATILEDISKSize(&size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS && size_of_section_area == GLOBAL_CONFIGDATA.CfeConfig->RamDiskSectorSize * GLOBAL_CONFIGDATA.CfeConfig->RamDiskTotalSectors, "Get VOLATILEDISK Size %d", size_of_section_area)
+    ret_code = CFE_PSP_GetVolatileDiskMem(&ptrSectionAddr, &size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get VOLATILEDISK Area %p %d", (void*)ptrSectionAddr, size_of_section_area)
+
+    sizeof_test_data = size_of_section_area > DATA_BUFFER_SIZE ? DATA_BUFFER_SIZE : size_of_section_area;
+
+    memset(data_buffer, char_data, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToVOLATILEDISK(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToVOLATILEDISK returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromVOLATILEDISK(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromVOLATILEDISK returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromVOLATILEDISK returned the same data as the WriteToVOLATILEDISK")
+
+    memset(data_buffer, char_data+1, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToVOLATILEDISK(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToVOLATILEDISK returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromVOLATILEDISK(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromVOLATILEDISK returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromVOLATILEDISK returned the same data as the WriteToVOLATILEDISK")
+
+    /**********************************************************
+     * 
+     * USER RESERVED MEMORY SECTION HANDLING
+     * 
+     **********************************************************/
+    size_of_section_area = 0;
+    ret_code = CFE_PSP_GetUSERRESERVEDSize(&size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS && size_of_section_area == GLOBAL_CONFIGDATA.CfeConfig->UserReservedSize, "Get USERRESERVED Size %d", size_of_section_area)
+    ret_code = CFE_PSP_GetUserReservedArea(&ptrSectionAddr, &size_of_section_area);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "Get UserReserved Area %p %d", (void*)ptrSectionAddr, size_of_section_area)
+
+    sizeof_test_data = size_of_section_area > DATA_BUFFER_SIZE ? DATA_BUFFER_SIZE : size_of_section_area;
+
+    memset(data_buffer, char_data, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToUSERRESERVED(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToUSERRESERVED returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromUSERRESERVED(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromUSERRESERVED returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromUSERRESERVED returned the same data as the WriteToUSERRESERVED")
+
+    memset(data_buffer, char_data+1, sizeof(sizeof_test_data));
+    ret_code = CFE_PSP_WriteToUSERRESERVED(data_buffer, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "WriteToUSERRESERVED returned SUCCESS")
+    ret_code = CFE_PSP_ReadFromUSERRESERVED(data_buffer_readback, 0, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "ReadFromUSERRESERVED returned SUCCESS")
+    ret_code = memcmp(data_buffer, data_buffer_readback, sizeof(sizeof_test_data));
+    FT_Assert_True(ret_code == 0, "ReadFromUSERRESERVED returned the same data as the WriteToUSERRESERVED")
+
+
+    /*
+    Following set of functions should only be used by PSP internally. The memory
+    is already setup and initialized by the time the functional test runs.
+    CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_PROCESSOR)
+    CFE_PSP_InitProcessorReservedMemory(CFE_PSP_RST_TYPE_POWERON )
+    CFE_PSP_SetupReservedMemoryMap
+    CFE_PSP_DeleteProcessorReservedMemory
+    */
+
+    OS_printf("[MEMORY END]\n\n");
+}
+
+static void ft_start_test_task(_Vx_usr_arg_t arg)
+{
+    PSP_FT_TEST_TASK_CONTEXT *pContext = (PSP_FT_TEST_TASK_CONTEXT*)arg;
+    pContext->bStarted = true;
+    while (1)
+    {
+        OS_TaskDelay(1000);
+    }
+}
+
+/*
+Functional Tests:
+- Get Reset Type (void)
+- Get Process Reset Type (void)
+- Get Last Software Reset Type (void)
+- Get POST results (void)
+- Change Task Priority with new priority and same priority
+- Change Task Priority of wrong task name
+*/
+void ft_start(void)
+{
+/*     bool        test_case = false;
+    uint32_t    last_reset_type;
+    char        buffer[256]; */
+    int32_t     ret_code;
+
+    OS_printf("[START]\n");
+
+    TASK_ID tid = taskCreate(
+        (char*)PSP_FT_TEST_VXWORKS_TASK_NAME,
+        PSP_FT_TEST_VXWORKS_TASK_PRIORITY,
+        0,
+        PSP_FT_TEST_VXWORKS_TASK_STACK_SIZE,
+        (FUNCPTR)ft_start_test_task,
+        (_Vx_usr_arg_t)&testContext,
+        0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    FT_Assert_True(tid != TASK_ID_NULL, "Test Task created")
+
+    FT_Assert_True(taskActivate(tid) == OK, "Test Task activated")
+
+    while (testContext.bStarted == false)
+    {
+        OS_printf("Waiting for test task to start...\n\n");
+        OS_TaskDelay(2000);
+    }
+
+    /* Change task priority tests */
+    ret_code = CFE_PSP_SetTaskPrio((char *)PSP_FT_TEST_VXWORKS_TASK_NAME, 26);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "CFE_PSP_SetTaskPrio return code for successful priority change")
+
+    ret_code = CFE_PSP_SetTaskPrio((char *)PSP_FT_TEST_VXWORKS_TASK_NAME, 30);
+    FT_Assert_True(ret_code == CFE_PSP_SUCCESS, "CFE_PSP_SetTaskPrio return code for successful priority change")
+
+    ret_code = CFE_PSP_SetTaskPrio("SOMETHING_WRONG", 220);
+    FT_Assert_True(ret_code == CFE_PSP_ERROR, "CFE_PSP_SetTaskPrio return code for wrong task name")
+
+    taskDelete(tid);
+
+    OS_printf("[START END]\n\n");
+}
+
+void ft_ssr(void)
+{
+    int32_t ret_code;
+
+    OS_printf("[SSR START]\n\n");
+
+    /* Make sure InitSSR returns not implemented */
+    ret_code = CFE_PSP_InitSSR(0,0,NULL);
+    FT_Assert_True(ret_code == CFE_PSP_ERROR_NOT_IMPLEMENTED, "CFE_PSP_InitSSR returned not implemented")
+
+    OS_printf("[SSR END]\n\n");
+}
+
+void ft_mem_scrub(void)
+{
+    OS_printf("[MEM_SCRUB]\n");
+
+    /* GR740 memory scrubbing is managed by the CPU, so nothing for us to test here */
+
+    OS_printf("[MEM_SCRUB END]\n\n");
 }
 
 /*

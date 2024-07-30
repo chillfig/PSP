@@ -51,6 +51,10 @@
 #define sysClkRateGet PCS_sysClkRateGet
 #define sysMemTop     PCS_sysMemTop
 #define sysPhysMemTop PCS_sysPhysMemTop
+#define sysModel      PCS_sysModel
+#define sysBspRev     PCS_sysBspRev
+#define sysProcNumGet PCS_sysProcNumGet
+#define sysAuxClkRateGet PCS_sysAuxClkRateGet
 
 /*
  * These PCI accessors are related to sysLib but the prototype does not necessarily appear in this file

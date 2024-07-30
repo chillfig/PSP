@@ -60,6 +60,18 @@ typedef struct
 {
     /** \brief UTC date time when the data was collected */
     struct timespec lastUpdatedUTC;
+    /** \brief Pointer to the string identifying the System Model */
+    char * systemModel;
+    /** \brief Pointer to the string identifying the system BSP Revision */
+    char * systemBspRev;
+    /** \brief Top of the System Physical Memory */
+    uint32 systemPhysMemTop;
+    /** \brief Number of Processors */
+    int32 systemProcNum;
+    /** \brief System Clock Rate */
+    int32 systemClkRateGet;
+    /** \brief System Aux Clock Rate */
+    int32 systemAuxClkRateGet;
 } CFE_PSP_GR740StaticInfoTable_t;
 
 /**
@@ -165,6 +177,23 @@ int32 CFE_PSP_GR740GetDynamicInfoTable(CFE_PSP_GR740DynamicInfoTable_t *pDynamic
  ** \return #CFE_PSP_ERROR
  */
 int32 CFE_PSP_GR740PrintToBuffer(void);
+
+/**
+ ** \func Get disk free disk space
+ ** 
+ ** \par Description:
+ ** Function uses the statfs64 to gather statistics about the file system.
+ ** It works with both RAM and FLASH file systems such as "/ram0" and "/ffx0"
+ **
+ ** \par Assumptions, External Events, and Notes:
+ ** None
+ **
+ ** \param[in] disk_root_path 
+ **
+ ** \return int64_t - Size of free space in disk in bytes
+ ** \return CFE_PSP_ERROR - If statfs returned error
+ */
+int64_t CFE_PSP_GR740GetDiskFreeSize(char *disk_root_path);
 
 /**
 ** \} <!-- End of group "psp_public_api_gr740vx69" -->

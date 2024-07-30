@@ -66,27 +66,6 @@
 #define MEMORY_SYNC_PRINT_SCOPE "MEMORY SYNC: "
 /** \} */
 
-/**
- ** \brief Memory sections
- **/
-typedef enum
-{
-    /** \brief Critical Device Storage section*/
-    OP_CDS          = 0,
-    /** \brief RESET section*/
-    OP_RESET        = 1,
-    /** \brief Volatile Disk section*/
-    OP_VOLATILEDISK = 2,
-    /** \brief User Reserved section*/
-    OP_USERRESERVED = 3,
-    /** \brief Boot Record section*/
-    OP_BOOTRECORD = 4,
-    /** \brief Exception Storage section*/
-    OP_EXCEPTION = 5,
-    /** \brief Not Applicable section. Used as a No-Op */
-    OP_NA           = 6
-} MEMORY_SECTION_t;
-
 /*
 **  External Declarations
 */

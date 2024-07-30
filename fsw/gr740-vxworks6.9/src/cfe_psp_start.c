@@ -301,17 +301,6 @@ void OS_Application_Startup(void) //UndCC_Line(SSET106) Func. name part of PSP A
     uint32 reset_subtype;
 
     /*
-    Connect to NFS on GIVSHALO server for simulating FLASH. 
-    */
-#ifdef SIMULATE_FLASH_NFS
-    char cHostName[] = "givshalo";
-    char cHostAddr[] = "192.168.0.1";
-    char cNFSFileSystem[] = "/home/givs/gr740_gateway_cfs/nfs";
-    char cNFSLocalDev[] = "/nfs";
-    hostAdd(cHostName, cHostAddr);
-    nfsMount(cHostName, cNFSFileSystem, cNFSLocalDev);
-#endif
-    /*
      ** Initialize the hardware timer for the local time source
      ** On VxWorks, the default config sets the sysClk to 200 Hz (default 60Hz)
      ** OS_API_Init() calls OS_TimerAPIInit() which gets the

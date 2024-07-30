@@ -940,7 +940,7 @@ void Ut_CFE_PSP_GetMemSize(void)
     iReturnCode = CFE_PSP_GetMemSize(&uiSize, OP_CDS);
     /* Verify results */
     UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetMemSize - 3/3: Got memory size - return code");
-    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemSize - 3/3: Got memory size - value check");   
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemSize - 3/3: Got memory size - value check");
 }
 
 /*=======================================================================================

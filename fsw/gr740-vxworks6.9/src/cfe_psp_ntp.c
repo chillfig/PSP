@@ -162,8 +162,7 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
                     myT->Seconds = unixTime.tv_sec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_SECS - 1;
                 }
                 /* Unix Time secs greater than or equal to epoch secs, and subsecs greater than
-                   or equal to epoch subsecs 
-                */
+                   or equal to epoch subsecs */
                 else
                 {
                     tv_msec = (uint32) (unixTime.tv_nsec - CFE_MISSION_TIME_EPOCH_UNIX_DIFF_MICROSECS*1000) / 1000;

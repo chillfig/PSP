@@ -56,15 +56,19 @@
 #define UT_MEMORY_PRINT_SCOPE       "PSP MEMORY: "
 #define UT_MEMORY_SYNC_PRINT_SCOPE  "MEMORY SYNC: "
 
+
 /*=======================================================================================
 ** External Global Variable Declarations
 **=======================================================================================*/
-
 extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
 extern char UserReservedMemory[URM_SIZE];
 extern char *pEndOfURM;
 extern CFE_PSP_MemoryBlock_t GR740_ReservedMemBlock;
 extern int PCS_OS_BSPMain(void);
+extern int32 CFE_PSP_GetMemSize(uint32 *p_size, MEMORY_SECTION_t op);
+extern int32 CFE_PSP_GetMemArea(cpuaddr *p_area, uint32 *p_size, MEMORY_SECTION_t op);
+extern int32 CFE_PSP_ReadFromRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op);
+extern int32 CFE_PSP_WriteToRAM(const void *p_data, uint32 offset, uint32 size, MEMORY_SECTION_t op);
 
 /*=======================================================================================
 ** Test_CFE_PSP_GetCDSSize(void) test cases
@@ -93,6 +97,53 @@ void Test_CFE_PSP_GetCDSSize(void)
     iRetCode = CFE_PSP_GetCDSSize(puiSizeOfCDS);
     /* Verify outputs */
     UtAssert_True(iRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetCDSSize() - 2/2: Argument is NULL");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetCDSArea(void) test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetCDSArea(void)
+{
+    uint32  uiRetCode = 0;
+    uint32  uiBlockAddress = 0;
+    uint32  uiBlockSize = 0;
+    uint32  *puiBlockAddress = NULL;
+    uint32  *puiBlockSize = NULL;
+
+    uint8   localCDSMemoryBuffer[2000];
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSMemoryBuffer;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 2000;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = &uiBlockAddress;
+    puiBlockSize = &uiBlockSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCDSArea((cpuaddr*)puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_IntegerCmpAbs(uiBlockAddress, (cpuaddr)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 0, 
+                           "_CFE_PSP_GetCDSArea - 1/3: Nominal CDSMemory block address is matched");
+    UtAssert_IntegerCmpAbs(uiBlockSize, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, 0, 
+                           "_CFE_PSP_GetCDSArea - 1/3: Nominal CDSMemory block size is matched");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetCDSArea - 1/3: Nominal");
+
+    /* ----- Test case #2 - Block address pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = NULL;
+    puiBlockSize = &uiBlockSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCDSArea((cpuaddr*)puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetCDSArea - 2/3: Failed block address pointer is NULL");
+
+    /* ----- Test case #3 - Block size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiBlockAddress = &uiBlockAddress;
+    puiBlockSize = NULL;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetCDSArea((cpuaddr*)puiBlockAddress, puiBlockSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetCDSArea - 3/3: Failed block size pointer is NULL");
 }
 
 /*=======================================================================================
@@ -224,6 +275,591 @@ void Test_CFE_PSP_ReadFromCDS(void)
 }
 
 /*=======================================================================================
+** CFE_PSP_GetVOLATILEDISKSize() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetVOLATILEDISKSize(void)
+{
+    int32 iReturnCode;
+    uint32 uiSize = 99;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = 70;
+
+    /* ----- Test case #1 - NULL input ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetVOLATILEDISKSize(NULL);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetVOLATILEDISKSize 1/2: NULL argument\n");
+
+    /* ----- Test case #2 - Get Size ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetVOLATILEDISKSize(&uiSize);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetVOLATILEDISKSize 2/2: Get size - return code\n");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, "_CFE_PSP_Get.Size 2/2: Verify block size\n");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetVolatileDiskMem() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetVolatileDiskMem(void)
+{
+    uint32  uiRetCode = 0;
+    cpuaddr  uiVolDisk = 0;
+    uint32  uiVolDiskSize = 0;
+    cpuaddr *puiVolDisk = NULL;
+    uint32  *puiVolDiskSize = NULL;
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    puiVolDisk = &uiVolDisk;
+    puiVolDiskSize = &uiVolDiskSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
+    /* Verify outputs */
+    UtAssert_IntegerCmpAbs(uiVolDisk, (cpuaddr)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0, 
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block address is matched");
+    UtAssert_IntegerCmpAbs(uiVolDiskSize, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, 0, 
+                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block size is matched");
+    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal");
+
+    /* ----- Test case #2 - Block address pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiVolDiskSize = &uiVolDiskSize;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(NULL, puiVolDiskSize);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetVolatileDiskMem - 2/3: Failed block address pointer is NULL");
+
+    /* ----- Test case #3 - Block size pointer is NULL ----- */
+    /* Setup additional inputs */
+    puiVolDisk = &uiVolDisk;
+    /* Execute test */
+    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, NULL);
+    /* Verify outputs */
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetVolatileDiskMem - 3/3: Failed block size pointer is NULL");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_ReadFromVOLATILEDISK() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_ReadFromVOLATILEDISK(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiVOLATILEDISKOffset = 0;
+    uint32  uiNumBytes = 100;
+    uint8   ucIdx = 0;
+
+    uint8   localVOLATILEDISKBuffer[100];
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void*)localVOLATILEDISKBuffer;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = 100;
+
+    /* Modify first 100 bytes from VolatileDiskMemory for testing */
+    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_ReadFromVOLATILEDISK() - 1/3: Nominal - Read data is matched with VolatileDiskMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromVOLATILEDISK() - 1/3: Nominal - return value");
+
+    /* ----- Test case #2 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromVOLATILEDISK() - 2/3: Input argument is NULL");
+
+    /* ----- Test case #3 - Data offset is larger than VolatileDiskMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr;
+    uiVOLATILEDISKOffset = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromVOLATILEDISK() - 3/3: Failed data offset is larger than VolatileDiskMemory block size");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_WriteToVOLATILEDISK() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_WriteToVOLATILEDISK(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiVOLATILEDISKOffset = 0;
+    uint32  uiNumBytes = 100;
+
+    uint8   localVOLATILEDISKBuffer[200];
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr = (void*)localVOLATILEDISKBuffer;
+    CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize = 200;
+    memset(localVOLATILEDISKBuffer, '1', 200);
+    memset(uiBuffer, '1',uiNumBytes);
+
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 1/4: Nominal - new data same as original one");
+
+    /* ----- Test case #2 - Need to update memory ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes);
+    uiBuffer[10] = 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToVOLATILEDISK() - 2/4: Nominal");
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_WriteToVOLATILEDISK() - 2/4: Nominal - data match");
+
+    /* ----- Test case #3 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToVOLATILEDISK() - 3/4: Input argument is NULL");
+
+    /* ----- Test case #4 - Data offset is larger than VolatileDiskMemory block size ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = uiBuffer;
+    uiVOLATILEDISKOffset = CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToVOLATILEDISK(pucData, uiVOLATILEDISKOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToVOLATILEDISK() - 4/4: Failed data offset is larger than VolatileDiskMemory block size");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetUSERRESERVEDSize() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetUSERRESERVEDSize(void)
+{
+    int32 iReturnCode;
+    uint32 uiSize = 99;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = 70;
+
+    /* ----- Test case #1 - NULL input ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetUSERRESERVEDSize(NULL);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetUSERRESERVEDSize 1/2: NULL argument\n");
+
+    /* ----- Test case #2 - Get Size ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetUSERRESERVEDSize(&uiSize);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetUSERRESERVEDSize 2/2: Get size - return code\n");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize, "_CFE_PSP_Get.Size 2/2: Verify block size\n");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_ReadFromUSERRESERVED() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_ReadFromUSERRESERVED(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiUSERRESERVEDOffset = 0;
+    uint32  uiNumBytes = 100;
+    uint8   ucIdx = 0;
+
+    uint8   localUSERRESERVEDBuffer[100];
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void*)localUSERRESERVEDBuffer;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = 100;
+
+    /* Modify first 100 bytes from UserReservedMemory for testing */
+    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_ReadFromUSERRESERVED() - 1/3: Nominal - Read data is matched with UserReservedMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromUSERRESERVED() - 1/3: Nominal - return value");
+
+    /* ----- Test case #2 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromUSERRESERVED() - 2/3: Input argument is NULL");
+
+    /* ----- Test case #3 - Data offset is larger than UserReservedMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr;
+    uiUSERRESERVEDOffset = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromUSERRESERVED() - 3/3: Failed data offset is larger than UserReservedMemory block size");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_WriteToUSERRESERVED() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_WriteToUSERRESERVED(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiUSERRESERVEDOffset = 0;
+    uint32  uiNumBytes = 100;
+
+    uint8   localUSERRESERVEDBuffer[200];
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr = (void*)localUSERRESERVEDBuffer;
+    CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize = 200;
+    memset(localUSERRESERVEDBuffer, '1', 200);
+    memset(uiBuffer, '1',uiNumBytes);
+
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 1/4: Nominal - new data same as original one");
+
+    /* ----- Test case #2 - Need to update memory ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes);
+    uiBuffer[10] = 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToUSERRESERVED() - 2/4: Nominal");
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_WriteToUSERRESERVED() - 2/4: Nominal - data match");
+
+    /* ----- Test case #3 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToUSERRESERVED() - 3/4: Input argument is NULL");
+
+    /* ----- Test case #4 - Data offset is larger than UserReservedMemory block size ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = uiBuffer;
+    uiUSERRESERVEDOffset = CFE_PSP_ReservedMemoryMap.UserReservedMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToUSERRESERVED(pucData, uiUSERRESERVEDOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToUSERRESERVED() - 4/4: Failed data offset is larger than UserReservedMemory block size");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetMemSize() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetMemSize(void)
+{
+    char cMsg[256] = {};
+    int32 iReturnCode;
+    uint32 uiSize = 0;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 99;
+
+    /* ----- Test case #1 - NULL Input ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "GetMemSize: NULL Pointer\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemSize(NULL, 100);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetMemSize - 1/3: Invalid pointer - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemSize - 1/3: Invalid pointer - message");
+
+    /* ----- Test case #2 - Invalid memory selection ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "GetMemSize: Invalid Memory Option\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemSize(&uiSize, 100);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_ERROR, "_CFE_PSP_GetMemSize - 2/3: Invalid memory option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemSize - 2/3: Invalid memory option - message");
+
+    /* ----- Test case #3 - Get Mem Size ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemSize(&uiSize, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetMemSize - 3/3: Got memory size - return code");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemSize - 3/3: Got memory size - value check");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetMemArea() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetMemArea(void)
+{
+    char cMsg[256] = {};
+    int32 iReturnCode;
+    uint32 uiSize = 0;
+    uint32 uiLocalBlockPtr = 0x00112233;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 99;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void *)0x12345678;
+
+    /* ----- Test case #1 - NULL Input ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "GetMemArea: NULL Pointer\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemArea(NULL, NULL, 99);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetMemArea - 1/3: Invalid pointer - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemArea - 1/3: Invalid pointer - message");
+
+    /* ----- Test case #2 - Invalid memory selection ----- */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "GetMemArea: Invalid Memory Option\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, 99);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_GetMemArea - 2/3: Invalid memory option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_GetMemArea - 2/3: Invalid memory option - message");
+
+    /* ----- Test case #3 - Get Mem Size ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetMemArea((cpuaddr *)&uiLocalBlockPtr, &uiSize, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetMemArea - 3/3: Got memory info - return code");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize, "_CFE_PSP_GetMemArea - 3/3: Got memory area size - value check");  
+    UtAssert_True(uiLocalBlockPtr == (cpuaddr)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, "_CFE_PSP_GetMemArea - 3/3: Got memory area ptr - value check"); 
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_ReadFromRAM() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_ReadFromRAM(void)
+{
+    int32 iReturnCode = 0;
+    char cMsg[256] = {};
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiCDSOffset = 0;
+    uint32  uiNumBytes = 100;
+    uint8   ucIdx = 0;
+
+    uint8   localCDSBuffer[100];
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 100;
+
+    /* Modify first 100 bytes from CDSMemory for testing */
+    for (ucIdx=0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
+
+    memset(uiBuffer, 1, uiNumBytes);
+    memset(CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr, 1, uiNumBytes);
+
+    /* ----- Test case #1 - NULL ptr ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "ReadFromRAM: NULL Pointer\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRAM - 1/6: Memory not allocated - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromRAM - 1/6: Memory not allocated - message");
+
+    /* ----- Test case #2 - Default switch/case ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "ReadFromRAM: Invalid Memory Option\n");
+    pucData = uiBuffer;
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, 999);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_ReadFromRAM - 2/6: Invalid memory section option - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_ReadFromRAM - 2/6: Invalid memory section option - message");    
+
+    /* ----- Test case #3 - Memory block ptr NULL ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRAM - 3/6: Memory block ptr is NULL - return code");
+
+    /* ----- Test case #4 - Illegal offset ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 999, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromRAM - 4/6: Invalid offset value - return code");;
+
+    /* ----- Test case #5 - Data is match/clean ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromRAM - 5/6: Data match, no writing required - return code");
+
+    /* ----- Test case #6 - Data mismatch ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    memset(uiBuffer, '0', uiNumBytes);
+    memset(localCDSBuffer, '2', 100);
+    /* Execute test */
+    iReturnCode = CFE_PSP_ReadFromRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromRAM - 6/6: Data mismatch, data write - return code");
+    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_ReadFromRAM - 6/6: Data mismatch, data write - memory compare");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_WriteToRAM() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_WriteToRAM(void)
+{
+    int32   iReturnCode = 0;
+    char    cMsg[256] = {};
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiCDSOffset = 0;
+    uint32  uiNumBytes = 100;
+
+    uint8   localCDSBuffer[200];
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 200;
+    memset(localCDSBuffer, '1', 200);
+    memset(uiBuffer, '1',uiNumBytes);
+
+    /* ----- Test case #1 - NULL ptr ----- */
+    /* Set additional inputs */
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "WriteToRAM: NULL Pointer\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(NULL, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRAM - 1/6: Memory not allocated - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 1/6: Memory not allocated - message");
+
+    /* ----- Test case #2 - Default switch/case ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    pucData = uiBuffer;
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Memory Selection\n");
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, 9999);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_TYPE, "_CFE_PSP_WriteToRAM - 2/6: Invalid memory selection - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 2/6: Invalid memory selection - message");
+
+    /* ----- Test case #3 - Memory block ptr NULL ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = NULL;
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRAM - 3/6: Memory block ptr was null - return code");
+
+    /* ----- Test case #4 - Illegal offset ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    Ut_OS_printf_Setup();
+    snprintf(cMsg, sizeof(cMsg), UT_MEMORY_PRINT_SCOPE "WriteToRAM: Invalid Mem Range\n");
+    CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void*)localCDSBuffer;
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize + 99, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToRAM - 4/6: Invalid offset - return code");
+    UtAssert_OS_print(cMsg, "_CFE_PSP_WriteToRAM - 4/6: message");
+
+    /* ----- Test case #5 - Data is match/clean ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 5/6: Data match, no writing required - return code");
+
+    /* ----- Test case #6 - Data mismatch ----- */
+    /* Set additional inputs */
+    UT_ResetState(0);
+    memset(localCDSBuffer, '2', 200);
+    memset(localCDSBuffer, '0', 100);
+    memset(uiBuffer, '0', uiNumBytes);
+    memset(localCDSBuffer, '2', 100);
+    /* Execute test */
+    iReturnCode = CFE_PSP_WriteToRAM(pucData, uiCDSOffset, uiNumBytes, OP_CDS);
+    /* Verify results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRAM - 6/6: Data mismatch, data write - return code");
+    UtAssert_MemCmp(localCDSBuffer, uiBuffer, uiNumBytes, "_CFE_PSP_WriteToRAM - 6/6: Data mismatch, data write - memory compare");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_GetRESETSize() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_GetRESETSize(void)
+{
+    int32 iReturnCode;
+    uint32 uiSize = 99;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = 70;
+
+    /* ----- Test case #1 - NULL input ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetRESETSize(NULL);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetRESETSize 1/2: NULL argument\n");
+
+    /* ----- Test case #2 - Get Size ------ */
+    /* Set additional inputs */
+    /* Execute test */
+    iReturnCode = CFE_PSP_GetRESETSize(&uiSize);
+    /* Verify Results */
+    UtAssert_True(iReturnCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetRESETSize 2/2: Get size - return code\n");
+    UtAssert_True(uiSize == CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize, "_CFE_PSP_Get.Size 2/2: Verify block size\n");
+}
+
+/*=======================================================================================
 ** Test_CFE_PSP_GetResetArea() test cases
 **=======================================================================================*/
 void Test_CFE_PSP_GetResetArea(void)
@@ -269,6 +905,114 @@ void Test_CFE_PSP_GetResetArea(void)
 }
 
 /*=======================================================================================
+** Test_CFE_PSP_ReadFromRESET() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_ReadFromRESET(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiRESETOffset = 0;
+    uint32  uiNumBytes = 100;
+    uint8   ucIdx = 0;
+
+    uint8   localRESETBuffer[100];
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void*)localRESETBuffer;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = 100;
+
+    /* Modify first 100 bytes from ResetMemory for testing */
+    for (ucIdx = 0; ucIdx < uiNumBytes; ucIdx++)
+    {
+        ((uint8 *)CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr)[ucIdx] = ucIdx;
+    }
+
+    /* ----- Test case #1 - Nominal ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_ReadFromRESET() - 1/3: Nominal - Read data is matched with ResetMemory data");
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_ReadFromRESET() - 1/3: Nominal - return value");
+
+    /* ----- Test case #2 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_ReadFromRESET() - 2/3: Input argument is NULL");
+
+    /* ----- Test case #3 - Data offset is larger than ResetMemory block size ----- */
+    /* Setup additional inputs */
+    pucData = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr;
+    uiRESETOffset = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_ReadFromRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_ReadFromRESET() - 3/3: Failed data offset is larger than ResetMemory block size");
+}
+
+/*=======================================================================================
+** Test_CFE_PSP_WriteToRESET() test cases
+**=======================================================================================*/
+void Test_CFE_PSP_WriteToRESET(void)
+{
+    int32   iRetCode = 0;
+    uint8   uiBuffer[100] = {};
+    uint8   *pucData = NULL;
+    uint32  uiRESETOffset = 0;
+    uint32  uiNumBytes = 100;
+
+    uint8   localRESETBuffer[200];
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr = (void*)localRESETBuffer;
+    CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize = 200;
+    memset(localRESETBuffer, '1', 200);
+    memset(uiBuffer, '1',uiNumBytes);
+
+    /* ----- Test case #1 - Nominal - new data same as original one ----- */
+    /* Setup additional inputs */
+    pucData = uiBuffer;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 1/4: Nominal - new data same as original one");
+
+    /* ----- Test case #2 - Need to update memory ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    memcpy(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes);
+    uiBuffer[10] = 99;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_WriteToRESET() - 2/4: Nominal");
+    UtAssert_MemCmp(uiBuffer, CFE_PSP_ReservedMemoryMap.ResetMemory.BlockPtr, uiNumBytes, 
+                    "_CFE_PSP_WriteToRESET() - 2/4: Nominal - data match");
+
+    /* ----- Test case #3 - Input argument is NULL ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = NULL;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_WriteToRESET() - 3/4: Input argument is NULL");
+
+    /* ----- Test case #4 - Data offset is larger than ResetMemory block size ----- */
+    /* Setup additional inputs */
+    UT_ResetState(0);
+    pucData = uiBuffer;
+    uiRESETOffset = CFE_PSP_ReservedMemoryMap.ResetMemory.BlockSize + 1;
+    /* Execute test */
+    iRetCode = CFE_PSP_WriteToRESET(pucData, uiRESETOffset, uiNumBytes);
+    /* Verify outputs */
+    UtAssert_True(iRetCode == CFE_PSP_INVALID_MEM_RANGE, "_CFE_PSP_WriteToRESET() - 4/4: Failed data offset is larger than ResetMemory block size");
+}
+
+/*=======================================================================================
 ** Test_CFE_PSP_GetUserReservedArea() test cases
 **=======================================================================================*/
 void Test_CFE_PSP_GetUserReservedArea(void)
@@ -298,7 +1042,7 @@ void Test_CFE_PSP_GetUserReservedArea(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetUserReservedArea(NULL, puiUserAreaSize);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetUserReservedArea - 2/3: Failed block address pointer is NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetUserReservedArea - 2/3: Failed block address pointer is NULL");
 
     /* ----- Test case #3 - UserArea size pointer is NULL ----- */
     /* Setup additional inputs */
@@ -306,48 +1050,7 @@ void Test_CFE_PSP_GetUserReservedArea(void)
     /* Execute test */
     uiRetCode = CFE_PSP_GetUserReservedArea(puiUserArea, NULL);
     /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetUserReservedArea - 3/3: Failed block size pointer is NULL");
-}
-
-/*=======================================================================================
-** Test_CFE_PSP_GetVolatileDiskMem() test cases
-**=======================================================================================*/
-void Test_CFE_PSP_GetVolatileDiskMem(void)
-{
-    uint32  uiRetCode = 0;
-    cpuaddr  uiVolDisk = 0;
-    uint32  uiVolDiskSize = 0;
-    cpuaddr *puiVolDisk = NULL;
-    uint32  *puiVolDiskSize = NULL;
-
-    /* ----- Test case #1 - Nominal ----- */
-    /* Setup additional inputs */
-    puiVolDisk = &uiVolDisk;
-    puiVolDiskSize = &uiVolDiskSize;
-    /* Execute test */
-    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, puiVolDiskSize);
-    /* Verify outputs */
-    UtAssert_IntegerCmpAbs(uiVolDisk, (cpuaddr)CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockPtr, 0, 
-                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block address is matched");
-    UtAssert_IntegerCmpAbs(uiVolDiskSize, CFE_PSP_ReservedMemoryMap.VolatileDiskMemory.BlockSize, 0, 
-                           "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal VolatileDiskMemory block size is matched");
-    UtAssert_True(uiRetCode == CFE_PSP_SUCCESS, "_CFE_PSP_GetVolatileDiskMem - 1/3: Nominal");
-
-    /* ----- Test case #2 - Block address pointer is NULL ----- */
-    /* Setup additional inputs */
-    puiVolDiskSize = &uiVolDiskSize;
-    /* Execute test */
-    uiRetCode = CFE_PSP_GetVolatileDiskMem(NULL, puiVolDiskSize);
-    /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetVolatileDiskMem - 2/3: Failed block address pointer is NULL");
-
-    /* ----- Test case #3 - Block size pointer is NULL ----- */
-    /* Setup additional inputs */
-    puiVolDisk = &uiVolDisk;
-    /* Execute test */
-    uiRetCode = CFE_PSP_GetVolatileDiskMem(puiVolDisk, NULL);
-    /* Verify outputs */
-    UtAssert_True(uiRetCode == CFE_PSP_ERROR, "_CFE_PSP_GetVolatileDiskMem - 3/3: Failed block size pointer is NULL");
+    UtAssert_True(uiRetCode == CFE_PSP_INVALID_POINTER, "_CFE_PSP_GetUserReservedArea - 3/3: Failed block size pointer is NULL");
 }
 
 /*=======================================================================================

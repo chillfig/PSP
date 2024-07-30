@@ -57,6 +57,7 @@
 #*****************************************************************************************************************
 
 add_library(ut_psp_libc_stubs STATIC EXCLUDE_FROM_ALL
+    src/libc-stat-stubs.c
     src/libc-stdio-stubs.c
     src/libc-stdlib-stubs.c
     src/libc-string-stubs.c

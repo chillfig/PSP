@@ -96,6 +96,7 @@ void UtTest_Setup(void)
     ADD_TEST(CFE_PSP_GR740CollectDynamicInfo);
     ADD_TEST(CFE_PSP_GR740GetStaticInfoTable);
     ADD_TEST(CFE_PSP_GR740GetDynamicInfoTable);
+    ADD_TEST(CFE_PSP_GR740GetDiskFreeSize);
 
     ADD_TEST(CFE_PSP_MemScrubInit);
     ADD_TEST(CFE_PSP_MemScrubIsRunning);
@@ -119,11 +120,25 @@ void UtTest_Setup(void)
     ADD_TEST(vxTimeBaseGet);
 
     ADD_TEST(CFE_PSP_GetCDSSize);
+    ADD_TEST(CFE_PSP_GetCDSArea);
     ADD_TEST(CFE_PSP_WriteToCDS);
     ADD_TEST(CFE_PSP_ReadFromCDS);
-    ADD_TEST(CFE_PSP_GetResetArea);
-    ADD_TEST(CFE_PSP_GetUserReservedArea);
+    ADD_TEST(CFE_PSP_GetVOLATILEDISKSize);
     ADD_TEST(CFE_PSP_GetVolatileDiskMem);
+    ADD_TEST(CFE_PSP_ReadFromVOLATILEDISK);
+    ADD_TEST(CFE_PSP_WriteToVOLATILEDISK);
+    ADD_TEST(CFE_PSP_GetUSERRESERVEDSize);
+    ADD_TEST(CFE_PSP_ReadFromUSERRESERVED);
+    ADD_TEST(CFE_PSP_WriteToUSERRESERVED);
+    ADD_TEST(CFE_PSP_GetMemSize);
+    ADD_TEST(CFE_PSP_GetMemArea);
+    ADD_TEST(CFE_PSP_ReadFromRAM);
+    ADD_TEST(CFE_PSP_WriteToRAM);
+    ADD_TEST(CFE_PSP_GetRESETSize);
+    ADD_TEST(CFE_PSP_GetResetArea);
+    ADD_TEST(CFE_PSP_ReadFromRESET);
+    ADD_TEST(CFE_PSP_WriteToRESET);
+    ADD_TEST(CFE_PSP_GetUserReservedArea);
     ADD_TEST(CFE_PSP_InitProcessorReservedMemory);
     ADD_TEST(CFE_PSP_SetupReservedMemoryMap);
     ADD_TEST(CFE_PSP_DeleteProcessorReservedMemory);
