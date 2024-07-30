@@ -66,6 +66,8 @@ CFE_PSP_MODULE_DECLARE_IODEVICEDRIVER(vxworks_sysmon);
 
 vxworks_sysmon_state_t vxworks_sysmon_global;
 
+uint32 vxworks_sysmon_stack[VXWORKS_SYSMON_STACK_SIZE/4];
+
 static const char *vxworks_sysmon_subsystem_names[]  = {"aggregate", "per-cpu", NULL};
 static const char *vxworks_sysmon_subchannel_names[] = {"cpu-load", NULL};
 
@@ -201,12 +203,12 @@ int32_t vxworks_sysmon_Start(vxworks_sysmon_cpuload_state_t *state)
         /* start clean */
         memset(state, 0, sizeof(*state));
         state->should_run = true;
-        StatusCode = OS_TaskCreate(&state->task_id, 
-                                   VXWORKS_SYSMON_TASK_NAME, 
+        StatusCode = OS_TaskCreate(&state->task_id,
+                                   VXWORKS_SYSMON_TASK_NAME,
                                    vxworks_sysmon_Task,
-                                   NULL, 
-                                   VXWORKS_SYSMON_STACK_SIZE, 
-                                   VXWORKS_SYSMON_TASK_PRIORITY, 
+                                   vxworks_sysmon_stack,
+                                   sizeof(vxworks_sysmon_stack),
+                                   VXWORKS_SYSMON_TASK_PRIORITY,
                                    0);
         if(StatusCode !=  OS_SUCCESS)
         {
