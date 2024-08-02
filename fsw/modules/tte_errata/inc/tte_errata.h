@@ -56,8 +56,10 @@ static int g_iDevNum = 0;
 static int g_iFuncNum = 0;
 
 /********************************************************************
- * Local Function Prototypes
+ * External Function Prototypes
  ********************************************************************/
+
+void tte_errata_Init(uint32 uiPspModuleId);
 
 /* Get function to retrieve the Detected Parity Error */
 int32 CFE_PSP_GetPCIDpeBit(uint32 *pDpeBit);

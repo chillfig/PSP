@@ -93,7 +93,7 @@ typedef struct
     /** \brief  Pointer to Reserved Memory Boot Record  */
     CFE_PSP_ReservedMemoryBootRecord_t *BootPtr;
     /** \brief  Pointer to Exception Storage  */
-    CFE_PSP_ExceptionStorage_t *        ExceptionStoragePtr;
+    CFE_PSP_ExceptionStorage_t *ExceptionStoragePtr;
     /** \brief  Reset Memory  */
     CFE_PSP_MemoryBlock_t ResetMemory;
     /** \brief  Volatile Disk Memory  */
@@ -127,9 +127,9 @@ typedef enum
     /** \brief User Reserved section*/
     OP_USERRESERVED = 3,
     /** \brief Boot Record section*/
-    OP_BOOTRECORD = 4,
+    OP_BOOTRECORD   = 4,
     /** \brief Exception Storage section*/
-    OP_EXCEPTION = 5,
+    OP_EXCEPTION    = 5,
     /** \brief Not Applicable section. Used as a No-Op */
     OP_NA           = 6
 } MEMORY_SECTION_t;

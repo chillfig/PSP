@@ -19,5 +19,4 @@ port_direct
 iodriver
 vxworks_sysmon
 ping
-spylib_fpga
 tte_errata

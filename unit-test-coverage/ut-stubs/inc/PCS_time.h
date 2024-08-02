@@ -54,6 +54,7 @@
 /* types normally defined in time.h */
 /* ----------------------------------------- */
 typedef long PCS_time_t;
+typedef long PCS_suseconds_t;
 
 struct PCS_timespec
 {

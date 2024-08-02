@@ -42,10 +42,10 @@
 ** Global Variables
 */
 /** \brief Watchdog current millisecond value */
-static uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
+uint32 g_uiCFE_PSP_WatchdogValue_ms = CFE_PSP_WATCHDOG_DEFAULT_MSEC;  /* Watchdog time in msecs */
 
 /** \brief Watchdog current status */
-static bool g_bWatchdogStatus = false;
+bool g_bWatchdogStatus = false;
 
 /**********************************************************
  * 

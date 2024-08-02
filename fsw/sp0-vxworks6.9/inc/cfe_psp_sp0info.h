@@ -60,42 +60,6 @@ extern "C" {
 #define SP0_PRINT_SCOPE                     "PSP SP0: "
 
 /**
- ** \name Max number of Voltage and Temperature sensors per target generation
- **
- ** \par Description:
- ** Aitech consider SP0 and SP0s as Original and Upgrade respectively.
- **/
-/** \{ */
-/** \brief SP0s Maximum Number of Voltage Sensors */
-#define SP0_UPGRADE_MAX_VOLT_SENSORS    6
-/** \brief SP0 Maximum Number of Voltage Sensors */
-#define SP0_ORIGINAL_MAX_VOLT_SENSORS   0
-/** \brief SP0s Maximum Number of Temperature Sensors */
-#define SP0_UPGRADE_MAX_TEMP_SENSORS    4
-/** \brief SP0 Maximum Number of Temperature Sensors */
-#define SP0_ORIGINAL_MAX_TEMP_SENSORS   3
-/** \} */
-
-/** \brief ROM1 LOCK Code */
-#define SP0_ROM1_CODE_LOCK                  0x000000A1
-/** \brief ROM1 UNLOCK Code */
-#define SP0_ROM1_CODE_UNLOCK                0x000000A3
-/** \brief ROM2 LOCK Code */
-#define SP0_ROM2_CODE_LOCK                  0x000000B1
-/** \brief ROM2 UNLOCK Code */
-#define SP0_ROM2_CODE_UNLOCK                0x000000B3
-/** \brief SP0 Boot ROM Status Address */
-#define SP0_BOOT_ROM_STATUS_ADDR            0xE8000040
-/** \brief SP0 ROM1 Bit Mask */
-#define SP0_ROM1_MASK                       0x00000100
-/** \brief SP0 ROM2 Bit Mask */
-#define SP0_ROM2_MASK                       0x00000200
-/** \brief SP0 ROM1 Status Shift */
-#define SP0_ROM1_STATUS_SHIFT               8
-/** \brief SP0 ROM2 Status Shift */
-#define SP0_ROM2_STATUS_SHIFT               9
-
-/**
 ** \brief SP0 static info structure
 ** \par Description:
 ** The table includes values that changes only once during boot.

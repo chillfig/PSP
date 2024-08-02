@@ -50,7 +50,6 @@ If we are building for functional tests, add the VxWorks events
 /********************************************************************
  * Local Function Prototypes
  ********************************************************************/
-static void tte_errata_Init(uint32 uiPspModuleId);
 
 /********************************************************************
  * Global Variable
@@ -106,7 +105,8 @@ void tte_errata_Init(uint32 uiPspModuleId)
         }
         else
         {
-            OS_printf("TTE Errata: Initialized Successfully\n");
+            OS_printf("TTE Errata: Initialized Successfully Bus #: %d Dev #: %d Func #: %d\n", 
+                      g_iBusNum, g_iDevNum, g_iFuncNum);
         }
     }
     else

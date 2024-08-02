@@ -301,6 +301,8 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
   - CFE_PSP_GetMemArea()
   - CFE_PSP_ReadFromRAM()
   - CFE_PSP_WriteToRAM()
+  - CFE_PSP_RestoreBootRecord()
+  - CFE_PSP_RestoreExceptionData()
   - CFE_PSP_RestoreReset()
   - CFE_PSP_RestoreCDS()
   - CFE_PSP_RestoreVolatileDisk()
@@ -320,10 +322,12 @@ When running in Manual Mode, no task is created. Run To call memory scrubbing
   - #g_CDSBinSemId
   - #g_VOLATILEDISKBinSemId
   - #g_USERRESERVEDBinSemId
-  - #g_bRESETUpdateFlag
-  - #g_bCDSUpdateFlag
-  - #g_bVOLATILEDISKUpdateFlag
-  - #g_bUSERRESERVEDUpdateFlag
+  - #g_bRESETSyncFlag
+  - #g_bCDSSyncFlag
+  - #g_bVOLATILEDISKSyncFlag
+  - #g_bUSERRESERVEDSyncFlag
+  - #g_bBOOTRECORDSyncFlag
+  - #g_bEXCEPTIONDATASyncFlag
   - #g_uiMemorySyncStartup
   - #g_uiMemorySyncTime
   - #g_uiMemorySyncStatistics

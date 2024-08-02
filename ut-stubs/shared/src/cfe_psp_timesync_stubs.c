@@ -72,6 +72,8 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 
     UT_GenStub_Execute(CFE_PSP_GetOSTime, Basic, NULL);
 
+    UT_Stub_CopyToLocal(UT_KEY(CFE_PSP_GetOSTime), myT, sizeof(CFE_TIME_SysTime_t));
+
     return UT_GenStub_GetReturnValue(CFE_PSP_GetOSTime, int32);
 }
 

@@ -28,6 +28,7 @@
 #include <sysLib.h>
 #include <excLib.h>
 #include <taskLib.h>
+#include <bootLib.h>
 /* Defines SPE_CONTEXT */
 #include <speLib.h>
 /* Defines ESFPPC, the exception stack frame */
@@ -38,6 +39,7 @@
 #include <scratchRegMap.h>
 
 #include "common_types.h"
+#include "osapi-timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -371,7 +373,7 @@ typedef struct
     /**
      ** \brief Force the spe register to 64 bit alignment
      */
-    UINT64          force64BitAlign;
+    uint64          force64BitAlign;
     /**
      ** \brief floating point registers
      */
@@ -674,17 +676,6 @@ typedef struct
 #define CFE_PSP_MEMORY_VOLATILEDISK_BIN_SEM_NAME    "VODBSEM"
 /** \brief USER RESERVED Binary Semaphore Name */
 #define CFE_PSP_MEMORY_USERRESERVED_BIN_SEM_NAME    "USRBSEM"
-
-/**
- ** \brief Spy Library FPGA Timer ID
- **
- ** \par Description:
- ** FPGA Timer ID used to run the overridable Spy Library
- ** monitoring using the FPGA timer instead of CPU timer.
- ** Note that this macro is only relevant if the spylib_fpga
- ** module is installed as part of the PSP module list.
- */
-#define CFE_PSP_SPYLIB_FPGA_TIMER_ID 1
 
 /**
 ** \} <!-- End of group "psp_sp0vx69_platcfg" -->

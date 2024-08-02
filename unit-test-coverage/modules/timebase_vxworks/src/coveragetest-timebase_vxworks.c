@@ -252,6 +252,37 @@ void Test_Get_Timebase(void)
 
     UtAssert_UINT32_EQ(tbu, VxTime.u);
     UtAssert_UINT32_EQ(tbl, VxTime.l);
+
+
+    UT_ResetState(0);
+
+    /* NULL Tbu */
+    tbu = 99;
+    tbl = 100;
+    CFE_PSP_Get_Timebase(NULL, &tbl);
+
+    UtAssert_UINT32_EQ(tbu, 99);
+    UtAssert_UINT32_EQ(tbl, 100);
+
+    /* NULL Tbl */
+    tbu = 99;
+    tbl = 100;
+    CFE_PSP_Get_Timebase(&tbu, NULL);
+
+    UtAssert_UINT32_EQ(tbu, 99);
+    UtAssert_UINT32_EQ(tbl, 100);
+
+}
+
+void Test_No_LocalTime(void)
+{
+    OS_time_t OsTime;
+
+    /* NULL LocalTime */
+    OsTime.ticks = 0xdeadbeef;
+    CFE_PSP_GetTime(NULL);
+
+    UtAssert_UINT32_EQ(OsTime.ticks, 0xdeadbeef);
 }
 
 /*
@@ -270,4 +301,5 @@ void UtTest_Setup(void)
     ADD_TEST(Test_Reducible_2);
     ADD_TEST(Test_Rollover);
     ADD_TEST(Test_Get_Timebase);
+    ADD_TEST(Test_No_LocalTime);
 }

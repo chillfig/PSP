@@ -70,4 +70,19 @@
 #define GetWrsKernelTextStart PCS_GetWrsKernelTextStart
 #define GetWrsKernelTextEnd   PCS_GetWrsKernelTextEnd
 
+#define sysModel PCS_sysModel
+#define sysBspRev PCS_sysBspRev
+#define sysProcNumGet PCS_sysProcNumGet
+
+#define l2errTotal PCS_l2errTotal
+#define l2errMult PCS_l2errMult
+#define l2errTagPar PCS_l2errTagPar
+#define l2errMBECC PCS_l2errMBECC
+#define l2errSBECC PCS_l2errSBECC
+#define l2errCfg PCS_l2errCfg
+#define mchCause PCS_mchCause
+#define mchkHook PCS_mchkHook
+
+#define ckCtrs PCS_ckCtrs
+
 #endif

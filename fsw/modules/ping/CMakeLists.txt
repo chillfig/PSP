@@ -13,7 +13,7 @@
 #*****************************************************************************************************************
 
 # Pseudo-terminal interface module
-add_psp_module(ping cfe_psp_ping.c)
+add_psp_module(ping src/cfe_psp_ping.c)
 
 target_include_directories(ping PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 

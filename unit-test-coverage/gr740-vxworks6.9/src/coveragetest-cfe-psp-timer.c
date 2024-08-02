@@ -42,6 +42,7 @@
 #include "cfe_psp_timer.h"
 
 #include "PCS_stdlib.h"
+#include "PCS_stdio.h"
 #include "PCS_rebootLib.h"
 #include "PCS_cacheLib.h"
 #include "PCS_cfe_configdata.h"
@@ -65,13 +66,14 @@ extern bool g_bTimerInitialized;
 **=======================================================================================*/
 void Test_CFE_PSP_InitLocalTime(void)
 {
+    char cMsg_timer_init[] = TIMER_PRINT_SCOPE "Decrementer timer already initialized\n";
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-
+    Ut_OS_printf_Setup();
     /* Execute test */
     CFE_PSP_InitLocalTime();
     /* Verify outputs */
-    UtAssert_NA("Ut_CFE_PSP_InitLocalTime() - 1/1: Nominal");
+    UtAssert_OS_print(cMsg_timer_init, "Ut_CFE_PSP_InitLocalTime() - 1/1: Nominal");
 }
 
 /*=======================================================================================

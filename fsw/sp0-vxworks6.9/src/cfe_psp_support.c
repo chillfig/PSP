@@ -37,6 +37,8 @@
 #include <bflashCt.h>
 /* For loading a new kernel on catalog */
 #include <progUtil.h>
+/* EEPROM */
+#include <nvRamToFlash.h>
 
 #include "common_types.h"
 #include "target_config.h"
@@ -48,7 +50,6 @@
 #include "cfe_psp_start.h"
 #include "cfe_psp_memsync.h"
 #include "cfe_psp_support.h"
-#include "cfe_psp_exception.h"
 #include "cfe_psp_memscrub.h"
 #include "cfe_psp_sp0info.h"
 #include "cfe_psp_timesync.h"
@@ -65,7 +66,7 @@
 /** \} */
 
 /** \brief List of available CFS partitions in Flash memory */
-static char g_cAvailable_cfs_partitions[][CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = CFE_PSP_STARTUP_AVAILABLE_PARTITIONS;
+char g_cAvailable_cfs_partitions[][CFE_PSP_ACTIVE_PARTITION_MAX_LENGTH] = CFE_PSP_STARTUP_AVAILABLE_PARTITIONS;
 
 extern CFE_PSP_Startup_structure_t g_StartupInfo;
 extern void CFE_PSP_FlushToFLASH(void);
@@ -111,15 +112,12 @@ void CFE_PSP_Restart(uint32 resetType)
     if (resetType == CFE_PSP_RST_TYPE_POWERON)
     {
         CFE_PSP_MemSyncStop();
-        /*
-        When we delete all URM files, the reset type gets deleted too.
-        This means that we have no way to tell CFS what was the reset type when
-        it starts up again. CFE_PSP_InitProcessorReservedMemory will check for
-        the URM files, and if it does not find them, it will assume that it is a
-        reset type POWERON, else assume PROCESSOR.
-         */
+        /* When we delete all URM files, the reset type gets deleted too.
+           This means that we have no way to tell CFS what was the reset type when
+           it starts up again. CFE_PSP_InitProcessorReservedMemory will check for
+           the URM files, and if it does not find them, it will assume that it is a
+           reset type POWERON, else assume PROCESSOR. */
         CFE_PSP_DeleteProcessorReservedMemory();
-        CFE_PSP_ClearExceptionData();
     }
     else
     {
@@ -130,8 +128,6 @@ void CFE_PSP_Restart(uint32 resetType)
 
         /* Stop Mem Sync and Synch URM to Flash */
         CFE_PSP_FlushToFLASH();
-
-        CFE_PSP_SaveExceptionData();
     }
 
     /* Delay to let console catch up on printing logs. */
@@ -258,7 +254,6 @@ const char *CFE_PSP_GetProcessorName(void)
  *********************************************************/
 void CFE_PSP_ToggleCFSBootPartition(void)
 {
-    int32   iRetCode = CFE_PSP_SUCCESS;
     int32   iChars = 0;
     uint8   ucIndex = 0u;
     uint8   ucEffectiveIndex = 0U;
@@ -309,7 +304,7 @@ void CFE_PSP_ToggleCFSBootPartition(void)
     }
 
     /* Set Boot Startup String */
-    iRetCode = CFE_PSP_SetBootStartupString(cBootString, true);
+    (void)CFE_PSP_SetBootStartupString(cBootString, true);
 }
 
 /**
@@ -329,7 +324,7 @@ void CFE_PSP_ToggleCFSBootPartition(void)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_ValidatePath(char *pPathBuffer, uint32 uiBufferLength)
+int32 CFE_PSP_ValidatePath(char *pPathBuffer, uint32 uiBufferLength)
 {
     uint16_t index = 0;
     char     cVal = 0;
@@ -432,7 +427,7 @@ int32 CFE_PSP_SetBootStartupString(char *pStartupBootString, uint32 uiTalkative)
     /* Check startupBootString length */
     /* We don't need to check for minimum length because there might be a 
     case when the StartupScriptPath is just an empty string */
-    if ((pStartupBootString == NULL) || (memchr(pStartupBootString, (int) NULL, BOOT_FILE_LEN) == NULL))
+    if ((pStartupBootString == NULL) || (memchr(pStartupBootString, (cpuaddr)NULL, BOOT_FILE_LEN) == NULL))
     {
         OS_printf("PSP: Provided startup script path is NULL or cannot be longer than %d bytes\n", BOOT_FILE_LEN);
         iRet_code = CFE_PSP_ERROR;
@@ -529,13 +524,12 @@ int32 CFE_PSP_GetBootStructure(BOOT_PARAMS *pTargetBootParameters, uint32 uiTalk
 {
     int32   iRet_code = CFE_PSP_ERROR;
     char    cBootString[MAX_BOOT_LINE_SIZE] = {'\0'};
-    char    *pRet_code = NULL;
 
     /* Get boot string */
     if (sysNvRamGet(cBootString,MAX_BOOT_LINE_SIZE,0) == OK)
     {
         /* Convert boot string to structure */
-        pRet_code = bootStringToStruct(cBootString, pTargetBootParameters);
+        bootStringToStruct(cBootString, pTargetBootParameters);
 
         if (uiTalkative > 0)
         {

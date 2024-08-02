@@ -46,8 +46,9 @@
 #include "PCS_taskLibCommon.h"
 #include "PCS_taskLib.h"
 #include "PCS_sysLib.h"
-#include "PCS_gr740.h"
+#include "PCS_cfe_psp_gr740.h"
 #include "PCS_stdlib.h"
+#include "PCS_stdio.h"
 #include "PCS_cfe_configdata.h"
 #include "PCS_userReservedMem.h"
 #include "PCS_unistd.h"
@@ -86,7 +87,7 @@ void Test_CFE_PSP_Main(void)
     CFE_PSP_Main();
     /* Verify results */
     UtAssert_STUB_COUNT(PCS_OS_BSPMain, 0);
-    UtAssert_NA("_CFE_PSP_Main - 1/3: Found previous instance of CFS");
+    UtAssert_STUB_COUNT(PCS_printf, 1);
 
     /* ----- Test case #2: - OS_BSPMain returns error ----- */
     UT_ResetState(0);
@@ -97,7 +98,7 @@ void Test_CFE_PSP_Main(void)
     CFE_PSP_Main();
     /* Verify results */
     UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
-    UtAssert_NA("_CFE_PSP_Main - 2/3: OS_BSPMain returned error");
+    UtAssert_STUB_COUNT(PCS_printf, 1);
 
     /* ----- Test case #3: - Nominal ----- */
     UT_ResetState(0);
@@ -108,7 +109,7 @@ void Test_CFE_PSP_Main(void)
     CFE_PSP_Main();
     /* Verify results */
     UtAssert_STUB_COUNT(PCS_OS_BSPMain, 1);
-    UtAssert_NA("_CFE_PSP_Main - 3/3: Nominal, OS_BSPMain success");
+    UtAssert_STUB_COUNT(PCS_printf, 0);
 }
 
 /*=======================================================================================

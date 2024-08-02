@@ -79,3 +79,13 @@ uint32_t PCS_vxDecGet(void)
 {
     return UT_DEFAULT_IMPL(PCS_vxDecGet);
 }
+
+uint32_t PCS_vxSpefscrGet(void)
+{
+    return UT_DEFAULT_IMPL(PCS_vxSpefscrGet);
+}
+
+void PCS_vxSpefscrSet(uint32_t val)
+{
+    UT_DEFAULT_IMPL(PCS_vxSpefscrSet);
+}

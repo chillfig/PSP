@@ -50,6 +50,8 @@
 
 #include "PCS_basetypes.h"
 
+#include "PCS_sys_types.h"
+
 /* ----------------------------------------- */
 /* constants normally defined in fcntl.h */
 /* ----------------------------------------- */
@@ -106,5 +108,7 @@
 
 extern int PCS_fcntl(int fd, int cmd, ...);
 extern int PCS_open(const char *file, int oflag, ...);
+extern int PCS_creat(const char *pathname, PCS_mode_t mode);
+extern int PCS_mkdir(const char *pathname);
 
 #endif /* PCS_FCNTL_H */

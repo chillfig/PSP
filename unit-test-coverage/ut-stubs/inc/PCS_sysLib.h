@@ -48,6 +48,14 @@
 /* ----------------------------------------- */
 /* constants normally defined in sysLib.h */
 /* ----------------------------------------- */
+extern uint32_t PCS_l2errTotal;
+extern uint32_t PCS_l2errMult;
+extern uint32_t PCS_l2errTagPar;
+extern uint32_t PCS_l2errMBECC;
+extern uint32_t PCS_l2errSBECC;
+extern uint32_t PCS_l2errCfg;
+extern uint32_t PCS_mchCause;
+extern uint32_t PCS_mchkHook;
 
 /* ----------------------------------------- */
 /* types normally defined in sysLib.h */
@@ -71,5 +79,11 @@ extern void PCS_sysPciRead32(uint32_t address, uint32_t *data);
 
 extern unsigned int PCS_GetWrsKernelTextStart(void);
 extern unsigned int PCS_GetWrsKernelTextEnd(void);
+
+extern char *PCS_sysModel(void);
+extern char *PCS_sysBspRev(void);
+extern int PCS_sysProcNumGet(void);
+
+extern void PCS_ckCtrs(void);
 
 #endif

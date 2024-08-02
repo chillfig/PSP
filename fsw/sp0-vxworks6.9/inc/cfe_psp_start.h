@@ -49,7 +49,7 @@ extern "C" {
 */
 
 /** \brief MACRO to perform a bitwise AND operation on a specific bit position */
-#define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
+#define CHECK_BIT(x, pos)       ((x) & (1UL << (pos)))
 
 /** \brief MACRO to perform a bitwise AND operation */
 #define BITWISE_AND(x, y)       ((x) & (y))

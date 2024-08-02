@@ -19,8 +19,12 @@
 #ifndef PCS_CFE_TIME_H
 #define PCS_CFE_TIME_H
 
+#include "cfe_time_extern_typedefs.h"
+
 #include "PCS_basetypes.h"
 
 uint32 PCS_CFE_TIME_Micro2SubSecs(uint32 MicroSeconds);
+
+extern CFE_TIME_SysTime_t PCS_CFE_TIME_Subtract(CFE_TIME_SysTime_t Time1, CFE_TIME_SysTime_t Time2);
 
 #endif

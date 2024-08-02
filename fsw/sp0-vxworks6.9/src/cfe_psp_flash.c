@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
 /*
 ** PSP API Includes
@@ -64,35 +65,43 @@ int32 CFE_PSP_ReadFromFlash(uint32 *p_dest, size_t size, char *fname)
     }
     else
     {
-        /* Attempt to open file */
-        iFd = open(fname, O_RDONLY, 0);
-        if (iFd < 0)
+        if (CFE_PSP_CheckFile(fname) == false)
         {
-            OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Failed to open file\n");
-            OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
-            OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: strerror: %s\n", strerror(errno));
+            OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: %s doesn't exist\n", fname);
             iReturnCode = CFE_PSP_ERROR;
         }
         else
         {
-            /* Read from file */
-            readBytes = read(iFd, (void *)p_dest, size);
-
-            /* Check read amount */
-            if (readBytes != size)
+            /* Attempt to open file */
+            iFd = open(fname, O_RDONLY, 0);
+            if (iFd < 0)
             {
-                OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read incorrect amount of data\n");
+                OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Failed to open file\n");
                 OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
-                OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read %d of %d bytes. strerror: %s \n", 
-                                            (int32)readBytes, (int32)size, strerror(errno));
+                OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: strerror: %s\n", strerror(errno));
                 iReturnCode = CFE_PSP_ERROR;
             }
-
-            /* Attempt to close file */
-            if (close(iFd) != OS_SUCCESS)
+            else
             {
-                OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Unable to close file\n");
-                OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+                /* Read from file */
+                readBytes = read(iFd, (void *)p_dest, size);
+
+                /* Check read amount */
+                if (readBytes != size)
+                {
+                    OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read incorrect amount of data\n");
+                    OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+                    OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Read %d of %d bytes. strerror: %s \n", 
+                                                (int32)readBytes, (int32)size, strerror(errno));
+                    iReturnCode = CFE_PSP_ERROR;
+                }
+
+                /* Attempt to close file */
+                if (close(iFd) != OS_SUCCESS)
+                {
+                    OS_printf(FLASH_PRINT_SCOPE "ReadFromFLASH: Unable to close file\n");
+                    OS_printf(FLASH_PRINT_SCOPE "FILE: <%s>\n", fname);
+                }
             }
         }
     }

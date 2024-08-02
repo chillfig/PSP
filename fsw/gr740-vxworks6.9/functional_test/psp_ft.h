@@ -41,7 +41,7 @@ void ft_exception(void);
 void ft_gr740_info(void);
 void ft_memory(void);
 void ft_mem_scrub(void);
-void ft_ntp(void);
+void ft_ntp_sync(void);
 void ft_ssr(void);
 void ft_start(void);
 void ft_support(void);

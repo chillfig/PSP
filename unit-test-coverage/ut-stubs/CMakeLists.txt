@@ -57,28 +57,47 @@
 #*****************************************************************************************************************
 
 add_library(ut_psp_libc_stubs STATIC EXCLUDE_FROM_ALL
+    src/arpa-inet-stubs.c
     src/libc-stat-stubs.c
     src/libc-stdio-stubs.c
     src/libc-stdlib-stubs.c
     src/libc-string-stubs.c
+    src/netinet-in-stubs.c
+    src/posix-errno-stubs.c
     src/posix-fcntl-stubs.c
     src/posix-unistd-stubs.c
+    src/sys-socket-stubs.c
+    src/sys-select-stubs.c
+    src/vxworks-aimonUtil.c
     src/vxworks-ataDrv-stubs.c
+    src/vxworks-bflashCt-stubs.c
+    src/vxworks-bootLib-stubs.c
     src/vxworks-cacheLib-stubs.c
+    src/vxworks-cfe-psp-gr740-stubs.c
+    src/vxworks-cfe-psp-sp0-stubs.c
     src/vxworks-edrLib-stubs.c
     src/vxworks-excLib-stubs.c
     src/vxworks-fppLib-stubs.c
-    src/vxworks-gr740-stubs.c
     src/vxworks-intLib-stubs.c
     src/vxworks-ipcom_ipd-stubs.c
     src/vxworks-mcpx750-stubs.c
+    src/vxworks-mem_scrub-stubs.c
     src/vxworks-moduleLib-stubs.c
+    src/vxworks-nvRamToFlash-stubs.c
+    src/vxworks-pci-stubs.c
+    src/vxworks-progUtil-stubs.c
     src/vxworks-rebootLib-stubs.c
+    src/vxworks-scratchRegMap-stubs.c
+    src/vxworks-speLib-stubs.c
     src/vxworks-spyLib-stubs.c
     src/vxworks-spyLibP-stubs.c
+    src/vxworks-sys950Lib-stubs.c
+    src/vxworks-sysApi-stubs.c
     src/vxworks-sysLib-stubs.c
+    src/vxworks-sys950Lib-stubs.c
     src/vxworks-taskLib-stubs.c
     src/vxworks-taskLibCommon-stubs.c
+    src/vxworks-tempSensor-stubs.c
     src/vxworks-time-stubs.c
     src/vxworks-userReservedMem-stubs.c
     src/vxworks-vxCpuLib-stubs.c

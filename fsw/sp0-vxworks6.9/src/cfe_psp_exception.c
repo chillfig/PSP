@@ -65,7 +65,6 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_types.h"
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
-#include "cfe_psp_exception.h"
 #include "cfe_psp_flash.h"
 
 /*
@@ -86,12 +85,10 @@ edrPolicyHandlerHookRemove
 /** \brief Declared in Aitech BSP 'bootrom.map' */
 extern STATUS edrErrorPolicyHookRemove(void);
 
-/** \brief  Reserved Memory Map */
-extern CFE_PSP_ReservedMemoryMap_t CFE_PSP_ReservedMemoryMap;
-/** \brief Boot Record Filepath */
-extern char g_BOOTRECORDFilepath[CFE_PSP_FILEPATH_MAX_LENGTH];
-/** \brief Exception Storage Filepath */
-extern char g_EXCEPTIONFilepath[CFE_PSP_FILEPATH_MAX_LENGTH];
+/** \brief Boot Record sync flag */
+extern bool g_bBOOTRECORDSyncFlag;
+/** \brief Exception data sync flag */
+extern bool g_bEXCEPTIONDATASyncFlag;
 /*
 ** Global variables
 */
@@ -100,7 +97,7 @@ extern char g_EXCEPTIONFilepath[CFE_PSP_FILEPATH_MAX_LENGTH];
  ** \brief g_ucOverRideDefaultedrPolicyHandlerHook
  ** 
  */
-static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
+bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
 
 /**
  ** \brief g_pDefaultedrPolicyHandlerHook
@@ -109,136 +106,11 @@ static bool g_ucOverRideDefaultedrPolicyHandlerHook = true;
  ** The EDR_POLICY_HANDLER_HOOK is a function pointer defined
  ** in VxWorks header file edrLibP.h.
  */
-static EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
+EDR_POLICY_HANDLER_HOOK g_pDefaultedrPolicyHandlerHook = NULL;
 
 /*
 ** Local Function Prototypes
 */
-
-/**********************************************************
- * 
- * Function: CFE_PSP_LoadFromNVRAM
- * 
- * Description: See function declaration for info
- *
- *********************************************************/
-int32 CFE_PSP_LoadFromNVRAM(void)
-{
-    return CFE_PSP_LoadExceptionData();
-}
-
-/**********************************************************
- * 
- * Function: CFE_PSP_SaveToNVRAM
- * 
- * Description: See function declaration for info
- *
- *********************************************************/
-int32 CFE_PSP_SaveToNVRAM(void)
-{
-    return CFE_PSP_SaveExceptionData();
-}
-
-
-/**********************************************************
- * 
- * Function: CFE_PSP_ClearNVRAM
- * 
- * Description: See function declaration for info
- *
- *********************************************************/
-int32 CFE_PSP_ClearNVRAM(void)
-{
-    return CFE_PSP_ClearExceptionData();
-}
-
-int32 CFE_PSP_LoadExceptionData(void)
-{
-    int32       iStatus = OK;
-    int32       iRetCode = CFE_PSP_ERROR;
-    const int32 iBootRecordSize = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    const int32 iEdrSize = sizeof(CFE_PSP_ExceptionStorage_t);
-    const int32 iURM_size = iBootRecordSize + iEdrSize;
-    uint32      uiNumUrmExceptions = 0;
-
-    /* Load Boot Record data from flash */
-    iStatus = CFE_PSP_ReadFromFlash((uint32 *)CFE_PSP_ReservedMemoryMap.BootPtr, 
-                                    iBootRecordSize, g_BOOTRECORDFilepath);
-
-    /* Load data from flash to ED&R pointer */
-    iStatus = CFE_PSP_ReadFromFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-                                    iEdrSize, g_EXCEPTIONFilepath);
-
-    if (iStatus == CFE_PSP_SUCCESS)
-    {
-        /* Get the number of exceptions loaded from flash */
-        uiNumUrmExceptions = CFE_PSP_Exception_GetCount();
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "URM Data Recovered (%d bytes) - %u new exception(s)\n",
-                    iURM_size, uiNumUrmExceptions);
-        iRetCode = CFE_PSP_SUCCESS;
-    }
-    else
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "ReadFromFlash ERROR, could not load URM Data\n");
-    }
-
-    return iRetCode;
-}
-
-int32 CFE_PSP_SaveExceptionData(void)
-{
-    int32             iStatus = OK;
-    int32             iRetCode = CFE_PSP_ERROR;
-    const int32       iEdrSize = sizeof(CFE_PSP_ExceptionStorage_t);
-    const int32       iBootRecordSize = sizeof(CFE_PSP_ReservedMemoryBootRecord_t);
-    const int32       iURM_size = iBootRecordSize + iEdrSize;
-
-    /* Save the Boot URM data to flash */
-    iStatus = CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.BootPtr, 
-                                    iBootRecordSize, g_BOOTRECORDFilepath);
-
-    /* Save the EDR URM data to flash */
-    iStatus = CFE_PSP_WriteToFlash((uint32 *)CFE_PSP_ReservedMemoryMap.ExceptionStoragePtr,
-                                    iEdrSize, g_EXCEPTIONFilepath);
-
-    if (iStatus == OK)
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "Saved URM Data to flash (%u bytes)\n", iURM_size);
-        iRetCode = CFE_PSP_SUCCESS;
-    }
-    else
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "WriteToFlash ERROR, could not save URM Data\n");
-    }
-    return iRetCode;
-}
-
-int32 CFE_PSP_ClearExceptionData(void)
-{
-    int32   iRetCode = CFE_PSP_ERROR;
-    int32   iStatusException = CFE_PSP_ERROR;
-    int32   iStatusBoot = CFE_PSP_ERROR;
-
-    iStatusException = CFE_PSP_DeleteFile(g_EXCEPTIONFilepath);
-    if (iStatusException != CFE_PSP_SUCCESS)
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "Unable to delete exception file\n");
-    }
-
-    iStatusBoot = CFE_PSP_DeleteFile(g_BOOTRECORDFilepath);
-    if (iStatusBoot != CFE_PSP_SUCCESS)
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "Unable to delete boot record file\n");
-    }
-
-    if ((iStatusException == CFE_PSP_SUCCESS) && (iStatusBoot == CFE_PSP_SUCCESS))
-    {
-        OS_printf(PSP_EXCEP_PRINT_SCOPE "Exception and Boot Record files deleted successfully\n");
-        iRetCode = CFE_PSP_SUCCESS;
-    }
-
-    return iRetCode;
-}
 
 /**
  ** \brief Makes the proper call to CFE_ES_ProcessCoreException
@@ -318,9 +190,8 @@ BOOL CFE_PSP_edrPolicyHandlerHook(int type, void *pInfo_param, BOOL debug)
         speSave(&pBuffer->context_info.fp);
 
         CFE_PSP_Exception_WriteComplete();
-
-        /* After write complete, the EDR data in RAM is ready to be backup up on flash */
-        CFE_PSP_SaveExceptionData();
+        g_bBOOTRECORDSyncFlag = true;
+        g_bEXCEPTIONDATASyncFlag = true;
 
         if (g_ucOverRideDefaultedrPolicyHandlerHook == false)
         {

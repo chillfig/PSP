@@ -45,6 +45,15 @@
 
 #include "PCS_sysLib.h"
 
+uint32_t PCS_l2errTotal;
+uint32_t PCS_l2errMult;
+uint32_t PCS_l2errTagPar;
+uint32_t PCS_l2errMBECC;
+uint32_t PCS_l2errSBECC;
+uint32_t PCS_l2errCfg;
+uint32_t PCS_mchCause;
+uint32_t PCS_mchkHook;
+
 int PCS_sysClkRateGet(void)
 {
     return UT_DEFAULT_IMPL_RC(PCS_sysClkRateGet, 10000);
@@ -68,16 +77,51 @@ char *PCS_sysMemTop(void)
 char *PCS_sysPhysMemTop(void)
 {
     int32 Status;
-    char *BufPtr;
+    cpuaddr BufPtr;
 
-    BufPtr = NULL;
+    BufPtr = (cpuaddr)NULL;
     Status = UT_DEFAULT_IMPL(PCS_sysPhysMemTop);
     if (Status == 0)
     {
-        UT_GetDataBuffer(UT_KEY(PCS_sysPhysMemTop), (void **)&BufPtr, NULL, NULL);
+        UT_Stub_CopyToLocal(UT_KEY(PCS_sysPhysMemTop), &BufPtr, sizeof(BufPtr));
     }
 
-    return BufPtr;
+    return (char *)BufPtr;
+}
+
+int PCS_sysAuxClkRateGet(void)
+{
+    return UT_DEFAULT_IMPL(PCS_sysAuxClkRateGet);
+}
+
+void PCS_PciOutByte(uint32_t address, uint8_t data)
+{
+    UT_DEFAULT_IMPL(PCS_PciOutByte);
+}
+
+void PCS_PciOutLong(uint32_t address, uint32_t data)
+{
+    UT_DEFAULT_IMPL(PCS_PciOutLong);
+}
+
+void PCS_sysPciWrite32(uint32_t address, uint32_t data)
+{
+    UT_DEFAULT_IMPL(PCS_sysPciWrite32);
+}
+
+void PCS_sysPciRead32(uint32_t address, uint32_t *data)
+{
+    UT_DEFAULT_IMPL(PCS_sysPciRead32);
+}
+
+unsigned int PCS_GetWrsKernelTextStart(void)
+{
+    return UT_DEFAULT_IMPL(PCS_GetWrsKernelTextStart);
+}
+
+unsigned int PCS_GetWrsKernelTextEnd(void)
+{
+    return UT_DEFAULT_IMPL(PCS_GetWrsKernelTextEnd);
 }
 
 char *PCS_sysModel(void)
@@ -128,7 +172,7 @@ char *PCS_sysBspRev(void)
                "MUST BE VERY VERY LONG TO MAKE A DIFFERENCE";
     static char cShortMessage[] = "Typical Message";
 
-    iStatus = UT_DEFAULT_IMPL(PCS_sysModel);
+    iStatus = UT_DEFAULT_IMPL(PCS_sysBspRev);
     if (iStatus == 1)
     {
         return cLongMessage;
@@ -141,37 +185,7 @@ int PCS_sysProcNumGet(void)
     return UT_DEFAULT_IMPL(PCS_sysProcNumGet);
 }
 
-int PCS_sysAuxClkRateGet(void)
+void PCS_ckCtrs(void)
 {
-    return UT_DEFAULT_IMPL(PCS_sysAuxClkRateGet);
-}
-
-void PCS_PciOutByte(uint32_t address, uint8_t data)
-{
-    UT_DEFAULT_IMPL(PCS_PciOutByte);
-}
-
-void PCS_PciOutLong(uint32_t address, uint32_t data)
-{
-    UT_DEFAULT_IMPL(PCS_PciOutLong);
-}
-
-void PCS_sysPciWrite32(uint32_t address, uint32_t data)
-{
-    UT_DEFAULT_IMPL(PCS_sysPciWrite32);
-}
-
-void PCS_sysPciRead32(uint32_t address, uint32_t *data)
-{
-    UT_DEFAULT_IMPL(PCS_sysPciRead32);
-}
-
-unsigned int PCS_GetWrsKernelTextStart(void)
-{
-    return UT_DEFAULT_IMPL(PCS_GetWrsKernelTextStart);
-}
-
-unsigned int PCS_GetWrsKernelTextEnd(void)
-{
-    return UT_DEFAULT_IMPL(PCS_GetWrsKernelTextEnd);
+    UT_DEFAULT_IMPL(PCS_ckCtrs);
 }

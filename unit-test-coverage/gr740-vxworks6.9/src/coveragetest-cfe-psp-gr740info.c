@@ -38,14 +38,14 @@
 #include "coveragetest-psp-gr740-vxworks6.9.h"
 #include "ut-adaptor-bootrec.h"
 
-#include <gr740.h>
+#include <cfe_psp_gr740.h>
 
 #include "PCS_vxWorks.h"
 #include "PCS_stdlib.h"
 #include "PCS_rebootLib.h"
 #include "PCS_cacheLib.h"
 #include "PCS_cfe_configdata.h"
-#include "PCS_stat.h"
+#include "PCS_sys_stat.h"
 
 #include "cfe_psp.h"
 #include "cfe_psp_gr740info.h"
@@ -319,7 +319,7 @@ void Test_CFE_PSP_GR740GetStaticInfoTable(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == CFE_PSP_SUCCESS,
                     "_CFE_PSP_GR740GetStaticInfoTable - 2/5: Nominal return success");
-    UtAssert_NA("_CFE_PSP_GR740GetStaticInfoTable - 2/5: Nominal with console print");
+    UtAssert_STUB_COUNT(PCS_printf, 1);
 
     /* ----- Test case #3 - data dump string array length is zero ----- */
     /* Setup additional inputs */
@@ -380,7 +380,7 @@ void Test_CFE_PSP_GR740GetDynamicInfoTable(void)
     /* Verify outputs */
     UtAssert_True(iRetCode == CFE_PSP_SUCCESS,
                     "_CFE_PSP_GR740GetDynamicInfoTable - 2/5: Nominal return success");
-    UtAssert_NA("_CFE_PSP_GR740GetDynamicInfoTable - 2/5: Nominal with console print");
+    UtAssert_STUB_COUNT(PCS_printf, 1);
 
     /* ----- Test case #3 - data dump string array length is zero ----- */
     /* Setup additional inputs */

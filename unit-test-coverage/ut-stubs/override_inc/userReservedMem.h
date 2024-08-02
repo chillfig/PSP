@@ -28,5 +28,6 @@
 /* ----------------------------------------- */
 
 #define userReservedGet PCS_userReservedGet
+#define userMemAlloc PCS_userMemAlloc
 
 #endif

@@ -30,13 +30,13 @@
 #include <stdio.h>
 #include <errno.h>
 #include <vxWorks.h>
-#include <stat.h>
+#include <sys/stat.h>
 
 /* For supporting REALTIME clock */
 #include <timers.h>
 
 /* GR740 Hardware Registers Definitions */
-#include <gr740.h>
+#include <cfe_psp_gr740.h>
 
 /* Include PSP API */
 #include "cfe_psp.h"

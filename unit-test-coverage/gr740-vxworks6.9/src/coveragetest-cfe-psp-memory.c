@@ -105,9 +105,9 @@ void Test_CFE_PSP_GetCDSSize(void)
 void Test_CFE_PSP_GetCDSArea(void)
 {
     uint32  uiRetCode = 0;
-    uint32  uiBlockAddress = 0;
+    cpuaddr uiBlockAddress = 0;
     uint32  uiBlockSize = 0;
-    uint32  *puiBlockAddress = NULL;
+    cpuaddr *puiBlockAddress = NULL;
     uint32  *puiBlockSize = NULL;
 
     uint8   localCDSMemoryBuffer[2000];
@@ -629,7 +629,7 @@ void Test_CFE_PSP_GetMemArea(void)
     char cMsg[256] = {};
     int32 iReturnCode;
     uint32 uiSize = 0;
-    uint32 uiLocalBlockPtr = 0x00112233;
+    cpuaddr uiLocalBlockPtr = 0x00112233;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockSize = 99;
     CFE_PSP_ReservedMemoryMap.CDSMemory.BlockPtr = (void *)0x12345678;
 

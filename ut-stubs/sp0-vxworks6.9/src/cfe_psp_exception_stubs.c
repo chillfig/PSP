@@ -36,7 +36,6 @@
  * Auto-Generated stub implementations for functions defined in cfe_psp_exception header
  */
 
-#include "cfe_psp_exception.h"
 #include "utgenstub.h"
 
 /*

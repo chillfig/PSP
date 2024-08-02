@@ -26,5 +26,6 @@
 /* mappings for declarations in cfe_time.h */
 /* ----------------------------------------- */
 #define CFE_TIME_Micro2SubSecs PCS_CFE_TIME_Micro2SubSecs
+#define CFE_TIME_Subtract PCS_CFE_TIME_Subtract
 
 #endif

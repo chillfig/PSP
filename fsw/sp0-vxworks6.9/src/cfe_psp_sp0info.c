@@ -32,7 +32,10 @@
 #include <errno.h>
 #include <vxWorks.h>
 #include <float.h>
-#include <stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 /* For supporting REALTIME clock */
 #include <timers.h>
@@ -45,6 +48,9 @@
 #include <bflashCt.h>
 #include <tempSensor.h>
 
+/* SP0 Hardware Registers Definitions */
+#include <cfe_psp_sp0.h>
+
 /* Include PSP API */
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
@@ -53,8 +59,8 @@
 /*
 ** Static Function Declarations
 */
-static int32 CFE_PSP_SP0PrintToBuffer(void);
-static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode);
+int32 CFE_PSP_SP0PrintToBuffer(void);
+int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode);
 
 /*
 ** Static Variables
@@ -62,20 +68,20 @@ static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode);
 /** \name SP0 Information String Buffer */
 /** \{ */
 /** \brief SP0 String Buffer */
-static char g_cSP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
+char g_cSP0DataDump[SP0_TEXT_BUFFER_MAX_SIZE];
 /** \brief Actual length of the string buffer */
-static int32 g_iSP0DataDumpLength;
+int32 g_iSP0DataDumpLength;
 /** \} */
 
 /**
  ** \brief SP0 Static Info Table
  */
-static CFE_PSP_SP0StaticInfoTable_t g_SP0StaticInfoTable;
+CFE_PSP_SP0StaticInfoTable_t g_SP0StaticInfoTable;
 
 /**
  ** \brief SP0 Dynamic Data Table
  */
-static CFE_PSP_SP0DynamicInfoTable_t g_SP0DynamicInfoTable;
+CFE_PSP_SP0DynamicInfoTable_t g_SP0DynamicInfoTable;
 
 /**********************************************************
  * 
@@ -117,7 +123,7 @@ int32 CFE_PSP_SP0CollectStaticInfo(void)
     indicates the top of memory. Normally, the user specifies the amount of 
     physical memory with the macro LOCAL_MEM_SIZE in config.h.
     */
-    g_SP0StaticInfoTable.systemPhysMemTop = (uint32) sysPhysMemTop();
+    g_SP0StaticInfoTable.systemPhysMemTop = (cpuaddr) sysPhysMemTop();
     
     /*
     This routine returns the processor number for the CPU board, which is set 
@@ -361,7 +367,7 @@ int32 CFE_PSP_SP0CollectDynamicInfo(void)
  ** \return #CFE_PSP_SUCCESS
  ** \return #CFE_PSP_ERROR
  */
-static int32 CFE_PSP_SP0PrintToBuffer(void)
+int32 CFE_PSP_SP0PrintToBuffer(void)
 {
     uint32     uiTotalMemory_MiB = 0;
     char       *pActiveBootString = NULL;
@@ -623,7 +629,7 @@ int64_t CFE_PSP_SP0GetDiskFreeSize(char *ram_disk_root_path)
     int64_t lBlocks_available = 0;
     struct statfs ram_disk_stats = {'\0'};
 
-    if ((ram_disk_root_path != NULL) && memchr(ram_disk_root_path, (int) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH))
+    if ((ram_disk_root_path != NULL) && memchr(ram_disk_root_path, (cpuaddr) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH))
     {
         if (statfs(ram_disk_root_path, &ram_disk_stats) == OK)
         {
@@ -705,7 +711,7 @@ int32 CFE_PSP_SP0ROM2Unlock(void)
  ** \return #CFE_PSP_SUCCESS - Successfully executed intended sequence
  ** \return #CFE_PSP_ERROR - Unsuccessfully executed intended sequence
  */
-static int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode)
+int32 CFE_PSP_SP0ROMXCmd(uint32_t uiCode)
 {
     int32 iReturnCode = CFE_PSP_ERROR;
 

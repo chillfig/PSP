@@ -36,8 +36,8 @@ function gen_tables_from_doxygen_comments()
     python3 gen_api_tbls.py psp $SW_DIR/fsw/shared/inc/cfe_psp_memory.h "Memory" && \
     mv cfe_PSP_memory.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_memory.pdf
 
-    python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_exception.h "SP0 Exceptions" && \
-    mv cfe_PSP_exception.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_exceptions.pdf
+    # python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_exception.h "SP0 Exceptions" && \
+    # mv cfe_PSP_exception.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_exceptions.pdf
 
     python3 gen_api_tbls.py psp $SW_DIR/fsw/sp0-vxworks6.9/inc/cfe_psp_flash.h "FLASH" && \
     mv cfe_PSP_flash.pdf $SW_DIR/docs/PSP_sp0-vxworks6.9_flash.pdf

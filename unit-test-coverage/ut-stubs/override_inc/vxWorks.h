@@ -87,4 +87,6 @@
 
 #define _Vx_usr_arg_t PCS_Vx_usr_arg_t
 
+#define EOS PCS_EOS
+
 #endif

@@ -30,6 +30,9 @@
 /* ----------------------------------------- */
 #define PCS_TASK_ID_ERROR ((PCS_TASK_ID)(-1))
 
+#define PCS_VX_COPROC3_TASK 0x04000000
+#define PCS_VX_SPE_TASK PCS_VX_COPROC3_TASK
+
 /* ----------------------------------------- */
 /* types normally defined in taskLibCommon.h */
 /* ----------------------------------------- */

@@ -68,7 +68,7 @@ void Test_CFE_PSP_WatchdogInit(void)
     /* Execute test */
     CFE_PSP_WatchdogInit();
     /* Verify outputs */
-    UtAssert_NA("_CFE_PSP_WatchdogInit() - 1/1: NA");
+    UtAssert_True(TIMER0_REG->timer[WD_TIMER_ID].control == 0, "_CFE_PSP_WatchdogInit() - 1/1: Nominal");
 }
 
 /*=======================================================================================
@@ -106,7 +106,7 @@ void Test_CFE_PSP_WatchdogService(void)
 {
     /* No content for implementing unit test */
     CFE_PSP_WatchdogService();
-    UtAssert_NA("_CFE_PSP_WatchdogService() - 1/1: NA");
+    UtAssert_True((TIMER0_REG->timer[WD_TIMER_ID].control & TIMER_CONTROL_LD) == TIMER_CONTROL_LD, "_CFE_PSP_WatchdogService() - 1/1: Nominal");
 }
 
 /*=======================================================================================

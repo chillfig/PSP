@@ -34,7 +34,7 @@
 project(PSPCOVERAGE C)
 
 # Currently only mcp750-vxworks is implemented a demonstration of how this works.
-set(PSPCOVERAGE_TARGETS "mcp750-vxworks" "gr740-vxworks6.9" CACHE STRING "PSP target(s) to build coverage tests for (default=all)")
+set(PSPCOVERAGE_TARGETS "mcp750-vxworks" "sp0-vxworks6.9" "gr740-vxworks6.9" CACHE STRING "PSP target(s) to build coverage tests for (default=all)")
 
 # Check that coverage has been implemented for this PSPTYPE
 foreach(PSPTYPE ${PSPCOVERAGE_TARGETS})

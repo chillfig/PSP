@@ -51,7 +51,7 @@
 ** cFE includes
 */
 #include "common_types.h"
-#include "cfe_time.h"
+#include <cfe_time_extern_typedefs.h>
 
 /*=======================================================================================
 ** Macro Definition

@@ -23,7 +23,9 @@
 #include "utstubs.h"
 
 #include "common_types.h"
+#include "cfe_psp_timesync.h"
 
+#include "PCS_vxWorks.h"
 #include "PCS_cfe_time.h"
 
 uint32 PCS_CFE_TIME_Micro2SubSecs(uint32 MicroSeconds)
@@ -33,4 +35,24 @@ uint32 PCS_CFE_TIME_Micro2SubSecs(uint32 MicroSeconds)
     iVal = UT_DEFAULT_IMPL(PCS_CFE_TIME_Micro2SubSecs);
     
     return iVal;
+}
+
+CFE_TIME_SysTime_t PCS_CFE_TIME_Subtract(CFE_TIME_SysTime_t Time1, CFE_TIME_SysTime_t Time2)
+{
+    CFE_TIME_SysTime_t retval = {0};
+    CFE_TIME_SysTime_t *pRetval = NULL;
+
+    int iStatus = UT_DEFAULT_IMPL(PCS_CFE_TIME_Subtract);
+
+    if (iStatus == PCS_OK)
+    {
+        UT_GetDataBuffer(UT_KEY(PCS_CFE_TIME_Subtract), (void **)&pRetval, NULL, NULL);
+    }
+
+    if (pRetval != NULL)
+    {
+        return *pRetval;
+    }
+
+    return retval;
 }

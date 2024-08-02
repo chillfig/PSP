@@ -62,3 +62,21 @@ int PCS_open(const char *file, int oflag, ...)
 
     return Status;
 }
+
+int PCS_creat(const char *pathname, PCS_mode_t mode)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(PCS_creat);
+
+    return Status;
+}
+
+int PCS_mkdir(const char *pathname)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(PCS_mkdir);
+
+    return Status;
+}

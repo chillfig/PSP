@@ -38,7 +38,7 @@
 #include "osapi.h"
 
 #include <target_config.h>
-#include <gr740.h>
+#include <cfe_psp_gr740.h>
 #include "cfe_psp_timer.h"
 
 /*

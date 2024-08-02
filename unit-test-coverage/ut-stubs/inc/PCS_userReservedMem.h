@@ -35,6 +35,8 @@
 /* prototypes normally declared in userReservedMem.h */
 /* ----------------------------------------- */
 void PCS_userReservedGet   (char **  pUserReservedAddr,
-                            size_t * pUserResrvedSize);
+                            size_t * pUserReservedSize);
+
+extern int PCS_userMemAlloc(uint32_t *addr, uint32_t size, bool talk);
 
 #endif

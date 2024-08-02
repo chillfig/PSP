@@ -28,6 +28,7 @@
 char UserReservedMemory[URM_SIZE] = {'\0'};
 size_t uURM = URM_SIZE;
 char *pURM = UserReservedMemory;
+char *pEndOfURM = UserReservedMemory + sizeof(UserReservedMemory);
 
 void PCS_userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize )
 {
@@ -38,4 +39,27 @@ void PCS_userReservedGet( char **  pUserReservedAddr, size_t * pUserReservedSize
     *pUserReservedAddr = pURM;
     uURM = (size_t)iSize;
     *pUserReservedSize = uURM;
+}
+
+int PCS_userMemAlloc(uint32_t *addr, uint32_t size, bool talk)
+{
+    int iStatus;
+
+    iStatus = UT_DEFAULT_IMPL(PCS_userMemAlloc);
+    
+    if (iStatus >= 0)
+    {
+        /* Check that there is enough memory available in the UserReservedMemory array */
+        if ( ((cpuaddr)pEndOfURM + size) <= ((cpuaddr)UserReservedMemory + URM_SIZE) )
+        {
+            *addr = (cpuaddr)pEndOfURM;
+            pEndOfURM = pEndOfURM + size;
+        }
+        else
+        {
+            pEndOfURM = UserReservedMemory;
+        }
+    }
+
+    return iStatus;
 }

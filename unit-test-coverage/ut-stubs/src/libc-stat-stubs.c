@@ -38,12 +38,26 @@
  * U.S. Government authorization.
  *************************************************************************/
 
-/* PSP coverage stub replacement for stat.h */
+/* PSP coverage stub replacement for sys/stat.h */
 #include <string.h>
 #include <stdlib.h>
 #include "utstubs.h"
 
-#include "PCS_stat.h"
+#include "PCS_sys_stat.h"
+
+int PCS_stat(const char *file, struct PCS_stat *buf)
+{
+    int32 Status;
+
+    Status = UT_DEFAULT_IMPL(PCS_stat);
+
+    if (UT_Stub_CopyToLocal(UT_KEY(PCS_stat), buf, sizeof(*buf)) < sizeof(*buf))
+    {
+        memset(buf, 0, sizeof(*buf));
+    }
+
+    return Status;
+}
 
 int PCS_statfs(const char *path, struct PCS_statfs *buf)
 {

@@ -53,6 +53,7 @@
 /* ----------------------------------------- */
 /* mappings for declarations in fcntl.h */
 /* ----------------------------------------- */
+/*
 #define S_IRWXU    PCS_S_IRWXU
 #define S_IRWXG    PCS_S_IRWXG
 #define S_IRWXO    PCS_S_IRWXO
@@ -67,19 +68,23 @@
 #define S_IWUSR    PCS_S_IWUSR
 #define S_IFDIR    PCS_S_IFDIR
 #define S_ISDIR(x) PCS_S_ISDIR(x)
-#define O_RDONLY   PCS_O_RDONLY
-#define O_WRONLY   PCS_O_WRONLY
-#define O_RDWR     PCS_O_RDWR
-#define O_CREAT    PCS_O_CREAT
-#define O_TRUNC    PCS_O_TRUNC
-#define O_NONBLOCK PCS_O_NONBLOCK
 #define F_GETFL    PCS_F_GETFL
 #define F_SETFL    PCS_F_SETFL
 #define F_GETFD    PCS_F_GETFD
 #define F_SETFD    PCS_F_SETFD
 #define F_DUPFD    PCS_F_DUPFD
+*/
+
+#define O_RDONLY   PCS_O_RDONLY
+#define O_WRONLY   PCS_O_WRONLY
+#define O_CREAT    PCS_O_CREAT
+#define O_RDWR     PCS_O_RDWR
+#define O_TRUNC    PCS_O_TRUNC
+#define O_NONBLOCK PCS_O_NONBLOCK
 
 #define fcntl PCS_fcntl
 #define open  PCS_open
+#define creat PCS_creat
+#define mkdir PCS_mkdir
 
 #endif /* OVERRIDE_FCNTL_H */

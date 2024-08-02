@@ -44,6 +44,7 @@
 #include "PCS_cfe_configdata.h"
 
 #include "PCS_arch_sparc_esfSparc.h"
+#include "PCS_arch_ppc_vxPpcLib.h"
 #include "PCS_edrLib.h"
 #include "PCS_edrLibP.h"
 
@@ -204,7 +205,6 @@ void Test_CFE_PSP_SetDefaultExceptionEnvironment(void)
 {
     /* ----- Test case #1 - Nominal ----- */
     /* Setup additional inputs */
-
     /* Execute test */
     CFE_PSP_SetDefaultExceptionEnvironment();
     /* Verify outputs */

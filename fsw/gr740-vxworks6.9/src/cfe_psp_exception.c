@@ -59,7 +59,6 @@ edrPolicyHandlerHookRemove
 #include "cfe_psp_exceptionstorage_api.h"
 #include "cfe_psp_memory.h"
 #include "cfe_psp_timer.h"
-/* #include "cfe_psp_exception.h" */
 
 extern STATUS edrErrorPolicyHookRemove(void);
 

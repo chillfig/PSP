@@ -38,7 +38,7 @@
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
 #include "cfe_psp_timer.h"
-#include <gr740.h>
+#include <cfe_psp_gr740.h>
 #include "cfe_psp_watchdog.h"
 
 /*

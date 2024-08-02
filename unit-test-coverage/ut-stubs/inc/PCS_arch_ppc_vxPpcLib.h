@@ -85,6 +85,23 @@
 #define PCS_PPC_FPSCR_XE 0x2210
 #define PCS_PPC_FPSCR_UE 0x2220
 
+#define PCS_PPC_MSR_SPE         0x02000000
+
+#define PCS_PPC_SPEFSCR_FINXE   0x00000040
+#define PCS_PPC_SPEFSCR_FINVE   0x00000020
+#define PCS_PPC_SPEFSCR_FDBZE   0x00000010
+#define PCS_PPC_SPEFSCR_FUNFE   0x00000008
+#define PCS_PPC_SPEFSCR_FOVFE   0x00000004
+
+#define PCS_PPC_SPEFSCR_SOV     0x00008000
+#define PCS_PPC_SPEFSCR_OV      0x00004000
+#define PCS_PPC_SPEFSCR_FG      0x00002000
+#define PCS_PPC_SPEFSCR_FX      0x00001000
+#define PCS_PPC_SPEFSCR_FINV    0x00000800
+#define PCS_PPC_SPEFSCR_FDBZ    0x00000400
+#define PCS_PPC_SPEFSCR_FUNF    0x00000200
+#define PCS_PPC_SPEFSCR_FOVF    0x00000100
+
 #endif
 
 /* ----------------------------------------- */
@@ -100,5 +117,8 @@ extern uint32_t PCS_vxMsrGet(void);
 extern void     PCS_vxFpscrSet(uint32_t);
 extern uint32_t PCS_vxFpscrGet(void);
 extern uint32_t PCS_vxDecGet(void);
+
+extern uint32_t PCS_vxSpefscrGet(void);
+extern void     PCS_vxSpefscrSet(uint32_t);
 
 #endif

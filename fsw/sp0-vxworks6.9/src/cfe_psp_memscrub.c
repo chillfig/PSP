@@ -39,7 +39,7 @@
 **
 ** See function definition for details
 */
-static void CFE_PSP_MemScrubTask(void);
+void CFE_PSP_MemScrubTask(void);
 
 /* Defined in sysLib.c */
 /** \name External definition of variables containing error statistics */
@@ -79,7 +79,7 @@ extern uint32 g_uiEndOfRam;
  ** will be the first mem scrub-related function to be called and below variable
  ** is static, this will be safe. 
  */
-static osal_id_t g_semUpdateMemAddr_id;
+osal_id_t g_semUpdateMemAddr_id;
 
 /**
  ** \brief Boolean flag to indicate scrub addresses have been updated
@@ -88,17 +88,17 @@ static osal_id_t g_semUpdateMemAddr_id;
  ** We use this flag for optimization sake; use this flag to check
  ** if scrub addresses need to be updated. See ...SCRUB_Task
  */
-static bool g_bScrubAddrUpdates_flag = false;
+bool g_bScrubAddrUpdates_flag = false;
 
 /** \brief Contains the boolean value if Mem Scrub should start at startup
  **
  */
-static bool g_bMemScrubStartOnStartup = CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP;
+bool g_bMemScrubStartOnStartup = CFE_PSP_MEMSCRUB_TASK_START_ON_STARTUP;
 
 /**
  ** \brief Mem Scrub configuration and status structure
  */
-static CFE_PSP_MemScrubStatus_t g_MemScrub_Status = 
+CFE_PSP_MemScrubStatus_t g_MemScrub_Status = 
 {
     .RunMode = CFE_PSP_MEMSCRUB_RUN_MODE,
     .uiBlockSize_Pages = CFE_PSP_MEMSCRUB_BLOCKSIZE_PAGES,
@@ -127,7 +127,7 @@ static CFE_PSP_MemScrubStatus_t g_MemScrub_Status =
  ** \return #CFE_PSP_SUCCESS if all the variables pass checks
  ** \return #CFE_PSP_ERROR if any check fails
  */
-static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
+int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
 {
     int32  iRetCode = CFE_PSP_SUCCESS;
     uint32 uiMaxBlocksize = 0;
@@ -142,7 +142,7 @@ static int32 CFE_PSP_MemScrubValidate(CFE_PSP_MemScrubStatus_t *pNewValues)
     /* If top of memory has not been initialized, then initialize it */
     if (g_uiEndOfRam == 0)
     {
-        g_uiEndOfRam = (uint32) sysPhysMemTop();
+        g_uiEndOfRam = (cpuaddr) sysPhysMemTop();
     }
 
     if (pNewValues->uiMemScrubEndAddr > g_uiEndOfRam)
@@ -356,7 +356,7 @@ int32 CFE_PSP_MemScrubGet(CFE_PSP_MemScrubStatus_t *pConfig, size_t iConfigSize,
 **
 ** \return None
 */
-static void CFE_PSP_MemScrubTask(void)
+void CFE_PSP_MemScrubTask(void)
 {
     STATUS status = CFE_PSP_ERROR;
 

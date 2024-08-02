@@ -77,6 +77,8 @@ enum
     PCS_NO_WAIT      = 0
 };
 
+#define PCS_EOS '\0'
+
 /* ----------------------------------------- */
 /* types normally defined in vxWorks.h */
 /* ----------------------------------------- */
@@ -108,5 +110,6 @@ typedef void (*PCS_VOIDFUNCPTR)(void);
 /* ----------------------------------------- */
 /* prototypes normally declared in vxWorks.h */
 /* ----------------------------------------- */
+
 
 #endif

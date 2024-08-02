@@ -26,6 +26,10 @@
 **  Include Files
 */
 #include <string.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <vxWorks.h>
 #include <taskLib.h>
 #include <errno.h>
@@ -43,6 +47,9 @@
 #include "target_config.h"
 #include "osapi.h"
 #include "cfe_es.h"
+
+/* SP0 Hardware Registers Definitions */
+#include <cfe_psp_sp0.h>
 
 /* Include PSP API */
 #include "cfe_psp.h"
@@ -62,8 +69,6 @@
 */
 /** \brief OSAL OS_BSPMain Entry Point */
 extern int OS_BSPMain(void);
-/** \brief VxWorks function to get the ID of a task from name */
-extern TASK_ID taskNameToId (char *name);
 /** \brief PSP Mem Sync function to check the presence of User Reserved Memory files */
 extern int32 CFE_PSP_CheckURMFilesExists(void);
 
@@ -85,7 +90,7 @@ extern int32 CFE_PSP_CheckURMFilesExists(void);
 /* Local Global Variables */
 
 /** \brief Console Shell Task ID */
-static TASK_ID g_uiShellTaskID = 0;
+TASK_ID g_uiShellTaskID = 0;
 
 /** \brief Startup Info Structure */
 CFE_PSP_Startup_structure_t g_StartupInfo;
@@ -229,7 +234,7 @@ void CFE_PSP_ProcessPOSTResults(void)
  ** \return RESET_SRC_CPCI
  ** \return RESET_SRC_SWR
  */
-static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
+RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
 {
     int32 iStatus = 0;
     RESET_SRC_REG_ENUM resetSrc = 0;
@@ -322,7 +327,7 @@ static RESET_SRC_REG_ENUM CFE_PSP_ProcessResetType(void)
  **
  ** \return None
  */
-static void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
+void CFE_PSP_LogSoftwareResetType(RESET_SRC_REG_ENUM resetSrc)
 {
     uint8 ucIndex = 0u;
     uint8 ucMaxIterations = sizeof(g_pMachineCheckCause_msg) / sizeof(g_pMachineCheckCause_msg[0]);
@@ -950,11 +955,11 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
         iStatus = taskSuspend(g_uiShellTaskID);
         if (iStatus == OK)
         {
-            OS_printf("Shell Task Suspended [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task Suspended [%p]\n", (void*)g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be suspended [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task could not be suspended [%p]\n", (void*)g_uiShellTaskID);
         }
     }
     else
@@ -962,11 +967,11 @@ int32 CFE_PSP_SuspendConsoleShellTask(bool suspend)
         iStatus = taskResume(g_uiShellTaskID);
         if (iStatus == OK)
         {
-            OS_printf("Shell Task Resumed [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task Resumed [%p]\n", (void*)g_uiShellTaskID);
         }
         else
         {
-            OS_printf("Shell Task could not be resumed [0x%08X]\n",g_uiShellTaskID);
+            OS_printf("Shell Task could not be resumed [%p]\n", (void*)g_uiShellTaskID);
         }
     }
 
@@ -999,13 +1004,13 @@ uint32 CFE_PSP_GetRestartType(uint32 *resetSubType)
  *********************************************************/
 int32 CFE_PSP_SetTaskPrio(const char *tName, uint8 tgtPrio)
 {
-    int32 iTID = CFE_PSP_ERROR;
+    TASK_ID iTID = TASK_ID_ERROR;
     int32 iCurPriority = 0;
     uint8 ucCurPrio = 0;
     uint8 ucNewPrio = 0;
     int32 iStatus = CFE_PSP_ERROR;
 
-    if ((tName != NULL) && (memchr(tName, (int) NULL, CFE_PSP_MAXIMUM_TASK_LENGTH) != NULL))
+    if ((tName != NULL) && (memchr(tName, (cpuaddr)NULL, CFE_PSP_MAXIMUM_TASK_LENGTH) != NULL))
     {
         ucNewPrio = tgtPrio;
 

@@ -39,7 +39,7 @@ function(add_psp_covtest MODULE_NAME TESTCASE_SRC UT_SRCS)
     # Compile the source unit(s) under test as a separate library
     # This is done so that special coverage-specific compile flags can be used on these files
     add_library(${OBJECT_TARGET} OBJECT
-        ${UT_SRCS} ${ARGN}
+        ${UT_SRCS}
     )
 
     # Apply the UT_COVERAGE_COMPILE_FLAGS to the units under test
@@ -48,8 +48,11 @@ function(add_psp_covtest MODULE_NAME TESTCASE_SRC UT_SRCS)
         ${UT_COVERAGE_COMPILE_FLAGS}
     )
 
-    target_include_directories(${OBJECT_TARGET} PRIVATE
+    target_include_directories(${OBJECT_TARGET} BEFORE PRIVATE
         ${PSPCOVERAGE_SOURCE_DIR}/ut-stubs/override_inc # overrides for system headers
+    )
+
+    target_include_directories(${OBJECT_TARGET} PRIVATE
         ${PSPCOVERAGE_SOURCE_DIR}/shared/inc
         ${CFEPSP_SOURCE_DIR}/fsw/inc                    # PSP public API
         ${CFEPSP_SOURCE_DIR}/fsw/shared/inc             # all PSP shared headers
@@ -64,12 +67,22 @@ function(add_psp_covtest MODULE_NAME TESTCASE_SRC UT_SRCS)
         $<TARGET_OBJECTS:${OBJECT_TARGET}>
     )
 
+    get_target_property(TARGET_DIRS ${OBJECT_TARGET} INCLUDE_DIRECTORIES)
+    foreach(dir ${TARGET_DIRS})
+      message(STATUS "module ${MODULE_NAME} target impl include dir='${dir}'")
+    endforeach()
+    get_target_property(TARGET_DIRS ${OBJECT_TARGET} INCLUDE_DIRECTORIES)
+    foreach(dir ${TARGET_DIRS})
+      message(STATUS "module ${MODULE_NAME} target shared include dir='${dir}'")
+    endforeach()
+
     # This also needs to be linked with UT_COVERAGE_LINK_FLAGS (for coverage)
     # This is also linked with any other stub libraries needed,
     # as well as the UT assert framework
     target_link_libraries(${RUNNER_TARGET}
         ${UT_COVERAGE_LINK_FLAGS}
         psp_module_api
+        ut_psp_cfe_stubs
         ut_psp_libc_stubs
         ut_osapi_stubs
         ut_assert
@@ -85,5 +98,7 @@ endfunction(add_psp_covtest)
 
 
 # a list of modules for which there is a coverage test implemented
+add_subdirectory(ping)
 add_subdirectory(timebase_vxworks)
+add_subdirectory(tte_errata)
 add_subdirectory(vxworks_sysmon)

@@ -40,7 +40,7 @@
 
 #include "cfe_psp.h"
 
-#include "gr740.h"
+#include <cfe_psp_gr740.h>
 
 #include "PCS_stdlib.h"
 #include "PCS_rebootLib.h"
@@ -101,8 +101,10 @@ void Test_CFE_PSP_MemScrubInit(void)
 **=======================================================================================*/
 void Test_CFE_PSP_MemScrubIsRunning(void)
 {
-    CFE_PSP_MemScrubIsRunning();
-    UtAssert_NA("_CFE_PSP_MemScrubIsRunning: Nothing to test");
+    bool bRetval = true;
+
+    bRetval = CFE_PSP_MemScrubIsRunning();
+    UtAssert_True(bRetval == false, "_CFE_PSP_MemScrubIsRunning: 1/1 - Not Running");
 }
 
 /*=======================================================================================
@@ -133,8 +135,10 @@ void Test_CFE_PSP_MemScrubDisable(void)
 **=======================================================================================*/
 void Test_CFE_PSP_MemScrubEnable(void)
 {
-    CFE_PSP_MemScrubEnable();
-    UtAssert_NA("_CFE_PSP_MemScrubEnable: Nothing to test");
+    int iRetval = CFE_PSP_ERROR;
+    
+    iRetval = CFE_PSP_MemScrubEnable();
+    UtAssert_True(iRetval == CFE_PSP_SUCCESS, "_CFE_PSP_MemScrubEnable: 1/1 - Nominal");
 }
 
 /*=======================================================================================
@@ -182,7 +186,7 @@ void Test_CFE_PSP_MemScrubValidate(void)
     newMemScrubConfig.uiMemScrubEndAddr = 100;
     newMemScrubConfig.uiMemScrubStartAddr = 1;
     g_uiEndOfRam = 0;
-    UT_SetDataBuffer(UT_KEY(PCS_sysPhysMemTop), (void *)sysMemTopAddr, sizeof(sysMemTopAddr), false);
+    UT_SetDataBuffer(UT_KEY(PCS_sysPhysMemTop), &sysMemTopAddr, sizeof(sysMemTopAddr), false);
     /* Execute test */
     iReturnCode = CFE_PSP_MemScrubValidate(&newMemScrubConfig);
     /* Verify outputs */

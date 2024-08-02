@@ -33,13 +33,14 @@
 #endif
 #include <ipcom_err.h>
 #include <taskLib.h>
+#include <ipcom_ipd.h>
 
 /* For supporting REALTIME clock */
 #include <timers.h>
 
 /* Provides the definition of CFE_TIME_SysTime_t */
 #include "cfe_time_extern_typedefs.h"
-
+#include "cfe_time.h"
 #include "cfe_mission_cfg.h"
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
@@ -56,8 +57,6 @@
 
 
 /* Functions provided by Kernel */
-/** \brief VxWorks function to get ID of running task */
-extern TASK_ID taskNameToId (char *name);
 /** \brief VxWorks function to kill a running service */
 extern IP_PUBLIC Ip_err ipcom_ipd_kill (const char *name );
 /** \brief VxWorks function to start a service */
@@ -83,7 +82,7 @@ int32 CFE_PSP_NTPDaemonIsRunning(void)
     TASK_ID     tidTaskId   = 0;
 
     tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
-    if (tidTaskId == CFE_PSP_ERROR)
+    if (tidTaskId == TASK_ID_ERROR)
     {
         iReturnCode = CFE_PSP_ERROR;
     }
@@ -197,26 +196,33 @@ int32 CFE_PSP_GetOSTime(CFE_TIME_SysTime_t *myT)
 int32 CFE_PSP_StartNTPDaemon(void)
 {
     int32       iStatus = CFE_PSP_ERROR;
-    int32       tidTaskId = 0;
+    TASK_ID     tidTaskId = 0;
 
     iStatus = ipcom_ipd_start(CFE_PSP_NTP_SERVICE_NAME);
     if (iStatus == IPCOM_SUCCESS)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon Started Successfully\n");
         tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
+        if (tidTaskId != TASK_ID_ERROR)
+        {
+            iStatus = CFE_PSP_SUCCESS;
+        }
     }
     else if (iStatus == IPCOM_ERR_ALREADY_STARTED)
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "NTP Daemon already started\n");
         tidTaskId = taskNameToId((char *)CFE_PSP_NTP_DAEMON_TASK_NAME);
+        if (tidTaskId != TASK_ID_ERROR)
+        {
+            iStatus = CFE_PSP_SUCCESS;
+        }
     }
     else
     {
         OS_printf(NTPSYNC_PRINT_SCOPE "ERROR NTP Daemon did not Start (ip_err = %d)\n", iStatus);
-        tidTaskId = CFE_PSP_ERROR;
     }
 
-    return tidTaskId;
+    return iStatus;
 }
 
 /**********************************************************

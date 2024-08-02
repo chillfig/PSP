@@ -29,5 +29,6 @@
 #define TASK_ID_ERROR PCS_TASK_ID_ERROR
 #define taskCpuAffinitySet PCS_taskCpuAffinitySet
 #define taskCpuAffinityGet PCS_taskCpuAffinityGet
+#define VX_SPE_TASK PCS_VX_SPE_TASK
 
 #endif

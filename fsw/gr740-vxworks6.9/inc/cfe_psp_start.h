@@ -46,12 +46,6 @@ extern "C" {
 ** \{
 */
 
-/* MACRO to perform a bitwise AND operation on a specific bit position */
-#define CHECK_BIT(x, pos)       ((x) & (1U << (pos)))
-
-/* MACRO to perform a bitwise AND operation */
-#define BITWISE_AND(x, y)       ((x) & (y))
-
 /**
  ** \brief Default PSP StartupTimer pre-print string 
  ** \par Description:

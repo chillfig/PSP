@@ -42,10 +42,10 @@
 #include "ut-adaptor-exceptions.h"
 
 #include "cfe_psp.h"
+#include "osconfig.h"
 #include "PCS_stdio.h"
 
-#define OS_BUFFER_SIZE 172
-#define MAX_OS_PRINTF_MESSAGES      50
+#define MAX_OS_PRINTF_MESSAGES 100
 
 /* Global array for OS_printf messages */
 char OS_printfMsgList[MAX_OS_PRINTF_MESSAGES][OS_BUFFER_SIZE];

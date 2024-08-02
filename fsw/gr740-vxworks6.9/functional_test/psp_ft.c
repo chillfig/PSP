@@ -54,7 +54,6 @@
 /* #include "cfe_psp_memsync.h" */
 #include "cfe_psp_config.h"
 #include "cfe_psp_start.h"
-/* #include "cfe_psp_exception.h" */
 /* #include "cfe_psp_support.h" */
 #include "cfe_psp_memscrub.h"
 #include "cfe_psp_gr740info.h"
@@ -159,12 +158,6 @@ void PSP_FT_Setup(void)
     tmp_fd = creat("/ram0/cf/cfe_es_startup.scr",O_RDWR);
     close(tmp_fd);
 
-    /* Clear flash from backups */
-    /*
-    TODO: Add code here to clear any permanent memory locations or files 
-    that could affect the test.
-    */
-
     /* Setup OSAL and call the OSAL version of OS_Application_Startup */
     CFE_PSP_Main();
 }
@@ -205,7 +198,7 @@ void PSP_FT_Start(void)
 
     ft_mem_scrub();
 
-    ft_ntp();
+    ft_ntp_sync();
 
     ft_ssr();
 
@@ -231,15 +224,9 @@ void PSP_FT_Start(void)
 
 void ft_support(void)
 {
-    // int32_t  ret_code = 0;
-    // char     bs_original[200] = {'\0'};
-    // char     bs_new[200] = "/ram0/test";
-    // char     bs_confirm[200] = {'\0'};
-    // char     cKernelName[] = "AITECH20";
-    // char     cKernelNameBad[] = "IEH0";
-    // uint32_t uiCRC = 0;
-
     OS_printf("[SUPPORT START]\n");
+
+    /* Nothing to do for GR740. */
 
     OS_printf("[SUPPORT END]\n\n");
 }
@@ -535,9 +522,6 @@ Functional Tests:
 */
 void ft_start(void)
 {
-/*     bool        test_case = false;
-    uint32_t    last_reset_type;
-    char        buffer[256]; */
     int32_t     ret_code;
 
     OS_printf("[START]\n");
@@ -603,7 +587,7 @@ Functional Tests:
 - Test NTP client daemon APIs. Check status, Enable and Disable
 - Check if time has been synchronized
 */
-void ft_ntp(void)
+void ft_ntp_sync(void)
 {
     int32_t     ret_code = CFE_PSP_ERROR;
     char        strMsg[256] = "";

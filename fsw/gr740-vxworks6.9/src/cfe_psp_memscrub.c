@@ -24,7 +24,7 @@
 /* Include PSP API */
 #include "cfe_psp.h"
 #include "cfe_psp_config.h"
-#include <gr740.h>
+#include <cfe_psp_gr740.h>
 #include "cfe_psp_memscrub.h"
 
 /* Defined in cfe_psp_memory.c */
