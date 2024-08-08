@@ -83,6 +83,7 @@ function(add_psp_covtest MODULE_NAME TESTCASE_SRC UT_SRCS)
         ${UT_COVERAGE_LINK_FLAGS}
         psp_module_api
         ut_psp_cfe_stubs
+        ut_psp_api_stubs
         ut_psp_libc_stubs
         ut_osapi_stubs
         ut_assert
@@ -102,3 +103,10 @@ add_subdirectory(ping)
 add_subdirectory(timebase_vxworks)
 add_subdirectory(tte_errata)
 add_subdirectory(vxworks_sysmon)
+add_subdirectory(ram_notimpl)
+add_subdirectory(ram_direct)
+add_subdirectory(port_notimpl)
+add_subdirectory(port_direct)
+add_subdirectory(eeprom_notimpl)
+add_subdirectory(eeprom_mmap_file)
+add_subdirectory(eeprom_direct)
