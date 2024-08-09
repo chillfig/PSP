@@ -43,39 +43,134 @@
 #include "cfe_psp_config.h"
 #include "cfe_psp_module.h"
 
+#define UT_RAMBLOCK_SIZE 32
+
+static union
+{
+    uint8  u8[UT_RAMBLOCK_SIZE];
+    uint16 u16[UT_RAMBLOCK_SIZE / sizeof(uint16)];
+    uint32 u32[UT_RAMBLOCK_SIZE / sizeof(uint32)];
+} UT_RAM_BLOCK;
+
 extern void eeprom_direct_Init(uint32 PspModuleId);
 
+/*
+ * --------------------------------------------
+ * TEST FUNCTIONS
+ * --------------------------------------------
+ */
+
+/* ********************************
+ * eeprom_direct_Init
+ * ********************************/
 void Test_eeprom_direct_Init(void)
 {
-    /*
-    void eeprom_direct_Init(uint32 PspModuleId)
-    */
-
+    /* Test For:
+     * void eeprom_direct_Init(uint32 PspModuleId)
+     */
     UtAssert_VOIDCALL(eeprom_direct_Init(1));
 }
 
-void Test_CFE_PSP_EepromWrite32(void)
+/* ********************************
+ * CFE_PSP_EepromWrite32
+ * ********************************/
+void Test_CFE_PSP_EepromWrite32_Nominal(void)
 {
-    /*
-    int32 CFE_PSP_EepromWrite32(cpuaddr MemoryAddress, uint32 uint32Value)
-    */
-    UtAssert_INT32_EQ(CFE_PSP_EepromWrite32(0, 1), CFE_PSP_SUCCESS);
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u32[0];
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite32(UtAddress, 0x11222211), CFE_PSP_SUCCESS);
 }
 
-void Test_CFE_PSP_EepromWrite16(void)
+void Test_CFE_PSP_EepromWrite32_AddressMisaligned(void)
 {
-    /*
-    int32 CFE_PSP_EepromWrite16(cpuaddr MemoryAddress, uint16 uint16Value)
-    */
-    UtAssert_INT32_EQ(CFE_PSP_EepromWrite16(0, 1), CFE_PSP_SUCCESS);
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u32[1];
+    UtAddress += 1;
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite32(UtAddress, 0xAABBCCDD), CFE_PSP_ERROR_ADDRESS_MISALIGNED);
 }
 
-void Test_CFE_PSP_EepromWrite8(void)
+/* ********************************
+ * CFE_PSP_EepromWrite16
+ * ********************************/
+void Test_CFE_PSP_EepromWrite16_AddressMisaligned(void)
 {
-    /*
-    int32 CFE_PSP_EepromWrite8(cpuaddr MemoryAddress, uint8 ByteValue)
-    */
-    UtAssert_INT32_EQ(CFE_PSP_EepromWrite8(0, 1), CFE_PSP_SUCCESS);
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u16[4];
+    UtAddress += 1;
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite16(UtAddress, 0x1122), CFE_PSP_ERROR_ADDRESS_MISALIGNED);
+}
+
+void Test_CFE_PSP_EepromWrite16_WriteLowBitOrder(void)
+{
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u16[6];
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite16(UtAddress, 0x3344), CFE_PSP_SUCCESS);
+
+    /* Assert */
+    UtAssert_STUB_COUNT(CFE_PSP_MemRead32, 1);
+}
+
+void Test_CFE_PSP_EepromWrite16_WriteHighBitOrder(void)
+{
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u16[8];
+    UtAddress += 2;
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite16(UtAddress, 0x5566), CFE_PSP_SUCCESS);
+
+    /* Assert */
+    UtAssert_STUB_COUNT(CFE_PSP_MemRead32, 1);
+}
+
+/* ********************************
+ * CFE_PSP_EepromWrite8
+ * ********************************/
+void Test_CFE_PSP_EepromWrite8_WriteLowBitOrder(void)
+{
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u8[20];
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite8(UtAddress, 0x11), CFE_PSP_SUCCESS);
+
+    /* Assert */
+    UtAssert_STUB_COUNT(CFE_PSP_MemRead16, 1);
+}
+
+void Test_CFE_PSP_EepromWrite8_WriteHighBitOrder(void)
+{
+    /* Arrange */
+    cpuaddr UtAddress;
+
+    UtAddress = (cpuaddr)&UT_RAM_BLOCK.u8[24];
+    UtAddress += 3;
+
+    /* Act */
+    UtAssert_INT32_EQ(CFE_PSP_EepromWrite8(UtAddress, 0x22), CFE_PSP_SUCCESS);
+
+    /* Assert */
+    UtAssert_STUB_COUNT(CFE_PSP_MemRead16, 1);
 }
 
 void Test_CFE_PSP_EepromWriteEnable(void)
@@ -113,7 +208,13 @@ void Test_CFE_PSP_EepromPowerDown(void)
 /*
  * Macro to add a test case to the list of tests to execute
  */
-#define ADD_TEST(test) UtTest_Add(test, NULL, NULL, #test)
+#define ADD_TEST(test) UtTest_Add(test, ResetTest, NULL, #test)
+
+void ResetTest(void)
+{
+    UT_ResetState(0);
+    memset(&UT_RAM_BLOCK, 0, sizeof(UT_RAM_BLOCK));
+}
 
 /*
  * Register the test cases to execute with the unit test tool
@@ -121,9 +222,13 @@ void Test_CFE_PSP_EepromPowerDown(void)
 void UtTest_Setup(void)
 {
     ADD_TEST(Test_eeprom_direct_Init);
-    ADD_TEST(Test_CFE_PSP_EepromWrite32);
-    ADD_TEST(Test_CFE_PSP_EepromWrite16);
-    ADD_TEST(Test_CFE_PSP_EepromWrite8);
+    ADD_TEST(Test_CFE_PSP_EepromWrite32_Nominal);
+    ADD_TEST(Test_CFE_PSP_EepromWrite32_AddressMisaligned);
+    ADD_TEST(Test_CFE_PSP_EepromWrite16_AddressMisaligned);
+    ADD_TEST(Test_CFE_PSP_EepromWrite16_WriteLowBitOrder);
+    ADD_TEST(Test_CFE_PSP_EepromWrite16_WriteHighBitOrder);
+    ADD_TEST(Test_CFE_PSP_EepromWrite8_WriteLowBitOrder);
+    ADD_TEST(Test_CFE_PSP_EepromWrite8_WriteHighBitOrder);
     ADD_TEST(Test_CFE_PSP_EepromWriteEnable);
     ADD_TEST(Test_CFE_PSP_EepromWriteDisable);
     ADD_TEST(Test_CFE_PSP_EepromPowerUp);
